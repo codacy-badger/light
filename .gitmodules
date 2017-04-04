@@ -1,0 +1,3 @@
+[submodule "buffer.c"]
+	path = buffer.c
+	url = https://github.com/hakudoshi23/buffer.c.git
