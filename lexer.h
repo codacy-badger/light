@@ -1,165 +1,242 @@
+#ifndef LIGHT_LANG_LEXER_H
+#define LIGHT_LANG_LEXER_H
+
 #include <stdio.h>
 #include <stdbool.h>
 
 #include "buffer.c/buffer.h"
 
-#define LEXER_LEFT_SEPARATOR "->"
-#define LEXER_IGNORED " \t\n"
-#define LEXER_RULE_END ";"
+#define LEXER_DEBUG false
+
+#define LEXER_IGNORED " \n\t"
+
+#define LITERAL_TOKEN(lexer, string, type)                                  \
+    if (buffer_is_next_str(lexer->buffer, string))                          \
+        {_token(lexer, token, type, strlen(string)); return true;}
+
+#define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||       \
+    c == '$' || c == '_')
+#define DIGIT(c) (c >= '0' && c <= '9')
+#define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
+
+typedef enum {
+    ASSIGN,
+    ADD,
+    SUB,
+    DIV,
+    MUL,
+    LET,
+    TYPE,
+    FUNCTION,
+    PAR_OPEN,
+    PAR_CLOSE,
+    BRAC_OPEN,
+    BRAC_CLOSE,
+    SQ_BRAC_OPEN,
+    SQ_BRAC_CLOSE,
+    STM_END,
+    COMMA,
+    RETURN,
+
+    ID,
+    NUMBER,
+} TokenType;
 
 typedef struct {
-    List* leftName;
-    List* rightNames;
-} LexerRule;
+    TokenType type;
+    char* text;
+    int line;
+    int col;
+} LexerToken;
 
 typedef struct {
-    List* grammarName;
-    List* grammarVersion;
-    List* ignored;
-    List* rules;
+    Buffer* buffer;
+    List* pushback;
 } Lexer;
 
-void lexer_printf(Lexer* lexer);
+static inline
+void _token (Lexer* lexer, LexerToken* token, TokenType type, int size);
+static inline
+void lexer_skip_ignored_and_comments (Lexer* lexer);
 
-static void parseGrammar (Lexer* lexer, Buffer* buffer);
-static void parseGrammarRule (Lexer* lexer, Buffer* buffer);
-static void isolateLiterals (Lexer* lexer);
-static void splitOptions (Lexer* lexer);
+static inline bool lexer_id (Lexer* lexer, LexerToken* token);
+static inline bool lexer_number (Lexer* lexer, LexerToken* token);
 
-Lexer* lexer_create (const char* file) {
+Lexer* lexer_create (char* filename) {
     Lexer* lexer = (Lexer*)malloc(sizeof(Lexer));
-    lexer->rules = list_create(sizeof(LexerRule));
-    Buffer* buffer = buffer_create(file, "r");
-
-    parseGrammar(lexer, buffer);
-    lexer_printf(lexer);
-    printf("\n");
-
-    isolateLiterals(lexer);
-    lexer_printf(lexer);
-    printf("\n");
-
-    splitOptions(lexer);
-    lexer_printf(lexer);
-    printf("\n");
-
-    buffer_destroy(buffer);
+    lexer->buffer = buffer_create(filename, "r");
+    lexer->pushback = list_create(sizeof(LexerToken));
     return lexer;
 }
 
-static void parseGrammar (Lexer* lexer, Buffer* buffer) {
-    buffer_skip_any(buffer, LEXER_IGNORED);
-    char actual[7];
-    if (!buffer_expect(buffer, "grammar", actual)) {
-        printf("Error: grammar declaration must be the 1st thing!\n");
-        printf("\tExample: 'grammar Demo 1.0.0'\n");
-        exit(1);
-    }
-    buffer_skip_any(buffer, LEXER_IGNORED);
-    lexer->grammarName = buffer_read_until(buffer, LEXER_IGNORED);
-    buffer_skip_any(buffer, LEXER_IGNORED);
-    lexer->grammarVersion = buffer_read_until(buffer, LEXER_IGNORED);
-    printf("Grammar %s v%s\n\n", lexer->grammarName->data,
-        lexer->grammarVersion->data);
-    buffer_skip_any(buffer, LEXER_IGNORED);
-    while (buffer_hasNext(buffer)) {
-        parseGrammarRule(lexer, buffer);
-        buffer_skip_any(buffer, LEXER_IGNORED);
+void lexer_error (Lexer* lexer, const char* message) {
+    printf("[Light] Error(%d, %d): %s\n",
+        lexer->buffer->line,
+        lexer->buffer->col, message);
+    exit(1);
+}
+
+bool lexer_parse_next (Lexer* lexer, LexerToken* token) {
+    if (LEXER_DEBUG) printf("[LEXER] lexer_parse_next (%d)\n", token);
+    lexer_skip_ignored_and_comments(lexer);
+    LITERAL_TOKEN(lexer, ";", STM_END);
+    LITERAL_TOKEN(lexer, ",", COMMA);
+    LITERAL_TOKEN(lexer, "(", PAR_OPEN);
+    LITERAL_TOKEN(lexer, ")", PAR_CLOSE);
+    LITERAL_TOKEN(lexer, "{", BRAC_OPEN);
+    LITERAL_TOKEN(lexer, "}", BRAC_CLOSE);
+    LITERAL_TOKEN(lexer, "[", SQ_BRAC_OPEN);
+    LITERAL_TOKEN(lexer, "]", SQ_BRAC_CLOSE);
+    LITERAL_TOKEN(lexer, "/", DIV);
+    LITERAL_TOKEN(lexer, "*", MUL);
+    LITERAL_TOKEN(lexer, "+", ADD);
+    LITERAL_TOKEN(lexer, "-", SUB);
+    LITERAL_TOKEN(lexer, "=", ASSIGN);
+    LITERAL_TOKEN(lexer, "let", LET);
+    LITERAL_TOKEN(lexer, "type", TYPE);
+    LITERAL_TOKEN(lexer, "function", FUNCTION);
+    LITERAL_TOKEN(lexer, "return", RETURN);
+    if (lexer_number(lexer, token)) return true;
+    if (lexer_id(lexer, token)) return true;
+    return false;
+}
+
+bool lexer_hasNext (Lexer* lexer) {
+    lexer_skip_ignored_and_comments(lexer);
+    return buffer_hasNext(lexer->buffer);
+}
+
+bool lexer_next (Lexer* lexer, LexerToken* token) {
+    if (LEXER_DEBUG) printf("[LEXER] lexer_next (%d)\n", token);
+    bool found = false;
+    if (lexer->pushback->size > 0) {
+        list_pop(lexer->pushback, token);
+        found = true;
+    } else found = lexer_parse_next(lexer, token);
+    return found;
+}
+
+char* lexer_next_text (Lexer* lexer) {
+    static LexerToken token;
+    lexer_next(lexer, &token);
+    return token.text;
+}
+
+static inline
+void fill_pushback (Lexer* lexer, int offset) {
+    if (LEXER_DEBUG) printf("[LEXER] fill_pushback (%d)\n", offset);
+    LexerToken token;
+    for (int i = lexer->pushback->size; i < offset; i++) {
+        if (!lexer_parse_next(lexer, &token)) break;
+        list_add(lexer->pushback, &token, 0);
     }
 }
 
-static void parseGrammarRule (Lexer* lexer, Buffer* buffer) {
-    LexerRule rule;
-    rule.rightNames = list_create(sizeof(List*));
-    rule.leftName = buffer_read_until(buffer, LEXER_IGNORED);
-
-    char actualSeparator[2];
-    buffer_skip_any(buffer, LEXER_IGNORED);
-    if (!buffer_expect(buffer, LEXER_LEFT_SEPARATOR, actualSeparator)) {
-        printf("Error: expected rule left separator: '%s'\n", LEXER_LEFT_SEPARATOR);
-        exit(1);
-    }
-    buffer_skip_any(buffer, LEXER_IGNORED);
-
-    List* nextToken = buffer_read_until(buffer, LEXER_IGNORED);
-    buffer_skip_any(buffer, LEXER_IGNORED);
-    while (strcmp(nextToken->data, LEXER_RULE_END) != 0) {
-        list_push(rule.rightNames, &nextToken);
-
-        nextToken = buffer_read_until(buffer, LEXER_IGNORED);
-        buffer_skip_any(buffer, LEXER_IGNORED);
-    }
-
-    list_push(lexer->rules, &rule);
+TokenType lexer_peek (Lexer* lexer, int offset) {
+    if (LEXER_DEBUG) printf("[LEXER] lexer_peek (%d)\n", offset);
+    offset += 1;
+    LexerToken token;
+    fill_pushback(lexer, offset);
+    list_get(lexer->pushback, &token, lexer->pushback->size - offset);
+    return token.type;
 }
 
-static void isolateLiterals (Lexer* lexer) {
-    printf("Isolating literals...\n");
-    int j, i;
-    LexerRule rule;
-    List* token;
-    for (j = 0; j < lexer->rules->size; j++) {
-        list_get(lexer->rules, &rule, j);
-        for (i = 0; i < rule.rightNames->size; i++) {
-            list_get(rule.rightNames, &token, i);
-            if (rule.rightNames->size > 1 && token->data[0] == '\'') {
-                List* newToken = list_copy(token);
-                list_set_char(newToken, '$', 0);
-                list_pop(newToken, NULL);
-                list_set_char(newToken, '\0', newToken->size - 1);
-
-                LexerRule newRule;
-                newRule.leftName = newToken;
-                newRule.rightNames = list_create(sizeof(List*));
-                list_push(newRule.rightNames, &token);
-                list_set(rule.rightNames, &newToken, i);
-                list_push(lexer->rules, &newRule);
-            }
-        }
-    }
+bool lexer_is_next (Lexer* lexer, TokenType type) {
+    if (LEXER_DEBUG) printf("[LEXER] lexer_is_next (%d)\n", type);
+    return lexer_peek(lexer, 0) == type;
 }
 
-static void splitOptions (Lexer* lexer) {
-    printf("Splitting options...\n");
-    int j, i, k;
-    LexerRule rule;
-    List* token;
-    for (j = 0; j < lexer->rules->size; j++) {
-        list_get(lexer->rules, &rule, j);
-        for (i = 0; i < rule.rightNames->size; i++) {
-            list_get(rule.rightNames, &token, i);
-            if (strcmp(token->data, "|") == 0) {
-                list_remove(rule.rightNames, NULL, i);
-
-                LexerRule newRule;
-                newRule.leftName = rule.leftName;
-                newRule.rightNames = list_create(sizeof(List*));
-                for (k = i; k < rule.rightNames->size;) {
-                    list_remove(rule.rightNames, &token, k);
-                    list_push(newRule.rightNames, &token);
-                }
-                list_push(lexer->rules, &newRule);
-            }
-        }
-    }
+void lexer_skip (Lexer* lexer, int count) {
+    LexerToken token;
+    for (int i = 0; i < count; i++) lexer_next(lexer, &token);
 }
 
-void lexer_printf(Lexer* lexer) {
-    int j, i;
-    LexerRule rule;
-    List* nextToken;
-    for (j = 0; j < lexer->rules->size; j++) {
-        list_get(lexer->rules, &rule, j);
-        printf("%s ->", rule.leftName->data);
-        for (i = 0; i < rule.rightNames->size; i++) {
-            list_get(rule.rightNames, &nextToken, i);
-            printf(" %s", nextToken->data);
-        }
-        printf(" ;\n");
-    }
+void lexer_pushback (Lexer* lexer, LexerToken* token) {
+    list_push(lexer->pushback, token);
 }
 
 void lexer_destroy (Lexer* lexer) {
-    //TODO: do it right...
+    list_destroy(lexer->pushback);
     free(lexer);
 }
+
+static inline
+void _token (Lexer* lexer, LexerToken* token, TokenType type, int size) {
+    buffer_skip(lexer->buffer, size);
+    token->type = type;
+}
+
+static inline
+bool lexer_id (Lexer* lexer, LexerToken* token) {
+    if (LEXER_DEBUG) printf("ID\n");
+    bool found = false;
+    List* _buff = list_create(sizeof(char));
+    char c = buffer_peek(lexer->buffer, 0);
+    if (ALPHA(c)) {
+        while (ALPHANUM(c)) {
+            list_push_char(_buff, c);
+            buffer_skip(lexer->buffer, 1);
+            c = buffer_peek(lexer->buffer, 0);
+        }
+        token->text = malloc(sizeof(char) * (_buff->size + 1));
+        memcpy(token->text, _buff->data, _buff->size);
+        token->text[_buff->size] = '\0';
+        token->type = ID;
+        found = true;
+    }
+    list_destroy(_buff);
+    return found;
+}
+
+static inline
+bool lexer_number (Lexer* lexer, LexerToken* token) {
+    if (LEXER_DEBUG) printf("NUMBER\n");
+    bool found = false;
+    List* _buff = list_create(sizeof(char));
+    char c = buffer_peek(lexer->buffer, 0);
+    if (c == '+' || c == '-') {
+        list_push_char(_buff, c);
+        buffer_skip(lexer->buffer, 1);
+        c = buffer_peek(lexer->buffer, 0);
+    }
+    if (DIGIT(c) || c == '.') {
+        while (DIGIT(c)) {
+            list_push_char(_buff, c);
+            buffer_skip(lexer->buffer, 1);
+            c = buffer_peek(lexer->buffer, 0);
+        }
+        if (c == '.') {
+            list_push_char(_buff, c);
+            buffer_skip(lexer->buffer, 1);
+            c = buffer_peek(lexer->buffer, 0);
+            while (DIGIT(c)) {
+                list_push_char(_buff, c);
+                buffer_skip(lexer->buffer, 1);
+                c = buffer_peek(lexer->buffer, 0);
+            }
+        }
+        token->text = malloc(sizeof(char) * (_buff->size + 1));
+        memcpy(token->text, _buff->data, _buff->size);
+        token->text[_buff->size] = '\0';
+        token->type = NUMBER;
+        found = true;
+    }
+    list_destroy(_buff);
+    return found;
+}
+
+static inline
+void lexer_skip_ignored_and_comments (Lexer* lexer) {
+    buffer_skip_any(lexer->buffer, LEXER_IGNORED);
+    if (buffer_peek(lexer->buffer, 0) == '/') {
+        if (buffer_peek(lexer->buffer, 1) == '/') {
+            buffer_skip_until(lexer->buffer, "\n");
+            buffer_skip_any(lexer->buffer, LEXER_IGNORED);
+        } else if (buffer_peek(lexer->buffer, 1) == '*') {
+            buffer_skip_until(lexer->buffer, "*/");
+            buffer_skip_any(lexer->buffer, LEXER_IGNORED);
+        }
+    }
+}
+
+#endif
