@@ -13,8 +13,4 @@ class ASTExpressionUnop : public ASTExpression {
 
 #include "ast_expression_unop_neg.cpp"
 
-void ASTExpressionUnop::print (int tabs) {
-	if(ASTExpressionUnopNeg* v = dynamic_cast<ASTExpressionUnopNeg*>(this)) {
-		v->print(tabs);
-	}
-}
+void ASTExpressionUnop::print (int tabs) { /* empty */ }

@@ -7,14 +7,12 @@ using namespace std;
 
 class ASTParameters : public ASTNode {
 	public:
-		vector<ASTExpression*> list;
+		vector<ASTExpression*> expressions;
 
 		void print (int tabs) {
-			for(auto const& value: this->list) {
-				value.print();
-				cout << endl;
+			for(auto const& value: this->expressions) {
+				value->print(tabs);
+				cout << ", ";
 			}
 		}
 };
-
-

@@ -1,6 +1,6 @@
-let math = "- zelda!\"\''\\" + 2;
+let math = "zelda -> 火" * 2;
 
-let a =18 + 2 * 7 - 1.1;
+let a =18 + 2 * (7 - 1.1);
 int b = 14 + a;
 
 // comment
@@ -19,8 +19,8 @@ let integer = type (byte size) {
 	byte data;
 };
 
-/*let a = asd.qwe;
-let b = asd[c + 9];
+let a = asd.qwe.a.b;
+let b = asd.qwe[c + 9];
 let c = asd(a, b, c - 1);
 
-let art = asd.qwe[ert * 2].op(b, a / 4);*/
+let art = asd.qwe[ert * 2].op(b, a / 4);

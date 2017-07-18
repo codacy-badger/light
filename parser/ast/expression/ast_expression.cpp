@@ -10,26 +10,15 @@ class ASTExpression : public ASTNode {
 		void print (int tabs);
 };
 
+#include "ast_id.cpp"
 #include "binop/ast_expression_binop.cpp"
 #include "unop/ast_expression_unop.cpp"
 #include "ast_def_function.cpp"
 #include "ast_def_type.cpp"
-#include "ast_variable.cpp"
+#include "ast_subscript.cpp"
+#include "ast_property.cpp"
+#include "ast_call.cpp"
 #include "ast_number.cpp"
 #include "ast_string.cpp"
 
-void ASTExpression::print (int tabs) {
-	if(ASTExpressionUnop* v = dynamic_cast<ASTExpressionUnop*>(this)) {
-		v->print(tabs);
-	} else if (ASTExpressionBinop* v = dynamic_cast<ASTExpressionBinop*>(this)) {
-		v->print(tabs);
-	} else if (ASTVariable* v = dynamic_cast<ASTVariable*>(this)) {
-		v->print(tabs);
-	} else if (ASTNumber* v = dynamic_cast<ASTNumber*>(this)) {
-		v->print(tabs);
-	} else if (ASTDefFunction* v = dynamic_cast<ASTDefFunction*>(this)) {
-		v->print(tabs);
-	} else if (ASTDefType* v = dynamic_cast<ASTDefType*>(this)) {
-		v->print(tabs);
-	}
-}
+void ASTExpression::print (int tabs) { /* empty */ }

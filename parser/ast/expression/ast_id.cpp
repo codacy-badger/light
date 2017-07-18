@@ -3,9 +3,9 @@
 
 using namespace std;
 
-#include "ast_expression.cpp"
+#include "ast_id.cpp"
 
-class ASTVariable : public ASTExpression {
+class ASTId : public ASTExpression {
 	public:
 		string name;
 
@@ -13,5 +13,3 @@ class ASTVariable : public ASTExpression {
 			cout << "[" << this->name << "]";
 		}
 };
-
-

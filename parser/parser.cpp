@@ -101,9 +101,9 @@ class Parser {
 			return returns;
 		}
 
-		ASTVariable* variable () {
+		ASTId* id () {
 			if (this->lexer->isNextType(Token::Type::ID)) {
-				ASTVariable* output = new ASTVariable();
+				ASTId* output = new ASTId();
 				output->name = this->lexer->nextText();
 				return output;
 			} else return NULL;
@@ -199,32 +199,73 @@ class Parser {
 		}
 
 		ASTExpression* factor () {
+			ASTExpression* exp = NULL;
+
 			if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 				this->lexer->skip(1);
-				ASTExpression* exp = this->expression();
-				if(this->lexer->isNextType(Token::Type::PAR_OPEN))
+				exp = this->expression();
+				if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
 					this->lexer->skip(1);
 				else error("Expected closing parenthesys after expression");
-				return exp;
 			} else if (this->lexer->isNextType(Token::Type::SUB)) {
 				this->lexer->skip(1);
-				ASTExpressionUnopNeg* exp = new ASTExpressionUnopNeg();
-				exp->expression = this->factor();
-				return (ASTExpression*) exp;
+				ASTExpressionUnopNeg* _exp = new ASTExpressionUnopNeg();
+				_exp->expression = this->factor();
+				exp = (ASTExpression*) _exp;
 			} else if (this->lexer->isNextType(Token::Type::ADD)) {
 				this->lexer->skip(1);
-				return this->expression();
+				exp = this->expression();
 			} else if (this->lexer->isNextType(Token::Type::NUMBER)) {
-				return this->number();
+				exp = this->number();
 			} else if (this->lexer->isNextType(Token::Type::ID)) {
-				return this->variable();
+				exp = this->id();
 			} else if (this->lexer->isNextType(Token::Type::STRING)) {
-				return this->string();
+				exp = this->string();
 			} else if (this->lexer->isNextType(Token::Type::FUNCTION)) {
-				return this->def_function();
+				exp = this->def_function();
 			} else if (this->lexer->isNextType(Token::Type::TYPE)) {
-				return this->def_type();
-			} else return NULL;
+				exp = this->def_type();
+			}
+
+			Token::Type nextType = this->lexer->peekType(0);
+			while (nextType == Token::Type::DOT
+				|| nextType == Token::Type::PAR_OPEN
+				|| nextType == Token::Type::SQ_BRAC_OPEN) {
+				this->lexer->skip(1);
+				switch (nextType) {
+					case Token::Type::DOT: {
+						ASTProperty* prop = new ASTProperty();
+						if(this->lexer->isNextType(Token::Type::ID))
+							prop->property = this->id();
+						else error("Expected attribute name after dot");
+						prop->expression = exp;
+						exp = prop;
+					} break;
+					case Token::Type::PAR_OPEN: {
+						ASTCall* call = new ASTCall();
+						call->parameters = this->parameters();
+						if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
+							this->lexer->skip(1);
+						else error("Expected closing parenthesys after parameters");
+						call->expression = exp;
+						exp = call;
+					} break;
+					case Token::Type::SQ_BRAC_OPEN: {
+						ASTSubscript* subscript = new ASTSubscript();
+						subscript->index = this->expression();
+						if(subscript->index == NULL)
+							error("Expected expression in array subscript");
+						if(this->lexer->isNextType(Token::Type::SQ_BRAC_CLOSE))
+							this->lexer->skip(1);
+						else error("Expected closing square braquet after array subscript");
+						subscript->expression = exp;
+						exp = subscript;
+					} break;
+				}
+				nextType = this->lexer->peekType(0);
+			}
+
+			return exp;
 		}
 
 		ASTStatement* statement () {
@@ -300,6 +341,21 @@ class Parser {
 			if (this->lexer->isNextType(Token::Type::STM_END))
 				this->lexer->skip(1);
 			else error("Expected ';' after return statement");
+
+			return output;
+		}
+
+		ASTParameters* parameters () {
+			ASTParameters* output = new ASTParameters();
+
+			ASTExpression* exp = this->expression();
+			while (exp != NULL) {
+				output->expressions.push_back(exp);
+				if (this->lexer->isNextType(Token::Type::COMMA)) {
+					this->lexer->skip(1);
+					exp = this->expression();
+				} else break;
+			}
 
 			return output;
 		}
