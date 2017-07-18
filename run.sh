@@ -1,1 +1,1 @@
-./build/test
+./build/light example/demo.li

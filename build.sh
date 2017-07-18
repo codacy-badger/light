@@ -1,3 +1,3 @@
-rm -r build/*
+rm -rf build/*
 mkdir -p build
-gcc -O2 -std=c99 test/main.c -o build/test
+g++ -std=c++11 light.cpp -o build/light

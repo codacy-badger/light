@@ -27,6 +27,7 @@ typedef enum {
     MUL,
     LET,
     TYPE,
+	ARROW,
     FUNCTION,
     PAR_OPEN,
     PAR_CLOSE,
@@ -35,6 +36,7 @@ typedef enum {
     SQ_BRAC_OPEN,
     SQ_BRAC_CLOSE,
     STM_END,
+    DOT,
     COMMA,
     RETURN,
 
@@ -80,6 +82,7 @@ bool lexer_parse_next (Lexer* lexer, LexerToken* token) {
     if (LEXER_DEBUG) printf("[LEXER] lexer_parse_next (%d)\n", token);
     lexer_skip_ignored_and_comments(lexer);
     LITERAL_TOKEN(lexer, ";", STM_END);
+    LITERAL_TOKEN(lexer, ".", DOT);
     LITERAL_TOKEN(lexer, ",", COMMA);
     LITERAL_TOKEN(lexer, "(", PAR_OPEN);
     LITERAL_TOKEN(lexer, ")", PAR_CLOSE);
@@ -87,6 +90,7 @@ bool lexer_parse_next (Lexer* lexer, LexerToken* token) {
     LITERAL_TOKEN(lexer, "}", BRAC_CLOSE);
     LITERAL_TOKEN(lexer, "[", SQ_BRAC_OPEN);
     LITERAL_TOKEN(lexer, "]", SQ_BRAC_CLOSE);
+    LITERAL_TOKEN(lexer, "->", ARROW);
     LITERAL_TOKEN(lexer, "/", DIV);
     LITERAL_TOKEN(lexer, "*", MUL);
     LITERAL_TOKEN(lexer, "+", ADD);
@@ -143,7 +147,9 @@ TokenType lexer_peek (Lexer* lexer, int offset) {
 
 bool lexer_is_next (Lexer* lexer, TokenType type) {
     if (LEXER_DEBUG) printf("[LEXER] lexer_is_next (%d)\n", type);
-    return lexer_peek(lexer, 0) == type;
+	TokenType actual = lexer_peek(lexer, 0);
+	if (LEXER_DEBUG) printf("\t[LEXER] lexer_is_next actual (%d)\n", actual);
+    return actual == type;
 }
 
 void lexer_skip (Lexer* lexer, int count) {

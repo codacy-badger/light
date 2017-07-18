@@ -1,0 +1,26 @@
+let math = "- zelda!\"\''\\" + 2;
+
+let a =18 + 2 * 7 - 1.1;
+int b = 14 + a;
+
+// comment
+
+let c = a + b;
+
+/*  multiline
+    comment  */
+
+let asd = function (int number, let factor) -> int, bool {
+	let qwe = number * factor + 1;
+	return qwe + 18, true;
+};
+
+let integer = type (byte size) {
+	byte data;
+};
+
+/*let a = asd.qwe;
+let b = asd[c + 9];
+let c = asd(a, b, c - 1);
+
+let art = asd.qwe[ert * 2].op(b, a / 4);*/

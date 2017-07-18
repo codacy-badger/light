@@ -36,7 +36,7 @@ typedef struct {
 typedef struct {
     ast_expression exp;
     char* value;
-} ast_expression_number;
+} ast_number;
 
 typedef struct {
     ast_expression exp;
@@ -52,9 +52,11 @@ typedef struct {
 } ast_expression_binop;
 
 typedef struct {
-    ast_expression** parameters;
-    int parametersCount;
+    ast_expression** params;
+    int paramsCount;
 } ast_params;
+
+
 
 typedef struct {
     char* name;
@@ -65,6 +67,12 @@ typedef struct {
     ast_expression exp;
     char* name;
 } ast_variable;
+
+typedef struct {
+    ast_type* type;
+    char* name;
+    ast_expression* expression;
+} ast_var_definition;
 
 
 
@@ -85,25 +93,25 @@ typedef struct {
 
 typedef struct {
     ast_statement stm;
-    ast_type* type;
-    char* name;
-    ast_expression* expression;
-} ast_var_definition;
+    ast_var_definition* def;
+} ast_statement_var_definition;
+
+
 
 typedef struct {
-    ast_var_definition** definitions;
-    int definitionsCount;
+    ast_var_definition** params;
+    int paramsCount;
 } ast_params_def;
 
 typedef struct {
-    ast_expression exp;
-    ast_params_def* params;
-    ast_statement* body;
-} ast_expression_type;
+    ast_type** types;
+    int typesCount;
+} ast_returns_def;
 
 typedef struct {
     ast_expression exp;
     ast_params_def* params;
+    ast_returns_def* returns;
     ast_statement* body;
 } ast_expression_function;
 
