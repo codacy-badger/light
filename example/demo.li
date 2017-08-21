@@ -1,14 +1,9 @@
-let math = "zelda -> 火" * 2;
+let math = import("math");
 
 let a =18 + 2 * (7 - 1.1);
 int b = 14 + a;
 
-// comment
-
 let c = a + b;
-
-/*  multiline
-    comment  */
 
 let asd = function (int number, let factor) -> int, bool {
 	let qwe = number * factor + 1;
@@ -19,7 +14,7 @@ let integer = type (byte size) {
 	byte data;
 };
 
-let a = asd.qwe.a.b;
+integer a = asd.qwe.a.b;
 let b = asd.qwe[c + 9];
 let c = asd(a, b, c - 1);
 

@@ -11,9 +11,13 @@ class ASTDefReturns : public ASTNode {
 		vector<ASTType*> list;
 
 		void print (int tabs) {
-			for(auto const& value: this->list) {
+			if (this->list.size() > 0) {
+				auto value = this->list[0];
 				value->print(tabs);
-				cout << ", ";
+				for(std::vector<int>::size_type i = 1; i < this->list.size(); i++) {
+					cout << ", ";
+					this->list[i]->print(tabs);
+				}
 			}
 		}
 };

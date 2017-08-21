@@ -10,9 +10,13 @@ class ASTStatementReturn : public ASTStatement {
 		void print (int tabs) {
 			this->tabs(tabs);
 			cout << "RETURNS ";
-			for(auto const& value: this->expressions) {
+			if (this->expressions.size() > 0) {
+				auto value = this->expressions[0];
 				value->print(tabs);
-				cout << ", ";
+				for(std::vector<int>::size_type i = 1; i < this->expressions.size(); i++) {
+					cout << ", ";
+					this->expressions[i]->print(tabs);
+				}
 			}
 			cout << endl;
 		}

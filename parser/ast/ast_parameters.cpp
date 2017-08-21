@@ -10,9 +10,13 @@ class ASTParameters : public ASTNode {
 		vector<ASTExpression*> expressions;
 
 		void print (int tabs) {
-			for(auto const& value: this->expressions) {
+			if (this->expressions.size() > 0) {
+				auto value = this->expressions[0];
 				value->print(tabs);
-				cout << ", ";
+				for(std::vector<int>::size_type i = 1; i < this->expressions.size(); i++) {
+					cout << ", ";
+					this->expressions[i]->print(tabs);
+				}
 			}
 		}
 };

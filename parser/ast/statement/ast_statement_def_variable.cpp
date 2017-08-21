@@ -7,6 +7,7 @@ class ASTStatementDefVariable : public ASTStatement {
 	public:
 		ASTType* type = NULL;
 		string name = "";
+
 		ASTExpression* expression = NULL;
 
 		void print (int tabs) {
