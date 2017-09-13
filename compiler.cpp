@@ -1,5 +1,6 @@
-using namespace std;
-
+#include <string>
+#include <ostream>
+#include <iostream>
 #include <vector>
 
 #include "parser/parser.cpp"
@@ -12,21 +13,23 @@ class Compiler {
 			this->sources.push_back(filename);
 		}
 
-		void compile (const char* output) {
+		ASTStatements* compile () {
+			ASTStatements* stms = new ASTStatements();
 			for (auto const& filename: this->sources) {
-				cout << endl << "Compiling source: '" << filename << "'..." << endl;
-				handleFile(filename);
+				std::cout << "Compiling source: '" << filename << "'..." << std::endl;
+				handleFile(stms, filename);
 			}
+			return stms;
 		}
 
 	private:
 		vector<const char*> sources;
 
-		void handleFile (const char* filename) {
+		void handleFile (ASTStatements* stms, const char* filename) {
 			Parser* parser = new Parser(filename);
 			ASTStatement* stm = parser->statement();
 			while (stm != NULL) {
-				stm->print(0);
+				stms->list.push_back(stm);
 				stm = parser->statement();
 			}
 		}

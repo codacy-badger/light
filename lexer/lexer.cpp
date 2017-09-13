@@ -1,5 +1,8 @@
-using namespace std;
+#pragma once
 
+#include <string>
+#include <ostream>
+#include <iostream>
 #include <vector>
 
 #include "../buffer/file_buffer.cpp"
@@ -94,16 +97,16 @@ class Lexer {
 
 		Token::Type peekType (unsigned int offset) {
 			if (this->peek(this->token, offset)) {
-				if (LEXER_DEBUG) cout << "peekType " << offset << " -> " <<
-					Token::typeToString(this->token->type) << endl;
+				if (LEXER_DEBUG) std::cout << "peekType " << offset << " -> " <<
+					Token::typeToString(this->token->type) << std::endl;
 				return this->token->type;
 			} else return Token::Type::NONE;
 		}
 
 		bool isNextType (Token::Type type) {
 			if (LEXER_DEBUG)
-				cout << "isNextType " << Token::typeToString(type) << " -> " <<
-				Token::typeToString(this->peekType(0)) << endl;
+				std::cout << "isNextType " << Token::typeToString(type) << " -> " <<
+				Token::typeToString(this->peekType(0)) << std::endl;
 			return this->peekType(0) == type;
 		}
 

@@ -1,9 +1,10 @@
 #pragma once
 
+#include <iostream>
 
 using namespace std;
 
-class ASTStatementDefVariable : public ASTStatement {
+class ASTVarDef : public ASTStatement {
 	public:
 		ASTType* type = NULL;
 		string name = "";

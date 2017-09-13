@@ -1,10 +1,11 @@
 #pragma once
 
+#include <iostream>
+#include <vector>
+
+#include "ast_statement.cpp"
 
 using namespace std;
-
-#include <vector>
-#include "ast_statement.cpp"
 
 class ASTStatements : ASTStatement {
 	public:

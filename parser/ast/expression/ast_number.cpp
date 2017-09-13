@@ -1,9 +1,10 @@
 #pragma once
 
-
-using namespace std;
+#include <iostream>
 
 #include "ast_expression.cpp"
+
+using namespace std;
 
 class ASTNumber : public ASTExpression {
 	public:
@@ -13,5 +14,3 @@ class ASTNumber : public ASTExpression {
 			cout << this->value;
 		}
 };
-
-

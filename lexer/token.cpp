@@ -1,4 +1,8 @@
-using namespace std;
+#pragma once
+
+#include <string>
+#include <ostream>
+#include <iostream>
 
 #define ENUM_STR(name) case Type::name: return #name
 
@@ -97,7 +101,7 @@ class Token {
 		}
 };
 
-ostream& operator<<(ostream& os, const Token& token) {
+std::ostream& operator<<(std::ostream& os, const Token& token) {
       os << "Token { [" << Token::typeToString(token.type) << "] ";
 	  if (!token.text.empty()) os << "'" << token.text << "' ";
 	  os << "@ " << token.line << "," << token.col << " }";

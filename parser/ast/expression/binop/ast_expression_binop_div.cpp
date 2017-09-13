@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 
 using namespace std;
 
@@ -13,5 +14,3 @@ class ASTExpressionBinopDiv : public ASTExpressionBinop {
 			cout << ")";
 		}
 };
-
-

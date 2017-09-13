@@ -1,9 +1,10 @@
 #pragma once
 
-
-using namespace std;
+#include <iostream>
 
 #include "ast_id.cpp"
+
+using namespace std;
 
 class ASTId : public ASTExpression {
 	public:

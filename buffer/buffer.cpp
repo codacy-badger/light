@@ -64,7 +64,6 @@ class PushbackBuffer {
 		}
 
 		void skipAny (const char* chars) {
-			unsigned int i = 0;
 			while (this->hasNext()) {
 				char _c = this->peek(0);
 				if (strchr(chars, _c) == NULL) {

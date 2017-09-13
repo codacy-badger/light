@@ -1,9 +1,8 @@
 #pragma once
 
+#include "../ast_expression.cpp"
 
 using namespace std;
-
-#include "../ast_expression.cpp"
 
 class ASTExpressionBinop : public ASTExpression {
 	public:

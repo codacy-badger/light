@@ -1,18 +1,16 @@
 #pragma once
-
-
-using namespace std;
+#include <string>
+#include <ostream>
+#include <iostream>
 
 #include "ast_node.cpp"
 
 class ASTType : public ASTNode{
 	public:
-		string name;
+		std::string name;
 
 		void print (int tabs) {
-			if (this->name == "") cout  << "[?]";
-			else cout << "[" << this->name << "]";
+			if (this->name == "") std::cout  << "[?]";
+			else std::cout << "[" << this->name << "]";
 		}
 };
-
-
