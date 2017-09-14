@@ -25,11 +25,11 @@ using namespace std;
 
 cl::OptionCategory LightCategory("Compiler Options");
 
-static cl::opt<std::string>
+/*static cl::opt<std::string>
 OutputFilename("o", cl::desc("Specify output file."), cl::value_desc("filename"), cl::cat(LightCategory));
 
 static cl::list<std::string>
-InputFilenames(cl::Positional, cl::desc("<input file>"), cl::OneOrMore, cl::cat(LightCategory));
+InputFilenames(cl::Positional, cl::desc("<input file>"), cl::OneOrMore, cl::cat(LightCategory));*/
 
 void printVersion () {
 	cout << "Light Compiler 0.1.0" << endl;
@@ -75,12 +75,12 @@ int main() {
 
 		TargetOptions opt;
 		auto RM = Optional<Reloc::Model>();
-		auto TheTargetMachine =
-		Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+		auto TheTargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+		outs() << "TheTargetMachine " << TheTargetMachine << "\n";
 
 		Mod->setDataLayout(TheTargetMachine->createDataLayout());
 
-		auto Filename = "output.o";
+		auto Filename = ".\\test\\output.obj";
 		std::error_code EC;
 		raw_fd_ostream dest(Filename, EC, sys::fs::F_None);
 
@@ -112,6 +112,7 @@ Module* makeLLVMModule (LLVMContext& context) {
 	Module* mod = new Module("test", context);
 
 	Type* Tint32 = Type::getInt32Ty(context);
+	Type* Tint8 = Type::getInt8Ty(context);
 	Type* Tvoid = Type::getVoidTy(context);
 	vector<Type*> params;
 	/*params.push_back(Tint32);
@@ -136,16 +137,16 @@ Module* makeLLVMModule (LLVMContext& context) {
 	vector<Type*> putsArgs;
 	putsArgs.push_back(Tint32);
 	Function* GetStdHandlefunc = makeFunction(mod, "GetStdHandle",
-		Tvoid->getPointerTo(), putsArgs);
+		Tint8->getPointerTo(), putsArgs);
 	GetStdHandlefunc->setDLLStorageClass(GlobalValue::DLLStorageClassTypes::DLLImportStorageClass);
 	GetStdHandlefunc->setCallingConv(CallingConv::X86_StdCall);
 
 	vector<Type*> putsArgs2;
-	putsArgs2.push_back(Tvoid->getPointerTo());
-	putsArgs2.push_back(Tvoid->getPointerTo());
+	putsArgs2.push_back(Tint8->getPointerTo());
+	putsArgs2.push_back(Tint8->getPointerTo());
 	putsArgs2.push_back(Tint32);
 	putsArgs2.push_back(Tint32->getPointerTo());
-	putsArgs2.push_back(Tvoid->getPointerTo());
+	putsArgs2.push_back(Tint8->getPointerTo());
 	Function* WriteConsolefunc = makeFunction(mod, "WriteConsoleA", Tint32, putsArgs2);
 	WriteConsolefunc->setDLLStorageClass(GlobalValue::DLLStorageClassTypes::DLLImportStorageClass);
 	WriteConsolefunc->setCallingConv(CallingConv::X86_StdCall);
@@ -168,7 +169,7 @@ Module* makeLLVMModule (LLVMContext& context) {
 	args.push_back(messageValue);
 	args.push_back(ConstantInt::get(context, APInt(32, message.size())));
 	args.push_back(ConstantPointerNull::get(Tint32->getPointerTo()));
-	args.push_back(ConstantPointerNull::get(Tvoid->getPointerTo()));
+	args.push_back(ConstantPointerNull::get(Tint8->getPointerTo()));
 	CallInst* writeResult = builder.CreateCall(WriteConsolefunc, args);
 	writeResult->setCallingConv(CallingConv::X86_StdCall);
 
