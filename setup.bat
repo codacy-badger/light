@@ -1,6 +1,8 @@
 @ECHO OFF
 
-if "%VS150COMNTOOLS%"=="" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x86
+SET CurrentDrive=%CD:~0,2%
+
+if "%VS150COMNTOOLS%"=="" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 REM Path to all the LLVM .h files, the folder should contains a "llvm" folder
 SET LLVMIncludes=".\llvm\include"
@@ -21,4 +23,5 @@ SET LLVMLinkLibs=/LIBPATH:%LLVMLibs% LLVMLineEditor.lib LLVMCoroutines.lib LLVMO
 REM System libraries that LLVM uses to link, also generated with llvm-config
 SET LLVMLinkSystemLibs=psapi.lib shell32.lib ole32.lib uuid.lib
 
-M:
+%CurrentDrive%
+SET "CurrentDrive="
