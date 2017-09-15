@@ -147,8 +147,7 @@ Module* makeLLVMModule (LLVMContext& context) {
 
 	vector<Value*> args;
 	args.push_back(messageValue);
-	CallInst* writeResult = builder.CreateCall(print_func, args);
-	//writeResult->setCallingConv(CallingConv::X86_StdCall);
+	builder.CreateCall(print_func, args);
 
 	CallInst* exitResult = builder.CreateCall(ExitProcessfunc,
 		ConstantInt::get(context, APInt(32, 0)));
