@@ -1,6 +1,6 @@
 @ECHO OFF
 
-SET CurrentDrive=%CD:~0,2%
+SET CurrentDir=%CD%
 
 if "%VS150COMNTOOLS%"=="" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
@@ -23,5 +23,6 @@ SET LLVMLinkLibs=/LIBPATH:%LLVMLibs% LLVMLineEditor.lib LLVMCoroutines.lib LLVMO
 REM System libraries that LLVM uses to link, also generated with llvm-config
 SET LLVMLinkSystemLibs=psapi.lib shell32.lib ole32.lib uuid.lib
 
-%CurrentDrive%
-SET "CurrentDrive="
+%CurrentDir:~0,2%
+cd %CurrentDir%
+SET "CurrentDir="
