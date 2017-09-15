@@ -1,8 +1,8 @@
 cd llvm
 
 cmake -DLLVM_INCLUDE_TOOLS=OFF -DLLVM_BUILD_TOOLS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_BUILD_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_BUILD_TESTS=OFF ^
-	-DLLVM_TARGETS_TO_BUILD="X86" -DCMAKE_GENERATOR_PLATFORM=x64 --build . -Thost=x64
+	-DLLVM_TARGETS_TO_BUILD="X86" -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_BUILD_TYPE=Release --build . -Thost=x64
 
-cmake --build . --target install --config Debug
+cmake --build . --target install --config Release
 
 cd ..
