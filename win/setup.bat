@@ -2,7 +2,7 @@
 
 SET CurrentDrive=%CD:~0,2%
 
-if "%VS150COMNTOOLS%"=="" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x86
+if "%VS150COMNTOOLS%"=="" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 REM Path to all the LLVM .h files, the folder should contains a "llvm" folder
 SET LLVMIncludes=".\llvm\include"
