@@ -70,13 +70,9 @@ int main() {
 			return 1;
 		}
 
-		auto CPU = "generic";
-		auto Features = "";
-
 		TargetOptions opt;
 		auto RM = Optional<Reloc::Model>();
-		auto TheTargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
-		outs() << "TheTargetMachine " << TheTargetMachine << "\n";
+		auto TheTargetMachine = Target->createTargetMachine(TargetTriple, "generic", "", opt, RM);
 
 		Mod->setDataLayout(TheTargetMachine->createDataLayout());
 
@@ -135,21 +131,10 @@ Module* makeLLVMModule (LLVMContext& context) {
 	Value* messageValue = builder.CreateGlobalStringPtr(message.c_str());
 
 	vector<Type*> putsArgs;
-	putsArgs.push_back(Tint32);
-	Function* GetStdHandlefunc = makeFunction(mod, "GetStdHandle",
-		Tint8->getPointerTo(), putsArgs);
-	GetStdHandlefunc->setDLLStorageClass(GlobalValue::DLLStorageClassTypes::DLLImportStorageClass);
-	GetStdHandlefunc->setCallingConv(CallingConv::X86_StdCall);
-
-	vector<Type*> putsArgs2;
-	putsArgs2.push_back(Tint8->getPointerTo());
-	putsArgs2.push_back(Tint8->getPointerTo());
-	putsArgs2.push_back(Tint32);
-	putsArgs2.push_back(Tint32->getPointerTo());
-	putsArgs2.push_back(Tint8->getPointerTo());
-	Function* WriteConsolefunc = makeFunction(mod, "WriteConsoleA", Tint32, putsArgs2);
-	WriteConsolefunc->setDLLStorageClass(GlobalValue::DLLStorageClassTypes::DLLImportStorageClass);
-	WriteConsolefunc->setCallingConv(CallingConv::X86_StdCall);
+	putsArgs.push_back(Tint8->getPointerTo());
+	Function* print_func = makeFunction(mod, "print", Tvoid, putsArgs);
+	/*GetStdHandlefunc->setDLLStorageClass(GlobalValue::DLLStorageClassTypes::DLLImportStorageClass);
+	GetStdHandlefunc->setCallingConv(CallingConv::X86_StdCall);*/
 
 	vector<Type*> putsArgs3;
 	putsArgs3.push_back(Tint32);
@@ -160,18 +145,10 @@ Module* makeLLVMModule (LLVMContext& context) {
 	/*AllocaInst* coutVariable = builder.CreateAlloca(Tint32, 0, "retval");
 	builder.CreateStore(ConstantInt::get(context, APInt(32, 0)), coutVariable, false);*/
 
-	Value* std_out_val = ConstantInt::get(context, APInt(32, -11, true));
-	CallInst* callResult = builder.CreateCall(GetStdHandlefunc, std_out_val);
-	callResult->setCallingConv(CallingConv::X86_StdCall);
-
 	vector<Value*> args;
-	args.push_back(callResult);
 	args.push_back(messageValue);
-	args.push_back(ConstantInt::get(context, APInt(32, message.size())));
-	args.push_back(ConstantPointerNull::get(Tint32->getPointerTo()));
-	args.push_back(ConstantPointerNull::get(Tint8->getPointerTo()));
-	CallInst* writeResult = builder.CreateCall(WriteConsolefunc, args);
-	writeResult->setCallingConv(CallingConv::X86_StdCall);
+	CallInst* writeResult = builder.CreateCall(print_func, args);
+	//writeResult->setCallingConv(CallingConv::X86_StdCall);
 
 	CallInst* exitResult = builder.CreateCall(ExitProcessfunc,
 		ConstantInt::get(context, APInt(32, 0)));
