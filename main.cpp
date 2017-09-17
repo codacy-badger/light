@@ -34,7 +34,7 @@ Function* makeNativeFunction (Module* module, string name, Type* returnType, std
 	return function;
 }
 
-void printSTD (LLVMContext& context, Module* module, IRBuilder<> builder, Value* message) {
+void std_print (LLVMContext& context, Module* module, IRBuilder<> builder, Value* message) {
 	vector<Type*> putsArgs;
 	putsArgs.push_back(Type::getInt8Ty(context)->getPointerTo());
 	FunctionType *functionType = FunctionType::get(Type::getVoidTy(context), putsArgs, false);
@@ -42,6 +42,17 @@ void printSTD (LLVMContext& context, Module* module, IRBuilder<> builder, Value*
 	Function* print_func = cast<Function>(const_func);
 
 	vector<Value*> args { message };
+	builder.CreateCall(print_func, args);
+}
+
+void std_print_i32 (LLVMContext& context, Module* module, IRBuilder<> builder, Value* number) {
+	vector<Type*> putsArgs;
+	putsArgs.push_back(Type::getInt32Ty(context));
+	FunctionType *functionType = FunctionType::get(Type::getVoidTy(context), putsArgs, false);
+	Constant* const_func = module->getOrInsertFunction("print_i32", functionType);
+	Function* print_func = cast<Function>(const_func);
+
+	vector<Value*> args { number };
 	builder.CreateCall(print_func, args);
 }
 
@@ -65,7 +76,7 @@ Module* getHelloModule (LLVMContext& context, string message) {
 	IRBuilder<> builder(block);
 
 	Value* messageValue = builder.CreateGlobalStringPtr(message.c_str());
-	printSTD(context, module, builder, messageValue);
+	std_print(context, module, builder, messageValue);
 
 	windowsExitApplication(context, module, builder, 0);
 	builder.CreateRet(nullptr);
@@ -98,12 +109,69 @@ Module* getIfElseModule (LLVMContext& context, int val) {
 	builder.CreateCondBr(cond, thenBB, elseBB);
 
 	builder.SetInsertPoint(thenBB);
-	printSTD(context, module, builder, builder.CreateGlobalStringPtr("[ifelse] then block reached!\n"));
+	std_print(context, module, builder, builder.CreateGlobalStringPtr("[ifelse] then block reached!\n"));
+	builder.CreateStore(ConstantInt::get(context, APInt(32, 42)), varA);
 	builder.CreateBr(exitBB);
 
 	builder.SetInsertPoint(elseBB);
-	printSTD(context, module, builder, builder.CreateGlobalStringPtr("[ifelse] else block reached!\n"));
+	std_print(context, module, builder, builder.CreateGlobalStringPtr("[ifelse] else block reached!\n"));
+	builder.CreateStore(ConstantInt::get(context, APInt(32, -42)), varA);
 	builder.CreateBr(exitBB);
+
+	builder.SetInsertPoint(exitBB);
+	std_print(context, module, builder, builder.CreateGlobalStringPtr("[ifelse] value -> "));
+	std_print_i32(context, module, builder, builder.CreateLoad(varA, "a2"));
+	std_print(context, module, builder, builder.CreateGlobalStringPtr("\n"));
+	windowsExitApplication(context, module, builder, 0);
+	builder.CreateRet(nullptr);
+
+	return module;
+}
+
+Module* getForModule (LLVMContext& context, int val) {
+	Module* module = new Module("for", context);
+	IRBuilder<> builder(context);
+
+	Type* Tint32 = Type::getInt32Ty(context);
+	Type* Tint8 = Type::getInt8Ty(context);
+	Type* Tvoid = Type::getVoidTy(context);
+
+	vector<Type*> params;
+	Function* mainFunction = makeFunction(module, "main", Tvoid, params);
+	BasicBlock *entryBB = BasicBlock::Create(context, "entry", mainFunction);
+	BasicBlock *condBB = BasicBlock::Create(context, "for.cond", mainFunction);
+	BasicBlock *bodyBB = BasicBlock::Create(context, "for.body", mainFunction);
+	BasicBlock *incBB = BasicBlock::Create(context, "for.inc", mainFunction);
+	BasicBlock *exitBB = BasicBlock::Create(context, "exit", mainFunction);
+
+	builder.SetInsertPoint(entryBB);
+	Value* varA = builder.CreateAlloca(Tint32, nullptr, "a");
+	Value* varI = builder.CreateAlloca(Tint8, nullptr, "i");
+	builder.CreateStore(ConstantInt::get(context, APInt(32, 0)), varA);
+	builder.CreateStore(ConstantInt::get(context, APInt(8, 0)), varI);
+	builder.CreateBr(condBB);
+
+	builder.SetInsertPoint(condBB);
+	Value* varIv = builder.CreateLoad(varI, "i2");
+	Value* cond = builder.CreateICmpSLT(varIv, ConstantInt::get(context, APInt(8, val)));
+	builder.CreateCondBr(cond, bodyBB, exitBB);
+
+	builder.SetInsertPoint(bodyBB);
+	Value* varAv = builder.CreateLoad(varA, "a2");
+	Value* addA = builder.CreateAdd(varAv, ConstantInt::get(context, APInt(32, 2)), "add");
+	builder.CreateStore(addA, varA);
+	builder.CreateBr(incBB);
+
+	builder.SetInsertPoint(incBB);
+	varIv = builder.CreateLoad(varI, "i2");
+	Value* incI = builder.CreateAdd(varIv, ConstantInt::get(context, APInt(32, 1)), "inc");
+	std_print(context, module, builder, builder.CreateGlobalStringPtr("[for] "));
+	std_print_i32(context, module, builder, builder.CreateLoad(varI, "i"));
+	std_print(context, module, builder, builder.CreateGlobalStringPtr(" -> "));
+	std_print_i32(context, module, builder, builder.CreateLoad(varA, "a"));
+	std_print(context, module, builder, builder.CreateGlobalStringPtr("\n"));
+	builder.CreateStore(incI, varI);
+	builder.CreateBr(condBB);
 
 	builder.SetInsertPoint(exitBB);
 	windowsExitApplication(context, module, builder, 0);
@@ -121,11 +189,16 @@ int main (int argc, char** argv) {
 	LLVMBackend* backend = new LLVMBackend();
 
 	Module* module = getHelloModule(GlobalContext, "[hello] I'm pickle Riiick!!\n");
-	module->print(outs(), nullptr);
+	//module->print(outs(), nullptr);
 	auto moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
 	backend->writeObj(module, moduleName.c_str());
 
 	module = getIfElseModule(GlobalContext, 12000);
+	//module->print(outs(), nullptr);
+	moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
+	backend->writeObj(module, moduleName.c_str());
+
+	module = getForModule(GlobalContext, 5);
 	module->print(outs(), nullptr);
 	moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
 	backend->writeObj(module, moduleName.c_str());
