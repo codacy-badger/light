@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "../buffer/buffer.cpp"
-#include "../buffer/file_buffer.cpp"
+#include "buffer/buffer.cpp"
+#include "buffer/file_buffer.cpp"
 
-#include "../lexer/lexer.cpp"
+#include "lexer/lexer.cpp"
 
 #include "ast/ast_type.cpp"
 #include "ast/expression/ast_expression.cpp"

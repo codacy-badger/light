@@ -1,5 +1,8 @@
 #pragma once
 
+#include "parser/ast/ast_type.cpp"
+#include "parser/ast/expression/ast_expression.cpp"
+
 #include <iostream>
 
 using namespace std;

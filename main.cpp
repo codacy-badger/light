@@ -7,18 +7,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/Support/FileSystem.h"
-#include "llvm/Support/Host.h"
-#include "llvm/Support/TargetRegistry.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetOptions.h"
-
-#include "backend/llvm_backend.cpp"
-#include "compiler.cpp"
-
-#include <cstdarg>
+#include "back/llvm/LLVMBackend.cpp"
 
 using namespace llvm;
 using namespace std;
@@ -28,40 +17,8 @@ cl::OptionCategory LightCategory("Compiler Options");
 static cl::opt<std::string>
 OutputFilename("o", cl::desc("Specify output file."), cl::value_desc("filename"), cl::cat(LightCategory));
 
-/*static cl::list<std::string>
-InputFilenames(cl::Positional, cl::desc("<input file>"), cl::OneOrMore, cl::cat(LightCategory));*/
-
 void printVersion (raw_ostream& out) {
 	out << "Light Compiler 0.1.0\n";
-}
-
-void toOBJFile (Module* module) {
-	auto TargetTriple = sys::getDefaultTargetTriple();
-	module->setTargetTriple(TargetTriple);
-
-	std::string Error;
-	auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
-	if (!Target) errs() << Error;
-
-	TargetOptions opt;
-	auto RM = Optional<Reloc::Model>();
-	auto TheTargetMachine = Target->createTargetMachine(TargetTriple, "generic", "", opt, RM);
-	module->setDataLayout(TheTargetMachine->createDataLayout());
-
-	auto filename = module->getModuleIdentifier() + ".obj";
-	if (!OutputFilename.empty()) filename = OutputFilename.c_str();
-
-	std::error_code EC;
-	raw_fd_ostream dest(filename, EC, sys::fs::F_None);
-	if (EC) errs() << "Could not open file: " << EC.message();
-
-	legacy::PassManager pass;
-	if (TheTargetMachine->addPassesToEmitFile(pass, dest, TargetMachine::CGFT_ObjectFile))
-		errs() << "TheTargetMachine can't emit a file of this type";
-	pass.run(*module);
-	dest.flush();
-
-	outs() << "Wrote '" << filename << "'\n";
 }
 
 Function* makeFunction (Module* module, string name, Type* returnType, std::vector<Type*> params) {
@@ -77,11 +34,29 @@ Function* makeNativeFunction (Module* module, string name, Type* returnType, std
 	return function;
 }
 
-Module* makeLLVMModule (LLVMContext& context) {
-	Module* module = new Module("", context);
+void printSTD (LLVMContext& context, Module* module, IRBuilder<> builder, Value* message) {
+	vector<Type*> putsArgs;
+	putsArgs.push_back(Type::getInt8Ty(context)->getPointerTo());
+	FunctionType *functionType = FunctionType::get(Type::getVoidTy(context), putsArgs, false);
+	Constant* const_func = module->getOrInsertFunction("print", functionType);
+	Function* print_func = cast<Function>(const_func);
 
-	Type* Tint32 = Type::getInt32Ty(context);
-	Type* Tint8 = Type::getInt8Ty(context);
+	vector<Value*> args { message };
+	builder.CreateCall(print_func, args);
+}
+
+void windowsExitApplication (LLVMContext& context, Module* module, IRBuilder<> builder, int exitCode) {
+	vector<Type*> putsArgs3 { Type::getInt32Ty(context) };
+	Function* ExitProcessfunc = makeNativeFunction(module, "ExitProcess", Type::getVoidTy(context), putsArgs3);
+
+	CallInst* exitResult = builder.CreateCall(ExitProcessfunc,
+		ConstantInt::get(context, APInt(32, 0)));
+	exitResult->setCallingConv(CallingConv::X86_StdCall);
+}
+
+Module* getHelloModule (LLVMContext& context, string message) {
+	Module* module = new Module("hello", context);
+
 	Type* Tvoid = Type::getVoidTy(context);
 
 	vector<Type*> params;
@@ -89,26 +64,51 @@ Module* makeLLVMModule (LLVMContext& context) {
 	BasicBlock* block = BasicBlock::Create(context, "entry", mainFunction);
 	IRBuilder<> builder(block);
 
-	string message = "\nI'm pickle Riiick!!\n\n";
 	Value* messageValue = builder.CreateGlobalStringPtr(message.c_str());
+	printSTD(context, module, builder, messageValue);
 
-	vector<Type*> putsArgs;
-	putsArgs.push_back(Tint8->getPointerTo());
-	Function* print_func = makeFunction(module, "print", Tvoid, putsArgs);
-
-	vector<Type*> putsArgs3 { Tint32 };
-	Function* ExitProcessfunc = makeNativeFunction(module, "ExitProcess", Tvoid, putsArgs3);
-
-	vector<Value*> args { messageValue };
-	builder.CreateCall(print_func, args);
-
-	CallInst* exitResult = builder.CreateCall(ExitProcessfunc,
-		ConstantInt::get(context, APInt(32, 0)));
-	exitResult->setCallingConv(CallingConv::X86_StdCall);
-
+	windowsExitApplication(context, module, builder, 0);
 	builder.CreateRet(nullptr);
 
 	verifyModule(*module);
+	return module;
+}
+
+Module* getIfElseModule (LLVMContext& context, int val) {
+	Module* module = new Module("ifelse", context);
+	IRBuilder<> builder(context);
+
+	Type* Tint32 = Type::getInt32Ty(context);
+	Type* Tvoid = Type::getVoidTy(context);
+
+	vector<Type*> params;
+	Function* mainFunction = makeFunction(module, "main", Tvoid, params);
+	BasicBlock *entryBB = BasicBlock::Create(context, "entry", mainFunction);
+	BasicBlock *thenBB = BasicBlock::Create(context, "if.then", mainFunction);
+	BasicBlock *elseBB = BasicBlock::Create(context, "if.else", mainFunction);
+	BasicBlock *exitBB = BasicBlock::Create(context, "exit", mainFunction);
+
+	builder.SetInsertPoint(entryBB);
+
+	Value* varA = builder.CreateAlloca(Tint32, nullptr, "a");
+	builder.CreateStore(ConstantInt::get(context, APInt(32, 1)), varA);
+	Value* varA2 = builder.CreateLoad(varA, "a2");
+
+	Value* cond = builder.CreateICmpSGT(varA2, ConstantInt::get(context, APInt(32, 0)));
+	builder.CreateCondBr(cond, thenBB, elseBB);
+
+	builder.SetInsertPoint(thenBB);
+	printSTD(context, module, builder, builder.CreateGlobalStringPtr("[ifelse] then block reached!\n"));
+	builder.CreateBr(exitBB);
+
+	builder.SetInsertPoint(elseBB);
+	printSTD(context, module, builder, builder.CreateGlobalStringPtr("[ifelse] else block reached!\n"));
+	builder.CreateBr(exitBB);
+
+	builder.SetInsertPoint(exitBB);
+	windowsExitApplication(context, module, builder, 0);
+	builder.CreateRet(nullptr);
+
 	return module;
 }
 
@@ -117,17 +117,19 @@ int main (int argc, char** argv) {
 	cl::HideUnrelatedOptions(LightCategory);
 	cl::ParseCommandLineOptions(argc, argv);
 
-	InitializeAllTargetInfos();
-	InitializeAllTargets();
-	InitializeAllTargetMCs();
-	InitializeAllAsmParsers();
-	InitializeAllAsmPrinters();
-
 	LLVMContext GlobalContext;
+	LLVMBackend* backend = new LLVMBackend();
 
-	Module* module = makeLLVMModule(GlobalContext);
-	module->print(errs(), nullptr);
-	toOBJFile(module);
+	Module* module = getHelloModule(GlobalContext, "[hello] I'm pickle Riiick!!\n");
+	module->print(outs(), nullptr);
+	auto moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
+	backend->writeObj(module, moduleName.c_str());
+
+	module = getIfElseModule(GlobalContext, 12000);
+	module->print(outs(), nullptr);
+	moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
+	backend->writeObj(module, moduleName.c_str());
+
 	delete module;
 
 	return 0;
