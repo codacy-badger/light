@@ -159,17 +159,17 @@ Module* getForModule (LLVMContext& context, int val) {
 	builder.SetInsertPoint(bodyBB);
 	Value* varAv = builder.CreateLoad(varA, "a2");
 	Value* addA = builder.CreateAdd(varAv, ConstantInt::get(context, APInt(32, 2)), "add");
+	std_print(context, module, builder, builder.CreateGlobalStringPtr("[for] "));
+	std_print_i32(context, module, builder, builder.CreateLoad(varI, "i"));
+	std_print(context, module, builder, builder.CreateGlobalStringPtr(" -> "));
+	std_print_i32(context, module, builder, builder.CreateLoad(varA, "a"));
+	std_print(context, module, builder, builder.CreateGlobalStringPtr("\n"));
 	builder.CreateStore(addA, varA);
 	builder.CreateBr(incBB);
 
 	builder.SetInsertPoint(incBB);
 	varIv = builder.CreateLoad(varI, "i2");
 	Value* incI = builder.CreateAdd(varIv, ConstantInt::get(context, APInt(32, 1)), "inc");
-	std_print(context, module, builder, builder.CreateGlobalStringPtr("[for] "));
-	std_print_i32(context, module, builder, builder.CreateLoad(varI, "i"));
-	std_print(context, module, builder, builder.CreateGlobalStringPtr(" -> "));
-	std_print_i32(context, module, builder, builder.CreateLoad(varA, "a"));
-	std_print(context, module, builder, builder.CreateGlobalStringPtr("\n"));
 	builder.CreateStore(incI, varI);
 	builder.CreateBr(condBB);
 
