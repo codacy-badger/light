@@ -1,6 +1,6 @@
 @echo off
 
-REM Current LLVM hash -> 65bdf0ae4a87e6992c24f06e2612909952468710
+REM Current LLVM hash --> 65bdf0ae4a87e6992c24f06e2612909952468710
 
 if exist %~dp0..\llvm\Release\lib\LLVMCore.lib (
 	if not "%1"=="force" (
