@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ast_node.cpp"
+#include "parser/ast/ast_node.cpp"
 
 using namespace std;
 

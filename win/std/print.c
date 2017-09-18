@@ -6,7 +6,7 @@ int _strlen (const char* message) {
 	return len;
 }
 
-void _std_i32_toString (int value, char* buffer) {
+void _i32_toString (int value, char* buffer) {
 	short index = 0;
 	if (value == 0) {
 		buffer[index++] = '0';
@@ -39,6 +39,6 @@ void print (const char* message) {
 void print_i32 (int value) {
 	char buffer[15];
 	char* addr = &buffer[0];
-	_std_i32_toString(value, addr);
+	_i32_toString(value, addr);
 	print(buffer);
 }

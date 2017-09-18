@@ -9,7 +9,7 @@ using namespace std;
 
 class ASTVarDef : public ASTStatement {
 	public:
-		ASTType* type = NULL;
+		ASTType* type;
 		string name = "";
 
 		ASTExpression* expression = NULL;

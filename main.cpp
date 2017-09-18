@@ -7,15 +7,19 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "back/llvm/LLVMBackend.cpp"
+#include "parser/parser.cpp"
+#include "back/llvm/llvm_backend.cpp"
 
 using namespace llvm;
 using namespace std;
 
 cl::OptionCategory LightCategory("Compiler Options");
 
-static cl::opt<std::string>
+static cl::opt<string>
 OutputFilename("o", cl::desc("Specify output file."), cl::value_desc("filename"), cl::cat(LightCategory));
+
+static cl::list<string>
+InputFilenames(cl::Positional, cl::desc("<input files>"), cl::OneOrMore);
 
 void printVersion (raw_ostream& out) {
 	out << "Light Compiler 0.1.0\n";
@@ -56,13 +60,11 @@ void std_print_i32 (LLVMContext& context, Module* module, IRBuilder<> builder, V
 	builder.CreateCall(print_func, args);
 }
 
-void windowsExitApplication (LLVMContext& context, Module* module, IRBuilder<> builder, int exitCode) {
+void std_exit (LLVMContext& context, Module* module, IRBuilder<> builder, int exitCode) {
 	vector<Type*> putsArgs3 { Type::getInt32Ty(context) };
-	Function* ExitProcessfunc = makeNativeFunction(module, "ExitProcess", Type::getVoidTy(context), putsArgs3);
-
-	CallInst* exitResult = builder.CreateCall(ExitProcessfunc,
-		ConstantInt::get(context, APInt(32, 0)));
-	exitResult->setCallingConv(CallingConv::X86_StdCall);
+	Function* ExitProcessfunc = makeFunction(module, "system_exit", Type::getVoidTy(context), putsArgs3);
+	builder.CreateCall(ExitProcessfunc, ConstantInt::get(context, APInt(32, exitCode)));
+	builder.CreateRet(nullptr);
 }
 
 Module* getHelloModule (LLVMContext& context, string message) {
@@ -78,8 +80,7 @@ Module* getHelloModule (LLVMContext& context, string message) {
 	Value* messageValue = builder.CreateGlobalStringPtr(message.c_str());
 	std_print(context, module, builder, messageValue);
 
-	windowsExitApplication(context, module, builder, 0);
-	builder.CreateRet(nullptr);
+	std_exit(context, module, builder, 0);
 
 	verifyModule(*module);
 	return module;
@@ -122,8 +123,7 @@ Module* getIfElseModule (LLVMContext& context, int val) {
 	std_print(context, module, builder, builder.CreateGlobalStringPtr("[ifelse] value -> "));
 	std_print_i32(context, module, builder, builder.CreateLoad(varA, "a2"));
 	std_print(context, module, builder, builder.CreateGlobalStringPtr("\n"));
-	windowsExitApplication(context, module, builder, 0);
-	builder.CreateRet(nullptr);
+	std_exit(context, module, builder, 0);
 
 	return module;
 }
@@ -174,9 +174,44 @@ Module* getForModule (LLVMContext& context, int val) {
 	builder.CreateBr(condBB);
 
 	builder.SetInsertPoint(exitBB);
-	windowsExitApplication(context, module, builder, 0);
-	builder.CreateRet(nullptr);
+	std_exit(context, module, builder, 0);
 
+	return module;
+}
+
+Module* getStructModule (LLVMContext& context, int number, const char* message) {
+	Module* module = new Module("struct", context);
+
+	Type* Tvoid = Type::getVoidTy(context);
+	Type* Ti32 = Type::getInt32Ty(context);
+	Type* Ti8 = Type::getInt8Ty(context);
+
+	vector<Type*> params;
+	Function* mainFunction = makeFunction(module, "main", Tvoid, params);
+	BasicBlock* block = BasicBlock::Create(context, "entry", mainFunction);
+	IRBuilder<> builder(block);
+
+	StructType::create("struct._a", Ti32, Ti8->getPointerTo());
+	StructType* _a = module->getTypeByName("struct._a");
+	AllocaInst* varI32 = builder.CreateAlloca(_a, 0, "qwe");
+	Value* structV1 = builder.CreateStructGEP(_a, varI32, 0);
+	Value* structV2 = builder.CreateStructGEP(_a, varI32, 1);
+
+	Value* text = builder.CreateGlobalStringPtr(message);
+	builder.CreateStore(ConstantInt::get(context, APInt(32, number)), structV1);
+	builder.CreateStore(text, structV2);
+
+	Value* newLine = builder.CreateGlobalStringPtr("\n");
+	Value* label = builder.CreateGlobalStringPtr("[struct] ");
+	std_print(context, module, builder, label);
+	std_print_i32(context, module, builder, builder.CreateLoad(structV1, "tmp"));
+	std_print(context, module, builder, newLine);
+	std_print(context, module, builder, label);
+	std_print(context, module, builder, builder.CreateLoad(structV2, "tmp"));
+
+	std_exit(context, module, builder, 0);
+
+	verifyModule(*module);
 	return module;
 }
 
@@ -187,6 +222,12 @@ int main (int argc, char** argv) {
 
 	LLVMContext GlobalContext;
 	LLVMBackend* backend = new LLVMBackend();
+
+	for (auto &filename : InputFilenames) {
+		Parser* parser = new Parser(filename.c_str());
+		ASTStatements* stms = parser->program();
+		backend->writeObj(stms, "dummy");
+	}
 
 	Module* module = getHelloModule(GlobalContext, "[hello] I'm pickle Riiick!!\n");
 	//module->print(outs(), nullptr);
@@ -199,6 +240,11 @@ int main (int argc, char** argv) {
 	backend->writeObj(module, moduleName.c_str());
 
 	module = getForModule(GlobalContext, 5);
+	//module->print(outs(), nullptr);
+	moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
+	backend->writeObj(module, moduleName.c_str());
+
+	module = getStructModule(GlobalContext, -42, "Ima structooo\n");
 	module->print(outs(), nullptr);
 	moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
 	backend->writeObj(module, moduleName.c_str());

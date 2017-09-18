@@ -1,2 +1,0 @@
-print("This is a constant string");
-print("\t- This is another one \n\t\t->fancy!");

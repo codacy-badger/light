@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <map>
 
 #include "buffer/buffer.cpp"
 #include "buffer/file_buffer.cpp"
@@ -30,14 +31,13 @@ class Parser {
 
 		ASTType* type () {
 			if (this->lexer->isNextType(Token::Type::ID)) {
-				ASTType* output = new ASTType();
-				output->name = this->lexer->nextText();
-				return output;
-			} else if(this->lexer->isNextType(Token::Type::LET)) {
-				this->lexer->skip(1);
-				ASTType* output = new ASTType();
-				output->name = "";
-				return output;
+				auto typeName = this->lexer->nextText();
+				auto it = types.find(typeName);
+				if (it == types.end()) {
+					ASTType* output = new ASTType();
+					output->name = typeName;
+					return output;
+				} else return types[typeName];
 			} else return NULL;
 		}
 
@@ -187,10 +187,22 @@ class Parser {
 			return output;
 		}
 
+		ASTStatements* program () {
+			ASTStatements* output = new ASTStatements();
+			ASTStatement* exp = this->statement();
+			while (exp != NULL) {
+				output->list.push_back(exp);
+				exp = this->statement();
+			}
+			return output;
+		}
+
 	private:
 		Token* token = new Token();
 		const char* source = NULL;
 		Lexer* lexer = NULL;
+
+		map<std::string, ASTType*> types;
 
 		void error (const char* message) {
 			this->lexer->peek(this->token, 0);

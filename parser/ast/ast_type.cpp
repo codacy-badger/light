@@ -1,13 +1,16 @@
 #pragma once
+
 #include <string>
 #include <ostream>
 #include <iostream>
+#include <map>
 
 #include "ast_node.cpp"
 
 class ASTType : public ASTNode{
 	public:
 		std::string name;
+		std::map<std::string, ASTType*> attributes;
 
 		void print (int tabs) {
 			if (this->name == "") std::cout  << "[?]";

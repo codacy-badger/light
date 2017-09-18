@@ -1,1 +1,6 @@
-cl /nologo /c /MDd /Zi win\std\win_std.c /Fo".\build\win_std.obj" /Fd".\build\win_std.pdb"
+cl /nologo /c /MDd /Zi win\std\sys.c
+cl /nologo /c /MDd /Zi win\std\print.c
+
+lib /nologo /OUT:".\build\std_li.lib" sys.obj print.obj
+
+del *.obj *.pdb
