@@ -6,10 +6,8 @@ using namespace std;
 
 class ASTStatement : public ASTNode {
 	public:
-		void print (int tabs);
+		void print (int tabs) = 0;
 };
 
 #include "ast_var_def.cpp"
 #include "ast_statements.cpp"
-
-void ASTStatement::print (int tabs) { /* empty */ }

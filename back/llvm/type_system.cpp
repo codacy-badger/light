@@ -32,12 +32,6 @@ public:
 	LLVMTypeSystem (Module* module) {
 		this->module = module;
 		Tint32 = Type::getInt32Ty(module->getContext());
-
-		vector<Type*> params{ Tint32, Tint32 };
-		FunctionType *funcType = FunctionType::get(Tint32, params, false);
-		std::string mangledName = mangle("_add", funcType);
-		Function* function = Function::Create(funcType, Function::ExternalLinkage, mangledName, module);
-		function->addFnAttr(Attribute::AttrKind::AlwaysInline);
 	}
 
 	Type* getNativeType (std::string name) {

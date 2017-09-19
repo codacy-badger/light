@@ -1,0 +1,28 @@
+// main function is the entry point of every application
+// it has no arguments: argv (string[]) is an implicit
+// variable in the scope of the function
+fn main () {
+	let a = 0;
+	let b = a + 2;
+	let c = -2 * a / b;
+	let d = 2 + calc(a, b);
+}
+
+// functions must have the following structure:
+// - 'fn' token
+// - name
+// - function prototype
+//   - input types & names (optional)
+//   - return type (optional)
+fn calc (int a, int b) -> int {
+	return a + 10 * b;
+}
+
+// when no return type is specified, void is assumed
+// [invalid] fn -> int {}
+// [valid] fn asd -> int {}
+// [valid] fn asd () -> int {}
+// [invalid] fn asd (int) -> int {}
+// [valid] fn asd (int a) -> {}
+// [valid] fn asd (int a) {}
+// [valid] fn asd (int a, ) {}

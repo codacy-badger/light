@@ -225,7 +225,7 @@ int main (int argc, char** argv) {
 		backend->writeObj(stms);
 	}
 
-	outs() << "\n-------------------\n";
+	outs() << "\n--- OBJ ---\n";
 	Module* module = getHelloModule(GlobalContext, "[hello] I'm pickle Riiick!!\n");
 	//module->print(outs(), nullptr);
 	auto moduleName = "test\\" + module->getModuleIdentifier() + ".obj";

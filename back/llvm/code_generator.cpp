@@ -94,7 +94,22 @@ public:
 			return this->codegen(con);
 		else if (ASTId* id = dynamic_cast<ASTId*>(exp))
 			return this->codegen(id);
+		else if (ASTFunction* func = dynamic_cast<ASTFunction*>(exp))
+			return this->codegen(func);
 		else return nullptr;
+	}
+
+	Function* codegen (ASTFunction* func) {
+		std::string funcName = "";
+		vector<Type*> argTypes;
+		for(auto const& param: func->params)
+			argTypes.push_back(this->codegen(param->type));
+		FunctionType* functionType = FunctionType::get(
+			this->codegen(func->retType), argTypes, false);
+		if (func->name != "") funcName = func->name;
+		Function* function = Function::Create(functionType,
+			Function::ExternalLinkage, funcName, module);
+		return function;
 	}
 
 	Value* codegen (ASTBinop* binop) {
@@ -124,15 +139,6 @@ public:
 		return nullptr;
 	}
 
-	Value* codegen (ASTConst* con) {
-		switch (con->type) {
-			case ASTConst::TYPE::INT:
-				return ConstantInt::get(context, APInt(32, con->intValue));
-			default: break;
-		}
-		return nullptr;
-	}
-
 	Value* codegen (ASTId* id) {
 		auto it = scope.find(id->name);
 		if (it == scope.end()) {
@@ -141,6 +147,15 @@ public:
 		} else {
 			return builder.CreateLoad(scope[id->name], "tmp");
 		}
+	}
+
+	Value* codegen (ASTConst* con) {
+		switch (con->type) {
+			case ASTConst::TYPE::INT:
+				return ConstantInt::get(context, APInt(32, con->intValue));
+			default: break;
+		}
+		return nullptr;
 	}
 
 	Type* codegen (ASTType* type) {
