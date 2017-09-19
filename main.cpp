@@ -2,13 +2,14 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/Attributes.h"
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "parser/parser.cpp"
-#include "back/llvm/llvm_backend.cpp"
+#include "back/llvm/backend.cpp"
 
 using namespace llvm;
 using namespace std;
@@ -28,13 +29,7 @@ void printVersion (raw_ostream& out) {
 Function* makeFunction (Module* module, string name, Type* returnType, std::vector<Type*> params) {
 	FunctionType *functionType = FunctionType::get(returnType, params, false);
 	Function *function = Function::Create(functionType, Function::ExternalLinkage, name.c_str(), module);
-	return function;
-}
-
-Function* makeNativeFunction (Module* module, string name, Type* returnType, std::vector<Type*> params) {
-	Function *function = makeFunction(module, name, returnType, params);
-	function->setDLLStorageClass(GlobalValue::DLLStorageClassTypes::DLLImportStorageClass);
-	function->setCallingConv(CallingConv::X86_StdCall);
+	//function->addFnAttr(Attribute::AttrKind::AlwaysInline);
 	return function;
 }
 
@@ -64,7 +59,7 @@ void std_exit (LLVMContext& context, Module* module, IRBuilder<> builder, int ex
 	vector<Type*> putsArgs3 { Type::getInt32Ty(context) };
 	Function* ExitProcessfunc = makeFunction(module, "system_exit", Type::getVoidTy(context), putsArgs3);
 	builder.CreateCall(ExitProcessfunc, ConstantInt::get(context, APInt(32, exitCode)));
-	builder.CreateRet(nullptr);
+	builder.CreateRetVoid();
 }
 
 Module* getHelloModule (LLVMContext& context, string message) {
@@ -226,9 +221,11 @@ int main (int argc, char** argv) {
 	for (auto &filename : InputFilenames) {
 		Parser* parser = new Parser(filename.c_str());
 		ASTStatements* stms = parser->program();
-		backend->writeObj(stms, "dummy");
+		//stms->print(0);
+		backend->writeObj(stms);
 	}
 
+	outs() << "\n-------------------\n";
 	Module* module = getHelloModule(GlobalContext, "[hello] I'm pickle Riiick!!\n");
 	//module->print(outs(), nullptr);
 	auto moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
@@ -245,7 +242,7 @@ int main (int argc, char** argv) {
 	backend->writeObj(module, moduleName.c_str());
 
 	module = getStructModule(GlobalContext, -42, "Ima structooo\n");
-	module->print(outs(), nullptr);
+	//module->print(outs(), nullptr);
 	moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
 	backend->writeObj(module, moduleName.c_str());
 

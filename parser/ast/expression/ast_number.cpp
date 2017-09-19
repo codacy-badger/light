@@ -7,10 +7,10 @@
 using namespace std;
 
 class ASTNumber : public ASTExpression {
-	public:
-		string value;
+public:
+	string value;
 
-		void print (int tabs) {
-			cout << this->value;
-		}
+	void print (int tabs) {
+		cout << this->value;
+	}
 };

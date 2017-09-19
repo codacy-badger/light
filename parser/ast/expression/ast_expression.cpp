@@ -10,9 +10,8 @@ class ASTExpression : public ASTNode {
 };
 
 #include "ast_id.cpp"
-#include "binop/ast_expression_binop.cpp"
-#include "unop/ast_expression_unop.cpp"
-#include "ast_number.cpp"
-#include "ast_string.cpp"
+#include "ast_binop.cpp"
+#include "ast_unop.cpp"
+#include "ast_const.cpp"
 
 void ASTExpression::print (int tabs) { /* empty */ }

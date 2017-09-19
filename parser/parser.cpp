@@ -49,18 +49,19 @@ class Parser {
 			} else return NULL;
 		}
 
-		ASTString* string () {
+		ASTConst* string () {
 			if (this->lexer->isNextType(Token::Type::STRING)) {
-				ASTString* output = new ASTString();
-				output->value = this->lexer->nextText();
+				ASTConst* output = new ASTConst(ASTConst::TYPE::STRING);
+				output->stringValue = this->lexer->nextText().c_str();
 				return output;
 			} else return NULL;
 		}
 
-		ASTNumber* number () {
+		ASTConst* number () {
 			if (this->lexer->isNextType(Token::Type::NUMBER)) {
-				ASTNumber* output = new ASTNumber();
-				output->value = this->lexer->nextText();
+				ASTConst* output = new ASTConst(ASTConst::TYPE::INT);
+				auto text = this->lexer->nextText();
+				output->intValue = std::stoi(text, nullptr, 10);
 				return output;
 			} else return NULL;
 		}
@@ -71,10 +72,7 @@ class Parser {
 		        Token::Type tt = this->lexer->peekType(0);
 		        while (tt == Token::Type::ADD || tt == Token::Type::SUB) {
 					this->lexer->skip(1);
-		            ASTExpressionBinop* binop = NULL;
-		            if (tt == Token::Type::ADD) {
-						binop = new ASTExpressionBinopAdd();
-		            } else binop = new ASTExpressionBinopSub();
+		            ASTBinop* binop = new ASTBinop(tt);
 					binop->lhs = lhs;
 		            binop->rhs = this->term();
 		            if (binop->rhs == NULL)
@@ -92,10 +90,7 @@ class Parser {
 				Token::Type tt = this->lexer->peekType(0);
 				while (tt == Token::Type::MUL || tt == Token::Type::DIV) {
 					this->lexer->skip(1);
-					ASTExpressionBinop* binop = NULL;
-		            if (tt == Token::Type::MUL) {
-						binop = new ASTExpressionBinopMul();
-		            } else binop = new ASTExpressionBinopDiv();
+					ASTBinop* binop = new ASTBinop(tt);
 					binop->lhs = lhs;
 		            binop->rhs = this->factor();
 		            if (binop->rhs == NULL)
@@ -118,7 +113,7 @@ class Parser {
 				else error("Expected closing parenthesys after expression");
 			} else if (this->lexer->isNextType(Token::Type::SUB)) {
 				this->lexer->skip(1);
-				ASTExpressionUnopNeg* _exp = new ASTExpressionUnopNeg();
+				ASTUnop* _exp = new ASTUnop(Token::Type::SUB);
 				_exp->expression = this->factor();
 				exp = (ASTExpression*) _exp;
 			} else if (this->lexer->isNextType(Token::Type::ADD)) {

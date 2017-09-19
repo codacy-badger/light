@@ -17,7 +17,7 @@
 #include "llvm/Target/TargetOptions.h"
 
 #include "parser/ast/statement/ast_statements.cpp"
-#include "llvm_code_generator.cpp"
+#include "code_generator.cpp"
 
 using namespace llvm;
 using namespace std;
@@ -34,7 +34,7 @@ public:
 		InitializeAllAsmPrinters();
 	}
 
-	void writeObj (ASTStatements* stms, const char* filepath) {
+	void writeObj (ASTStatements* stms, const char* filepath = nullptr) {
 		LLVMCodeGenerator* generator = new LLVMCodeGenerator();
 		Module* module = generator->buildModule(stms);
 		this->writeObj(module, filepath);
@@ -42,7 +42,7 @@ public:
 		delete generator;
 	}
 
-	void writeObj (Module* module, const char* filepath) {
+	void writeObj (Module* module, const char* filepath = nullptr) {
 		auto TargetTriple = sys::getDefaultTargetTriple();
 		module->setTargetTriple(TargetTriple);
 
@@ -56,7 +56,8 @@ public:
 		module->setDataLayout(TheTargetMachine->createDataLayout());
 
 		auto filename = module->getModuleIdentifier() + ".obj";
-		if (filepath[0] != '\0') filename = filepath;
+		if (filepath != nullptr && filepath[0] != '\0')
+			filename = filepath;
 
 		std::error_code EC;
 		raw_fd_ostream dest(filename, EC, sys::fs::F_None);
