@@ -3,8 +3,6 @@
 #include <iostream>
 #include <vector>
 
-#include "ast_statement.cpp"
-
 using namespace std;
 
 class ASTStatements : ASTStatement {

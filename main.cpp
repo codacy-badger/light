@@ -221,7 +221,7 @@ int main (int argc, char** argv) {
 	for (auto &filename : InputFilenames) {
 		Parser* parser = new Parser(filename.c_str());
 		ASTStatements* stms = parser->program();
-		//stms->print(0);
+		stms->print(0);
 		backend->writeObj(stms);
 	}
 

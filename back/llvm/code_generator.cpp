@@ -18,6 +18,7 @@
 #include "llvm/Target/TargetOptions.h"
 
 #include "type_system.cpp"
+#include "scope.cpp"
 
 #include <string>
 #include <ostream>
@@ -36,27 +37,28 @@ public:
 	Module* module = nullptr;
 	LLVMTypeSystem* types = nullptr;
 	stack<Function*> functionStack;
-	map<std::string, AllocaInst*> scope;
+	LLVMScope* scope;
 
 	LLVMCodeGenerator () : builder(context) { /* empty */ }
 
 	Module* buildModule (ASTStatements* stms) {
 		module = new Module("output", context);
 		types = new LLVMTypeSystem(module);
+		scope = new LLVMScope();
 
-		vector<Type*> params {};
+		/*vector<Type*> params {};
 		FunctionType* funcType = FunctionType::get(Type::getVoidTy(context), params, false);
 		Function* mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main", module);
 		BasicBlock* entryBlock = BasicBlock::Create(context, "entry", mainFunc);
-		builder.SetInsertPoint(entryBlock);
+		builder.SetInsertPoint(entryBlock);*/
 
 		this->codegen(stms);
 
-		vector<Type*> exitArgs { Type::getInt32Ty(context) };
+		/*vector<Type*> exitArgs { Type::getInt32Ty(context) };
 		funcType = FunctionType::get(Type::getVoidTy(context), exitArgs, false);
 		Function* exitFunc = Function::Create(funcType, Function::ExternalLinkage, "system_exit", module);
 		builder.CreateCall(exitFunc, ConstantInt::get(context, APInt(32, 0)));
-		builder.CreateRetVoid();
+		builder.CreateRetVoid();*/
 
 		verifyModule(*module);
 		module->print(outs(), nullptr);
@@ -69,12 +71,21 @@ public:
 	}
 
 	void codegen (ASTStatement* stm) {
-		if (ASTVarDef* varDef = dynamic_cast<ASTVarDef*>(stm))
-			this->codegen(varDef);
+		if (typeid(*stm) == typeid(ASTVarDef))
+			this->codegen(static_cast<ASTVarDef*>(stm));
+		else if (typeid(*stm) == typeid(ASTStatements))
+			this->codegen(static_cast<ASTStatements*>(stm));
+		else if (typeid(*stm) == typeid(ASTFunction))
+			this->codegen(static_cast<ASTFunction*>(stm));
+		else if (typeid(*stm) == typeid(ASTReturn))
+			this->codegen(static_cast<ASTReturn*>(stm));
+		else {
+			cout << "Unrecognized statement?!\n";
+			exit(1);
+		}
 	}
 
 	void codegen (ASTVarDef* varDef) {
-		varDef->print(0);
 		Type* type = this->codegen(varDef->type);
 		AllocaInst* varAlloca = builder.CreateAlloca(type, nullptr, varDef->name);
 		if (varDef->expression != NULL) {
@@ -82,7 +93,7 @@ public:
 			if (val != nullptr) builder.CreateStore(val, varAlloca);
 			else outs() << "ERROR: Expression Value* is NULL!\n";
 		}
-		scope[varDef->name] = varAlloca;
+		scope->addVariable(varAlloca);
 	}
 
 	Value* codegen (ASTExpression* exp) {
@@ -94,21 +105,46 @@ public:
 			return this->codegen(con);
 		else if (ASTId* id = dynamic_cast<ASTId*>(exp))
 			return this->codegen(id);
-		else if (ASTFunction* func = dynamic_cast<ASTFunction*>(exp))
-			return this->codegen(func);
 		else return nullptr;
 	}
 
+	void codegen (ASTReturn* ret) {
+		if (ret->expression != nullptr) {
+			Value* retValue = this->codegen(ret->expression);
+			builder.CreateRet(retValue);
+		} else builder.CreateRetVoid();
+	}
+
 	Function* codegen (ASTFunction* func) {
-		std::string funcName = "";
 		vector<Type*> argTypes;
-		for(auto const& param: func->params)
-			argTypes.push_back(this->codegen(param->type));
+		for(auto const& param: func->fnType->params) {
+			Type* argType = this->codegen(param->type);
+			argTypes.push_back(argType);
+		}
 		FunctionType* functionType = FunctionType::get(
-			this->codegen(func->retType), argTypes, false);
-		if (func->name != "") funcName = func->name;
-		Function* function = Function::Create(functionType,
-			Function::ExternalLinkage, funcName, module);
+			this->codegen(func->fnType->retType), argTypes, false);
+
+		Function* function = nullptr;
+		if (func->stms != nullptr) {
+			int index = 0;
+			function = Function::Create(functionType, Function::ExternalLinkage, func->name, module);
+			for (auto& arg: function->args())
+				arg.setName(func->fnType->params[index++]->name);
+
+			BasicBlock* entryBlock = BasicBlock::Create(context, "entry", function);
+			BasicBlock* prevBlock = builder.GetInsertBlock();
+			builder.SetInsertPoint(entryBlock);
+
+			this->scope = scope->push();
+			this->scope->addVariables(function);
+			this->codegen(func->stms);
+			this->scope = scope->pop();
+
+			builder.SetInsertPoint(prevBlock);
+		} else {
+			Constant* constFunc = module->getOrInsertFunction(func->name, functionType);
+			function = cast<Function>(constFunc);
+		}
 		return function;
 	}
 
@@ -140,13 +176,11 @@ public:
 	}
 
 	Value* codegen (ASTId* id) {
-		auto it = scope.find(id->name);
-		if (it == scope.end()) {
+		auto alloca = scope->get(id->name);
+		if (alloca == nullptr) {
 			panic("Variable " + id->name + " not found!");
 			return nullptr;
-		} else {
-			return builder.CreateLoad(scope[id->name], "tmp");
-		}
+		} else return alloca;
 	}
 
 	Value* codegen (ASTConst* con) {
@@ -159,6 +193,7 @@ public:
 	}
 
 	Type* codegen (ASTType* type) {
+		if (type == nullptr) return Type::getVoidTy(context);
 		return this->types->getType(type);
 	}
 

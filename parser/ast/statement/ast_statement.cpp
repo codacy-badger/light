@@ -10,4 +10,6 @@ class ASTStatement : public ASTNode {
 };
 
 #include "ast_var_def.cpp"
+#include "ast_return.cpp"
 #include "ast_statements.cpp"
+#include "ast_function.cpp"

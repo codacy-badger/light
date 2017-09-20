@@ -39,7 +39,7 @@ class Lexer {
 
 		bool parse_next (Token* token) {
 			token->text.clear();
-			this->skip_ignored_and_comments();
+			while (this->skip_ignored_and_comments());
 
 		    LITERAL_TOKEN("->", Token::Type::ARROW);
 
@@ -60,7 +60,7 @@ class Lexer {
 		    LITERAL_TOKEN("]", Token::Type::SQ_BRAC_CLOSE);
 			LITERAL_TOKEN("let", Token::Type::LET);
 		    LITERAL_TOKEN("type", Token::Type::TYPE);
-		    LITERAL_TOKEN("function", Token::Type::FUNCTION);
+		    LITERAL_TOKEN("fn", Token::Type::FUNCTION);
 		    LITERAL_TOKEN("return", Token::Type::RETURN);
 
 			FUNCTION_TOKEN(number);
@@ -203,17 +203,20 @@ class Lexer {
 			token->text = "";
 		}
 
-		void skip_ignored_and_comments () {
+		bool skip_ignored_and_comments () {
 			this->buffer->skipAny(LEXER_IGNORED);
 		    if (this->buffer->peek(0) == '/') {
 		        if (this->buffer->peek(1) == '/') {
 					this->buffer->skipUntil("\n");
 					this->buffer->skipAny(LEXER_IGNORED);
+					return true;
 		        } else if (this->buffer->peek(1) == '*') {
 					this->buffer->skipUntil("*/");
 					this->buffer->skipAny(LEXER_IGNORED);
+					return true;
 		        }
 		    }
+			return false;
 		}
 
 		void fillPushbackBuffer (unsigned int limit) {

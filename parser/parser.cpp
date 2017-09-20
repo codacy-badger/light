@@ -11,7 +11,7 @@
 
 #include "ast/ast_type.cpp"
 #include "ast/expression/ast_expression.cpp"
-#include "ast/statement/ast_statements.cpp"
+#include "ast/statement/ast_statement.cpp"
 
 using namespace std;
 
@@ -58,20 +58,6 @@ public:
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			ASTId* output = new ASTId();
 			output->name = this->lexer->nextText();
-			return output;
-		} else return nullptr;
-	}
-
-	ASTFunction* function () {
-		if (this->lexer->isNextType(Token::Type::FUNCTION)) {
-			this->lexer->skip(1);
-			ASTFunction* output = new ASTFunction();
-			if (this->lexer->isNextType(Token::Type::ID))
-				output->name = this->lexer->nextText();
-			output->params = this->functionParameters();
-			// TODO: get parameter types (optional)
-			// TODO: get return type (optional)
-			// TODO: get function body (optional)
 			return output;
 		} else return nullptr;
 	}
@@ -130,15 +116,17 @@ public:
 			return this->expression();
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
 			return this->id();
-		} else if (this->lexer->isNextType(Token::Type::FUNCTION)) {
-			return this->function();
 		} else return this->constant();
 	}
 
 	ASTStatement* statement () {
-		ASTStatement* stmt = (ASTStatement*) this->statements();
+		ASTStatement* stmt = (ASTStatement*) this->var_def();
 		if (stmt != nullptr) return stmt;
-		stmt = (ASTStatement*) this->var_def();
+		stmt = (ASTStatement*) this->returnStm();
+		if (stmt != nullptr) return stmt;
+		stmt = (ASTStatement*) this->statements();
+		if (stmt != nullptr) return stmt;
+		stmt = (ASTStatement*) this->function();
 		if (stmt != nullptr) return stmt;
 		return nullptr;
 	}
@@ -187,6 +175,31 @@ public:
 		return output;
 	}
 
+	ASTReturn* returnStm () {
+		if (this->lexer->isNextType(Token::Type::RETURN)) {
+			this->lexer->skip(1);
+			ASTReturn* output = new ASTReturn();
+			output->expression = this->expression();
+			if (this->lexer->isNextType(Token::Type::STM_END))
+				this->lexer->skip(1);
+			else expected("';'", "return expression");
+			return output;
+		} else return nullptr;
+	}
+
+	ASTFunction* function () {
+		if (this->lexer->isNextType(Token::Type::FUNCTION)) {
+			this->lexer->skip(1);
+			ASTFunction* output = new ASTFunction();
+			if (this->lexer->isNextType(Token::Type::ID))
+				output->name = this->lexer->nextText();
+			else expected("Identifier", "'fn' keyword");
+			output->fnType = this->functionType();
+			output->stms = this->statement();
+			return output;
+		} else return nullptr;
+	}
+
 	ASTStatements* program () {
 		ASTStatements* output = new ASTStatements();
 		ASTStatement* exp = this->statement();
@@ -204,17 +217,44 @@ private:
 
 	map<std::string, ASTType*> types;
 
-	vector<ASTVarDef*> functionParameters () {
-		vector<ASTVarDef*> output;
+	ASTFnType* functionType () {
+		ASTFnType* output = new ASTFnType();
+		output->params = this->functionParameters();
+		if (this->lexer->isNextType(Token::Type::ARROW)) {
+			this->lexer->skip(1);
+			output->retType = this->type();
+		}
+		return output;
+	}
+
+	vector<ASTFnParam*> functionParameters () {
+		vector<ASTFnParam*> output;
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
-			ASTVarDef* varDef = this->var_def();
-			while (varDef != nullptr) {
-				output.push_back(varDef);
-				varDef = this->var_def();
+			this->lexer->skip(1);
+			ASTFnParam* fnParam = this->functionParam();
+			while (fnParam != nullptr) {
+				output.push_back(fnParam);
+				if (this->lexer->isNextType(Token::Type::COMMA))
+					this->lexer->skip(1);
+				fnParam = this->functionParam();
 			}
 			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
 				this->lexer->skip(1);
-			else error("Expected closing parenthesys after function parameters");
+			else expected("closing parenthesys", "function parameters");
+		}
+		return output;
+	}
+
+	ASTFnParam* functionParam () {
+		ASTFnParam* output = new ASTFnParam();
+		output->type = this->type();
+		if (output->type == nullptr) return nullptr;
+		output->name = this->lexer->nextText();
+		if (output->name == "")
+			expected("identifier", "type declaration");
+		if(this->lexer->isNextType(Token::Type::EQUAL)) {
+			this->lexer->skip(1);
+			output->defValue = this->expression();
 		}
 		return output;
 	}
@@ -222,6 +262,15 @@ private:
 	void error (const char* message) {
 		this->lexer->peek(this->token, 0);
 		cout << "[Light] ERROR: " << message << endl;
+		cout << "        in '" << this->source << "' @ " <<
+			this->token->line << ", " << this->token->col << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	void expected (const char* expect, const char* after) {
+		this->lexer->peek(this->token, 0);
+		cout << "[Light] ERROR: Expected " << expect
+			<< " after " << after << endl;
 		cout << "        in '" << this->source << "' @ " <<
 			this->token->line << ", " << this->token->col << endl;
 		exit(EXIT_FAILURE);

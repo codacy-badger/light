@@ -12,4 +12,3 @@ class ASTExpression : public ASTNode {
 #include "ast_unop.cpp"
 #include "ast_const.cpp"
 #include "ast_subscript.cpp"
-#include "ast_function.cpp"
