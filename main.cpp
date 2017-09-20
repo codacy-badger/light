@@ -173,9 +173,8 @@ Module* getStructModule (LLVMContext& context, int number, const char* message) 
 	Value* structV1 = builder.CreateStructGEP(_a, varI32, 0);
 	Value* structV2 = builder.CreateStructGEP(_a, varI32, 1);
 
-	Value* text = builder.CreateGlobalStringPtr(message);
 	builder.CreateStore(ConstantInt::get(context, APInt(32, number)), structV1);
-	builder.CreateStore(text, structV2);
+	builder.CreateStore(builder.CreateGlobalStringPtr(message), structV2);
 
 	Value* newLine = builder.CreateGlobalStringPtr("\n");
 	Value* label = builder.CreateGlobalStringPtr("[struct] ");
@@ -207,9 +206,9 @@ int main (int argc, char** argv) {
 	}
 
 	outs() << "\n--- OBJ ---\n";
-	module = getIfElseModule(GlobalContext, 12000);
+	Module* module = getIfElseModule(GlobalContext, 12000);
 	//module->print(outs(), nullptr);
-	moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
+	auto moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
 	backend->writeObj(module, moduleName.c_str());
 
 	module = getForModule(GlobalContext, 5);
