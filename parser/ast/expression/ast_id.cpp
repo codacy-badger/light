@@ -2,8 +2,6 @@
 
 #include <iostream>
 
-#include "ast_id.cpp"
-
 using namespace std;
 
 class ASTId : public ASTExpression {

@@ -79,10 +79,9 @@ public:
 			this->codegen(static_cast<ASTFunction*>(stm));
 		else if (typeid(*stm) == typeid(ASTReturn))
 			this->codegen(static_cast<ASTReturn*>(stm));
-		else {
-			cout << "Unrecognized statement?!\n";
-			exit(1);
-		}
+		else if (typeid(*stm) == typeid(ASTCallStatement))
+			this->codegen(static_cast<ASTCallStatement*>(stm));
+		else panic("Unrecognized statement?!");
 	}
 
 	void codegen (ASTVarDef* varDef) {
@@ -96,6 +95,14 @@ public:
 		scope->addVariable(varAlloca);
 	}
 
+	Value* codegen (ASTCallStatement* callStm) {
+		return createCall(callStm->call);
+	}
+
+	Value* codegen (ASTCall* call) {
+		return createCall(call, "fnCall");
+	}
+
 	Value* codegen (ASTExpression* exp) {
 		if (ASTBinop* binop = dynamic_cast<ASTBinop*>(exp))
 			return this->codegen(binop);
@@ -105,10 +112,13 @@ public:
 			return this->codegen(con);
 		else if (ASTId* id = dynamic_cast<ASTId*>(exp))
 			return this->codegen(id);
+		else if (ASTCall* call = dynamic_cast<ASTCall*>(exp))
+			return this->codegen(call);
 		else return nullptr;
 	}
 
 	void codegen (ASTReturn* ret) {
+		ret->print(0);
 		if (ret->expression != nullptr) {
 			Value* retValue = this->codegen(ret->expression);
 			builder.CreateRet(retValue);
@@ -147,6 +157,7 @@ public:
 			Constant* constFunc = module->getOrInsertFunction(func->name, functionType);
 			function = cast<Function>(constFunc);
 		}
+		verifyFunction(*function);
 		return function;
 	}
 
@@ -179,10 +190,13 @@ public:
 
 	Value* codegen (ASTId* id) {
 		auto alloca = scope->get(id->name);
+		cout << "TypeID -> " << typeid(alloca).name() << "\n";
 		if (alloca == nullptr) {
 			panic("Variable " + id->name + " not found!");
 			return nullptr;
-		} else return alloca;
+		} else if (typeid(*alloca) == typeid(Argument)) {
+			return alloca;
+		} else return builder.CreateLoad(alloca, "tmp");
 	}
 
 	Value* codegen (ASTConst* con) {
@@ -202,6 +216,16 @@ public:
 	~LLVMCodeGenerator () { /* empty */ }
 
 private:
+	Value* createCall (ASTCall* call, std::string tmpName = "") {
+		Function* function = module->getFunction(call->name);
+		if (function == nullptr)
+			panic("Function* not found -> " + call->name);
+		vector<Value*> params;
+		for(auto const& param: call->params)
+			params.push_back(this->codegen(param));
+		return builder.CreateCall(function, params, tmpName);
+	}
+
 	void* panic (std::string message) {
 		outs() << "FATAR ERROR: " << message << "\n";
 		exit(1);

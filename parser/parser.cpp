@@ -54,6 +54,26 @@ public:
 		} else return nullptr;
 	}
 
+	ASTCall* call () {
+		if (this->lexer->isNextType(Token::Type::ID)
+				&& this->lexer->peekType(1) == Token::Type::PAR_OPEN) {
+			ASTCall* output = new ASTCall();
+			output->name = this->lexer->nextText();
+			this->lexer->skip(1);
+			ASTExpression* exp = this->expression();
+			while (exp != nullptr) {
+				output->params.push_back(exp);
+				if (this->lexer->isNextType(Token::Type::COMMA))
+					this->lexer->skip(1);
+				exp = this->expression();
+			}
+			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
+				this->lexer->skip(1);
+			else expected("closing parenthesys", "call arguments");
+			return output;
+		} else return nullptr;
+	}
+
 	ASTId* id () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			ASTId* output = new ASTId();
@@ -115,12 +135,20 @@ public:
 			this->lexer->skip(1);
 			return this->expression();
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
-			return this->id();
+			if (this->lexer->peekType(1) == Token::Type::PAR_OPEN) {
+				return this->call();
+			} else return this->id();
 		} else return this->constant();
 	}
 
 	ASTStatement* statement () {
-		ASTStatement* stmt = (ASTStatement*) this->var_def();
+		if (this->lexer->isNextType(Token::Type::STM_END)) {
+			this->lexer->skip(1);
+			return nullptr;
+		}
+		ASTStatement* stmt = (ASTStatement*) this->callStm();
+		if (stmt != nullptr) return stmt;
+		stmt = (ASTStatement*) this->var_def();
 		if (stmt != nullptr) return stmt;
 		stmt = (ASTStatement*) this->returnStm();
 		if (stmt != nullptr) return stmt;
@@ -145,9 +173,20 @@ public:
 
 		if (this->lexer->isNextType(Token::Type::BRAC_CLOSE))
 			this->lexer->skip(1);
-		else error("Expected '}' after statements");
+		else expected("'}'", "statements");
 
 		return output;
+	}
+
+	ASTCallStatement* callStm () {
+		ASTCall* call = this->call();
+		if (call == nullptr) return nullptr;
+		ASTCallStatement* expStm = new ASTCallStatement();
+		expStm->call = call;
+		if (this->lexer->isNextType(Token::Type::STM_END))
+			this->lexer->skip(1);
+		else expected("';'", "function call");
+		return expStm;
 	}
 
 	ASTVarDef* var_def () {

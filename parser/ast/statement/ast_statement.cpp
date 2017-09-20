@@ -13,3 +13,4 @@ class ASTStatement : public ASTNode {
 #include "ast_return.cpp"
 #include "ast_statements.cpp"
 #include "ast_function.cpp"
+#include "ast_call_stm.cpp"
