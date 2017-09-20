@@ -15,7 +15,7 @@ public:
 		long longValue;
 		float floatValue;
 		double doubleValue;
-		const char* stringValue;
+		char* stringValue;
 	};
 
 	ASTConst (TYPE type) {
@@ -30,7 +30,7 @@ public:
 			case LONG:   cout << this->longValue;   break;
 			case FLOAT:  cout << this->floatValue;  break;
 			case DOUBLE: cout << this->doubleValue; break;
-			case STRING: cout << this->stringValue; break;
+			case STRING: cout << "\"" << this->stringValue << "\""; break;
 			default: break;
 		}
 	}

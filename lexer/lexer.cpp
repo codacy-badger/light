@@ -150,8 +150,18 @@ class Lexer {
 
 				c = this->buffer->next();
 				while (c != '"') {
-					if (c == '\\')
+					if (c == '\\') {
 						c = this->buffer->next();
+						if (c == 'n') {
+							token->text.push_back('\n');
+							c = this->buffer->next();
+							continue;
+						} else if (c == 't') {
+							token->text.push_back('\t');
+							c = this->buffer->next();
+							continue;
+						}
+					}
 					token->text.push_back(c);
 					c = this->buffer->next();
 				}

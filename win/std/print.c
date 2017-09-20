@@ -36,9 +36,19 @@ void print (const char* message) {
 	WriteFile(out, message, _strlen(message), NULL, NULL);
 }
 
+void println () {
+	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+	WriteFile(out, "\n", 1, NULL, NULL);
+}
+
 void print_i32 (int value) {
 	char buffer[15];
 	char* addr = &buffer[0];
 	_i32_toString(value, addr);
 	print(buffer);
+}
+
+void println_i32 (int value) {
+	print_i32(value);
+	println();
 }

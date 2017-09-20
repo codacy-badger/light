@@ -44,7 +44,9 @@ public:
 	ASTConst* constant () {
 		if (this->lexer->isNextType(Token::Type::STRING)) {
 			ASTConst* output = new ASTConst(ASTConst::TYPE::STRING);
-			output->stringValue = this->lexer->nextText().c_str();
+			auto text = this->lexer->nextText();
+			output->stringValue = new char[text.length() + 1];
+			strcpy(output->stringValue, text.c_str());
 			return output;
 		} else if (this->lexer->isNextType(Token::Type::NUMBER)) {
 			ASTConst* output = new ASTConst(ASTConst::TYPE::INT);

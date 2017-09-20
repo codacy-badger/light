@@ -8,9 +8,6 @@ fn calc (int a, int b) -> int {
 	return a / 2 + b;
 }
 
-fn system_exit (int errorCode) -> void;
-fn print_i32 (int number) -> void;
-
 // main function is the entry point of every application
 // it has no arguments: argv (string[]) is an implicit
 // variable in the scope of the function
@@ -19,10 +16,11 @@ fn main () {
 	int b = a / 2;
 	int c = -2 * a - b;
 	int d = 3 - calc(b, c);
-	print_i32(a);
-	print_i32(b);
-	print_i32(c);
-	print_i32(d);
+	print("These are the values:\n");
+	println_i32(a);
+	println_i32(b);
+	println_i32(c);
+	println_i32(d);
 	system_exit(0);
 }
 

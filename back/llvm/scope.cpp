@@ -38,7 +38,7 @@ public:
 	void addVariables (Function* function, IRBuilder<>* builder) {
 		for (auto &arg : function->args()) {
 			Type* type = arg.getType();
-			AllocaInst* alloca = builder->CreateAlloca(type, 0, arg.getName());
+			AllocaInst* alloca = builder->CreateAlloca(type, 0, arg.getName() + ".addr");
 			builder->CreateStore(&arg, alloca);
 			variables[arg.getName()] = alloca;
 		}

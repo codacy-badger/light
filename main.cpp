@@ -62,25 +62,6 @@ void std_exit (LLVMContext& context, Module* module, IRBuilder<> builder, int ex
 	builder.CreateRetVoid();
 }
 
-Module* getHelloModule (LLVMContext& context, string message) {
-	Module* module = new Module("hello", context);
-
-	Type* Tvoid = Type::getVoidTy(context);
-
-	vector<Type*> params;
-	Function* mainFunction = makeFunction(module, "main", Tvoid, params);
-	BasicBlock* block = BasicBlock::Create(context, "entry", mainFunction);
-	IRBuilder<> builder(block);
-
-	Value* messageValue = builder.CreateGlobalStringPtr(message.c_str());
-	std_print(context, module, builder, messageValue);
-
-	std_exit(context, module, builder, 0);
-
-	verifyModule(*module);
-	return module;
-}
-
 Module* getIfElseModule (LLVMContext& context, int val) {
 	Module* module = new Module("ifelse", context);
 	IRBuilder<> builder(context);
@@ -226,11 +207,6 @@ int main (int argc, char** argv) {
 	}
 
 	outs() << "\n--- OBJ ---\n";
-	Module* module = getHelloModule(GlobalContext, "[hello] I'm pickle Riiick!!\n");
-	//module->print(outs(), nullptr);
-	auto moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
-	backend->writeObj(module, moduleName.c_str());
-
 	module = getIfElseModule(GlobalContext, 12000);
 	//module->print(outs(), nullptr);
 	moduleName = "test\\" + module->getModuleIdentifier() + ".obj";

@@ -19,6 +19,8 @@
 #include <string>
 #include <map>
 
+#include "std/std.cpp"
+
 using namespace llvm;
 using namespace std;
 
@@ -34,6 +36,7 @@ public:
 		this->module = module;
 		Tvoid = Type::getVoidTy(module->getContext());
 		Tint32 = Type::getInt32Ty(module->getContext());
+		addStdModuleFunctions(module);
 	}
 
 	Type* getNativeType (std::string name) {

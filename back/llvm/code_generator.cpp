@@ -46,19 +46,7 @@ public:
 		types = new LLVMTypeSystem(module);
 		scope = new LLVMScope();
 
-		/*vector<Type*> params {};
-		FunctionType* funcType = FunctionType::get(Type::getVoidTy(context), params, false);
-		Function* mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main", module);
-		BasicBlock* entryBlock = BasicBlock::Create(context, "entry", mainFunc);
-		builder.SetInsertPoint(entryBlock);*/
-
 		this->codegen(stms);
-
-		/*vector<Type*> exitArgs { Type::getInt32Ty(context) };
-		funcType = FunctionType::get(Type::getVoidTy(context), exitArgs, false);
-		Function* exitFunc = Function::Create(funcType, Function::ExternalLinkage, "system_exit", module);
-		builder.CreateCall(exitFunc, ConstantInt::get(context, APInt(32, 0)));
-		builder.CreateRetVoid();*/
 
 		verifyModule(*module);
 		module->print(outs(), nullptr);
@@ -172,7 +160,7 @@ public:
 			case ASTBinop::OPS::MUL:
 				return builder.CreateMul(lhs, rhs, "mul");
 			case ASTBinop::OPS::DIV:
-				return builder.CreateUDiv(lhs, rhs, "div");
+				return builder.CreateSDiv(lhs, rhs, "div");
 			default: break;
 		}
 		return nullptr;
@@ -202,6 +190,8 @@ public:
 		switch (con->type) {
 			case ASTConst::TYPE::INT:
 				return ConstantInt::get(context, APInt(32, con->intValue));
+			case ASTConst::TYPE::STRING:
+				return builder.CreateGlobalStringPtr(con->stringValue);
 			default: break;
 		}
 		return nullptr;
