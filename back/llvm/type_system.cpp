@@ -27,19 +27,23 @@ public:
 	Module* module;
 	map<ASTType*, Type*> typeCache;
 
+	Type* Tvoid = nullptr;
 	Type* Tint32 = nullptr;
 
 	LLVMTypeSystem (Module* module) {
 		this->module = module;
+		Tvoid = Type::getVoidTy(module->getContext());
 		Tint32 = Type::getInt32Ty(module->getContext());
 	}
 
 	Type* getNativeType (std::string name) {
+		if (name == "void") return Tvoid;
 		if (name == "int") return Tint32;
 		else return nullptr;
 	}
 
 	std::string getNativeName (Type* type) {
+		if (type == Tvoid) return "void";
 		if (type == Tint32) return "int";
 		else return nullptr;
 	}
@@ -59,13 +63,5 @@ public:
 
 	Type* getType (ASTType* type) {
 		return this->getType(type->name);
-	}
-
-	std::string mangle (std::string name, FunctionType* types) {
-		auto retType = types->getReturnType();
-		auto result = name + "$" + getName(retType);
-		for(auto const& type: types->params())
-			result += "_" + getName(type);
-		return result;
 	}
 };

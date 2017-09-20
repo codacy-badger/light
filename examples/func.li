@@ -17,7 +17,7 @@ fn calc (int a, int b) -> int {
 	return a + 10 * b;
 }
 
-fn system_exit (int errorCode);
+fn system_exit (int errorCode) -> void;
 
 // when no return type is specified, void is assumed
 // [invalid] fn -> int {}
