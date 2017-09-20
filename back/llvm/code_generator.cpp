@@ -146,7 +146,7 @@ public:
 			builder.SetInsertPoint(entryBlock);
 
 			this->scope = scope->push();
-			this->scope->addVariables(function);
+			this->scope->addVariables(function, &builder);
 			this->codegen(func->stms);
 			this->scope = scope->pop();
 			if (func->fnType->retType == nullptr)
@@ -190,7 +190,6 @@ public:
 
 	Value* codegen (ASTId* id) {
 		auto alloca = scope->get(id->name);
-		cout << "TypeID -> " << typeid(alloca).name() << "\n";
 		if (alloca == nullptr) {
 			panic("Variable " + id->name + " not found!");
 			return nullptr;

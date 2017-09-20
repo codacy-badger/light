@@ -35,9 +35,13 @@ public:
 		variables[allocation->getName()] = allocation;
 	}
 
-	void addVariables (Function* function) {
-		for (auto &arg : function->args())
-  			variables[arg.getName()] = &arg;
+	void addVariables (Function* function, IRBuilder<>* builder) {
+		for (auto &arg : function->args()) {
+			Type* type = arg.getType();
+			AllocaInst* alloca = builder->CreateAlloca(type, 0, arg.getName());
+			builder->CreateStore(&arg, alloca);
+			variables[arg.getName()] = alloca;
+		}
 	}
 
 	Value* get (std::string name) {

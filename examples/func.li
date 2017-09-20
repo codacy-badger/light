@@ -5,8 +5,7 @@
 //   - input types & names (optional)
 //   - return type (optional)
 fn calc (int a, int b) -> int {
-	int asd = 122;
-	return asd / 2;
+	return a / 2 + b;
 }
 
 fn system_exit (int errorCode) -> void;
@@ -20,15 +19,18 @@ fn main () {
 	int b = a / 2;
 	int c = -2 * a - b;
 	int d = 3 - calc(b, c);
+	print_i32(a);
+	print_i32(b);
 	print_i32(c);
+	print_i32(d);
 	system_exit(0);
 }
 
 // when no return type is specified, void is assumed
 // [invalid] fn -> int {}
-// [valid] fn asd -> int {}
-// [valid] fn asd () -> int {}
+// [valid]   fn asd -> int {}
+// [valid]   fn asd () -> int {}
 // [invalid] fn asd (int) -> int {}
-// [valid] fn asd (int a) -> {}
-// [valid] fn asd (int a) {}
-// [valid] fn asd (int a, ) {}
+// [valid]   fn asd (int a) -> {}
+// [valid]   fn asd (int a) {}
+// [valid]   fn asd (int a, ) {}
