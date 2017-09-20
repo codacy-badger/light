@@ -139,6 +139,8 @@ public:
 			this->scope->addVariables(function);
 			this->codegen(func->stms);
 			this->scope = scope->pop();
+			if (func->fnType->retType == nullptr)
+				builder.CreateRetVoid();
 
 			builder.SetInsertPoint(prevBlock);
 		} else {
