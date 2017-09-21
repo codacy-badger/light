@@ -106,7 +106,6 @@ public:
 	}
 
 	void codegen (ASTReturn* ret) {
-		ret->print(0);
 		if (ret->expression != nullptr) {
 			Value* retValue = this->codegen(ret->expression);
 			builder.CreateRet(retValue);

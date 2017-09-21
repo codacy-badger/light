@@ -2,9 +2,6 @@
 
 bin\light -o test\test.obj examples\func.li
 
-link /nologo /ENTRY:main /SUBSYSTEM:CONSOLE /OUT:".\test\hello.exe" test\hello.obj ^
-	build\std_li.lib kernel32.lib
-
 link /nologo /ENTRY:main /SUBSYSTEM:CONSOLE /OUT:".\test\ifelse.exe" test\ifelse.obj ^
  	build\std_li.lib kernel32.lib
 
@@ -16,7 +13,6 @@ link /nologo /ENTRY:main /SUBSYSTEM:CONSOLE /OUT:".\test\struct.exe" test\struct
 
 echo.
 echo --- TESTS ---
-test\hello
 test\ifelse
 test\for
 test\struct
