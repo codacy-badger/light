@@ -9,8 +9,9 @@ class ASTStatement : public ASTNode {
 		void print (int tabs) = 0;
 };
 
+#include "ast_statements.cpp"
+#include "ast_def_type.cpp"
 #include "ast_var_def.cpp"
 #include "ast_return.cpp"
-#include "ast_statements.cpp"
 #include "ast_function.cpp"
 #include "ast_call_stm.cpp"

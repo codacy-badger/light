@@ -7,6 +7,7 @@ class ASTExpression : public ASTNode {
 		void print (int tabs) = 0;
 };
 
+#include "ast_attr.cpp"
 #include "ast_const.cpp"
 #include "ast_id.cpp"
 #include "ast_binop.cpp"

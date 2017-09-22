@@ -58,9 +58,8 @@ public:
 
 	Type* getType (std::string name) {
 		auto result = getNativeType(name);
-		if (result == nullptr) {
-			// TODO: search in the module structs
-		}
+		if (result == nullptr)
+			result = module->getTypeByName(name);
 		return result;
 	}
 

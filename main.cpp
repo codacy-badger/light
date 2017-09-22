@@ -168,8 +168,8 @@ Module* getStructModule (LLVMContext& context, int number, const char* message) 
 	IRBuilder<> builder(block);
 
 	StructType::create("struct._a", Ti32, Ti8->getPointerTo());
-	StructType* _a = module->getTypeByName("struct._a");
-	AllocaInst* varI32 = builder.CreateAlloca(_a, 0, "qwe");
+	Type* _a = module->getTypeByName("struct._a");
+	AllocaInst* varI32 = builder.CreateAlloca(_a, nullptr, "qwe");
 	Value* structV1 = builder.CreateStructGEP(_a, varI32, 0);
 	Value* structV2 = builder.CreateStructGEP(_a, varI32, 1);
 

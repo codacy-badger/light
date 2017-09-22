@@ -69,6 +69,8 @@ public:
 			this->codegen(static_cast<ASTReturn*>(stm));
 		else if (typeid(*stm) == typeid(ASTCallStatement))
 			this->codegen(static_cast<ASTCallStatement*>(stm));
+		else if (typeid(*stm) == typeid(ASTDefType))
+			this->codegen(static_cast<ASTDefType*>(stm));
 		else panic("Unrecognized statement?!");
 	}
 
@@ -81,6 +83,17 @@ public:
 			else outs() << "ERROR: Expression Value* is NULL!\n";
 		}
 		scope->addVariable(varAlloca);
+	}
+
+	void codegen (ASTDefType* defType) {
+		vector<Type*> structTypes;
+		for(auto const& stm: defType->stms->list) {
+			if (typeid(*stm) == typeid(ASTVarDef)) {
+				ASTVarDef* varDef = static_cast<ASTVarDef*>(stm);
+				structTypes.push_back(this->codegen(varDef->type));
+			}
+		}
+		StructType::create(structTypes, defType->name.c_str());
 	}
 
 	Value* codegen (ASTCallStatement* callStm) {
@@ -102,7 +115,68 @@ public:
 			return this->codegen(id);
 		else if (ASTCall* call = dynamic_cast<ASTCall*>(exp))
 			return this->codegen(call);
+		else if (ASTAttr* attr = dynamic_cast<ASTAttr*>(exp))
+			return this->codegen(attr);
 		else return nullptr;
+	}
+
+	Value* codegen (ASTBinop* binop) {
+		Value* lhs = this->codegen(binop->lhs);
+		Value* rhs = this->codegen(binop->rhs);
+		switch (binop->op) {
+			case ASTBinop::OPS::ADD:
+				return builder.CreateAdd(lhs, rhs, "add");
+			case ASTBinop::OPS::SUB:
+				return builder.CreateSub(lhs, rhs, "sub");
+			case ASTBinop::OPS::MUL:
+				return builder.CreateMul(lhs, rhs, "mul");
+			case ASTBinop::OPS::DIV:
+				return builder.CreateSDiv(lhs, rhs, "div");
+			default: break;
+		}
+		return nullptr;
+	}
+
+	Value* codegen (ASTUnop* unop) {
+		Value* val = this->codegen(unop->expression);
+		switch (unop->op) {
+			case ASTUnop::OPS::NEG:
+				return builder.CreateNeg(val, "neg");
+			default: break;
+		}
+		return nullptr;
+	}
+
+	Value* codegen (ASTAttr* attr) {
+		Value* val = this->codegen(attr->exp);
+		Type* ty = val->getType();
+		if (ty->isPointerTy()) {
+			PointerType* pTy = static_cast<PointerType*>(ty);
+			Type* actualType = pTy->getElementType();
+			if (actualType->isStructTy())
+				return builder.CreateStructGEP(actualType, val, 0);
+		} else panic("[ASTAttr::codegen] value type is not a struct!");
+		//return nullptr;
+		return ConstantInt::get(context, APInt(32, 51));
+	}
+
+	Value* codegen (ASTId* id) {
+		auto alloca = scope->get(id->name);
+		if (alloca == nullptr) {
+			panic("Variable " + id->name + " not found!");
+			return nullptr;
+		} else return alloca;
+	}
+
+	Value* codegen (ASTConst* con) {
+		switch (con->type) {
+			case ASTConst::TYPE::INT:
+				return ConstantInt::get(context, APInt(32, con->intValue));
+			case ASTConst::TYPE::STRING:
+				return builder.CreateGlobalStringPtr(con->stringValue);
+			default: break;
+		}
+		return nullptr;
 	}
 
 	void codegen (ASTReturn* ret) {
@@ -146,54 +220,6 @@ public:
 		}
 		verifyFunction(*function);
 		return function;
-	}
-
-	Value* codegen (ASTBinop* binop) {
-		Value* lhs = this->codegen(binop->lhs);
-		Value* rhs = this->codegen(binop->rhs);
-		switch (binop->op) {
-			case ASTBinop::OPS::ADD:
-				return builder.CreateAdd(lhs, rhs, "add");
-			case ASTBinop::OPS::SUB:
-				return builder.CreateSub(lhs, rhs, "sub");
-			case ASTBinop::OPS::MUL:
-				return builder.CreateMul(lhs, rhs, "mul");
-			case ASTBinop::OPS::DIV:
-				return builder.CreateSDiv(lhs, rhs, "div");
-			default: break;
-		}
-		return nullptr;
-	}
-
-	Value* codegen (ASTUnop* unop) {
-		Value* val = this->codegen(unop->expression);
-		switch (unop->op) {
-			case ASTUnop::OPS::NEG:
-				return builder.CreateNeg(val, "neg");
-			default: break;
-		}
-		return nullptr;
-	}
-
-	Value* codegen (ASTId* id) {
-		auto alloca = scope->get(id->name);
-		if (alloca == nullptr) {
-			panic("Variable " + id->name + " not found!");
-			return nullptr;
-		} else if (typeid(*alloca) == typeid(Argument)) {
-			return alloca;
-		} else return builder.CreateLoad(alloca, "tmp");
-	}
-
-	Value* codegen (ASTConst* con) {
-		switch (con->type) {
-			case ASTConst::TYPE::INT:
-				return ConstantInt::get(context, APInt(32, con->intValue));
-			case ASTConst::TYPE::STRING:
-				return builder.CreateGlobalStringPtr(con->stringValue);
-			default: break;
-		}
-		return nullptr;
 	}
 
 	Type* codegen (ASTType* type) {
