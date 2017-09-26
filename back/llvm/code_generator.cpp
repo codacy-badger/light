@@ -67,10 +67,10 @@ public:
 			this->codegen(static_cast<ASTFunction*>(stm));
 		else if (typeid(*stm) == typeid(ASTReturn))
 			this->codegen(static_cast<ASTReturn*>(stm));
-		else if (typeid(*stm) == typeid(ASTCallStatement))
-			this->codegen(static_cast<ASTCallStatement*>(stm));
 		else if (typeid(*stm) == typeid(ASTDefType))
 			this->codegen(static_cast<ASTDefType*>(stm));
+		else if (typeid(*stm) == typeid(ASTExpStatement))
+			this->codegen(static_cast<ASTExpStatement*>(stm));
 		else panic("Unrecognized statement?!");
 	}
 
@@ -96,8 +96,8 @@ public:
 		StructType::create(structTypes, defType->name.c_str());
 	}
 
-	Value* codegen (ASTCallStatement* callStm) {
-		return createCall(callStm->call);
+	Value* codegen (ASTExpStatement* expStm) {
+		return this->codegen(expStm->exp);
 	}
 
 	Value* codegen (ASTCall* call) {
@@ -111,12 +111,12 @@ public:
 			return this->codegen(unop);
 		else if (ASTConst* con = dynamic_cast<ASTConst*>(exp))
 			return this->codegen(con);
-		else if (ASTId* id = dynamic_cast<ASTId*>(exp))
-			return this->codegen(id);
 		else if (ASTCall* call = dynamic_cast<ASTCall*>(exp))
 			return this->codegen(call);
 		else if (ASTAttr* attr = dynamic_cast<ASTAttr*>(exp))
 			return this->codegen(attr);
+		else if (ASTId* id = dynamic_cast<ASTId*>(exp))
+			return this->codegen(id);
 		else return nullptr;
 	}
 
@@ -153,19 +153,23 @@ public:
 		if (ty->isPointerTy()) {
 			PointerType* pTy = static_cast<PointerType*>(ty);
 			Type* actualType = pTy->getElementType();
-			if (actualType->isStructTy())
-				return builder.CreateStructGEP(actualType, val, 0);
+			if (actualType->isStructTy()) {
+				//return builder.CreateStructGEP(actualType, val, 0);
+				Value* attrPointer = builder.CreateStructGEP(actualType, val, 0);
+				return builder.CreateLoad(attrPointer, "attr." + attr->name);
+			}
 		} else panic("[ASTAttr::codegen] value type is not a struct!");
-		//return nullptr;
-		return ConstantInt::get(context, APInt(32, 51));
+		return nullptr;
 	}
 
 	Value* codegen (ASTId* id) {
-		auto alloca = scope->get(id->name);
-		if (alloca == nullptr) {
+		AllocaInst* pointer = scope->get(id->name);
+		if (pointer == nullptr) {
 			panic("Variable " + id->name + " not found!");
 			return nullptr;
-		} else return alloca;
+		} else if (!pointer->getType()->getElementType()->isStructTy()) {
+			return builder.CreateLoad(pointer, "tmp");
+		} else return pointer;
 	}
 
 	Value* codegen (ASTConst* con) {
@@ -231,9 +235,16 @@ public:
 
 private:
 	Value* createCall (ASTCall* call, std::string tmpName = "") {
-		Function* function = module->getFunction(call->name);
-		if (function == nullptr)
-			panic("Function* not found -> " + call->name);
+		Function* function = nullptr;
+		if (ASTId* id = dynamic_cast<ASTId*>(call->var)) {
+			function = module->getFunction(id->name);
+		}
+		if (function == nullptr) {
+			cout << "Unknown function: ";
+			call->var->print(0);
+			panic("Function* not found");
+		}
+
 		vector<Value*> params;
 		for(auto const& param: call->params)
 			params.push_back(this->codegen(param));

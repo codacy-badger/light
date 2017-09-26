@@ -1,4 +1,0 @@
-int a = -1;
-int b = 12 + 2 - 9 / 3;
-int c = -a + 2;
-int d = b * 2 - c / -3;

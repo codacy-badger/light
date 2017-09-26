@@ -24,7 +24,7 @@ using namespace std;
 
 class LLVMScope {
 public:
-	map<std::string, Value*> variables;
+	map<std::string, AllocaInst*> variables;
 	LLVMScope* parent = nullptr;
 
 	LLVMScope (LLVMScope* parent = nullptr) {
@@ -44,7 +44,7 @@ public:
 		}
 	}
 
-	Value* get (std::string name) {
+	AllocaInst* get (std::string name) {
 		auto it = variables.find(name);
 		if (it == variables.end()) {
 			if (this->parent == nullptr) return nullptr;

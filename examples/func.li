@@ -1,34 +1,12 @@
-// functions must have the following structure:
-// - 'fn' token
-// - name
-// - function prototype
-//   - input types & names (optional)
-//   - return type (optional)
-fn calc (int a, int b) -> int {
+fn calc (a: int, b: int) -> int {
 	return a / 2 + b;
 }
 
-// main function is the entry point of every application
-// it has no arguments: argv (string[]) is an implicit
-// variable in the scope of the function
 fn main () {
-	int a = 8;
-	int b = a / 2;
-	int c = -2 * a - b;
-	int d = 3 - calc(b, c);
-	print("These are the values:\n");
-	println_i32(a);
-	println_i32(b);
-	println_i32(c);
-	println_i32(d);
+	let a: int = 12;
+	let b: int = 3 - calc(8, a);
+	print("Value: ");
+	print_i32(b);
+	print(" (should be -13)\n");
 	system_exit(0);
 }
-
-// when no return type is specified, void is assumed
-// [invalid] fn -> int {}
-// [valid]   fn asd -> int {}
-// [valid]   fn asd () -> int {}
-// [invalid] fn asd (int) -> int {}
-// [valid]   fn asd (int a) -> {}
-// [valid]   fn asd (int a) {}
-// [valid]   fn asd (int a, ) {}

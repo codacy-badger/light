@@ -44,6 +44,7 @@ class Lexer {
 		    LITERAL_TOKEN("->", Token::Type::ARROW);
 
 			LITERAL_TOKEN("=", Token::Type::EQUAL);
+			LITERAL_TOKEN(":", Token::Type::COLON);
 			LITERAL_TOKEN(";", Token::Type::STM_END);
 			LITERAL_TOKEN("+", Token::Type::ADD);
 			LITERAL_TOKEN("-", Token::Type::SUB);

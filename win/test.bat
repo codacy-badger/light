@@ -1,6 +1,6 @@
 @echo off
 
-bin\light -o test\test.obj examples\struct.li
+bin\light -o test\test.obj examples\math.li
 
 link /nologo /ENTRY:main /SUBSYSTEM:CONSOLE /OUT:".\test\ifelse.exe" test\ifelse.obj ^
  	build\std_li.lib kernel32.lib
@@ -16,3 +16,7 @@ echo --- TESTS ---
 test\ifelse
 test\for
 test\struct
+
+echo.
+link /nologo /ENTRY:main output.obj kernel32.lib build\std_li.lib
+output

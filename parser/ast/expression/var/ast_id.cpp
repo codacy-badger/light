@@ -4,9 +4,13 @@
 
 using namespace std;
 
-class ASTId : public ASTExpression {
+class ASTId : public ASTVariable {
 	public:
 		string name;
+
+		ASTId (string name = "") {
+			this->name = name;
+		}
 
 		void print (int tabs) {
 			cout << "[" << this->name << "]";

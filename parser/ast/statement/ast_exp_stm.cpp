@@ -6,14 +6,14 @@
 
 using namespace std;
 
-class ASTCallStatement : public ASTStatement {
+class ASTExpStatement : public ASTStatement {
 public:
-	ASTCall* call = nullptr;
+	ASTExpression* exp = nullptr;
 
 	void print (int tabs) {
-		if (this->call != nullptr) {
+		if (this->exp != nullptr) {
 			this->tabs(tabs);
-			this->call->print(tabs);
+			this->exp->print(tabs);
 			cout << "\n";
 		}
 	}

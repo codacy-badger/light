@@ -16,10 +16,10 @@ class ASTVarDef : public ASTStatement {
 
 		void print (int tabs) {
 			this->tabs(tabs);
-			cout << "VARIABLE [" << this->name << "], type ";
-			this->type->print(tabs);
+			cout << "LET [" << this->name << "] : ";
+			if (this->type != NULL) this->type->print(tabs);
 			if (this->expression != NULL) {
-				cout << ", ";
+				cout << " = ";
 				this->expression->print(tabs);
 			}
 			cout << endl;

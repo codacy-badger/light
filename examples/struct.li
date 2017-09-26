@@ -1,19 +1,19 @@
 type point2d {
-	int x;
-	int y;
+	let x: int;
+	let y: int;
 }
 
 fn main () {
-	point2d p;
+	let p: point2d;
 	print("Point 2D: ");
 	print_i32(p.x);
 	print(", ");
 	println_i32(p.y);
-	/*p.x = +123;
+	p.x = +123;
 	print("New [x] value -> ");
 	println_i32(p.x);
 	p.y = -885;
 	print("New [y] value -> ");
-	println_i32(p.y);*/
+	println_i32(p.y);
 	system_exit(0);
 }

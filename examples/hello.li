@@ -1,12 +1,4 @@
-message = "Hello Light!\n";
-
-main = (string[] args) -> int {
-	print(message);
-	for args {
-		print("\t");
-		print(index);
-		print(" -> ");
-		println(value);
-	}
-	return 0;
-};
+fn main {
+	print("Hello Light!\n");
+	system_exit(0);
+}

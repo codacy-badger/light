@@ -8,7 +8,7 @@ using namespace std;
 
 class ASTBinop : public ASTExpression {
 public:
-	enum OPS { ADD, SUB, MUL, DIV, COUNT };
+	enum OPS { ASSIGN, ATTR, ADD, SUB, MUL, DIV, COUNT };
 	static const char* OPSChar[];
 
 	OPS op = OPS::COUNT;
@@ -25,13 +25,15 @@ public:
 
 	OPS typeToOP (Token::Type tType) {
 		switch (tType) {
+			case Token::Type::EQUAL: return OPS::ASSIGN;
+			case Token::Type::DOT: return OPS::ATTR;
 			case Token::Type::ADD: return OPS::ADD;
 			case Token::Type::SUB: return OPS::SUB;
 			case Token::Type::MUL: return OPS::MUL;
 			case Token::Type::DIV: return OPS::DIV;
 			default:
-				cout << "PANIC -> " << tType << "\n";
-				exit(87);
+				cout << "[ERROR] Binary operator unknown: " << tType << "\n";
+				exit(1);
 		};
 		return OPS::COUNT;
 	}
@@ -45,4 +47,4 @@ public:
 	}
 };
 
-const char* ASTBinop::OPSChar[] = { "+", "-", "*", "/" };
+const char* ASTBinop::OPSChar[] = { "=", ".", "+", "-", "*", "/" };

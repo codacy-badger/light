@@ -57,11 +57,9 @@ public:
 	}
 
 	ASTCall* call () {
-		if (this->lexer->isNextType(Token::Type::ID)
-				&& this->lexer->peekType(1) == Token::Type::PAR_OPEN) {
-			ASTCall* output = new ASTCall();
-			output->name = this->lexer->nextText();
+		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
+			ASTCall* output = new ASTCall();
 			ASTExpression* exp = this->expression();
 			while (exp != nullptr) {
 				output->params.push_back(exp);
@@ -76,6 +74,25 @@ public:
 		} else return nullptr;
 	}
 
+	ASTVariable* variable () {
+		ASTVariable* output = this->id();
+		if (output != nullptr) {
+			Token::Type tt = this->lexer->peekType(0);
+			while (tt == Token::Type::DOT) {
+				this->lexer->skip(1);
+				if (tt == Token::Type::DOT) {
+					ASTAttr* attr = new ASTAttr(output);
+					if (this->lexer->isNextType(Token::Type::ID))
+						attr->name = this->lexer->nextText();
+					else expected("name", "attribute access");
+					output = attr;
+					tt = this->lexer->peekType(0);
+				}
+			}
+		}
+		return output;
+	}
+
 	ASTId* id () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			ASTId* output = new ASTId();
@@ -84,80 +101,28 @@ public:
 		} else return nullptr;
 	}
 
-	ASTExpression* expression () {
-	    ASTExpression* lhs = this->exp1();
+	ASTExpression* expression (short minPrecedence = 1) {
+	    ASTExpression* lhs = this->atom();
 	    if (lhs != nullptr) {
 	        Token::Type tt = this->lexer->peekType(0);
-	        while (tt == Token::Type::ADD || tt == Token::Type::SUB) {
+			auto it = precedence.find(tt);
+			while (it != precedence.end()
+					&& precedence[tt] >= minPrecedence) {
 				this->lexer->skip(1);
-	            ASTBinop* binop = new ASTBinop(tt);
+
+				int nextMinPrec = precedence[tt];
+				if (isLeftAssociate[tt]) nextMinPrec += 1;
+
+				ASTBinop* binop = new ASTBinop(tt);
+				binop->rhs = this->expression(nextMinPrec);
 				binop->lhs = lhs;
-	            binop->rhs = this->exp1();
-	            if (binop->rhs == nullptr)
-					error("Expected expression on the right");
-	            lhs = binop;
+				lhs = binop;
+
 				tt = this->lexer->peekType(0);
-	        }
+				it = precedence.find(tt);
+			}
 	        return lhs;
 	    } else return nullptr;
-	}
-
-	ASTExpression* exp1 () {
-		ASTExpression* lhs = this->exp2();
-		if (lhs != nullptr) {
-			Token::Type tt = this->lexer->peekType(0);
-			while (tt == Token::Type::MUL || tt == Token::Type::DIV) {
-				this->lexer->skip(1);
-				ASTBinop* binop = new ASTBinop(tt);
-				binop->lhs = lhs;
-	            binop->rhs = this->exp2();
-	            if (binop->rhs == nullptr)
-					error("Expected expression on the right");
-	            lhs = binop;
-				tt = this->lexer->peekType(0);
-	        }
-	        return lhs;
-		} else return nullptr;
-	}
-
-	ASTExpression* exp2 () {
-		ASTExpression* lhs = this->exp3();
-		if (lhs != nullptr) {
-			Token::Type tt = this->lexer->peekType(0);
-			while (tt == Token::Type::DOT) {
-				this->lexer->skip(1);
-				ASTAttr* attr = new ASTAttr(lhs);
-				if (this->lexer->isNextType(Token::Type::ID))
-					attr->name = this->lexer->nextText();
-				else expected("name", "attribute access");
-				lhs = attr;
-				tt = this->lexer->peekType(0);
-	        }
-	        return lhs;
-		} else return nullptr;
-	}
-
-	ASTExpression* exp3 () {
-		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
-			this->lexer->skip(1);
-			ASTExpression* exp = this->expression();
-			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
-				this->lexer->skip(1);
-			else error("Expected closing parenthesys after expression");
-			return exp;
-		} else if (this->lexer->isNextType(Token::Type::SUB)) {
-			this->lexer->skip(1);
-			ASTUnop* _exp = new ASTUnop(Token::Type::SUB);
-			_exp->expression = this->exp3();
-			return (ASTExpression*) _exp;
-		} else if (this->lexer->isNextType(Token::Type::ADD)) {
-			this->lexer->skip(1);
-			return this->expression();
-		} else if (this->lexer->isNextType(Token::Type::ID)) {
-			if (this->lexer->peekType(1) == Token::Type::PAR_OPEN) {
-				return this->call();
-			} else return this->id();
-		} else return this->constant();
 	}
 
 	ASTStatement* statement () {
@@ -165,17 +130,17 @@ public:
 			this->lexer->skip(1);
 			return nullptr;
 		}
-		ASTStatement* stmt = (ASTStatement*) this->callStm();
+		ASTStatement* stmt = (ASTStatement*) this->expStm();
 		if (stmt != nullptr) return stmt;
 		stmt = (ASTDefType*) this->type_def();
 		if (stmt != nullptr) return stmt;
-		stmt = (ASTStatement*) this->var_def();
+		stmt = (ASTStatement*) this->function();
+		if (stmt != nullptr) return stmt;
+		stmt = (ASTStatement*)this->var_def();
 		if (stmt != nullptr) return stmt;
 		stmt = (ASTStatement*) this->returnStm();
 		if (stmt != nullptr) return stmt;
 		stmt = (ASTStatement*) this->statements();
-		if (stmt != nullptr) return stmt;
-		stmt = (ASTStatement*) this->function();
 		if (stmt != nullptr) return stmt;
 		return nullptr;
 	}
@@ -199,14 +164,14 @@ public:
 		return output;
 	}
 
-	ASTCallStatement* callStm () {
-		ASTCall* call = this->call();
-		if (call == nullptr) return nullptr;
-		ASTCallStatement* expStm = new ASTCallStatement();
-		expStm->call = call;
+	ASTExpStatement* expStm () {
+		ASTExpression* exp = this->expression();
+		if (exp == nullptr) return nullptr;
+		ASTExpStatement* expStm = new ASTExpStatement();
+		expStm->exp = exp;
 		if (this->lexer->isNextType(Token::Type::STM_END))
 			this->lexer->skip(1);
-		else expected("';'", "function call");
+		else expected("';'", "expression");
 		return expStm;
 	}
 
@@ -223,28 +188,33 @@ public:
 	}
 
 	ASTVarDef* var_def () {
-		ASTType* type = this->type();
-		if (type == nullptr) return nullptr;
-
-		ASTVarDef* output = new ASTVarDef();
-		output->type = type;
-
-		if (this->lexer->isNextType(Token::Type::ID))
-			output->name = this->lexer->nextText();
-		else error("Expected ID after type in variable declaration");
-
-		if (this->lexer->isNextType(Token::Type::EQUAL)) {
+		if (this->lexer->isNextType(Token::Type::LET)) {
 			this->lexer->skip(1);
-			output->expression = this->expression();
-			if (output->expression == nullptr)
-				error("Expected expression after equal in variable definition");
-		}
 
-		if (this->lexer->isNextType(Token::Type::STM_END))
-			this->lexer->skip(1);
-		else error("Expected ';' after variable declaration");
+			ASTVarDef* output = new ASTVarDef();
+			if (this->lexer->isNextType(Token::Type::ID))
+				output->name = this->lexer->nextText();
+			else expected("id", "'let'");
 
-		return output;
+			if (this->lexer->isNextType(Token::Type::COLON)) {
+				this->lexer->skip(1);
+				output->type = this->type();
+				if (output->type == nullptr)
+					expected("type", "':'");
+			} else expected("':'", "variable name");
+
+			if (this->lexer->isNextType(Token::Type::EQUAL)) {
+				this->lexer->skip(1);
+				output->expression = this->expression();
+				if (output->expression == nullptr)
+					expected("expression", "'='");
+			}
+
+			if (this->lexer->isNextType(Token::Type::STM_END))
+				this->lexer->skip(1);
+			else error("Expected ';' after variable declaration");
+			return output;
+		} else return nullptr;
 	}
 
 	ASTReturn* returnStm () {
@@ -287,7 +257,44 @@ private:
 	const char* source = nullptr;
 	Lexer* lexer = nullptr;
 
+	map<Token::Type, short> precedence = {
+		{Token::Type::EQUAL, 1}, {Token::Type::DOT, 1},
+		{Token::Type::ADD, 2}, {Token::Type::SUB, 2},
+		{Token::Type::DIV, 3}, {Token::Type::MUL, 3}
+	};
+	map<Token::Type, bool> isLeftAssociate = {
+		{Token::Type::EQUAL, false}, {Token::Type::DOT, false},
+		{Token::Type::ADD, false}, {Token::Type::SUB, false},
+		{Token::Type::DIV, false}, {Token::Type::MUL, false}
+	};
+
 	map<std::string, ASTType*> types;
+
+	ASTExpression* atom () {
+		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
+			this->lexer->skip(1);
+			ASTExpression* exp = this->expression();
+			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
+				this->lexer->skip(1);
+			else error("Expected closing parenthesys after expression");
+			return exp;
+		} else if (this->lexer->isNextType(Token::Type::SUB)) {
+			this->lexer->skip(1);
+			ASTUnop* _exp = new ASTUnop(Token::Type::SUB);
+			_exp->expression = this->atom();
+			return (ASTExpression*) _exp;
+		} else if (this->lexer->isNextType(Token::Type::ADD)) {
+			this->lexer->skip(1);
+			return this->expression();
+		} else if (this->lexer->isNextType(Token::Type::ID)) {
+			ASTVariable* var = this->variable();
+			if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
+				ASTCall* fnCall = this->call();
+				fnCall->var = var;
+				return fnCall;
+			} else return var;
+		} else return this->constant();
+	}
 
 	ASTFnType* functionType () {
 		ASTFnType* output = new ASTFnType();
@@ -318,15 +325,20 @@ private:
 	}
 
 	ASTFnParam* functionParam () {
-		ASTFnParam* output = new ASTFnParam();
-		output->type = this->type();
-		if (output->type == nullptr) return nullptr;
-		output->name = this->lexer->nextText();
-		if (output->name == "")
-			expected("identifier", "type declaration");
-		if(this->lexer->isNextType(Token::Type::EQUAL)) {
-			this->lexer->skip(1);
-			output->defValue = this->expression();
+		ASTFnParam* output = nullptr;
+		if (this->lexer->isNextType(Token::Type::ID)) {
+			output = new ASTFnParam();
+			output->name = this->lexer->nextText();
+
+			if (this->lexer->isNextType(Token::Type::COLON)) {
+				this->lexer->skip(1);
+				output->type = this->type();
+			} else expected("':'", "parameter name");
+
+			if (this->lexer->isNextType(Token::Type::EQUAL)) {
+				this->lexer->skip(1);
+				output->defValue = this->expression();
+			}
 		}
 		return output;
 	}

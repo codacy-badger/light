@@ -4,7 +4,7 @@
 
 using namespace std;
 
-class ASTAttr : public ASTExpression {
+class ASTAttr : public ASTVariable {
 	public:
 		string name;
 		ASTExpression* exp = nullptr;

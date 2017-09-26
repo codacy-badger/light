@@ -2,9 +2,11 @@
 
 #include <iostream>
 
+#include "../ast_expression.cpp"
+
 using namespace std;
 
-class ASTSubscript : public ASTExpression {
+class ASTSubscript : public ASTVariable {
 	public:
 		ASTExpression* expression = NULL;
 		ASTExpression* index = NULL;
