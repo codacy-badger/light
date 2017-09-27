@@ -72,11 +72,11 @@ public:
 		}
 	}
 
-	LiVariable* get (std::string name) {
+	LiVariable* getVariable (std::string name) {
 		auto it = variables.find(name);
 		if (it == variables.end()) {
 			if (this->parent == nullptr) return nullptr;
-			else return this->parent->get(name);
+			else return this->parent->getVariable(name);
 		} else return variables[name];
 	}
 

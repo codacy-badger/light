@@ -169,7 +169,7 @@ public:
 	}
 
 	Value* codegen (ASTId* id) {
-		LiVariable* var = scope->get(id->name);
+		LiVariable* var = scope->getVariable(id->name);
 		AllocaInst* alloc = var->allocation;
 		if (var == nullptr) {
 			panic("Variable " + id->name + " not found!");
