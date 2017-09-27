@@ -10,231 +10,190 @@
 
 #define LEXER_DEBUG false
 
-#define LEXER_IGNORED " \n\t"
-
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||       \
     c == '$' || c == '_')
 #define DIGIT(c) (c >= '0' && c <= '9')
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
+#define LEXER_IGNORED " \n\t"
 
 #define LITERAL_TOKEN(literal, type) if (this->buffer->isNext(literal))	{	\
-	handleToken(token, type, literal); return true; }
-#define FUNCTION_TOKEN(func) if (func(token)) return true;
+	handleToken(type, literal); return true; }
+#define FUNCTION_TOKEN(func) if (func()) return true;
 
 class Lexer {
-	public:
-		PushbackBuffer* buffer;
+public:
+	PushbackBuffer* buffer;
 
-		Lexer (const char* filename) {
-			this->buffer = new FileBuffer(filename);
-		}
+	char* nextText;
+	Token::Type nextType;
 
-		Lexer (PushbackBuffer* buffer) {
-			this->buffer = buffer;
-		}
+	Lexer (const char* filename) {
+		this->buffer = new FileBuffer(filename);
+		this->parse_next();
+	}
 
-		bool hasNext () {
-			return this->buffer->hasNext();
-		}
+	Lexer (PushbackBuffer* buffer) {
+		this->buffer = buffer;
+		this->parse_next();
+	}
 
-		bool parse_next (Token* token) {
-			token->text.clear();
-			while (this->skip_ignored_and_comments());
+	bool hasNext () {
+		return this->buffer->hasNext();
+	}
 
-		    LITERAL_TOKEN("->", Token::Type::ARROW);
+	bool parse_next () {
+		while (this->skip_ignored_and_comments());
 
-			LITERAL_TOKEN("=", Token::Type::EQUAL);
-			LITERAL_TOKEN(":", Token::Type::COLON);
-			LITERAL_TOKEN(";", Token::Type::STM_END);
-			LITERAL_TOKEN("+", Token::Type::ADD);
-			LITERAL_TOKEN("-", Token::Type::SUB);
-			LITERAL_TOKEN("*", Token::Type::MUL);
-			LITERAL_TOKEN("/", Token::Type::DIV);
+	    LITERAL_TOKEN("->", Token::Type::ARROW);
 
-		    LITERAL_TOKEN(".", Token::Type::DOT);
-		    LITERAL_TOKEN(",", Token::Type::COMMA);
-		    LITERAL_TOKEN("(", Token::Type::PAR_OPEN);
-		    LITERAL_TOKEN(")", Token::Type::PAR_CLOSE);
-		    LITERAL_TOKEN("{", Token::Type::BRAC_OPEN);
-		    LITERAL_TOKEN("}", Token::Type::BRAC_CLOSE);
-		    LITERAL_TOKEN("[", Token::Type::SQ_BRAC_OPEN);
-		    LITERAL_TOKEN("]", Token::Type::SQ_BRAC_CLOSE);
-			LITERAL_TOKEN("let", Token::Type::LET);
-		    LITERAL_TOKEN("type", Token::Type::TYPE);
-		    LITERAL_TOKEN("fn", Token::Type::FUNCTION);
-		    LITERAL_TOKEN("return", Token::Type::RETURN);
+		LITERAL_TOKEN("=", Token::Type::EQUAL);
+		LITERAL_TOKEN(":", Token::Type::COLON);
+		LITERAL_TOKEN(";", Token::Type::STM_END);
+		LITERAL_TOKEN("+", Token::Type::ADD);
+		LITERAL_TOKEN("-", Token::Type::SUB);
+		LITERAL_TOKEN("*", Token::Type::MUL);
+		LITERAL_TOKEN("/", Token::Type::DIV);
 
-			FUNCTION_TOKEN(number);
-			FUNCTION_TOKEN(string);
-			FUNCTION_TOKEN(id);
+	    LITERAL_TOKEN(".", Token::Type::DOT);
+	    LITERAL_TOKEN(",", Token::Type::COMMA);
+	    LITERAL_TOKEN("(", Token::Type::PAR_OPEN);
+	    LITERAL_TOKEN(")", Token::Type::PAR_CLOSE);
+	    LITERAL_TOKEN("{", Token::Type::BRAC_OPEN);
+	    LITERAL_TOKEN("}", Token::Type::BRAC_CLOSE);
+	    LITERAL_TOKEN("[", Token::Type::SQ_BRAC_OPEN);
+	    LITERAL_TOKEN("]", Token::Type::SQ_BRAC_CLOSE);
+		LITERAL_TOKEN("let", Token::Type::LET);
+	    LITERAL_TOKEN("type", Token::Type::TYPE);
+	    LITERAL_TOKEN("fn", Token::Type::FUNCTION);
+	    LITERAL_TOKEN("return", Token::Type::RETURN);
 
-			return false;
-		}
+		FUNCTION_TOKEN(number);
+		FUNCTION_TOKEN(string);
+		FUNCTION_TOKEN(id);
 
-		bool next (Token* token) {
-			if (this->tokenStack.empty()) return parse_next(token);
-			else {
-				Token* t = this->tokenStack[0];
-				this->tokenStack.erase(this->tokenStack.begin(),
-					this->tokenStack.begin() + 1);
-				token->copy(t);
-				delete t;
-				return true;
-			}
-		}
+		return false;
+	}
 
-		string nextText () {
-			if (this->next(this->token)) {
-				return this->token->text.c_str();
-			} else return NULL;
-		}
+	bool isNextType (Token::Type type) {
+		if (LEXER_DEBUG)
+			std::cout << "isNextType " << Token::typeToString(type) << " -> " <<
+			Token::typeToString(this->nextType) << std::endl;
+		return this->nextType == type;
+	}
 
-		bool peek (Token* token, unsigned int offset) {
-			if (this->tokenStack.size() < (offset + 1))
-				this->fillPushbackBuffer(offset + 1);
-			token->copy(this->tokenStack[offset]);
-			return token->type != Token::Type::NONE;
-		}
+	void skip (unsigned int count) {
+		for (unsigned int i = 0; i < count; i++)
+			this->parse_next();
+	}
 
-		Token::Type peekType (unsigned int offset) {
-			if (this->peek(this->token, offset)) {
-				if (LEXER_DEBUG) std::cout << "peekType " << offset << " -> " <<
-					Token::typeToString(this->token->type) << std::endl;
-				return this->token->type;
-			} else return Token::Type::NONE;
-		}
+	char* text () {
+		char* text = this->nextText;
+		this->skip(1);
+		return text;
+	}
 
-		bool isNextType (Token::Type type) {
-			if (LEXER_DEBUG)
-				std::cout << "isNextType " << Token::typeToString(type) << " -> " <<
-				Token::typeToString(this->peekType(0)) << std::endl;
-			return this->peekType(0) == type;
-		}
-
-		void skip (unsigned int count) {
-			for (unsigned int i = 0; i < count; i++)
-				this->next(this->token);
-		}
-
-		void pushback (Token* token) {
-			Token* t = new Token(token);
-			this->tokenStack.push_back(t);
-		}
-
-	private:
-		Token* token = new Token();
-		vector<Token*> tokenStack;
-
-		bool id (Token* token) {
-			token->line = this->buffer->line;
-			token->col = this->buffer->col;
-			char c = this->buffer->peek(0);
-		    if (ALPHA(c)) {
-		        while (ALPHANUM(c)) {
-			        token->text.push_back(c);
-					this->buffer->skip(1);
-			        c = this->buffer->peek(0);
-		        }
-		        token->type = Token::Type::ID;
-		        return true;
-		    }
-			token->text.clear();
-		    return false;
-		}
-
-		bool string (Token* token) {
-			token->line = this->buffer->line;
-			token->col = this->buffer->col;
-			char c = this->buffer->peek(0);
-		    if (c == '"') {
-				this->buffer->skip(1);
-
-				c = this->buffer->next();
-				while (c != '"') {
-					if (c == '\\') {
-						c = this->buffer->next();
-						if (c == 'n') {
-							token->text.push_back('\n');
-							c = this->buffer->next();
-							continue;
-						} else if (c == 't') {
-							token->text.push_back('\t');
-							c = this->buffer->next();
-							continue;
-						}
-					}
-					token->text.push_back(c);
-					c = this->buffer->next();
-				}
-
-		        token->type = Token::Type::STRING;
-		        return true;
-		    }
-			token->text.clear();
-		    return false;
-		}
-
-		bool number (Token* token) {
-			token->line = this->buffer->line;
-			token->col = this->buffer->col;
-			char c = this->buffer->peek(0);
-		    if (c == '+' || c == '-') {
-		        token->text.push_back(c);
+private:
+	bool id () {
+		char c = this->buffer->peek(0);
+	    if (ALPHA(c)) {
+			std::string _buff;
+	        while (ALPHANUM(c)) {
+		        _buff.push_back(c);
 				this->buffer->skip(1);
 		        c = this->buffer->peek(0);
-		    }
-		    if (DIGIT(c) || c == '.') {
-		        while (DIGIT(c)) {
-					token->text.push_back(c);
-					this->buffer->skip(1);
-			        c = this->buffer->peek(0);
-		        }
-		        if (c == '.') {
-		            token->text.push_back(c);
+	        }
+	        this->nextType = Token::Type::ID;
+			this->nextText = copyString(_buff);
+	        return true;
+	    }
+	    return false;
+	}
+
+	bool string () {
+		char c = this->buffer->peek(0);
+	    if (c == '"') {
+			this->buffer->skip(1);
+	        this->nextType = Token::Type::STRING;
+
+			std::string _buff;
+			c = this->buffer->next();
+			while (c != '"') {
+				if (c == '\\') {
+					c = this->buffer->next();
+					if (c == 'n') {
+						_buff.push_back('\n');
+						c = this->buffer->next();
+						continue;
+					} else if (c == 't') {
+						_buff.push_back('\t');
+						c = this->buffer->next();
+						continue;
+					}
+				}
+				_buff.push_back(c);
+				c = this->buffer->next();
+			}
+			this->nextText = copyString(_buff);
+	        return true;
+	    } else return false;
+	}
+
+	bool number () {
+		std::string _buff;
+		char c = this->buffer->peek(0);
+	    if (c == '+' || c == '-') {
+	        _buff.push_back(c);
+			this->buffer->skip(1);
+	        c = this->buffer->peek(0);
+	    }
+	    if (DIGIT(c) || c == '.') {
+	        while (DIGIT(c)) {
+				_buff.push_back(c);
+				this->buffer->skip(1);
+		        c = this->buffer->peek(0);
+	        }
+	        if (c == '.') {
+	            _buff.push_back(c);
+	            this->buffer->skip(1);
+	            c = this->buffer->peek(0);
+	            while (DIGIT(c)) {
+		            _buff.push_back(c);
 		            this->buffer->skip(1);
 		            c = this->buffer->peek(0);
-		            while (DIGIT(c)) {
-			            token->text.push_back(c);
-			            this->buffer->skip(1);
-			            c = this->buffer->peek(0);
-		            }
-		        }
-		        token->type = Token::Type::NUMBER;
-		        return true;
-		    }
-			token->text.clear();
-		    return false;
-		}
+	            }
+	        }
+	        this->nextType = Token::Type::NUMBER;
+			this->nextText = copyString(_buff);
+	        return true;
+	    }
+	    return false;
+	}
 
-		void handleToken (Token* token, Token::Type type, const char* text) {
-			token->line = this->buffer->line;
-			token->col = this->buffer->col;
-			this->buffer->skip(strlen(text));
-			token->type = type;
-			token->text = "";
-		}
+	char* copyString (std::string str) {
+		char* cstr = new char[str.length() + 1];
+		strcpy(cstr, str.c_str());
+		return cstr;
+	}
 
-		bool skip_ignored_and_comments () {
-			this->buffer->skipAny(LEXER_IGNORED);
-		    if (this->buffer->peek(0) == '/') {
-		        if (this->buffer->peek(1) == '/') {
-					this->buffer->skipUntil("\n");
-					this->buffer->skipAny(LEXER_IGNORED);
-					return true;
-		        } else if (this->buffer->peek(1) == '*') {
-					this->buffer->skipUntil("*/");
-					this->buffer->skipAny(LEXER_IGNORED);
-					return true;
-		        }
-		    }
-			return false;
-		}
+	void handleToken (Token::Type type, const char* text) {
+		this->buffer->skip(strlen(text));
+		this->nextText = nullptr;
+		this->nextType = type;
+	}
 
-		void fillPushbackBuffer (unsigned int limit) {
-			for (unsigned int i = this->tokenStack.size(); i < limit; i++) {
-				Token* t = new Token();
-				if (!this->parse_next(t)) return;
-				this->tokenStack.push_back(t);
-			}
-		}
+	bool skip_ignored_and_comments () {
+		this->buffer->skipAny(LEXER_IGNORED);
+	    if (this->buffer->peek(0) == '/') {
+	        if (this->buffer->peek(1) == '/') {
+				this->buffer->skipUntil("\n");
+				this->buffer->skipAny(LEXER_IGNORED);
+				return true;
+	        } else if (this->buffer->peek(1) == '*') {
+				this->buffer->skipUntil("*/");
+				this->buffer->skipAny(LEXER_IGNORED);
+				return true;
+	        }
+	    }
+		return false;
+	}
 };

@@ -31,7 +31,7 @@ public:
 
 	ASTType* type () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
-			auto typeName = this->lexer->nextText();
+			auto typeName = this->lexer->text();
 			auto it = types.find(typeName);
 			if (it == types.end()) {
 				ASTType* output = new ASTType();
@@ -44,14 +44,11 @@ public:
 	ASTConst* constant () {
 		if (this->lexer->isNextType(Token::Type::STRING)) {
 			ASTConst* output = new ASTConst(ASTConst::TYPE::STRING);
-			auto text = this->lexer->nextText();
-			output->stringValue = new char[text.length() + 1];
-			strcpy(output->stringValue, text.c_str());
+			output->stringValue = this->lexer->text();
 			return output;
 		} else if (this->lexer->isNextType(Token::Type::NUMBER)) {
 			ASTConst* output = new ASTConst(ASTConst::TYPE::INT);
-			auto text = this->lexer->nextText();
-			output->intValue = std::stoi(text, nullptr, 10);
+			output->intValue = atoi(this->lexer->text());
 			return output;
 		} else return nullptr;
 	}
@@ -77,16 +74,16 @@ public:
 	ASTVariable* variable () {
 		ASTVariable* output = this->id();
 		if (output != nullptr) {
-			Token::Type tt = this->lexer->peekType(0);
+			Token::Type tt = this->lexer->nextType;
 			while (tt == Token::Type::DOT) {
 				this->lexer->skip(1);
 				if (tt == Token::Type::DOT) {
 					ASTAttr* attr = new ASTAttr(output);
 					if (this->lexer->isNextType(Token::Type::ID))
-						attr->name = this->lexer->nextText();
+						attr->name = this->lexer->text();
 					else expected("name", "attribute access");
 					output = attr;
-					tt = this->lexer->peekType(0);
+					tt = this->lexer->nextType;
 				}
 			}
 		}
@@ -96,7 +93,7 @@ public:
 	ASTId* id () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			ASTId* output = new ASTId();
-			output->name = this->lexer->nextText();
+			output->name = this->lexer->text();
 			return output;
 		} else return nullptr;
 	}
@@ -104,7 +101,7 @@ public:
 	ASTExpression* expression (short minPrecedence = 1) {
 	    ASTExpression* lhs = this->atom();
 	    if (lhs != nullptr) {
-	        Token::Type tt = this->lexer->peekType(0);
+	        Token::Type tt = this->lexer->nextType;
 			auto it = precedence.find(tt);
 			while (it != precedence.end()
 					&& precedence[tt] >= minPrecedence) {
@@ -118,7 +115,7 @@ public:
 				binop->lhs = lhs;
 				lhs = binop;
 
-				tt = this->lexer->peekType(0);
+				tt = this->lexer->nextType;
 				it = precedence.find(tt);
 			}
 	        return lhs;
@@ -180,7 +177,7 @@ public:
 			this->lexer->skip(1);
 			ASTDefType* output = new ASTDefType();
 			if (this->lexer->isNextType(Token::Type::ID))
-				output->name = this->lexer->nextText();
+				output->name = this->lexer->text();
 			else expected("Identifier", "'type' keyword");
 			output->stms = this->statements();
 			return output;
@@ -193,7 +190,7 @@ public:
 
 			ASTVarDef* output = new ASTVarDef();
 			if (this->lexer->isNextType(Token::Type::ID))
-				output->name = this->lexer->nextText();
+				output->name = this->lexer->text();
 			else expected("id", "'let'");
 
 			if (this->lexer->isNextType(Token::Type::COLON)) {
@@ -234,7 +231,7 @@ public:
 			this->lexer->skip(1);
 			ASTFunction* output = new ASTFunction();
 			if (this->lexer->isNextType(Token::Type::ID))
-				output->name = this->lexer->nextText();
+				output->name = this->lexer->text();
 			else expected("Identifier", "'fn' keyword");
 			output->fnType = this->functionType();
 			output->stms = this->statement();
@@ -253,7 +250,6 @@ public:
 	}
 
 private:
-	Token* token = new Token();
 	const char* source = nullptr;
 	Lexer* lexer = nullptr;
 
@@ -328,7 +324,7 @@ private:
 		ASTFnParam* output = nullptr;
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			output = new ASTFnParam();
-			output->name = this->lexer->nextText();
+			output->name = this->lexer->text();
 
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
@@ -344,19 +340,19 @@ private:
 	}
 
 	void error (const char* message) {
-		this->lexer->peek(this->token, 0);
 		cout << "[Light] ERROR: " << message << endl;
 		cout << "        in '" << this->source << "' @ " <<
-			this->token->line << ", " << this->token->col << endl;
+			this->lexer->buffer->line << ", " <<
+			this->lexer->buffer->col << endl;
 		exit(EXIT_FAILURE);
 	}
 
 	void expected (const char* expect, const char* after) {
-		this->lexer->peek(this->token, 0);
 		cout << "[Light] ERROR: Expected " << expect
 			<< " after " << after << endl;
 		cout << "        in '" << this->source << "' @ " <<
-			this->token->line << ", " << this->token->col << endl;
+			this->lexer->buffer->line << ", " <<
+			this->lexer->buffer->col << endl;
 		exit(EXIT_FAILURE);
 	}
 };
