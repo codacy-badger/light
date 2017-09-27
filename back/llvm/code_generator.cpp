@@ -17,7 +17,8 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
-#include "type_system.cpp"
+#include "types/light_type.cpp"
+#include "std/std.cpp"
 #include "scope.cpp"
 
 #include <string>
@@ -35,7 +36,6 @@ public:
 	IRBuilder<> builder;
 
 	Module* module = nullptr;
-	LLVMTypeSystem* types = nullptr;
 	stack<Function*> functionStack;
 	LLVMScope* scope;
 
@@ -43,8 +43,10 @@ public:
 
 	Module* buildModule (ASTStatements* stms) {
 		module = new Module("output", context);
-		types = new LLVMTypeSystem(module);
 		scope = new LLVMScope();
+		scope->addType(new VoidLiType(&context));
+		scope->addType(new Int32LiType(&context));
+		addStdModuleFunctions(module);
 
 		this->codegen(stms);
 
@@ -75,8 +77,8 @@ public:
 	}
 
 	void codegen (ASTVarDef* varDef) {
-		Type* type = this->codegen(varDef->type);
-		AllocaInst* varAlloca = builder.CreateAlloca(type, nullptr, varDef->name);
+		LiType* type = this->codegen(varDef->type);
+		AllocaInst* varAlloca = builder.CreateAlloca(type->llvmType, nullptr, varDef->name);
 		if (varDef->expression != NULL) {
 			Value* val = this->codegen(varDef->expression);
 			if (val != nullptr) builder.CreateStore(val, varAlloca);
@@ -90,10 +92,12 @@ public:
 		for(auto const& stm: defType->stms->list) {
 			if (typeid(*stm) == typeid(ASTVarDef)) {
 				ASTVarDef* varDef = static_cast<ASTVarDef*>(stm);
-				structTypes.push_back(this->codegen(varDef->type));
+				LiType* ty = this->codegen(varDef->type);
+				structTypes.push_back(ty->llvmType);
 			}
 		}
 		StructType::create(structTypes, defType->name.c_str());
+		// TODO: add this newly created type into the scope
 	}
 
 	Value* codegen (ASTExpStatement* expStm) {
@@ -193,11 +197,12 @@ public:
 	Function* codegen (ASTFunction* func) {
 		vector<Type*> argTypes;
 		for(auto const& param: func->fnType->params) {
-			Type* argType = this->codegen(param->type);
-			argTypes.push_back(argType);
+			LiType* argType = this->codegen(param->type);
+			argTypes.push_back(argType->llvmType);
 		}
+		LiType* retType = this->codegen(func->fnType->retType);
 		FunctionType* functionType = FunctionType::get(
-			this->codegen(func->fnType->retType), argTypes, false);
+			retType->llvmType, argTypes, false);
 
 		Function* function = nullptr;
 		if (func->stms != nullptr) {
@@ -211,7 +216,7 @@ public:
 			builder.SetInsertPoint(entryBlock);
 
 			this->scope = scope->push();
-			this->scope->addVariables(function, &builder);
+			this->scope->addParameters(&builder, function);
 			this->codegen(func->stms);
 			this->scope = scope->pop();
 			if (func->fnType->retType == nullptr)
@@ -226,9 +231,10 @@ public:
 		return function;
 	}
 
-	Type* codegen (ASTType* type) {
-		if (type == nullptr) return Type::getVoidTy(context);
-		return this->types->getType(type);
+	LiType* codegen (ASTType* type) {
+		if (type == nullptr)
+			return this->scope->getType("void");
+		return this->scope->getType(type);
 	}
 
 	~LLVMCodeGenerator () { /* empty */ }
@@ -242,7 +248,8 @@ private:
 		if (function == nullptr) {
 			cout << "Unknown function: ";
 			call->var->print(0);
-			panic("Function* not found");
+			cout << "\n";
+			panic("Function* not found!");
 		}
 
 		vector<Value*> params;

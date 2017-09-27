@@ -19,13 +19,16 @@
 #include <string>
 #include <map>
 
+#include "types/native_light_type.cpp"
+
 using namespace llvm;
 using namespace std;
 
 class LLVMScope {
 public:
-	map<std::string, AllocaInst*> variables;
 	LLVMScope* parent = nullptr;
+	map<std::string, AllocaInst*> variables;
+	map<std::string, LiType*> types;
 
 	LLVMScope (LLVMScope* parent = nullptr) {
 		this->parent = parent;
@@ -35,7 +38,7 @@ public:
 		variables[allocation->getName()] = allocation;
 	}
 
-	void addVariables (Function* function, IRBuilder<>* builder) {
+	void addParameters (IRBuilder<>* builder, Function* function) {
 		for (auto &arg : function->args()) {
 			Type* type = arg.getType();
 			AllocaInst* alloca = builder->CreateAlloca(type, 0, arg.getName() + ".addr");
@@ -50,6 +53,39 @@ public:
 			if (this->parent == nullptr) return nullptr;
 			else return this->parent->get(name);
 		} else return variables[name];
+	}
+
+	void addType (LiType* type) {
+		auto it = types.find(type->name);
+		if (it == types.end())
+			types[type->name] = type;
+		else cout << "Type already exists " << type->name << "\n";
+	}
+
+	void addType (ASTDefType* def) {
+		LiType* type = new LiType(def->name);
+		if (def->stms != nullptr) {
+			for(auto const& stm: def->stms->list) {
+				if (typeid(*stm) == typeid(ASTVarDef)) {
+					auto varDef = static_cast<ASTVarDef*>(stm);
+					cout << "Def Type! -> " << varDef->name << "\n";
+				}
+			}
+		} else cout << "Opaque type: " << def->name;
+		this->addType(type);
+	}
+
+	LiType* getType (std::string name) {
+		auto it = types.find(name);
+		if (it != types.end())
+			return types[name];
+		else if (this->parent != nullptr) {
+			return this->parent->getType(name);
+		} else return nullptr;
+	}
+
+	LiType* getType (ASTType* type) {
+		return this->getType(type->name);
 	}
 
 	LLVMScope* push () {

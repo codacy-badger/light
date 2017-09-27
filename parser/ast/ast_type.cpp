@@ -10,7 +10,6 @@
 class ASTType : public ASTNode{
 public:
 	std::string name;
-	std::map<std::string, ASTType*> attributes;
 
 	void print (int tabs) {
 		if (this->name == "") std::cout  << "[?]";
