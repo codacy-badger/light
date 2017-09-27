@@ -5,11 +5,12 @@
 #include <iostream>
 #include <map>
 
-#include "ast_node.cpp"
+#include "ast_type.cpp"
 
-class ASTType : public ASTNode{
+class ASTFunctionType : public ASTType {
 public:
-	std::string name;
+	vector<ASTFnParam*> params;
+	ASTType* retType = nullptr;
 
 	void print (int tabs) {
 		if (this->name == "") std::cout  << "[?]";

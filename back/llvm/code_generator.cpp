@@ -52,7 +52,7 @@ public:
 		this->codegen(stms);
 
 		verifyModule(*module);
-		module->print(outs(), nullptr);
+		//module->print(outs(), nullptr);
 		return module;
 	}
 
