@@ -27,19 +27,11 @@ public:
 	char* nextText;
 	Token::Type nextType;
 
-	Lexer (const char* filename) {
-		this->buffer = new FileBuffer(filename);
-		this->parse_next();
-	}
+	Lexer (const char* filename)
+	{ this->initLexer(new FileBuffer(filename)); }
 
-	Lexer (PushbackBuffer* buffer) {
-		this->buffer = buffer;
-		this->parse_next();
-	}
-
-	bool hasNext () {
-		return this->buffer->hasNext();
-	}
+	Lexer (PushbackBuffer* buffer)
+	{ this->initLexer(buffer); }
 
 	bool parse_next () {
 		while (this->skip_ignored_and_comments());
@@ -93,6 +85,11 @@ public:
 	}
 
 private:
+	void initLexer (PushbackBuffer* buffer) {
+		this->buffer = buffer;
+		this->parse_next();
+	}
+
 	bool id () {
 		char c = this->buffer->peek(0);
 	    if (ALPHA(c)) {
