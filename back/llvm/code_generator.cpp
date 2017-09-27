@@ -46,6 +46,7 @@ public:
 		scope = new LLVMScope();
 		scope->addType(new VoidLiType(&context));
 		scope->addType(new Int32LiType(&context));
+		scope->addType("int", "i32");
 		addStdModuleFunctions(module);
 
 		this->codegen(stms);

@@ -100,6 +100,13 @@ public:
 		this->addType(type);
 	}
 
+	void addType (std::string alias, std::string original) {
+		auto it = types.find(original);
+		if (it != types.end())
+			types[alias] = types[original];
+		else cout << "Type " << original << " not found\n";
+	}
+
 	LiType* getType (std::string name) {
 		auto it = types.find(name);
 		if (it != types.end())
