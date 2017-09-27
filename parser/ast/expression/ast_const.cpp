@@ -6,13 +6,13 @@ using namespace std;
 
 class ASTConst : public ASTExpression {
 public:
-	enum TYPE { CHAR, SHORT, INT, LONG, FLOAT, DOUBLE, STRING, COUNT };
+	enum TYPE { BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, STRING, COUNT };
 	TYPE type = TYPE::COUNT;
 	union {
-		char charValue;
-		short shortValue;
-		int intValue;
-		long longValue;
+		int8_t byteValue;
+		int16_t shortValue;
+		int32_t intValue;
+		int64_t longValue;
 		float floatValue;
 		double doubleValue;
 		char* stringValue;
@@ -24,7 +24,7 @@ public:
 
 	void print (int tabs) {
 		switch (type) {
-			case CHAR:   cout << this->charValue;   break;
+			case BYTE:   cout << this->byteValue;   break;
 			case SHORT:  cout << this->shortValue;  break;
 			case INT:    cout << this->intValue;    break;
 			case LONG:   cout << this->longValue;   break;
