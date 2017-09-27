@@ -16,10 +16,13 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
+#include <iterator>
 #include <string>
 #include <map>
 
 #include "types/native_light_type.cpp"
+#include "light_variable.cpp"
+#include "light_function.cpp"
 
 using namespace llvm;
 using namespace std;
@@ -27,27 +30,49 @@ using namespace std;
 class LLVMScope {
 public:
 	LLVMScope* parent = nullptr;
-	map<std::string, AllocaInst*> variables;
+
+	map<std::string, LiVariable*> variables;
+	map<std::string, LiFunction*> functions;
 	map<std::string, LiType*> types;
 
 	LLVMScope (LLVMScope* parent = nullptr) {
 		this->parent = parent;
 	}
 
-	void addVariable (AllocaInst* allocation) {
-		variables[allocation->getName()] = allocation;
+	void addVariable (LiType* type, AllocaInst* allocation) {
+		LiVariable* var = new LiVariable(allocation->getName());
+		var->allocation = allocation;
+		var->type = type;
+		this->addVariable(var);
 	}
 
-	void addParameters (IRBuilder<>* builder, Function* function) {
-		for (auto &arg : function->args()) {
-			Type* type = arg.getType();
-			AllocaInst* alloca = builder->CreateAlloca(type, 0, arg.getName() + ".addr");
-			builder->CreateStore(&arg, alloca);
-			variables[arg.getName()] = alloca;
+	void addVariable (IRBuilder<>* builder, std::string name, LiType* type) {
+		LiVariable* var = new LiVariable(name);
+		var->allocation = builder->CreateAlloca(type->llvmType, nullptr, name);
+		var->type = type;
+		this->addVariable(var);
+	}
+
+	void addVariable (LiVariable* var) {
+		auto it = variables.find(var->name);
+		if (it == variables.end())
+			variables[var->name] = var;
+		else cout << "Variable already exists " << var->name << "\n";
+	}
+
+	void addParameters (IRBuilder<>* builder, LiFunction* fn) {
+		int i = 0;
+		for (auto &arg : fn->params) {
+			Type* type = arg->type->llvmType;
+			AllocaInst* allocation = builder->CreateAlloca(type, 0, arg->name + ".param");
+
+			Argument* llvmArg = std::next(fn->llvmFunction->arg_begin(), i++);
+			builder->CreateStore(llvmArg, allocation);
+			variables[arg->name] = arg;
 		}
 	}
 
-	AllocaInst* get (std::string name) {
+	LiVariable* get (std::string name) {
 		auto it = variables.find(name);
 		if (it == variables.end()) {
 			if (this->parent == nullptr) return nullptr;
@@ -86,6 +111,13 @@ public:
 
 	LiType* getType (ASTType* type) {
 		return this->getType(type->name);
+	}
+
+	void addFunction (LiFunction* fn) {
+		auto it = functions.find(fn->name);
+		if (it == functions.end())
+			functions[fn->name] = fn;
+		else cout << "Function already exists " << fn->name << "\n";
 	}
 
 	LLVMScope* push () {

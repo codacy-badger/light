@@ -77,14 +77,16 @@ public:
 	}
 
 	void codegen (ASTVarDef* varDef) {
-		LiType* type = this->codegen(varDef->type);
-		AllocaInst* varAlloca = builder.CreateAlloca(type->llvmType, nullptr, varDef->name);
+		LiVariable* var = new LiVariable(varDef->name);
+		var->type = this->codegen(varDef->type);
+		var->allocation = builder.CreateAlloca(var->type->llvmType, nullptr, varDef->name);
 		if (varDef->expression != NULL) {
 			Value* val = this->codegen(varDef->expression);
-			if (val != nullptr) builder.CreateStore(val, varAlloca);
+			if (val != nullptr)
+				builder.CreateStore(val, var->allocation);
 			else outs() << "ERROR: Expression Value* is NULL!\n";
 		}
-		scope->addVariable(varAlloca);
+		scope->addVariable(var);
 	}
 
 	void codegen (ASTDefType* defType) {
@@ -167,13 +169,12 @@ public:
 	}
 
 	Value* codegen (ASTId* id) {
-		AllocaInst* pointer = scope->get(id->name);
-		if (pointer == nullptr) {
+		LiVariable* var = scope->get(id->name);
+		AllocaInst* alloc = var->allocation;
+		if (var == nullptr) {
 			panic("Variable " + id->name + " not found!");
 			return nullptr;
-		} else if (!pointer->getType()->getElementType()->isStructTy()) {
-			return builder.CreateLoad(pointer, "tmp");
-		} else return pointer;
+		} else return builder.CreateLoad(alloc, "tmp");;
 	}
 
 	Value* codegen (ASTConst* con) {
@@ -194,15 +195,22 @@ public:
 		} else builder.CreateRetVoid();
 	}
 
-	Function* codegen (ASTFunction* func) {
+	LiFunction* codegen (ASTFunction* func) {
+		LiFunction* fn = new LiFunction(func->name);
+
 		vector<Type*> argTypes;
 		for(auto const& param: func->fnType->params) {
 			LiType* argType = this->codegen(param->type);
 			argTypes.push_back(argType->llvmType);
+
+			LiVariable* param = new LiVariable(param->name);
+			param->type = argType;
+			fn->params.push_back(param);
 		}
 		LiType* retType = this->codegen(func->fnType->retType);
 		FunctionType* functionType = FunctionType::get(
 			retType->llvmType, argTypes, false);
+		fn->returnType = retType;
 
 		Function* function = nullptr;
 		if (func->stms != nullptr) {
@@ -210,13 +218,14 @@ public:
 			function = Function::Create(functionType, Function::ExternalLinkage, func->name, module);
 			for (auto& arg: function->args())
 				arg.setName(func->fnType->params[index++]->name);
+			fn->llvmFunction = function;
 
 			BasicBlock* entryBlock = BasicBlock::Create(context, "entry", function);
 			BasicBlock* prevBlock = builder.GetInsertBlock();
 			builder.SetInsertPoint(entryBlock);
 
 			this->scope = scope->push();
-			this->scope->addParameters(&builder, function);
+			this->scope->addParameters(&builder, fn);
 			this->codegen(func->stms);
 			this->scope = scope->pop();
 			if (func->fnType->retType == nullptr)
@@ -226,9 +235,12 @@ public:
 		} else {
 			Constant* constFunc = module->getOrInsertFunction(func->name, functionType);
 			function = cast<Function>(constFunc);
+			fn->llvmFunction = function;
 		}
+
 		verifyFunction(*function);
-		return function;
+		this->scope->addFunction(fn);
+		return fn;
 	}
 
 	LiType* codegen (ASTType* type) {
