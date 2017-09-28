@@ -22,19 +22,6 @@ public:
 		this->type = type;
 	}
 
-	void print (int tabs) {
-		switch (type) {
-			case BYTE:   cout << this->byteValue;   break;
-			case SHORT:  cout << this->shortValue;  break;
-			case INT:    cout << this->intValue;    break;
-			case LONG:   cout << this->longValue;   break;
-			case FLOAT:  cout << this->floatValue;  break;
-			case DOUBLE: cout << this->doubleValue; break;
-			case STRING: cout << "\"" << this->stringValue << "\""; break;
-			default: break;
-		}
-	}
-
 	bool isConstant () {
 		return true;
 	}

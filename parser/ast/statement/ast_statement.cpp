@@ -5,8 +5,8 @@
 using namespace std;
 
 class ASTStatement : public ASTNode {
-	public:
-		void print (int tabs) = 0;
+public:
+	virtual ~ASTStatement() {}
 };
 
 #include "ast_statements.cpp"

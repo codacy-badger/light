@@ -12,7 +12,7 @@ public:
 	static map<ASTUnop::OP, const char*> opChar;
 
 	OP op = OP::COUNT;
-	ASTExpression* expression = nullptr;
+	ASTExpression* exp = nullptr;
 
 	ASTUnop (Token::Type tType) {
 		this->setOP(tType);
@@ -32,18 +32,12 @@ public:
 		return OP::COUNT;
 	}
 
-	void print (int tabs) {
-		cout << "(" << opChar[this->op] << " ";
-		this->expression->print(tabs);
-		cout << ")";
-	}
-
 	bool isConstant () {
-		return this->expression->isConstant();
+		return this->exp->isConstant();
 	}
 
 	ASTType* getType(ParserContext* context) {
-		return expression->getType(context);
+		return this->exp->getType(context);
 	}
 };
 

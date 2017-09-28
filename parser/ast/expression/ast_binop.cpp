@@ -40,14 +40,6 @@ public:
 		return OP::COUNT;
 	}
 
-	void print (int tabs) {
-		cout << "(";
-		this->lhs->print(tabs);
-		cout << " " << opChar[this->op] << " ";
-		this->rhs->print(tabs);
-		cout << ")";
-	}
-
 	bool isConstant () {
 		return this->lhs->isConstant() && this->rhs->isConstant();
 	}

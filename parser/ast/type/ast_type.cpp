@@ -11,11 +11,6 @@ class ASTType : public ASTNode{
 public:
 	std::string name;
 
-	void print (int tabs) {
-		if (this->name == "") std::cout  << "[?]";
-		else std::cout << this->name;
-	}
-
 	bool isPrimitive () {
 		return false;
 	}

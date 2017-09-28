@@ -5,7 +5,7 @@
 
 class ASTExpression : public ASTNode {
 public:
-	void print (int tabs) = 0;
+	virtual ~ASTExpression() {}
 	virtual bool isConstant() = 0;
 	virtual ASTType* getType(ParserContext* context) = 0;
 };

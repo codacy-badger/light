@@ -11,13 +11,6 @@ class ASTSubscript : public ASTVariable {
 		ASTExpression* expression = NULL;
 		ASTExpression* index = NULL;
 
-		void print (int tabs) {
-			this->expression->print(tabs);
-			cout << "[";
-			this->index->print(tabs);
-			cout << "]";
-		}
-
 		ASTType* getType(ParserContext* context) {
 			// TODO: store variables in context to query type
 			return nullptr;

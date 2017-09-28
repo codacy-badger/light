@@ -146,7 +146,7 @@ public:
 	}
 
 	Value* codegen (ASTUnop* unop) {
-		Value* val = this->codegen(unop->expression);
+		Value* val = this->codegen(unop->exp);
 		switch (unop->op) {
 			case ASTUnop::OP::NEG:
 				return builder.CreateNeg(val, "neg");
@@ -191,8 +191,8 @@ public:
 	}
 
 	void codegen (ASTReturn* ret) {
-		if (ret->expression != nullptr) {
-			Value* retValue = this->codegen(ret->expression);
+		if (ret->exp != nullptr) {
+			Value* retValue = this->codegen(ret->exp);
 			builder.CreateRet(retValue);
 		} else builder.CreateRetVoid();
 	}
@@ -260,9 +260,6 @@ private:
 			function = module->getFunction(id->name);
 		}
 		if (function == nullptr) {
-			cout << "Unknown function: ";
-			call->var->print(0);
-			cout << "\n";
 			panic("Function* not found!");
 		}
 

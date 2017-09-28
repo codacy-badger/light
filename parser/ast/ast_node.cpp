@@ -11,8 +11,6 @@ class ASTNode {
 		unsigned int lineBegin = 0, colBegin = 0;
 		unsigned int lineEnd = 0, colEnd = 0;
 
-		virtual void print (int tabs) = 0;
-
 		void setBegin (Lexer* lexer) {
 			this->lineBegin = lexer->buffer->line;
 			this->colBegin = lexer->buffer->col;

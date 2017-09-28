@@ -9,6 +9,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "parser/parser.cpp"
+#include "parser/ast_printer.cpp"
 #include "back/llvm/backend.cpp"
 
 using namespace llvm;
@@ -201,7 +202,7 @@ int main (int argc, char** argv) {
 	for (auto &filename : InputFilenames) {
 		Parser* parser = new Parser(filename.c_str());
 		ASTStatements* stms = parser->program();
-		stms->print(0);
+		ASTPrinter::print(stms);
 		backend->writeObj(stms);
 	}
 

@@ -219,7 +219,7 @@ public:
 			this->lexer->skip(1);
 			ASTReturn* output = new ASTReturn();
 			output->setBegin(this->lexer);
-			output->expression = this->expression();
+			output->exp = this->expression();
 			if (this->lexer->isNextType(Token::Type::STM_END))
 				this->lexer->skip(1);
 			else expected("';'", "return expression");
@@ -279,7 +279,7 @@ private:
 			this->lexer->skip(1);
 			ASTUnop* output = new ASTUnop(Token::Type::SUB);
 			output->setBegin(this->lexer);
-			output->expression = this->atom();
+			output->exp = this->atom();
 			return (ASTExpression*) output;
 		} else if (this->lexer->isNextType(Token::Type::ADD)) {
 			this->lexer->skip(1);

@@ -9,13 +9,5 @@ using namespace std;
 
 class ASTReturn : public ASTStatement {
 public:
-	ASTExpression* expression = nullptr;
-
-	void print (int tabs) {
-		this->tabs(tabs);
-		cout << "RETURN ";
-		if (this->expression == nullptr) cout << "void";
-		else this->expression->print(tabs);
-		cout << endl;
-	}
+	ASTExpression* exp = nullptr;
 };
