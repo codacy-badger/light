@@ -93,9 +93,9 @@ public:
 		return output;
 	}
 
-	ASTId* id () {
+	ASTPointer* id () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
-			ASTId* output = new ASTId();
+			ASTPointer* output = new ASTPointer();
 			output->setBegin(this->lexer);
 			output->name = this->lexer->text();
 			output->setEnd(this->lexer);
@@ -135,7 +135,7 @@ public:
 		}
 		ASTStatement* stmt = (ASTStatement*) this->expStm();
 		if (stmt != nullptr) return stmt;
-		stmt = (ASTDefType*) this->type_def();
+		stmt = (ASTTypeDef*) this->type_def();
 		if (stmt != nullptr) return stmt;
 		stmt = (ASTStatement*) this->function();
 		if (stmt != nullptr) return stmt;
@@ -182,10 +182,10 @@ public:
 		return output;
 	}
 
-	ASTDefType* type_def () {
+	ASTTypeDef* type_def () {
 		if (this->lexer->isNextType(Token::Type::TYPE)) {
 			this->lexer->skip(1);
-			ASTDefType* output = new ASTDefType();
+			ASTTypeDef* output = new ASTTypeDef();
 			output->setBegin(this->lexer);
 			if (this->lexer->isNextType(Token::Type::ID))
 				output->name = this->lexer->text();
@@ -317,7 +317,7 @@ private:
 					} else error("Type could not be inferred!");
 				} else error("Cannot infer type without default value!");
 			}
-			this->context->addVarType(output->name, output->type);
+			this->context->addVariable(output->name, output);
 			output->setEnd(this->lexer);
 			return output;
 		} else return nullptr;

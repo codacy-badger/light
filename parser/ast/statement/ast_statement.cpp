@@ -3,8 +3,9 @@
 #include <vector>
 #include <string>
 
-class ASTStatement : public ASTNode {
-public:
+struct ASTExpression;
+
+struct ASTStatement : ASTNode {
 	virtual ~ASTStatement() {}
 };
 
@@ -12,7 +13,7 @@ struct ASTStatements : ASTStatement {
 	std::vector<ASTStatement*> list;
 };
 
-struct ASTDefType : ASTStatement {
+struct ASTTypeDef : ASTStatement {
 	std::string name = "";
 	ASTStatements* stms = nullptr;
 };

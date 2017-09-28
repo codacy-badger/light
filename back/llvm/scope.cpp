@@ -88,7 +88,7 @@ public:
 		else cout << "Type already exists " << type->name << "\n";
 	}
 
-	void addType (ASTDefType* def) {
+	void addType (ASTTypeDef* def) {
 		LiType* type = new LiType(def->name);
 		if (def->stms != nullptr) {
 			for(auto const& stm: def->stms->list) {

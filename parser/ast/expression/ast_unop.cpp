@@ -1,5 +1,7 @@
 #pragma once
 
+#include "lexer/token.cpp"
+
 struct ASTUnop : ASTExpression {
 	enum OP { NEG, COUNT };
 	static std::map<ASTUnop::OP, const char*> opChar;

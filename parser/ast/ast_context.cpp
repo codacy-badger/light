@@ -3,12 +3,13 @@
 #include <string>
 
 struct ASTType;
+struct ASTVarDef;
 
 class ASTContext {
 public:
 	ASTContext* parent = nullptr;
 	map<std::string, ASTType*> types;
-	map<std::string, ASTType*> varTypes;
+	map<std::string, ASTVarDef*> variables;
 
 	ASTContext (ASTContext* parent = nullptr) {
 		this->parent = parent;
@@ -16,19 +17,19 @@ public:
 		this->addType("int", "i32");
 	}
 
-	void addVarType (std::string name, ASTType* ty) {
-		auto it = this->varTypes.find(name);
-		if (it == this->varTypes.end()) {
-			this->varTypes[name] = ty;
+	void addVariable (std::string name, ASTVarDef* ty) {
+		auto it = this->variables.find(name);
+		if (it == this->variables.end()) {
+			this->variables[name] = ty;
 		} else {
 			cout << "ERROR: Variable redeclaration: " << name << "\n";
 		}
 	}
 
-	ASTType* getVarType (std::string name) {
-		auto it = this->varTypes.find(name);
-		if (it != this->varTypes.end()) {
-			return this->varTypes[name];
+	ASTVarDef* getVariable (std::string name) {
+		auto it = this->variables.find(name);
+		if (it != this->variables.end()) {
+			return this->variables[name];
 		} else return nullptr;
 	}
 

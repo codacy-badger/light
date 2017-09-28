@@ -20,6 +20,7 @@ struct ASTNode {
 };
 
 #include "type/ast_type.cpp"
+#include "statement/ast_statement.cpp"
 #include "ast_context.cpp"
 #include "expression/ast_expression.cpp"
-#include "statement/ast_statement.cpp"
+#include "ast_printer.cpp"

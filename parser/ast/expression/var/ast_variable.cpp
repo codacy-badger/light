@@ -1,6 +1,8 @@
 #pragma once
 
 struct ASTVariable : ASTExpression {
+	virtual ~ASTExpression() {}
+
 	bool isConstant () {
 		// TODO: oh the irony...
 		return false;
@@ -9,15 +11,15 @@ struct ASTVariable : ASTExpression {
 	ASTType* getType(ASTContext* context) = 0;
 };
 
-struct ASTId : ASTVariable {
+struct ASTPointer : ASTVariable {
 	std::string name;
 
-	ASTId (std::string name = "") {
+	ASTPointer (std::string name = "") {
 		this->name = name;
 	}
 
 	ASTType* getType(ASTContext* context) {
-		return context->getVarType(this->name);
+		return context->getVariable(this->name)->type;
 	}
 };
 

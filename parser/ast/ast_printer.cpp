@@ -14,7 +14,7 @@ public:
 		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTDefType*>(stm)) print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTTypeDef*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTExpStatement*>(stm)) print(obj, tabs);
 		else _panic("Unrecognized statement?!");
 	}
@@ -71,7 +71,7 @@ public:
 		cout << endl;
 	}
 
-	static void print (ASTDefType* type, int tabs = 0) {
+	static void print (ASTTypeDef* type, int tabs = 0) {
 		cout << "type " << type->name << "\n";
 		if (type->stms != nullptr)
 			print(type->stms, tabs + 1);
@@ -95,8 +95,8 @@ public:
 			print(static_cast<ASTCall*>(exp), tabs);
 		else if (typeid(*exp) == typeid(ASTAttr))
 			print(static_cast<ASTAttr*>(exp), tabs);
-		else if (typeid(*exp) == typeid(ASTId))
-			print(static_cast<ASTId*>(exp), tabs);
+		else if (typeid(*exp) == typeid(ASTPointer))
+			print(static_cast<ASTPointer*>(exp), tabs);
 		else _panic("Unrecognized expression?!");
 	}
 
@@ -147,7 +147,7 @@ public:
 		cout << ") ATTR " << attr->name << ")";
 	}
 
-	static void print (ASTId* id, int tabs = 0) {
+	static void print (ASTPointer* id, int tabs = 0) {
 		cout << "[" << id->name << "]";
 	}
 private:

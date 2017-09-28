@@ -71,8 +71,8 @@ public:
 			this->codegen(static_cast<ASTFunction*>(stm));
 		else if (typeid(*stm) == typeid(ASTReturn))
 			this->codegen(static_cast<ASTReturn*>(stm));
-		else if (typeid(*stm) == typeid(ASTDefType))
-			this->codegen(static_cast<ASTDefType*>(stm));
+		else if (typeid(*stm) == typeid(ASTTypeDef))
+			this->codegen(static_cast<ASTTypeDef*>(stm));
 		else if (typeid(*stm) == typeid(ASTExpStatement))
 			this->codegen(static_cast<ASTExpStatement*>(stm));
 		else panic("Unrecognized statement?!");
@@ -91,7 +91,7 @@ public:
 		scope->addVariable(var);
 	}
 
-	void codegen (ASTDefType* defType) {
+	void codegen (ASTTypeDef* defType) {
 		vector<Type*> structTypes;
 		for(auto const& stm: defType->stms->list) {
 			if (typeid(*stm) == typeid(ASTVarDef)) {
@@ -123,7 +123,7 @@ public:
 			return this->codegen(call);
 		else if (ASTAttr* attr = dynamic_cast<ASTAttr*>(exp))
 			return this->codegen(attr);
-		else if (ASTId* id = dynamic_cast<ASTId*>(exp))
+		else if (ASTPointer* id = dynamic_cast<ASTPointer*>(exp))
 			return this->codegen(id);
 		else return nullptr;
 	}
@@ -170,7 +170,7 @@ public:
 		return nullptr;
 	}
 
-	Value* codegen (ASTId* id) {
+	Value* codegen (ASTPointer* id) {
 		LiVariable* var = scope->getVariable(id->name);
 		AllocaInst* alloc = var->allocation;
 		if (var == nullptr) {
@@ -256,7 +256,7 @@ public:
 private:
 	Value* createCall (ASTCall* call, std::string tmpName = "") {
 		Function* function = nullptr;
-		if (ASTId* id = dynamic_cast<ASTId*>(call->var)) {
+		if (ASTPointer* id = dynamic_cast<ASTPointer*>(call->var)) {
 			function = module->getFunction(id->name);
 		}
 		if (function == nullptr) {
