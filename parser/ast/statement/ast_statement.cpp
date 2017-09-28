@@ -24,20 +24,14 @@ struct ASTVarDef : ASTStatement {
 	ASTExpression* expression = nullptr;
 };
 
-struct ASTReturn : ASTStatement {
-	ASTExpression* exp = nullptr;
-};
-
-//NOTE: this should provably be a subtype of ASTType
-struct ASTFnType : ASTNode {
-	std::vector<ASTVarDef*> params;
-	ASTType* retType = nullptr;
-};
-
 struct ASTFunction : ASTStatement {
 	std::string name;
 	ASTFnType* fnType = nullptr;
 	ASTStatement* stms = nullptr;
+};
+
+struct ASTReturn : ASTStatement {
+	ASTExpression* exp = nullptr;
 };
 
 struct ASTExpStatement : ASTStatement {
