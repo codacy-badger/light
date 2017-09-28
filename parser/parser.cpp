@@ -74,8 +74,11 @@ public:
 	}
 
 	ASTVariable* variable () {
-		ASTVariable* output = this->id();
-		if (output != nullptr) {
+		if (this->lexer->isNextType(Token::Type::ID)) {
+			ASTPointer* output = new ASTPointer();
+			output->setBegin(this->lexer);
+			output->name = this->lexer->text();
+
 			Token::Type tt = this->lexer->nextType;
 			while (tt == Token::Type::DOT) {
 				this->lexer->skip(1);
@@ -88,16 +91,7 @@ public:
 					tt = this->lexer->nextType;
 				}
 			}
-		}
-		output->setEnd(this->lexer);
-		return output;
-	}
 
-	ASTPointer* id () {
-		if (this->lexer->isNextType(Token::Type::ID)) {
-			ASTPointer* output = new ASTPointer();
-			output->setBegin(this->lexer);
-			output->name = this->lexer->text();
 			output->setEnd(this->lexer);
 			return output;
 		} else return nullptr;

@@ -4,7 +4,6 @@ struct ASTVariable : ASTExpression {
 	virtual ~ASTVariable() {}
 
 	bool isConstant () {
-		// TODO: oh the irony...
 		return false;
 	}
 
