@@ -5,25 +5,9 @@
 
 using namespace std;
 
-class ASTFnParam {
-public:
-	string name = "";
-	ASTType* type = nullptr;
-	ASTExpression* defValue = nullptr;
-
-	void print (int tab) {
-		this->type->print(tab);
-		cout << " " << name;
-		if (defValue != nullptr) {
-			cout << " -> ";
-			this->defValue->print(tab);
-		}
-	}
-};
-
 class ASTFnType {
 public:
-	vector<ASTFnParam*> params;
+	vector<ASTVarDef*> params;
 	ASTType* retType = nullptr;
 
 	void print (int tab) {

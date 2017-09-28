@@ -8,10 +8,10 @@ using namespace std;
 
 class ASTUnop : public ASTExpression {
 public:
-	enum OPS { NEG, COUNT };
-	static const char* OPSChar[];
+	enum OP { NEG, COUNT };
+	static map<ASTUnop::OP, const char*> opChar;
 
-	OPS op = OPS::COUNT;
+	OP op = OP::COUNT;
 	ASTExpression* expression = NULL;
 
 	ASTUnop (Token::Type tType) {
@@ -22,21 +22,23 @@ public:
 		this->op = this->typeToOP(tType);
 	}
 
-	OPS typeToOP (Token::Type tType) {
+	OP typeToOP (Token::Type tType) {
 		switch (tType) {
-			case Token::Type::SUB: return OPS::NEG;
+			case Token::Type::SUB: return OP::NEG;
 			default:
 				cout << "PANIC -> " << tType << "\n";
 				exit(87);
 		};
-		return OPS::COUNT;
+		return OP::COUNT;
 	}
 
 	void print (int tabs) {
-		cout << "(" << OPSChar[this->op] << " ";
+		cout << "(" << opChar[this->op] << " ";
 		this->expression->print(tabs);
 		cout << ")";
 	}
 };
 
-const char* ASTUnop::OPSChar[] = { "-" };
+map<ASTUnop::OP, const char*> ASTUnop::opChar = {
+	{ASTUnop::OP::NEG, "-"}
+};

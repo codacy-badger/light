@@ -15,18 +15,14 @@
 
 using namespace std;
 
-#define PARSER_DEBUG false
-
 class Parser {
 public:
 	Parser (const char* filename) {
-		this->lexer = new Lexer(filename);
-		this->source = filename;
+		this->initParser(new Lexer(filename), filename);
 	}
 
 	Parser (PushbackBuffer* buffer) {
-		this->lexer = new Lexer(buffer);
-		this->source = "<buffer>";
+		this->initParser(new Lexer(buffer), "<buffer>");
 	}
 
 	ASTType* type () {
@@ -102,13 +98,13 @@ public:
 	    ASTExpression* lhs = this->atom();
 	    if (lhs != nullptr) {
 	        Token::Type tt = this->lexer->nextType;
-			auto it = precedence.find(tt);
-			while (it != precedence.end()
-					&& precedence[tt] >= minPrecedence) {
+			auto precedence = ASTBinop::getPrecedence(tt);
+			while (precedence >= minPrecedence) {
 				this->lexer->skip(1);
 
-				int nextMinPrec = precedence[tt];
-				if (isLeftAssociate[tt]) nextMinPrec += 1;
+				int nextMinPrec = precedence;
+				if (ASTBinop::getLeftAssociativity(tt))
+					nextMinPrec += 1;
 
 				ASTBinop* binop = new ASTBinop(tt);
 				binop->rhs = this->expression(nextMinPrec);
@@ -116,7 +112,7 @@ public:
 				lhs = binop;
 
 				tt = this->lexer->nextType;
-				it = precedence.find(tt);
+				precedence = ASTBinop::getPrecedence(tt);
 			}
 	        return lhs;
 	    } else return nullptr;
@@ -253,18 +249,12 @@ private:
 	const char* source = nullptr;
 	Lexer* lexer = nullptr;
 
-	map<Token::Type, short> precedence = {
-		{Token::Type::EQUAL, 1}, {Token::Type::DOT, 1},
-		{Token::Type::ADD, 2}, {Token::Type::SUB, 2},
-		{Token::Type::DIV, 3}, {Token::Type::MUL, 3}
-	};
-	map<Token::Type, bool> isLeftAssociate = {
-		{Token::Type::EQUAL, false}, {Token::Type::DOT, false},
-		{Token::Type::ADD, false}, {Token::Type::SUB, false},
-		{Token::Type::DIV, false}, {Token::Type::MUL, false}
-	};
-
 	map<std::string, ASTType*> types;
+
+	void initParser (Lexer* lexer, const char* source) {
+		this->source = source;
+		this->lexer = lexer;
+	}
 
 	ASTExpression* atom () {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
@@ -292,6 +282,28 @@ private:
 		} else return this->constant();
 	}
 
+	ASTVarDef* _var_def () {
+		if (this->lexer->isNextType(Token::Type::ID)) {
+			ASTVarDef* output = new ASTVarDef();
+			output->name = this->lexer->text();
+
+			if (this->lexer->isNextType(Token::Type::COLON)) {
+				this->lexer->skip(1);
+				output->type = this->type();
+				// TODO: remove this once we have type inference
+				if (output->type == nullptr) expected("type", "':'");
+			} else expected("':'", "variable name");
+
+			if (this->lexer->isNextType(Token::Type::EQUAL)) {
+				this->lexer->skip(1);
+				output->expression = this->expression();
+				if (output->expression == nullptr)
+					expected("expression", "'='");
+			}
+			return output;
+		} else return nullptr;
+	}
+
 	ASTFnType* functionType () {
 		ASTFnType* output = new ASTFnType();
 		output->params = this->functionParameters();
@@ -302,39 +314,20 @@ private:
 		return output;
 	}
 
-	vector<ASTFnParam*> functionParameters () {
-		vector<ASTFnParam*> output;
+	vector<ASTVarDef*> functionParameters () {
+		vector<ASTVarDef*> output;
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
-			ASTFnParam* fnParam = this->functionParam();
+			ASTVarDef* fnParam = this->_var_def();
 			while (fnParam != nullptr) {
 				output.push_back(fnParam);
 				if (this->lexer->isNextType(Token::Type::COMMA))
 					this->lexer->skip(1);
-				fnParam = this->functionParam();
+				fnParam = this->_var_def();
 			}
 			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
 				this->lexer->skip(1);
 			else expected("closing parenthesys", "function parameters");
-		}
-		return output;
-	}
-
-	ASTFnParam* functionParam () {
-		ASTFnParam* output = nullptr;
-		if (this->lexer->isNextType(Token::Type::ID)) {
-			output = new ASTFnParam();
-			output->name = this->lexer->text();
-
-			if (this->lexer->isNextType(Token::Type::COLON)) {
-				this->lexer->skip(1);
-				output->type = this->type();
-			} else expected("':'", "parameter name");
-
-			if (this->lexer->isNextType(Token::Type::EQUAL)) {
-				this->lexer->skip(1);
-				output->defValue = this->expression();
-			}
 		}
 		return output;
 	}

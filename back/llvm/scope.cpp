@@ -68,6 +68,7 @@ public:
 
 			Argument* llvmArg = std::next(fn->llvmFunction->arg_begin(), i++);
 			builder->CreateStore(llvmArg, allocation);
+			arg->allocation = allocation;
 			variables[arg->name] = arg;
 		}
 	}

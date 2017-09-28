@@ -131,13 +131,13 @@ public:
 		Value* lhs = this->codegen(binop->lhs);
 		Value* rhs = this->codegen(binop->rhs);
 		switch (binop->op) {
-			case ASTBinop::OPS::ADD:
+			case ASTBinop::OP::ADD:
 				return builder.CreateAdd(lhs, rhs, "add");
-			case ASTBinop::OPS::SUB:
+			case ASTBinop::OP::SUB:
 				return builder.CreateSub(lhs, rhs, "sub");
-			case ASTBinop::OPS::MUL:
+			case ASTBinop::OP::MUL:
 				return builder.CreateMul(lhs, rhs, "mul");
-			case ASTBinop::OPS::DIV:
+			case ASTBinop::OP::DIV:
 				return builder.CreateSDiv(lhs, rhs, "div");
 			default: break;
 		}
@@ -147,7 +147,7 @@ public:
 	Value* codegen (ASTUnop* unop) {
 		Value* val = this->codegen(unop->expression);
 		switch (unop->op) {
-			case ASTUnop::OPS::NEG:
+			case ASTUnop::OP::NEG:
 				return builder.CreateNeg(val, "neg");
 			default: break;
 		}
@@ -204,9 +204,9 @@ public:
 			LiType* argType = this->codegen(param->type);
 			argTypes.push_back(argType->llvmType);
 
-			LiVariable* param = new LiVariable(param->name);
-			param->type = argType;
-			fn->params.push_back(param);
+			LiVariable* fnParam = new LiVariable(param->name);
+			fnParam->type = argType;
+			fn->params.push_back(fnParam);
 		}
 		LiType* retType = this->codegen(func->fnType->retType);
 		FunctionType* functionType = FunctionType::get(
