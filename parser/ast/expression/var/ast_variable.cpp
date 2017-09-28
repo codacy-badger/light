@@ -1,7 +1,7 @@
 #pragma once
 
 struct ASTVariable : ASTExpression {
-	virtual ~ASTExpression() {}
+	virtual ~ASTVariable() {}
 
 	bool isConstant () {
 		// TODO: oh the irony...
