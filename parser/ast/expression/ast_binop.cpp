@@ -48,6 +48,10 @@ public:
 		cout << ")";
 	}
 
+	bool isConstant () {
+		return this->lhs->isConstant() && this->rhs->isConstant();
+	}
+
 	static short getPrecedence (Token::Type opToken) {
 		auto it = ASTBinop::precedence.find(opToken);
 		if (it != ASTBinop::precedence.end())

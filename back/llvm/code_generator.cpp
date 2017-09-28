@@ -17,6 +17,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
+#include "primitive_op.cpp"
 #include "types/light_type.cpp"
 #include "std/std.cpp"
 #include "scope.cpp"
@@ -52,7 +53,7 @@ public:
 		this->codegen(stms);
 
 		verifyModule(*module);
-		//module->print(outs(), nullptr);
+		module->print(outs(), nullptr);
 		return module;
 	}
 
@@ -132,13 +133,13 @@ public:
 		Value* rhs = this->codegen(binop->rhs);
 		switch (binop->op) {
 			case ASTBinop::OP::ADD:
-				return builder.CreateAdd(lhs, rhs, "add");
+				return PrimitiveOP::add(&builder, lhs, rhs);
 			case ASTBinop::OP::SUB:
-				return builder.CreateSub(lhs, rhs, "sub");
+				return PrimitiveOP::sub(&builder, lhs, rhs);
 			case ASTBinop::OP::MUL:
-				return builder.CreateMul(lhs, rhs, "mul");
+				return PrimitiveOP::mul(&builder, lhs, rhs);
 			case ASTBinop::OP::DIV:
-				return builder.CreateSDiv(lhs, rhs, "div");
+				return PrimitiveOP::div(&builder, lhs, rhs);
 			default: break;
 		}
 		return nullptr;

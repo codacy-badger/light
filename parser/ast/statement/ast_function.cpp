@@ -10,16 +10,19 @@ public:
 	vector<ASTVarDef*> params;
 	ASTType* retType = nullptr;
 
-	void print (int tab) {
-		cout << "(";
-		for(auto const& type: this->params) {
-			type->print(tab);
-			cout << ", ";
+	void print (int tabs) {
+		cout << "( ";
+		if (this->params.size() > 0) {
+			this->params[0]->printSimple(tabs);
+			for (int i = 1; i < this->params.size(); i++) {
+				cout << ", ";
+				this->params[i]->printSimple(tabs);
+			}
 		}
-		cout << ")";
+		cout << " )";
 		if (this->retType != nullptr) {
 			cout << " -> ";
-			this->retType->print(tab);
+			this->retType->print(tabs);
 		}
 	}
 };

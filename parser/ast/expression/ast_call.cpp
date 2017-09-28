@@ -23,4 +23,8 @@ class ASTCall : public ASTExpression {
 			}
 			cout << " ))";
 		}
+
+		bool isConstant () {
+			return false;
+		}
 };

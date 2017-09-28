@@ -13,6 +13,12 @@ public:
 
 	void print (int tabs) {
 		if (this->name == "") std::cout  << "[?]";
-		else std::cout << "[" << this->name << "]";
+		else std::cout << this->name;
+	}
+
+	bool isPrimitive () {
+		return false;
 	}
 };
+
+#include "ast_i32_type.cpp"

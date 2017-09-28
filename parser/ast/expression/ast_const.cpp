@@ -34,4 +34,8 @@ public:
 			default: break;
 		}
 	}
+
+	bool isConstant () {
+		return true;
+	}
 };

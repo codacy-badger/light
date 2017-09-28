@@ -3,8 +3,9 @@
 #include "../ast_node.cpp"
 
 class ASTExpression : public ASTNode {
-	public:
-		void print (int tabs) = 0;
+public:
+	void print (int tabs) = 0;
+	virtual bool isConstant() = 0;
 };
 
 #include "var/ast_variable.cpp"

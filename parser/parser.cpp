@@ -33,12 +33,10 @@ public:
 			auto typeName = this->lexer->text();
 			ASTType* output = this->context->getType(typeName);
 			if (output == nullptr) {
-				output = new ASTType();
-				output->name = typeName;
-				this->context->addType(output);
-				return output;
+				cout << "Type " << typeName << " not found!\n";
 			} else return output;
-		} else return nullptr;
+		}
+		return nullptr;
 	}
 
 	ASTConst* constant () {

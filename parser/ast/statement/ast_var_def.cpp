@@ -16,12 +16,17 @@ class ASTVarDef : public ASTStatement {
 
 		void print (int tabs) {
 			this->tabs(tabs);
-			cout << "LET [" << this->name << "] : ";
+			cout << "LET ";
+			this->printSimple(tabs);
+			cout << endl;
+		}
+
+		void printSimple (int tabs) {
+			cout << "[" << this->name << "] : ";
 			if (this->type != NULL) this->type->print(tabs);
 			if (this->expression != NULL) {
 				cout << " = ";
 				this->expression->print(tabs);
 			}
-			cout << endl;
 		}
 };

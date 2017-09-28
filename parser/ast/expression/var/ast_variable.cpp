@@ -5,8 +5,13 @@
 using namespace std;
 
 class ASTVariable : public ASTExpression {
-	public:
-		void print (int tabs) = 0;
+public:
+	void print (int tabs) = 0;
+
+	bool isConstant () {
+		// TODO: not necessarily
+		return false;
+	}
 };
 
 #include "ast_id.cpp"
