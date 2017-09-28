@@ -41,6 +41,10 @@ public:
 	bool isConstant () {
 		return this->expression->isConstant();
 	}
+
+	ASTType* getType(ParserContext* context) {
+		return expression->getType(context);
+	}
 };
 
 map<ASTUnop::OP, const char*> ASTUnop::opChar = {

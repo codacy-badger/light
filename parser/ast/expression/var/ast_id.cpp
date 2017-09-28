@@ -15,4 +15,9 @@ class ASTId : public ASTVariable {
 		void print (int tabs) {
 			cout << "[" << this->name << "]";
 		}
+
+		ASTType* getType(ParserContext* context) {
+			// TODO: store variables in context to query type
+			return nullptr;
+		}
 };

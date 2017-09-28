@@ -1,7 +1,7 @@
 fn main () {
-	let a: int = (1);
-	let b: int = 6 * 2 - 9 / 3;
-	let c: int = -a + 2;
+	let a := -(1);
+	let b := 6 * 2 - 9 / 3;
+	let c : int = -a + 2;
 	let d: int = b * 2 - -3;
 	println_i32(a);
 	println_i32(b);

@@ -38,4 +38,17 @@ public:
 	bool isConstant () {
 		return true;
 	}
+
+	ASTType* getType(ParserContext* context) {
+		switch (type) {
+			case BYTE:   	return nullptr;
+			case SHORT:  	return nullptr;
+			case INT:    	return context->getType("i32");
+			case LONG:   	return nullptr;
+			case FLOAT:  	return nullptr;
+			case DOUBLE: 	return nullptr;
+			case STRING: 	return nullptr;
+			default:		return nullptr;
+		}
+	}
 };

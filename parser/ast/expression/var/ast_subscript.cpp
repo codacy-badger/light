@@ -17,4 +17,9 @@ class ASTSubscript : public ASTVariable {
 			this->index->print(tabs);
 			cout << "]";
 		}
+
+		ASTType* getType(ParserContext* context) {
+			// TODO: store variables in context to query type
+			return nullptr;
+		}
 };

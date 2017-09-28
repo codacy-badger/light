@@ -12,6 +12,8 @@ public:
 		// TODO: not necessarily
 		return false;
 	}
+
+	ASTType* getType(ParserContext* context) = 0;
 };
 
 #include "ast_id.cpp"

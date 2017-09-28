@@ -27,4 +27,9 @@ class ASTCall : public ASTExpression {
 		bool isConstant () {
 			return false;
 		}
+
+		ASTType* getType(ParserContext* context) {
+			// TODO: store variables in context to query type
+			return nullptr;
+		}
 };

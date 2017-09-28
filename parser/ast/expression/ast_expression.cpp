@@ -1,11 +1,13 @@
 #pragma once
 
 #include "../ast_node.cpp"
+#include "../../parser_context.cpp"
 
 class ASTExpression : public ASTNode {
 public:
 	void print (int tabs) = 0;
 	virtual bool isConstant() = 0;
+	virtual ASTType* getType(ParserContext* context) = 0;
 };
 
 #include "var/ast_variable.cpp"

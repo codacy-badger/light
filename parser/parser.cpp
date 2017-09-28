@@ -186,24 +186,7 @@ public:
 		if (this->lexer->isNextType(Token::Type::LET)) {
 			this->lexer->skip(1);
 
-			ASTVarDef* output = new ASTVarDef();
-			if (this->lexer->isNextType(Token::Type::ID))
-				output->name = this->lexer->text();
-			else expected("id", "'let'");
-
-			if (this->lexer->isNextType(Token::Type::COLON)) {
-				this->lexer->skip(1);
-				output->type = this->type();
-				if (output->type == nullptr)
-					expected("type", "':'");
-			} else expected("':'", "variable name");
-
-			if (this->lexer->isNextType(Token::Type::EQUAL)) {
-				this->lexer->skip(1);
-				output->expression = this->expression();
-				if (output->expression == nullptr)
-					expected("expression", "'='");
-			}
+			ASTVarDef* output = this->_var_def();
 
 			if (this->lexer->isNextType(Token::Type::STM_END))
 				this->lexer->skip(1);
@@ -290,8 +273,6 @@ private:
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
 				output->type = this->type();
-				// TODO: remove this once we have type inference
-				if (output->type == nullptr) expected("type", "':'");
 			} else expected("':'", "variable name");
 
 			if (this->lexer->isNextType(Token::Type::EQUAL)) {
@@ -300,6 +281,16 @@ private:
 				if (output->expression == nullptr)
 					expected("expression", "'='");
 			}
+
+			if (output->type == nullptr) {
+				if (output->expression != nullptr) {
+					ASTType* ty = output->expression->getType(context);
+					if (ty != nullptr) {
+						output->type = ty;
+					} else error("Type could not be inferred!");
+				} else error("Cannot infer type without default value!");
+			}
+
 			return output;
 		} else return nullptr;
 	}

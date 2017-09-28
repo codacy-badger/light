@@ -52,6 +52,13 @@ public:
 		return this->lhs->isConstant() && this->rhs->isConstant();
 	}
 
+	ASTType* getType(ParserContext* context) {
+		ASTType* lhsTy = this->lhs->getType(context);
+		ASTType* rhsTy = this->rhs->getType(context);
+		if (lhsTy == rhsTy) return lhsTy;
+		else return nullptr;
+	}
+
 	static short getPrecedence (Token::Type opToken) {
 		auto it = ASTBinop::precedence.find(opToken);
 		if (it != ASTBinop::precedence.end())
