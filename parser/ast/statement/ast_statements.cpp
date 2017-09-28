@@ -5,7 +5,7 @@
 
 using namespace std;
 
-class ASTStatements : ASTStatement {
+class ASTStatements : public ASTStatement {
 	public:
 		vector<ASTStatement*> list;
 

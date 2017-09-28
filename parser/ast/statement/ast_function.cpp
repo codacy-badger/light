@@ -5,7 +5,7 @@
 
 using namespace std;
 
-class ASTFnType {
+class ASTFnType : public ASTNode {
 public:
 	vector<ASTVarDef*> params;
 	ASTType* retType = nullptr;
