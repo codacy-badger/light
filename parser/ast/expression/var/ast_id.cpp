@@ -17,7 +17,6 @@ class ASTId : public ASTVariable {
 		}
 
 		ASTType* getType(ParserContext* context) {
-			// TODO: store variables in context to query type
-			return nullptr;
+			return context->getVarType(this->name);
 		}
 };

@@ -303,7 +303,7 @@ private:
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
 				output->type = this->type();
-			} else expected("':'", "variable name");
+			}
 
 			if (this->lexer->isNextType(Token::Type::EQUAL)) {
 				this->lexer->skip(1);
@@ -320,7 +320,7 @@ private:
 					} else error("Type could not be inferred!");
 				} else error("Cannot infer type without default value!");
 			}
-
+			this->context->addVarType(output->name, output->type);
 			output->setEnd(this->lexer);
 			return output;
 		} else return nullptr;

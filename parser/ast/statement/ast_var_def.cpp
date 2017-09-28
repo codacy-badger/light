@@ -22,7 +22,7 @@ class ASTVarDef : public ASTStatement {
 		}
 
 		void printSimple (int tabs) {
-			cout << "[" << this->name << "] : ";
+			cout << this->name << " : ";
 			if (this->type != NULL) this->type->print(tabs);
 			if (this->expression != NULL) {
 				cout << " = ";

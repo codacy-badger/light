@@ -8,6 +8,7 @@ class ParserContext {
 public:
 	ParserContext* parent = nullptr;
 	map<std::string, ASTType*> types;
+	map<std::string, ASTType*> varTypes;
 
 	ParserContext (ParserContext* parent = nullptr) {
 		this->parent = parent;
@@ -15,10 +16,19 @@ public:
 		this->addType("int", "i32");
 	}
 
-	ASTType* getType (std::string name) {
-		auto it = this->types.find(name);
-		if (it != this->types.end()) {
-			return this->types[name];
+	void addVarType (std::string name, ASTType* ty) {
+		auto it = this->varTypes.find(name);
+		if (it == this->varTypes.end()) {
+			this->varTypes[name] = ty;
+		} else {
+			cout << "ERROR: Variable redeclaration: " << name << "\n";
+		}
+	}
+
+	ASTType* getVarType (std::string name) {
+		auto it = this->varTypes.find(name);
+		if (it != this->varTypes.end()) {
+			return this->varTypes[name];
 		} else return nullptr;
 	}
 
@@ -38,5 +48,12 @@ public:
 	void addType (std::string alias, std::string original) {
 		auto ty = this->getType(original);
 		if (ty != nullptr) this->addType(alias, ty);
+	}
+
+	ASTType* getType (std::string name) {
+		auto it = this->types.find(name);
+		if (it != this->types.end()) {
+			return this->types[name];
+		} else return nullptr;
 	}
 };
