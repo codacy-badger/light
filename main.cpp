@@ -9,7 +9,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "parser/parser.cpp"
-#include "parser/ast_printer.cpp"
+#include "parser/ast/ast_printer.cpp"
 #include "back/llvm/backend.cpp"
 
 using namespace llvm;

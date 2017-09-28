@@ -2,15 +2,15 @@
 
 #include <string>
 
-#include "ast/type/ast_type.cpp"
+struct ASTType;
 
-class ParserContext {
+class ASTContext {
 public:
-	ParserContext* parent = nullptr;
+	ASTContext* parent = nullptr;
 	map<std::string, ASTType*> types;
 	map<std::string, ASTType*> varTypes;
 
-	ParserContext (ParserContext* parent = nullptr) {
+	ASTContext (ASTContext* parent = nullptr) {
 		this->parent = parent;
 		this->addType("i32", new ASTI32Type());
 		this->addType("int", "i32");

@@ -1,11 +1,6 @@
 #pragma once
 
-#include "ast_expression.cpp"
-
-using namespace std;
-
-class ASTConst : public ASTExpression {
-public:
+struct ASTConst : ASTExpression {
 	enum TYPE { BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, STRING, COUNT };
 	TYPE type = TYPE::COUNT;
 	union {
@@ -26,7 +21,7 @@ public:
 		return true;
 	}
 
-	ASTType* getType(ParserContext* context) {
+	ASTType* getType(ASTContext* context) {
 		switch (type) {
 			case BYTE:   	return nullptr;
 			case SHORT:  	return nullptr;

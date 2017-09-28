@@ -1,15 +1,8 @@
 #pragma once
 
-#include "ast_expression.cpp"
-
-#include "lexer/lexer.cpp"
-
-using namespace std;
-
-class ASTUnop : public ASTExpression {
-public:
+struct ASTUnop : ASTExpression {
 	enum OP { NEG, COUNT };
-	static map<ASTUnop::OP, const char*> opChar;
+	static std::map<ASTUnop::OP, const char*> opChar;
 
 	OP op = OP::COUNT;
 	ASTExpression* exp = nullptr;
@@ -36,11 +29,11 @@ public:
 		return this->exp->isConstant();
 	}
 
-	ASTType* getType(ParserContext* context) {
+	ASTType* getType(ASTContext* context) {
 		return this->exp->getType(context);
 	}
 };
 
-map<ASTUnop::OP, const char*> ASTUnop::opChar = {
+std::map<ASTUnop::OP, const char*> ASTUnop::opChar = {
 	{ASTUnop::OP::NEG, "-"}
 };

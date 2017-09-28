@@ -9,16 +9,13 @@
 
 #include "lexer/lexer.cpp"
 
-#include "ast/type/ast_type.cpp"
-#include "ast/expression/ast_expression.cpp"
-#include "ast/statement/ast_statement.cpp"
-#include "parser_context.cpp"
+#include "ast/ast.h"
 
 using namespace std;
 
 class Parser {
 public:
-	ParserContext* context = new ParserContext();
+	ASTContext* context = new ASTContext();
 
 	Parser (const char* filename) {
 		this->initParser(new Lexer(filename), filename);

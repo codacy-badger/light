@@ -1,8 +1,6 @@
 #pragma once
 
-#include "ast/type/ast_type.cpp"
-#include "ast/expression/ast_expression.cpp"
-#include "ast/statement/ast_statement.cpp"
+#include "ast.h"
 
 class ASTPrinter {
 public:

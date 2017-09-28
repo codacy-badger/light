@@ -1,17 +1,12 @@
 #pragma once
 
-#include "ast_expression.cpp"
+#include "lexer/token.cpp"
 
-#include "lexer/lexer.cpp"
-
-using namespace std;
-
-class ASTBinop : public ASTExpression {
-public:
+struct ASTBinop : ASTExpression {
 	enum OP { ASSIGN, ATTR, ADD, SUB, MUL, DIV, COUNT };
-	static map<Token::Type, bool> isLeftAssociate;
-	static map<ASTBinop::OP, const char*> opChar;
-	static map<Token::Type, short> precedence;
+	static std::map<Token::Type, bool> isLeftAssociate;
+	static std::map<ASTBinop::OP, const char*> opChar;
+	static std::map<Token::Type, short> precedence;
 
 	OP op = OP::COUNT;
 	ASTExpression* lhs = NULL;
@@ -44,7 +39,7 @@ public:
 		return this->lhs->isConstant() && this->rhs->isConstant();
 	}
 
-	ASTType* getType(ParserContext* context) {
+	ASTType* getType(ASTContext* context) {
 		ASTType* lhsTy = this->lhs->getType(context);
 		ASTType* rhsTy = this->rhs->getType(context);
 		if (lhsTy == rhsTy) return lhsTy;
@@ -66,17 +61,17 @@ public:
 	}
 };
 
-map<ASTBinop::OP, const char*> ASTBinop::opChar = {
+std::map<ASTBinop::OP, const char*> ASTBinop::opChar = {
 	{ASTBinop::OP::ASSIGN, "="}, {ASTBinop::OP::ATTR, "."},
 	{ASTBinop::OP::ADD, "+"}, {ASTBinop::OP::SUB, "-"},
 	{ASTBinop::OP::MUL, "*"}, {ASTBinop::OP::DIV, "/"}
 };
-map<Token::Type, short> ASTBinop::precedence = {
+std::map<Token::Type, short> ASTBinop::precedence = {
 	{Token::Type::EQUAL, 1}, {Token::Type::DOT, 1},
 	{Token::Type::ADD, 2}, {Token::Type::SUB, 2},
 	{Token::Type::MUL, 3}, {Token::Type::DIV, 3}
 };
-map<Token::Type, bool> ASTBinop::isLeftAssociate = {
+std::map<Token::Type, bool> ASTBinop::isLeftAssociate = {
 	{Token::Type::EQUAL, false}, {Token::Type::DOT, false},
 	{Token::Type::ADD, false}, {Token::Type::SUB, false},
 	{Token::Type::MUL, false}, {Token::Type::DIV, false}

@@ -1,19 +1,46 @@
 #pragma once
 
-#include <iostream>
-
-using namespace std;
-
-class ASTVariable : public ASTExpression {
-public:
+struct ASTVariable : ASTExpression {
 	bool isConstant () {
-		// TODO: not necessarily
+		// TODO: oh the irony...
 		return false;
 	}
 
-	ASTType* getType(ParserContext* context) = 0;
+	ASTType* getType(ASTContext* context) = 0;
 };
 
-#include "ast_id.cpp"
-#include "ast_attr.cpp"
-#include "ast_subscript.cpp"
+struct ASTId : ASTVariable {
+	std::string name;
+
+	ASTId (std::string name = "") {
+		this->name = name;
+	}
+
+	ASTType* getType(ASTContext* context) {
+		return context->getVarType(this->name);
+	}
+};
+
+struct ASTAttr : ASTVariable {
+	std::string name;
+	ASTExpression* exp = nullptr;
+
+	ASTAttr (ASTExpression* exp = nullptr) {
+		this->exp = exp;
+	}
+
+	ASTType* getType(ASTContext* context) {
+		// TODO: store variables in context to query type
+		return nullptr;
+	}
+};
+
+struct ASTSubscript : ASTVariable {
+	ASTExpression* expression = NULL;
+	ASTExpression* index = NULL;
+
+	ASTType* getType(ASTContext* context) {
+		// TODO: store variables in context to query type
+		return nullptr;
+	}
+};
