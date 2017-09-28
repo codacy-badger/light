@@ -27,7 +27,7 @@ public:
 
 		cout << stm->name << " : ";
 		print(stm->type, tabs);
-		if (stm->expression != NULL) {
+		if (stm->expression != nullptr) {
 			cout << " = ";
 			print(stm->expression, tabs);
 		}

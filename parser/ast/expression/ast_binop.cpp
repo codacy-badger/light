@@ -9,8 +9,8 @@ struct ASTBinop : ASTExpression {
 	static std::map<Token::Type, short> precedence;
 
 	OP op = OP::COUNT;
-	ASTExpression* lhs = NULL;
-	ASTExpression* rhs = NULL;
+	ASTExpression* lhs = nullptr;
+	ASTExpression* rhs = nullptr;
 
 	ASTBinop (Token::Type tType) {
 		this->setOP(tType);

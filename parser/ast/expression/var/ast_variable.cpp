@@ -36,8 +36,8 @@ struct ASTAttr : ASTVariable {
 };
 
 struct ASTSubscript : ASTVariable {
-	ASTExpression* expression = NULL;
-	ASTExpression* index = NULL;
+	ASTExpression* expression = nullptr;
+	ASTExpression* index = nullptr;
 
 	ASTType* getType(ASTContext* context) {
 		// TODO: store variables in context to query type
