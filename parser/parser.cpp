@@ -12,11 +12,14 @@
 #include "ast/type/ast_type.cpp"
 #include "ast/expression/ast_expression.cpp"
 #include "ast/statement/ast_statement.cpp"
+#include "parser_context.cpp"
 
 using namespace std;
 
 class Parser {
 public:
+	ParserContext* context = new ParserContext();
+
 	Parser (const char* filename) {
 		this->initParser(new Lexer(filename), filename);
 	}
@@ -28,12 +31,13 @@ public:
 	ASTType* type () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			auto typeName = this->lexer->text();
-			auto it = types.find(typeName);
-			if (it == types.end()) {
-				ASTType* output = new ASTType();
+			ASTType* output = this->context->getType(typeName);
+			if (output == nullptr) {
+				output = new ASTType();
 				output->name = typeName;
+				this->context->addType(output);
 				return output;
-			} else return types[typeName];
+			} else return output;
 		} else return nullptr;
 	}
 
@@ -248,8 +252,6 @@ public:
 private:
 	const char* source = nullptr;
 	Lexer* lexer = nullptr;
-
-	map<std::string, ASTType*> types;
 
 	void initParser (Lexer* lexer, const char* source) {
 		this->source = source;
