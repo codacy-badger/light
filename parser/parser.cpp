@@ -135,7 +135,7 @@ public:
 		}
 		ASTStatement* stmt = (ASTStatement*) this->expStm();
 		if (stmt != nullptr) return stmt;
-		stmt = (ASTTypeDef*) this->type_def();
+		stmt = (ASTType*) this->type_def();
 		if (stmt != nullptr) return stmt;
 		stmt = (ASTStatement*) this->function();
 		if (stmt != nullptr) return stmt;
@@ -182,10 +182,10 @@ public:
 		return output;
 	}
 
-	ASTTypeDef* type_def () {
+	ASTType* type_def () {
 		if (this->lexer->isNextType(Token::Type::TYPE)) {
 			this->lexer->skip(1);
-			ASTTypeDef* output = new ASTTypeDef();
+			ASTType* output = new ASTType();
 			output->setBegin(this->lexer);
 			if (this->lexer->isNextType(Token::Type::ID))
 				output->name = this->lexer->text();

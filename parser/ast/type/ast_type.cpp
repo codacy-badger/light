@@ -5,8 +5,9 @@
 
 struct ASTVarDef;
 
-struct ASTType : ASTNode {
+struct ASTType : ASTStatement {
 	std::string name;
+	ASTStatements* stms = nullptr;
 
 	bool isPrimitive () {
 		return false;

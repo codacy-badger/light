@@ -71,8 +71,8 @@ public:
 			this->codegen(static_cast<ASTFunction*>(stm));
 		else if (typeid(*stm) == typeid(ASTReturn))
 			this->codegen(static_cast<ASTReturn*>(stm));
-		else if (typeid(*stm) == typeid(ASTTypeDef))
-			this->codegen(static_cast<ASTTypeDef*>(stm));
+		else if (typeid(*stm) == typeid(ASTType))
+			this->codegen(static_cast<ASTType*>(stm));
 		else if (typeid(*stm) == typeid(ASTExpStatement))
 			this->codegen(static_cast<ASTExpStatement*>(stm));
 		else panic("Unrecognized statement?!");
@@ -80,7 +80,7 @@ public:
 
 	void codegen (ASTVarDef* varDef) {
 		LiVariable* var = new LiVariable(varDef->name);
-		var->type = this->codegen(varDef->type);
+		var->type = this->scope->getType(varDef->type);
 		var->allocation = builder.CreateAlloca(var->type->llvmType, nullptr, varDef->name);
 		if (varDef->expression != NULL) {
 			Value* val = this->codegen(varDef->expression);
@@ -91,12 +91,12 @@ public:
 		scope->addVariable(var);
 	}
 
-	void codegen (ASTTypeDef* defType) {
+	void codegen (ASTType* defType) {
 		vector<Type*> structTypes;
 		for(auto const& stm: defType->stms->list) {
 			if (typeid(*stm) == typeid(ASTVarDef)) {
 				ASTVarDef* varDef = static_cast<ASTVarDef*>(stm);
-				LiType* ty = this->codegen(varDef->type);
+				LiType* ty = this->scope->getType(varDef->type);
 				structTypes.push_back(ty->llvmType);
 			}
 		}
@@ -202,14 +202,14 @@ public:
 
 		vector<Type*> argTypes;
 		for(auto const& param: func->fnType->params) {
-			LiType* argType = this->codegen(param->type);
+			LiType* argType = this->scope->getType(param->type);
 			argTypes.push_back(argType->llvmType);
 
 			LiVariable* fnParam = new LiVariable(param->name);
 			fnParam->type = argType;
 			fn->params.push_back(fnParam);
 		}
-		LiType* retType = this->codegen(func->fnType->retType);
+		LiType* retType = this->scope->getType(func->fnType->retType);
 		FunctionType* functionType = FunctionType::get(
 			retType->llvmType, argTypes, false);
 		fn->returnType = retType;
@@ -243,12 +243,6 @@ public:
 		verifyFunction(*function);
 		this->scope->addFunction(fn);
 		return fn;
-	}
-
-	LiType* codegen (ASTType* type) {
-		if (type == nullptr)
-			return this->scope->getType("void");
-		return this->scope->getType(type);
 	}
 
 	~LLVMCodeGenerator () { /* empty */ }

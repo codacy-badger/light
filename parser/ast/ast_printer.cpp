@@ -4,17 +4,13 @@
 
 class ASTPrinter {
 public:
-	static void print (ASTType* type, int tabs = 0) {
-		if (type->name == "") std::cout  << "[?]";
-		else std::cout << type->name;
-	}
 
 	static void print (ASTStatement* stm, int tabs = 0) {
 		if (auto obj = dynamic_cast<ASTVarDef*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTTypeDef*>(stm)) print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTType*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTExpStatement*>(stm)) print(obj, tabs);
 		else _panic("Unrecognized statement?!");
 	}
@@ -26,7 +22,7 @@ public:
 		}
 
 		cout << stm->name << " : ";
-		print(stm->type, tabs);
+		print(stm->type, tabs, true);
 		if (stm->expression != nullptr) {
 			cout << " = ";
 			print(stm->expression, tabs);
@@ -71,10 +67,13 @@ public:
 		cout << endl;
 	}
 
-	static void print (ASTTypeDef* type, int tabs = 0) {
-		cout << "type " << type->name << "\n";
-		if (type->stms != nullptr)
+	static void print (ASTType* type, int tabs = 0, bool nameOnly = false) {
+		if (!nameOnly) cout << "type ";
+		cout << type->name;
+		if (!nameOnly && type->stms != nullptr) {
+			cout << "\n";
 			print(type->stms, tabs + 1);
+		}
 	}
 
 	static void print (ASTExpStatement* expStm, int tabs = 0) {
