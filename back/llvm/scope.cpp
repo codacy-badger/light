@@ -120,6 +120,10 @@ public:
 	}
 
 	LLVMScope* pop () {
-		return this->parent;
+		if (this->parent != nullptr) return this->parent;
+		else {
+			cout << "ERROR: pop of global scope!";
+			return this;
+		}
 	}
 };

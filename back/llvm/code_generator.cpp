@@ -194,16 +194,18 @@ public:
 	}
 
 	Function* codegen (ASTFunction* fn) {
+		auto function = module->getFunction(fn->name);
+		if (function != nullptr) return function;
+
 		vector<Type*> argTypes;
-		for(auto const& param: fn->type->params) {
-			Type* type = this->scope->getType(param->type);
-			argTypes.push_back(type);
-		}
+		for(auto const& param: fn->type->params)
+			argTypes.push_back(this->scope->getType(param->type));
 		Type* retType = this->scope->getType(fn->type->retType);
 		auto fnType = FunctionType::get(retType, argTypes, false);
+		auto constValue = module->getOrInsertFunction(fn->name, fnType);
+		function = static_cast<Function*>(constValue);
 
 		int index = 0;
-		auto function = Function::Create(fnType, Function::ExternalLinkage, fn->name, module);
 		for (auto& arg: function->args())
 			arg.setName(fn->type->params[index++]->name);
 		this->scope->addFunction(fn, function);
@@ -235,6 +237,8 @@ private:
 		Function* function = nullptr;
 		if (auto fn = dynamic_cast<ASTFunction*>(call->var)) {
 			function = this->scope->getFunction(fn);
+			if (function == nullptr)
+				function = this->codegen(fn);
 		}
 		if (function == nullptr) {
 			panic("Function* not found!");
