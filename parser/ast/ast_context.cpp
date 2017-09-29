@@ -26,8 +26,17 @@ struct ASTContext {
 
 	ASTExpression* get (std::string name) {
 		auto it = this->variables.find(name);
-		if (it != this->variables.end()) {
-			return this->variables[name];
-		} else return nullptr;
+		if (it == this->variables.end()) {
+			if (this->parent == nullptr)  return nullptr;
+			else return this->parent->get(name);
+		} else return this->variables[name];
+	}
+
+	ASTContext* push () {
+		return new ASTContext(this);
+	}
+
+	ASTContext* pop () {
+		return this->parent;
 	}
 };

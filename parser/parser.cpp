@@ -205,7 +205,10 @@ public:
 				output->name = this->lexer->text();
 			else expected("Identifier", "'fn' keyword");
 			output->type = this->functionType();
+
+			this->context = this->context->push();
 			output->stms = this->statement();
+			this->context = this->context->pop();
 
 			this->context->add(output->name, output);
 			return output;
