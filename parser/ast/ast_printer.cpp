@@ -27,20 +27,19 @@ public:
 		if (!nameOnly) {
 			_tabs(tabs);
 			cout << "LET ";
-		}
+		} else cout << "[";
 
-		cout << stm->name;
+		cout << stm->name << " : ";
+		print(stm->type, tabs, true);
 
 		if (!nameOnly) {
-			cout << " : ";
-			print(stm->type, tabs, true);
 			if (stm->expression != nullptr) {
 				cout << " = ";
 				print(stm->expression, tabs);
 			}
 
 			cout << "\n";
-		}
+		} else cout << "]";
 	}
 
 	static void print (ASTStatements* stm, int tabs = 0) {
