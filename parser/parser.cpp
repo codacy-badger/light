@@ -18,7 +18,6 @@ using namespace std;
 class Parser {
 public:
 	ASTContext* context = new ASTContext();
-	map<string, vector<ASTExpression**>> unresolved;
 
 	Parser (const char* filename) {
 		this->initParser(new Lexer(filename), filename);
@@ -211,9 +210,8 @@ public:
 			output->type = this->functionType();
 
 			this->context = this->context->push();
-			for (auto const &param : output->type->params) {
+			for (auto const &param : output->type->params)
 				this->context->add(param->name, param);
-			}
 			output->stms = this->statement();
 			this->context = this->context->pop();
 
@@ -229,17 +227,8 @@ public:
 			output->list.push_back(exp);
 			exp = this->statement();
 		}
-		for (auto const &entry : unresolved) {
-			auto value = this->context->get(entry.first);
-			if (value != nullptr) {
-				for (auto const &addrs : entry.second)
-					(*addrs) = value;
-			} else {
-				string msg = "Unresolved name: ";
-				msg += entry.first;
-				error(msg.c_str());
-			}
-		}
+		if (!this->context->resolve())
+			error("Could not resolve all names!");
 		return output;
 	}
 
@@ -276,7 +265,7 @@ private:
 			if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 				ASTCall* fnCall = this->call();
 				if (var == nullptr)
-					this->addUnresolvedName(name, &fnCall->var);
+					this->context->addUnresolved(name, &fnCall->var);
 				else fnCall->var = var;
 				return fnCall;
 			} else return var;
@@ -338,16 +327,6 @@ private:
 			else expected("closing parenthesys", "function parameters");
 		}
 		return output;
-	}
-
-	void addUnresolvedName (string name, ASTExpression** addr) {
-		auto it = this->unresolved.find(name);
-		if (it == this->unresolved.end()) {
-			vector<ASTExpression**> toEdit { addr };
-			this->unresolved[name] = toEdit;
-		} else {
-			this->unresolved[name].push_back(addr);
-		}
 	}
 
 	void error (const char* message) {

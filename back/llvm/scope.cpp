@@ -54,7 +54,7 @@ public:
 		auto function = this->getFunction(fn);
 		for (auto &param : fn->type->params) {
 			auto type = this->getType(param->type);
-			auto alloca = builder->CreateAlloca(type, 0, param->name + ".param");
+			auto alloca = builder->CreateAlloca(type, 0, param->name + ".arg");
 
 			Argument* llvmArg = std::next(function->arg_begin(), i++);
 			builder->CreateStore(llvmArg, alloca);
