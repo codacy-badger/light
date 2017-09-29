@@ -16,7 +16,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
-#include "parser/ast/statement/ast_statement.cpp"
+#include "parser/ast/ast.hpp"
 #include "code_generator.cpp"
 
 using namespace llvm;

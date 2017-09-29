@@ -9,7 +9,7 @@
 
 #include "lexer/lexer.cpp"
 
-#include "ast/ast.h"
+#include "ast/ast.hpp"
 
 using namespace std;
 

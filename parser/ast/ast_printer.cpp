@@ -1,10 +1,9 @@
 #pragma once
 
-#include "ast.h"
+#include "ast.hpp"
 
 class ASTPrinter {
 public:
-
 	static void print (ASTStatement* stm, int tabs = 0) {
 		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) print(obj, tabs);
