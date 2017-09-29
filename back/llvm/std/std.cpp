@@ -28,6 +28,7 @@ void addFunction (Module* module, std::string name, Type* retType, std::vector<T
 #include "sys.cpp"
 #include "print.cpp"
 
+// TODO: replace this by an actual "header" file for STD
 void addStdModuleFunctions (Module* module) {
 	addSysModuleFunctions(module);
 	addPrintModuleFunctions(module);

@@ -5,16 +5,16 @@
 struct ASTType;
 struct ASTVarDef;
 
-class ASTContext {
-public:
+struct ASTContext {
 	ASTContext* parent = nullptr;
 	map<std::string, ASTType*> types;
 	map<std::string, ASTVarDef*> variables;
 
 	ASTContext (ASTContext* parent = nullptr) {
 		this->parent = parent;
-		this->addType("i32", new ASTI32Type());
-		this->addType("int", "i32");
+		this->addType(ASTPrimitiveType::_void);
+		this->addType(ASTPrimitiveType::_i32);
+		this->addType(ASTPrimitiveType::_int, ASTPrimitiveType::_i32);
 	}
 
 	void addVariable (std::string name, ASTVarDef* ty) {
@@ -46,9 +46,8 @@ public:
 		if (ty != nullptr) this->addType(ty->name, ty);
 	}
 
-	void addType (std::string alias, std::string original) {
-		auto ty = this->getType(original);
-		if (ty != nullptr) this->addType(alias, ty);
+	void addType (ASTType* alias, ASTType* original) {
+		if (original != nullptr) this->addType(alias->name, original);
 	}
 
 	ASTType* getType (std::string name) {

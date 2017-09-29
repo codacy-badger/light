@@ -228,7 +228,7 @@ public:
 			if (this->lexer->isNextType(Token::Type::ID))
 				output->name = this->lexer->text();
 			else expected("Identifier", "'fn' keyword");
-			output->fnType = this->functionType();
+			output->type = this->functionType();
 			output->stms = this->statement();
 
 			output->setEnd(this->lexer);

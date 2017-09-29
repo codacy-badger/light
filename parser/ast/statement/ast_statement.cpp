@@ -23,7 +23,7 @@ struct ASTVarDef : ASTStatement {
 
 struct ASTFunction : ASTStatement {
 	std::string name;
-	ASTFnType* fnType = nullptr;
+	ASTFnType* type = nullptr;
 	ASTStatement* stms = nullptr;
 };
 

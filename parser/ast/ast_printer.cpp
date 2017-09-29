@@ -41,17 +41,17 @@ public:
 		cout << "fn " << stm->name << " ";
 
 		cout << "( ";
-		if (stm->fnType->params.size() > 0) {
-			print(stm->fnType->params[0], tabs, true);
-			for (int i = 1; i < stm->fnType->params.size(); i++) {
+		if (stm->type->params.size() > 0) {
+			print(stm->type->params[0], tabs, true);
+			for (int i = 1; i < stm->type->params.size(); i++) {
 				cout << ", ";
-				print(stm->fnType->params[i], tabs, true);
+				print(stm->type->params[i], tabs, true);
 			}
 		}
 		cout << " )";
-		if (stm->fnType->retType != nullptr) {
+		if (stm->type->retType != nullptr) {
 			cout << " -> ";
-			print(stm->fnType->retType, tabs);
+			print(stm->type->retType, tabs);
 		}
 
 		cout << "\n";
