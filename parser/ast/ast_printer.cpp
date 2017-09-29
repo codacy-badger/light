@@ -6,13 +6,21 @@ class ASTPrinter {
 public:
 
 	static void print (ASTStatement* stm, int tabs = 0) {
-		if (auto obj = dynamic_cast<ASTVarDef*>(stm)) print(obj, tabs);
+		if 		(auto obj = dynamic_cast<ASTVarDef*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTType*>(stm)) print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTExpStatement*>(stm)) print(obj, tabs);
-		else _panic("Unrecognized statement?!");
+		else if (auto obj = dynamic_cast<ASTExpression*>(stm)) {
+			_tabs(tabs);
+			print(obj, tabs);
+			cout << "\n";
+		} else {
+			std::string msg = "Unrecognized statement?! -> ";
+			msg += typeid(*stm).name();
+			msg += "\n";
+			_panic(msg.c_str());
+		}
 	}
 
 	static void print (ASTVarDef* stm, int tabs = 0, bool simple = false) {
@@ -76,27 +84,19 @@ public:
 		}
 	}
 
-	static void print (ASTExpStatement* expStm, int tabs = 0) {
-		_tabs(tabs);
-		cout << "EXP ";
-		print(expStm->exp, tabs);
-		cout << "\n";
-	}
-
 	static void print (ASTExpression* exp, int tabs = 0) {
-		if (typeid(*exp) == typeid(ASTBinop))
-			print(static_cast<ASTBinop*>(exp), tabs);
-		else if (typeid(*exp) == typeid(ASTUnop))
-			print(static_cast<ASTUnop*>(exp), tabs);
-		else if (typeid(*exp) == typeid(ASTConst))
-			print(static_cast<ASTConst*>(exp), tabs);
-		else if (typeid(*exp) == typeid(ASTCall))
-			print(static_cast<ASTCall*>(exp), tabs);
-		else if (typeid(*exp) == typeid(ASTAttr))
-			print(static_cast<ASTAttr*>(exp), tabs);
-		else if (typeid(*exp) == typeid(ASTPointer))
-			print(static_cast<ASTPointer*>(exp), tabs);
-		else _panic("Unrecognized expression?!");
+		if 		(auto obj = dynamic_cast<ASTBinop*>(exp))   print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTUnop*>(exp))    print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTConst*>(exp))   print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTCall*>(exp))    print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTAttr*>(exp))    print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTPointer*>(exp)) print(obj, tabs);
+		else {
+			std::string msg = "Unrecognized expression?! -> ";
+			msg += typeid(*exp).name();
+			msg += "\n";
+			_panic(msg.c_str());
+		}
 	}
 
 	static void print (ASTBinop* binop, int tabs = 0) {

@@ -1,6 +1,6 @@
 #pragma once
 
-struct ASTExpression : ASTNode {
+struct ASTExpression : ASTStatement {
 	virtual ~ASTExpression() {}
 	virtual bool isConstant() = 0;
 	virtual ASTType* getType(ASTContext* context) = 0;

@@ -63,19 +63,18 @@ public:
 	}
 
 	void codegen (ASTStatement* stm) {
-		if (typeid(*stm) == typeid(ASTVarDef))
-			this->codegen(static_cast<ASTVarDef*>(stm));
-		else if (typeid(*stm) == typeid(ASTStatements))
-			this->codegen(static_cast<ASTStatements*>(stm));
-		else if (typeid(*stm) == typeid(ASTFunction))
-			this->codegen(static_cast<ASTFunction*>(stm));
-		else if (typeid(*stm) == typeid(ASTReturn))
-			this->codegen(static_cast<ASTReturn*>(stm));
-		else if (typeid(*stm) == typeid(ASTType))
-			this->codegen(static_cast<ASTType*>(stm));
-		else if (typeid(*stm) == typeid(ASTExpStatement))
-			this->codegen(static_cast<ASTExpStatement*>(stm));
-		else panic("Unrecognized statement?!");
+		if (auto obj = dynamic_cast<ASTVarDef*>(stm)) codegen(obj);
+		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) codegen(obj);
+		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) codegen(obj);
+		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) codegen(obj);
+		else if (auto obj = dynamic_cast<ASTType*>(stm)) codegen(obj);
+		else if (auto obj = dynamic_cast<ASTExpression*>(stm)) codegen(obj);
+		else {
+			std::string msg = "Unrecognized statement?! -> ";
+			msg += typeid(*stm).name();
+			msg += "\n";
+			panic(msg.c_str());
+		}
 	}
 
 	void codegen (ASTVarDef* varDef) {
@@ -101,28 +100,24 @@ public:
 		this->scope->addType(defType, type);
 	}
 
-	Value* codegen (ASTExpStatement* expStm) {
-		return this->codegen(expStm->exp);
-	}
-
 	Value* codegen (ASTCall* call) {
 		return createCall(call, "fnCall");
 	}
 
 	Value* codegen (ASTExpression* exp) {
-		if (ASTBinop* binop = dynamic_cast<ASTBinop*>(exp))
-			return this->codegen(binop);
-		else if (ASTUnop* unop = dynamic_cast<ASTUnop*>(exp))
-			return this->codegen(unop);
-		else if (ASTConst* con = dynamic_cast<ASTConst*>(exp))
-			return this->codegen(con);
-		else if (ASTCall* call = dynamic_cast<ASTCall*>(exp))
-			return this->codegen(call);
-		else if (ASTAttr* attr = dynamic_cast<ASTAttr*>(exp))
-			return this->codegen(attr);
-		else if (ASTPointer* id = dynamic_cast<ASTPointer*>(exp))
-			return this->codegen(id);
-		else return nullptr;
+		if 		(auto binop = dynamic_cast<ASTBinop*>(exp))   return codegen(binop);
+		else if (auto unop  = dynamic_cast<ASTUnop*>(exp))    return codegen(unop);
+		else if (auto con   = dynamic_cast<ASTConst*>(exp))   return codegen(con);
+		else if (auto call  = dynamic_cast<ASTCall*>(exp)) 	  return codegen(call);
+		else if (auto attr  = dynamic_cast<ASTAttr*>(exp)) 	  return codegen(attr);
+		else if (auto id    = dynamic_cast<ASTPointer*>(exp)) return codegen(id);
+		else {
+			std::string msg = "Unrecognized statement?! -> ";
+			msg += typeid(*exp).name();
+			msg += "\n";
+			panic(msg.c_str());
+			return nullptr;
+		}
 	}
 
 	Value* codegen (ASTBinop* binop) {
@@ -246,7 +241,7 @@ private:
 	}
 
 	void* panic (std::string message) {
-		outs() << "FATAR ERROR: " << message << "\n";
+		outs() << "ERROR: " << message << "\n";
 		exit(1);
 		return nullptr;
 	}

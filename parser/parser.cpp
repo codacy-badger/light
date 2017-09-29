@@ -127,9 +127,8 @@ public:
 			this->lexer->skip(1);
 			return nullptr;
 		}
-		ASTStatement* stmt = (ASTStatement*) this->expStm();
-		if (stmt != nullptr) return stmt;
-		stmt = (ASTType*) this->type_def();
+		
+		ASTStatement* stmt = (ASTType*) this->type_def();
 		if (stmt != nullptr) return stmt;
 		stmt = (ASTStatement*) this->function();
 		if (stmt != nullptr) return stmt;
@@ -139,7 +138,14 @@ public:
 		if (stmt != nullptr) return stmt;
 		stmt = (ASTStatement*) this->statements();
 		if (stmt != nullptr) return stmt;
-		return nullptr;
+
+		stmt = (ASTStatement*) this->expression();
+		if (stmt != nullptr) {
+			if (this->lexer->isNextType(Token::Type::STM_END))
+				this->lexer->skip(1);
+			else expected("';'", "expression");
+			return stmt;
+		} else return nullptr;
 	}
 
 	ASTStatements* statements () {
@@ -159,19 +165,6 @@ public:
 			this->lexer->skip(1);
 		else expected("'}'", "statements");
 
-		output->setEnd(this->lexer);
-		return output;
-	}
-
-	ASTExpStatement* expStm () {
-		ASTExpression* exp = this->expression();
-		if (exp == nullptr) return nullptr;
-		ASTExpStatement* output = new ASTExpStatement();
-		output->setBegin(this->lexer);
-		output->exp = exp;
-		if (this->lexer->isNextType(Token::Type::STM_END))
-			this->lexer->skip(1);
-		else expected("';'", "expression");
 		output->setEnd(this->lexer);
 		return output;
 	}

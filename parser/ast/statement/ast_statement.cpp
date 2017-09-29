@@ -30,7 +30,3 @@ struct ASTFunction : ASTStatement {
 struct ASTReturn : ASTStatement {
 	ASTExpression* exp = nullptr;
 };
-
-struct ASTExpStatement : ASTStatement {
-	ASTExpression* exp = nullptr;
-};
