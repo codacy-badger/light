@@ -36,4 +36,8 @@ public:
 	static Value* div (IRBuilder<>* builder, Value* lhs, Value* rhs) {
 		return builder->CreateSDiv(lhs, rhs, "div");
 	}
+
+	static Value* neg (IRBuilder<>* builder, Value* val) {
+		return builder->CreateNeg(val, "neg");
+	}
 };

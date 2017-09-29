@@ -296,8 +296,7 @@ private:
 		if (this->lexer->isNextType(Token::Type::ARROW)) {
 			this->lexer->skip(1);
 			output->retType = this->type();
-		}
-
+		} else output->retType = ASTPrimitiveType::_void;
 		return output;
 	}
 

@@ -51,7 +51,7 @@ public:
 		this->codegen(stms);
 
 		verifyModule(*module);
-		//module->print(outs(), nullptr);
+		module->print(outs(), nullptr);
 		return module;
 	}
 
@@ -62,7 +62,7 @@ public:
 	}
 
 	Value* codegen (ASTStatement* stm) {
-		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) 		return codegen(obj, true);
+		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) 	return codegen(obj, true);
 		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) 	return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) 	return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) 		return codegen(obj);
@@ -146,7 +146,7 @@ public:
 		Value* val = this->codegen(unop->exp);
 		switch (unop->op) {
 			case ASTUnop::OP::NEG:
-				return builder.CreateNeg(val, "neg");
+				return PrimitiveOP::neg(&builder, val);
 			default: break;
 		}
 		return nullptr;
@@ -217,7 +217,8 @@ public:
 			this->scope->addParameters(fn);
 			this->codegen(fn->stms);
 			this->scope = scope->pop();
-			if (fn->type->retType == nullptr)
+			if (fn->type->retType == ASTPrimitiveType::_void
+				&& !entryBlock->back().isTerminator())
 				builder.CreateRetVoid();
 
 			builder.SetInsertPoint(prevBlock);

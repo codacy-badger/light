@@ -25,7 +25,7 @@ public:
 	static void print (ASTVariable* stm, int tabs = 0, bool nameOnly = false) {
 		if (!nameOnly) {
 			_tabs(tabs);
-			cout << "LET ";
+			cout << "let ";
 		} else cout << "[";
 
 		cout << stm->name << " : ";
@@ -66,7 +66,7 @@ public:
 			cout << " )";
 			if (stm->type->retType != nullptr) {
 				cout << " -> ";
-				print(stm->type->retType, tabs);
+				print(stm->type->retType, tabs, true);
 			}
 
 			cout << "\n";
@@ -77,7 +77,7 @@ public:
 
 	static void print (ASTReturn* ret, int tabs = 0) {
 		_tabs(tabs);
-		cout << "RETURN ";
+		cout << "return ";
 		if (ret->exp == nullptr) cout << "void";
 		else print(ret->exp, tabs);
 		cout << endl;
@@ -120,7 +120,7 @@ public:
 		else if (auto obj = dynamic_cast<ASTCall*>(exp))     print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTAttr*>(exp))     print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTFunction*>(exp)) print(obj, tabs, true);
-		else if (auto obj = dynamic_cast<ASTVariable*>(exp))   print(obj, tabs, true);
+		else if (auto obj = dynamic_cast<ASTVariable*>(exp)) print(obj, tabs, true);
 		else {
 			std::string msg = "Unrecognized expression?! -> ";
 			msg += typeid(*exp).name();
@@ -159,7 +159,7 @@ public:
 	static void print (ASTCall* call, int tabs = 0) {
 		cout << "(";
 		print(call->var, tabs);
-		cout << " CALL ( ";
+		cout << "( ";
 		if (call->params.size() > 0) {
 			print(call->params[0], tabs);
 			for (int i = 1; i < call->params.size(); i++) {
