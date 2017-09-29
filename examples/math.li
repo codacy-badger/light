@@ -1,3 +1,5 @@
+fn println_i32(number: i32);
+fn system_exit(result: i32);
 
 fn main () {
 	let a := -(1);

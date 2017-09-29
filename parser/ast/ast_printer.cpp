@@ -6,7 +6,7 @@ class ASTPrinter {
 public:
 
 	static void print (ASTStatement* stm, int tabs = 0) {
-		if 		(auto obj = dynamic_cast<ASTVarDef*>(stm)) print(obj, tabs);
+		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) print(obj, tabs);
@@ -23,20 +23,24 @@ public:
 		}
 	}
 
-	static void print (ASTVarDef* stm, int tabs = 0, bool simple = false) {
-		if (!simple) {
+	static void print (ASTVariable* stm, int tabs = 0, bool nameOnly = false) {
+		if (!nameOnly) {
 			_tabs(tabs);
 			cout << "LET ";
 		}
 
-		cout << stm->name << " : ";
-		print(stm->type, tabs, true);
-		if (stm->expression != nullptr) {
-			cout << " = ";
-			print(stm->expression, tabs);
-		}
+		cout << stm->name;
 
-		if (!simple) cout << "\n";
+		if (!nameOnly) {
+			cout << " : ";
+			print(stm->type, tabs, true);
+			if (stm->expression != nullptr) {
+				cout << " = ";
+				print(stm->expression, tabs);
+			}
+
+			cout << "\n";
+		}
 	}
 
 	static void print (ASTStatements* stm, int tabs = 0) {
@@ -45,26 +49,32 @@ public:
 		}
 	}
 
-	static void print (ASTFunction* stm, int tabs = 0) {
-		cout << "fn " << stm->name << " ";
+	static void print (ASTFunction* stm, int tabs = 0, bool nameOnly = false) {
+		if (!nameOnly) {
+			cout << "fn ";
+		}
 
-		cout << "( ";
-		if (stm->type->params.size() > 0) {
-			print(stm->type->params[0], tabs, true);
-			for (int i = 1; i < stm->type->params.size(); i++) {
-				cout << ", ";
-				print(stm->type->params[i], tabs, true);
+		cout << stm->name;
+
+		if (!nameOnly) {
+			cout << " ( ";
+			if (stm->type->params.size() > 0) {
+				print(stm->type->params[0], tabs, true);
+				for (int i = 1; i < stm->type->params.size(); i++) {
+					cout << ", ";
+					print(stm->type->params[i], tabs, true);
+				}
 			}
-		}
-		cout << " )";
-		if (stm->type->retType != nullptr) {
-			cout << " -> ";
-			print(stm->type->retType, tabs);
-		}
+			cout << " )";
+			if (stm->type->retType != nullptr) {
+				cout << " -> ";
+				print(stm->type->retType, tabs);
+			}
 
-		cout << "\n";
-		if (stm->stms != nullptr)
-			print(stm->stms, tabs + 1);
+			cout << "\n";
+			if (stm->stms != nullptr)
+				print(stm->stms, tabs + 1);
+		}
 	}
 
 	static void print (ASTReturn* ret, int tabs = 0) {
@@ -76,7 +86,28 @@ public:
 	}
 
 	static void print (ASTType* type, int tabs = 0, bool nameOnly = false) {
-		if (!nameOnly) cout << "type ";
+		if 		(auto obj = dynamic_cast<ASTPrimitiveType*>(type)) 	print(obj, tabs, nameOnly);
+		else if (auto obj = dynamic_cast<ASTStructType*>(type))    	print(obj, tabs, nameOnly);
+		else if (auto obj = dynamic_cast<ASTFnType*>(type))    		print(obj, tabs, nameOnly);
+		else {
+			std::string msg = "Unrecognized type struct?! -> ";
+			msg += typeid(*type).name();
+			msg += "\n";
+			_panic(msg.c_str());
+		}
+	}
+
+	static void print (ASTPrimitiveType* type, int tabs = 0, bool nameOnly = false) {
+		if (!nameOnly) cout << "primitive type ";
+		cout << type->name;
+	}
+
+	static void print (ASTFnType* type, int tabs = 0, bool nameOnly = false) {
+		cout << "+FnType+" ;
+	}
+
+	static void print (ASTStructType* type, int tabs = 0, bool nameOnly = false) {
+		if (!nameOnly) cout << "struct type ";
 		cout << type->name;
 		if (!nameOnly && type->stms != nullptr) {
 			cout << "\n";
@@ -85,12 +116,13 @@ public:
 	}
 
 	static void print (ASTExpression* exp, int tabs = 0) {
-		if 		(auto obj = dynamic_cast<ASTBinop*>(exp))   print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTUnop*>(exp))    print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTConst*>(exp))   print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTCall*>(exp))    print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTAttr*>(exp))    print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTPointer*>(exp)) print(obj, tabs);
+		if 		(auto obj = dynamic_cast<ASTBinop*>(exp))    print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTUnop*>(exp))     print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTConst*>(exp))    print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTCall*>(exp))     print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTAttr*>(exp))     print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTFunction*>(exp)) print(obj, tabs, true);
+		else if (auto obj = dynamic_cast<ASTVariable*>(exp))   print(obj, tabs, true);
 		else {
 			std::string msg = "Unrecognized expression?! -> ";
 			msg += typeid(*exp).name();
@@ -144,10 +176,6 @@ public:
 		cout << "((";
 		print(attr->exp, tabs);
 		cout << ") ATTR " << attr->name << ")";
-	}
-
-	static void print (ASTPointer* id, int tabs = 0) {
-		cout << "[" << id->name << "]";
 	}
 private:
 	static void _tabs (int count) {

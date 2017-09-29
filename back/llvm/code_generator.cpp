@@ -18,7 +18,6 @@
 #include "llvm/Target/TargetOptions.h"
 
 #include "primitive_op.cpp"
-#include "std/std.cpp"
 #include "scope.cpp"
 
 #include <string>
@@ -48,56 +47,61 @@ public:
 
 	Module* buildModule (ASTStatements* stms) {
 		module = new Module("output", context);
-		addStdModuleFunctions(module);
 
 		this->codegen(stms);
 
 		verifyModule(*module);
-		//module->print(outs(), nullptr);
+		module->print(outs(), nullptr);
 		return module;
 	}
 
-	void codegen (ASTStatements* stms) {
+	Value* codegen (ASTStatements* stms) {
 		for(auto const& value: stms->list)
 			this->codegen(value);
+		return nullptr;
 	}
 
-	void codegen (ASTStatement* stm) {
-		if (auto obj = dynamic_cast<ASTVarDef*>(stm)) codegen(obj);
-		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) codegen(obj);
-		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) codegen(obj);
-		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) codegen(obj);
-		else if (auto obj = dynamic_cast<ASTType*>(stm)) codegen(obj);
-		else if (auto obj = dynamic_cast<ASTExpression*>(stm)) codegen(obj);
+	Value* codegen (ASTStatement* stm) {
+		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) 		return codegen(obj, true);
+		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) 	return codegen(obj);
+		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) 	return codegen(obj);
+		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) 		return codegen(obj);
+		else if (auto obj = dynamic_cast<ASTType*>(stm)) 		return codegen(obj);
+		else if (auto obj = dynamic_cast<ASTExpression*>(stm)) 	return codegen(obj);
 		else {
 			std::string msg = "Unrecognized statement?! -> ";
 			msg += typeid(*stm).name();
 			msg += "\n";
 			panic(msg.c_str());
+			return nullptr;
 		}
 	}
 
-	void codegen (ASTVarDef* varDef) {
-		auto type = this->scope->getType(varDef->type);
-		auto alloca = builder.CreateAlloca(type, nullptr, varDef->name);
-		if (varDef->expression != NULL) {
-			Value* val = this->codegen(varDef->expression);
-			builder.CreateStore(val, alloca);
-		}
-		this->scope->addVariable(varDef, alloca);
-	}
-
-	void codegen (ASTType* defType) {
-		vector<Type*> structTypes;
-		for(auto const& stm: defType->stms->list) {
-			if (typeid(*stm) == typeid(ASTVarDef)) {
-				ASTVarDef* varDef = static_cast<ASTVarDef*>(stm);
-				auto type = this->scope->getType(varDef->type);
-				structTypes.push_back(type);
+	Value* codegen (ASTVariable* varDef, bool alloca = false) {
+		if (alloca) {
+			auto type = this->scope->getType(varDef->type);
+			auto alloca = builder.CreateAlloca(type, nullptr, varDef->name);
+			if (varDef->expression != NULL) {
+				Value* val = this->codegen(varDef->expression);
+				builder.CreateStore(val, alloca);
 			}
+			this->scope->addVariable(varDef, alloca);
+			return alloca;
+		} else {
+			return this->scope->getVariable(varDef);
 		}
-		auto type = StructType::create(structTypes, defType->name.c_str());
-		this->scope->addType(defType, type);
+	}
+
+	Value* codegen (ASTType* defType) {
+		if (auto obj = dynamic_cast<ASTPrimitiveType*>(defType))
+			return nullptr;
+		else {
+			std::string msg = "Unrecognized type struct?! -> ";
+			msg += typeid(*defType).name();
+			msg += "\n";
+			panic(msg.c_str());
+			return nullptr;
+		}
 	}
 
 	Value* codegen (ASTCall* call) {
@@ -110,8 +114,9 @@ public:
 		else if (auto con   = dynamic_cast<ASTConst*>(exp))   return codegen(con);
 		else if (auto call  = dynamic_cast<ASTCall*>(exp)) 	  return codegen(call);
 		else if (auto attr  = dynamic_cast<ASTAttr*>(exp)) 	  return codegen(attr);
-		else if (auto id    = dynamic_cast<ASTPointer*>(exp)) return codegen(id);
-		else {
+		else if (auto var   = dynamic_cast<ASTVariable*>(exp)) {
+			return builder.CreateLoad(codegen(var), var->name);
+		} else {
 			std::string msg = "Unrecognized statement?! -> ";
 			msg += typeid(*exp).name();
 			msg += "\n";
@@ -162,13 +167,13 @@ public:
 		return nullptr;
 	}
 
-	Value* codegen (ASTPointer* id) {
-		AllocaInst* alloca = this->scope->getVariable(id->name);
+	/*Value* codegen (ASTVariable* var) {
+		AllocaInst* alloca = this->scope->getVariable(var->name);
 		if (alloca == nullptr) {
-			panic("Variable " + id->name + " not found!");
+			panic("Variable " + var->name + " not found!");
 			return nullptr;
 		} else return builder.CreateLoad(alloca, "tmp");;
-	}
+	}*/
 
 	Value* codegen (ASTConst* con) {
 		switch (con->type) {
@@ -181,11 +186,11 @@ public:
 		return nullptr;
 	}
 
-	void codegen (ASTReturn* ret) {
+	Value* codegen (ASTReturn* ret) {
 		if (ret->exp != nullptr) {
 			Value* retValue = this->codegen(ret->exp);
-			builder.CreateRet(retValue);
-		} else builder.CreateRetVoid();
+			return builder.CreateRet(retValue);
+		} else return builder.CreateRetVoid();
 	}
 
 	Function* codegen (ASTFunction* fn) {
@@ -227,8 +232,8 @@ public:
 private:
 	Value* createCall (ASTCall* call, std::string tmpName = "") {
 		Function* function = nullptr;
-		if (ASTPointer* id = dynamic_cast<ASTPointer*>(call->var)) {
-			function = module->getFunction(id->name);
+		if (auto fn = dynamic_cast<ASTFunction*>(call->var)) {
+			function = this->scope->getFunction(fn);
 		}
 		if (function == nullptr) {
 			panic("Function* not found!");

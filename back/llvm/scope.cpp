@@ -28,7 +28,7 @@ public:
 	LLVMScope* parent = nullptr;
 	IRBuilder<>* builder = nullptr;
 
-	map<ASTVarDef*, AllocaInst*> variables;
+	map<ASTVariable*, AllocaInst*> variables;
 	map<ASTFunction*, Function*> functions;
 	map<ASTType*, Type*> types;
 
@@ -37,13 +37,13 @@ public:
 		this->parent = parent;
 	}
 
-	void addVariable (ASTVarDef* var) {
+	void addVariable (ASTVariable* var) {
 		auto type = this->getType(var->type);
 		auto alloca = builder->CreateAlloca(type, nullptr, var->name);
 		this->addVariable(var, alloca);
 	}
 
-	void addVariable (ASTVarDef* var, AllocaInst* alloca) {
+	void addVariable (ASTVariable* var, AllocaInst* alloca) {
 		auto it = variables.find(var);
 		if (it == variables.end()) variables[var] = alloca;
 		else cout << "Variable already exists " << var->name << "\n";
@@ -63,7 +63,7 @@ public:
 		}
 	}
 
-	AllocaInst* getVariable (ASTVarDef* var) {
+	AllocaInst* getVariable (ASTVariable* var) {
 		auto it = variables.find(var);
 		if (it == variables.end()) return nullptr;
 		else return variables[var];
@@ -80,13 +80,14 @@ public:
 	void addType (ASTType* ty, Type* type) {
 		auto it = types.find(ty);
 		if (it == types.end()) types[ty] = type;
-		else cout << "Type already exists " << ty->name << "\n";
+		//TODO: print the name of the type (virtual function?)
+		else cout << "Type already exists \n";
 	}
 
 	void addType (ASTType* alias, ASTType* original) {
 		auto it = types.find(original);
 		if (it != types.end()) types[alias] = types[original];
-		else cout << "Type " << original->name << " not found\n";
+		else cout << "Type  not found\n";
 	}
 
 	Type* getType (ASTType* ty) {

@@ -1,18 +1,58 @@
 #pragma once
 
+struct ASTType;
+struct ASTContext;
+
 struct ASTExpression : ASTStatement {
 	virtual ~ASTExpression() {}
 	virtual bool isConstant() = 0;
 	virtual ASTType* getType(ASTContext* context) = 0;
 };
 
-#include "var/ast_variable.cpp"
+#include "ast_type.cpp"
 #include "ast_const.cpp"
 #include "ast_binop.cpp"
 #include "ast_unop.cpp"
 
+struct ASTVariable : ASTExpression {
+	std::string name = "";
+	ASTType* type = nullptr;
+	ASTExpression* expression = nullptr;
+
+	bool isConstant() { return false; }
+	ASTType* getType(ASTContext* context) {
+		return this->type;
+	}
+};
+
+struct ASTAttr : ASTExpression {
+	ASTExpression* exp = nullptr;
+	std::string name;
+
+	ASTAttr (ASTExpression* exp = nullptr) {
+		this->exp = exp;
+	}
+
+	bool isConstant() { return false; }
+	ASTType* getType(ASTContext* context) {
+		// TODO: store variables in context to query type
+		return nullptr;
+	}
+};
+
+struct ASTFunction : ASTExpression {
+	std::string name;
+	ASTFnType* type = nullptr;
+	ASTStatement* stms = nullptr;
+
+	bool isConstant() { return false; }
+	ASTType* getType(ASTContext* context) {
+		return this->type;
+	}
+};
+
 struct ASTCall : ASTExpression {
-	ASTVariable* var = nullptr;
+	ASTExpression* var = nullptr;
 	std::vector<ASTExpression*> params;
 
 	bool isConstant () {
