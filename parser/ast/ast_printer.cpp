@@ -49,6 +49,7 @@ public:
 
 	static void print (ASTFunction* stm, int tabs = 0, bool nameOnly = false) {
 		if (!nameOnly) {
+			_tabs(tabs);
 			cout << "fn ";
 		}
 
