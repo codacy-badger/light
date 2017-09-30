@@ -1,3 +1,10 @@
+
+
+type Vec2 {
+	let x: i32;
+	let y: i32;
+}
+
 fn main {
 	let a := -(1);
 	let b = 6 * 2 - 9 / 3;
@@ -9,6 +16,8 @@ fn main {
 	println_i32(d);
 
 	fn work -> i32 {
+		let v1: Vec2;
+		let res : i32 = calc(5, 5);
 		return calc(5, 5);
 	}
 

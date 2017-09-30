@@ -92,16 +92,30 @@ public:
 		}
 	}
 
-	Value* codegen (ASTType* defType) {
-		if (auto obj = dynamic_cast<ASTPrimitiveType*>(defType))
-			return nullptr;
+	Value* codegen (ASTType* ty) {
+		if (auto obj = dynamic_cast<ASTPrimitiveType*>(ty))   return nullptr;
+		else if (auto obj = dynamic_cast<ASTStructType*>(ty)) return codegen(obj);
 		else {
 			std::string msg = "Unrecognized type struct?! -> ";
-			msg += typeid(*defType).name();
+			msg += typeid(*ty).name();
 			msg += "\n";
 			panic(msg.c_str());
 			return nullptr;
 		}
+	}
+
+	Value* codegen (ASTStructType* ty) {
+		StructType* structTy = nullptr;
+		if (ty->attrs.size() > 0) {
+			vector<Type*> attrTypes;
+			for (auto &attr : ty->attrs)
+				attrTypes.push_back(this->scope->getType(attr->type));
+			structTy = StructType::create(attrTypes, ty->name);
+		} else {
+			structTy = StructType::create(builder.getContext(), ty->name);
+		}
+		this->scope->addType(ty, structTy);
+		return nullptr;
 	}
 
 	Value* codegen (ASTCall* call) {

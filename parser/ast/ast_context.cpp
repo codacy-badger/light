@@ -11,7 +11,7 @@ struct ASTExpression;
 struct ASTContext {
 	ASTContext* parent = nullptr;
 	map<string, ASTExpression*> variables;
-	map<string, vector<ASTExpression**>> unresolved;
+	map<string, vector<void*>> unresolved;
 
 	ASTContext (ASTContext* parent = nullptr) {
 		this->parent = parent;
@@ -39,10 +39,10 @@ struct ASTContext {
 		} else return this->variables[name];
 	}
 
-	void addUnresolved (string name, ASTExpression** addr) {
+	void addUnresolved (string name, void* addr) {
 		auto it = unresolved.find(name);
 		if (it == unresolved.end()) {
-			vector<ASTExpression**> toEdit { addr };
+			vector<void*> toEdit { addr };
 			unresolved[name] = toEdit;
 		} else unresolved[name].push_back(addr);
 	}
@@ -55,8 +55,8 @@ struct ASTContext {
 			auto value = this->get(it->first);
 			if (value != nullptr) {
 				cout << "V";
-				for (auto const &addrs : it->second)
-					(*addrs) = value;
+				for (auto addrs : it->second)
+					memcpy(addrs, &value, sizeof(ASTExpression*));
 				it = unresolved.erase(it);
 			} else {
 				result = false;

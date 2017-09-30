@@ -4,6 +4,7 @@
 #include <vector>
 
 struct ASTVariable;
+struct ASTFunction;
 
 struct ASTType : ASTExpression {
 	virtual bool isPrimitive () = 0;
@@ -26,7 +27,8 @@ struct ASTFnType : ASTType {
 
 struct ASTStructType : ASTType {
 	std::string name;
-	ASTStatements* stms = nullptr;
+	std::vector<ASTVariable*> attrs;
+	std::vector<ASTFunction*> methods;
 
 	ASTStructType (std::string name = "") { this->name = name; }
 	bool isPrimitive () { return false; }

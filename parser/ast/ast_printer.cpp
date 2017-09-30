@@ -108,9 +108,11 @@ public:
 	static void print (ASTStructType* type, int tabs = 0, bool nameOnly = false) {
 		if (!nameOnly) cout << "struct type ";
 		cout << type->name;
-		if (!nameOnly && type->stms != nullptr) {
+		if (!nameOnly) {
 			cout << "\n";
-			print(type->stms, tabs + 1);
+			for (auto const &attr : type->attrs) print(attr, tabs + 1);
+			cout << "\n";
+			for (auto const &mthd : type->methods) print(mthd, tabs + 1);
 		}
 	}
 
@@ -178,11 +180,11 @@ public:
 	}
 private:
 	static void _tabs (int count) {
-		for (int i = 0; i < count; i++)
-			cout << "    ";
+		for (int i = 0; i < count; i++) cout << "\t";
 	}
 
 	static void _panic (const char* message) {
-
+		cout << "ERROR: " << message;
+		exit(1);
 	}
 };

@@ -29,11 +29,10 @@ public:
 
 	ASTType* type () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
-			auto typeName = this->lexer->text();
-			ASTType* output = dynamic_cast<ASTType*>(this->context->get(typeName));
-			if (output == nullptr) {
-				cout << "Type " << typeName << " not found!\n";
-			} else return output;
+			auto typeName = this->lexer->nextText;
+			auto exp = this->context->get(typeName);
+			if (exp != nullptr) this->lexer->skip(1);
+			return dynamic_cast<ASTType*>(exp);
 		}
 		return nullptr;
 	}
@@ -164,11 +163,18 @@ public:
 	ASTStructType* type_def () {
 		if (this->lexer->isNextType(Token::Type::TYPE)) {
 			this->lexer->skip(1);
-			auto output = new ASTStructType();
-			if (this->lexer->isNextType(Token::Type::ID))
-				output->name = this->lexer->text();
-			else expected("Identifier", "'type' keyword");
-			output->stms = this->statements();
+			auto output = new ASTStructType(this->lexer->text());
+			auto stms = this->statements();
+			if (stms != nullptr) {
+				for (auto const &it : stms->list) {
+					if (auto var = dynamic_cast<ASTVariable*>(it))
+						output->attrs.push_back(var);
+					else if (auto fn = dynamic_cast<ASTFunction*>(it))
+						output->methods.push_back(fn);
+					else error("Expected attribute or method inside type");
+				}
+			} else this->lexer->skip(1);
+			this->context->add(output->name, output);
 			return output;
 		} else return nullptr;
 	}
@@ -277,9 +283,14 @@ private:
 			ASTVariable* output = new ASTVariable();
 			output->name = this->lexer->text();
 
+			char* typeName = nullptr;
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
-				output->type = this->type();
+				if (this->lexer->isNextType(Token::Type::ID)) {
+					output->type = this->type();
+					if (output->type == nullptr)
+						typeName = this->lexer->text();
+				}
 			}
 
 			if (this->lexer->isNextType(Token::Type::EQUAL)) {
@@ -295,7 +306,10 @@ private:
 					if (ty != nullptr) {
 						output->type = ty;
 					} else error("Type could not be inferred!");
-				} else error("Cannot infer type without default value!");
+				} else {
+					if (typeName != nullptr)
+						this->context->addUnresolved(typeName, &output->type);
+				}
 			}
 			return output;
 		} else return nullptr;
