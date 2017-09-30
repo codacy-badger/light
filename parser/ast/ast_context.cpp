@@ -50,14 +50,18 @@ struct ASTContext {
 	bool resolve () {
 		bool result = true;
 		cout << "Resolving names (" << unresolved.size() << ")\n";
-		for (auto const &entry : unresolved) {
-			cout << "\t" << entry.first << " -> " << entry.second.size() << " ";
-			auto value = this->get(entry.first);
+		for (auto it = unresolved.begin(); it != unresolved.end();) {
+			cout << "\t" << it->first << " -> " << it->second.size() << " ";
+			auto value = this->get(it->first);
 			if (value != nullptr) {
 				cout << "V";
-				for (auto const &addrs : entry.second)
+				for (auto const &addrs : it->second)
 					(*addrs) = value;
-			} else result = false;
+				it = unresolved.erase(it);
+			} else {
+				result = false;
+				it++;
+			}
 			cout << "\n";
 		}
 		return result;
@@ -70,8 +74,15 @@ struct ASTContext {
 	ASTContext* pop () {
 		this->resolve();
 		if (this->parent != nullptr) {
-			for (auto const &entry : unresolved) {
-				this->parent->unresolved[entry.first] = entry.second;
+			auto pUnr = &this->parent->unresolved;
+			for (auto const &it : unresolved) {
+				auto entry = pUnr->find(it.first);
+				if (entry == pUnr->end()) {
+					(*pUnr)[it.first] = it.second;
+				} else {
+					for (auto const &ref : it.second)
+						(*pUnr)[it.first].push_back(ref);
+				}
 			}
 		}
 		return this->parent;

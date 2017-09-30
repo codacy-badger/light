@@ -2,11 +2,16 @@ fn main {
 	let a := -(1);
 	let b = 6 * 2 - 9 / 3;
 	let c = -a + 2;
-	let d: int = c + calc(a, 4);
+	let d: int = c + work();
 	println_i32(a);
 	println_i32(b);
 	println_i32(c);
 	println_i32(d);
+
+	fn work -> i32 {
+		return calc(5, 5);
+	}
+
 	system_exit(0);
 }
 
