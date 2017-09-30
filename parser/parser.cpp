@@ -141,10 +141,12 @@ public:
 		} else return nullptr;
 	}
 
-	ASTStatements* statements () {
-		if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
-			this->lexer->skip(1);
-		else return nullptr;
+	ASTStatements* statements (bool forceBraquets = true) {
+		if (forceBraquets) {
+			if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
+				this->lexer->skip(1);
+			else return nullptr;
+		}
 
 		ASTStatements* output = new ASTStatements();
 		ASTStatement* exp = this->statement();
@@ -153,9 +155,11 @@ public:
 			exp = this->statement();
 		}
 
-		if (this->lexer->isNextType(Token::Type::BRAC_CLOSE))
-			this->lexer->skip(1);
-		else expected("'}'", "statements");
+		if (forceBraquets) {
+			if (this->lexer->isNextType(Token::Type::BRAC_CLOSE))
+				this->lexer->skip(1);
+			else expected("'}'", "statements");
+		}
 
 		return output;
 	}
@@ -227,12 +231,7 @@ public:
 	}
 
 	ASTStatements* program () {
-		ASTStatements* output = new ASTStatements();
-		ASTStatement* exp = this->statement();
-		while (exp != nullptr) {
-			output->list.push_back(exp);
-			exp = this->statement();
-		}
+		ASTStatements* output = this->statements(false);
 		if (!this->context->resolve())
 			error("Could not resolve all names!");
 		return output;
