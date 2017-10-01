@@ -1,6 +1,23 @@
 #pragma once
 
-struct ASTConst : ASTExpression {
+struct ASTValue : ASTExpression {
+};
+
+struct ASTCall : ASTValue {
+	ASTFunction* var;
+	std::vector<ASTExpression*> params;
+
+	bool isConstant () {
+		return false;
+	}
+
+	ASTType* getType(ASTContext* context) {
+		// TODO: store variables in context to query type
+		return nullptr;
+	}
+};
+
+struct ASTConst : ASTValue {
 	enum TYPE { BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, STRING, COUNT };
 	TYPE type = TYPE::COUNT;
 	union {
@@ -34,3 +51,5 @@ struct ASTConst : ASTExpression {
 		}
 	}
 };
+
+#include "ast_memory.cpp"

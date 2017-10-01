@@ -263,7 +263,7 @@ private:
 				this->call(&fnCall);
 				if ((*output) == nullptr)
 					this->context->addUnresolved(name, &fnCall->var);
-				else fnCall->var = (*output);
+				else fnCall->var = dynamic_cast<ASTFunction*>(*output);
 				(*output) = fnCall;
 				return true;
 			} else return true;
@@ -272,6 +272,10 @@ private:
 				return true;
 			else return false;
 		}
+	}
+
+	bool memory (ASTMemory** output) {
+		return true;
 	}
 
 	bool _var_def (ASTVariable** output) {

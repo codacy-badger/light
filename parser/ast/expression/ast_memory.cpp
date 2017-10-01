@@ -1,6 +1,6 @@
 #pragma once
 
-struct ASTMemory : ASTExpression {
+struct ASTMemory : ASTValue {
 	~ASTMemory () {}
 };
 
@@ -15,7 +15,7 @@ struct ASTVariable : ASTMemory {
 	}
 
 	void onTypeResolved () {
-		
+
 	}
 };
 
