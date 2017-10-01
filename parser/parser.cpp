@@ -27,62 +27,60 @@ public:
 		this->initParser(new Lexer(buffer), "<buffer>");
 	}
 
-	ASTType* type () {
+	bool typeInstance (ASTType** output) {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			auto typeName = this->lexer->nextText;
-			auto exp = this->context->get(typeName);
-			if (exp != nullptr) this->lexer->skip(1);
-			return dynamic_cast<ASTType*>(exp);
-		}
-		return nullptr;
+			(*output) = dynamic_cast<ASTType*>(this->context->get(typeName));
+			if ((*output) != nullptr) this->lexer->skip(1);
+			return true;
+		} else return false;
 	}
 
-	ASTConst* constant () {
+	bool constant (ASTConst** output) {
 		if (this->lexer->isNextType(Token::Type::STRING)) {
-			ASTConst* output = new ASTConst(ASTConst::TYPE::STRING);
-			output->stringValue = this->lexer->text();
-			return output;
+			(*output) = new ASTConst(ASTConst::TYPE::STRING);
+			(*output)->stringValue = this->lexer->text();
+			return true;
 		} else if (this->lexer->isNextType(Token::Type::NUMBER)) {
-			ASTConst* output = new ASTConst(ASTConst::TYPE::INT);
-			output->intValue = atoi(this->lexer->text());
-			return output;
+			(*output) = new ASTConst(ASTConst::TYPE::INT);
+			(*output)->intValue = atoi(this->lexer->text());
+			return true;
 		} else return nullptr;
 	}
 
-	ASTCall* call () {
+	bool call (ASTCall** output) {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
-			ASTCall* output = new ASTCall();
-			ASTExpression* exp = this->expression();
-			while (exp != nullptr) {
-				output->params.push_back(exp);
+			(*output) = new ASTCall();
+			ASTExpression* exp;
+			while (this->expression(&exp)) {
+				(*output)->params.push_back(exp);
 				if (this->lexer->isNextType(Token::Type::COMMA))
 					this->lexer->skip(1);
-				exp = this->expression();
 			}
 			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
 				this->lexer->skip(1);
 			else expected("closing parenthesys", "call arguments");
 
-			return output;
-		} else return nullptr;
+			return true;
+		} else return false;
 	}
 
-	ASTExpression* variable () {
+	bool variable (ASTExpression** output) {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			string name(this->lexer->nextText);
-			auto output = this->context->get(name);
-			if (output != nullptr) this->lexer->skip(1);
+			(*output) = this->context->get(name);
+			if ((*output) != nullptr) this->lexer->skip(1);
 
 			Token::Type tt = this->lexer->nextType;
 			while (tt == Token::Type::DOT) {
 				this->lexer->skip(1);
 				if (tt == Token::Type::DOT) {
-					auto attr = new ASTAttr(output);
+					auto attr = new ASTAttr((*output));
 					if (this->lexer->isNextType(Token::Type::ID))
 						attr->name = this->lexer->text();
 					else expected("name", "attribute access");
-					output = attr;
+					(*output) = attr;
 					tt = this->lexer->nextType;
 				}
 			}
@@ -91,9 +89,8 @@ public:
 		} else return nullptr;
 	}
 
-	ASTExpression* expression (short minPrecedence = 1) {
-	    ASTExpression* lhs = this->atom();
-	    if (lhs != nullptr) {
+	bool expression (ASTExpression** output, short minPrecedence = 1) {
+	    if (this->atom(output)) {
 	        Token::Type tt = this->lexer->nextType;
 			auto precedence = ASTBinop::getPrecedence(tt);
 			while (precedence >= minPrecedence) {
@@ -103,56 +100,48 @@ public:
 				if (ASTBinop::getLeftAssociativity(tt))
 					nextMinPrec += 1;
 
-				ASTBinop* output = new ASTBinop(tt);
-				output->rhs = this->expression(nextMinPrec);
-				output->lhs = lhs;
-				lhs = output;
+				ASTBinop* _tmp = new ASTBinop(tt);
+				this->expression(&_tmp->rhs, nextMinPrec);
+				_tmp->lhs = (*output);
+				(*output) = _tmp;
 
 				tt = this->lexer->nextType;
 				precedence = ASTBinop::getPrecedence(tt);
 			}
-	        return lhs;
-	    } else return nullptr;
+	        return true;
+	    } else return false;
 	}
 
-	ASTStatement* statement () {
+	bool statement (ASTStatement** output) {
 		if (this->lexer->isNextType(Token::Type::STM_END)) {
 			this->lexer->skip(1);
-			return nullptr;
+			return false;
 		}
 
-		ASTStatement* stmt = (ASTType*) this->type_def();
-		if (stmt != nullptr) return stmt;
-		stmt = (ASTStatement*) this->function();
-		if (stmt != nullptr) return stmt;
-		stmt = (ASTStatement*)this->var_def();
-		if (stmt != nullptr) return stmt;
-		stmt = (ASTStatement*) this->returnStm();
-		if (stmt != nullptr) return stmt;
-		stmt = (ASTStatement*) this->statements();
-		if (stmt != nullptr) return stmt;
-
-		stmt = (ASTStatement*) this->expression();
-		if (stmt != nullptr) {
+		if (this->type(reinterpret_cast<ASTStructType**>(output))) return true;
+		if (this->function(reinterpret_cast<ASTFunction**>(output))) return true;
+		if (this->var_def(reinterpret_cast<ASTVariable**>(output))) return true;
+		if (this->returnStm(reinterpret_cast<ASTReturn**>(output))) return true;
+		if (this->statements(reinterpret_cast<ASTStatements**>(output))) return true;
+		if (this->expression(reinterpret_cast<ASTExpression**>(output))) {
 			if (this->lexer->isNextType(Token::Type::STM_END))
 				this->lexer->skip(1);
 			else expected("';'", "expression");
-			return stmt;
-		} else return nullptr;
+			return true;
+		} else return false;
 	}
 
-	ASTStatements* statements (bool forceBraquets = true) {
+	bool statements (ASTStatements** output, bool forceBraquets = true) {
 		if (forceBraquets) {
 			if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
 				this->lexer->skip(1);
-			else return nullptr;
+			else return false;
 		}
 
-		ASTStatements* output = new ASTStatements();
-		ASTStatement* exp = this->statement();
-		while (exp != nullptr) {
-			output->list.push_back(exp);
-			exp = this->statement();
+		(*output) = new ASTStatements();
+		ASTStatement* exp;
+		while (this->statement(&exp)) {
+			(*output)->list.push_back(exp);
 		}
 
 		if (forceBraquets) {
@@ -161,80 +150,80 @@ public:
 			else expected("'}'", "statements");
 		}
 
-		return output;
+		return true;
 	}
 
-	ASTStructType* type_def () {
+	bool type (ASTStructType** output) {
 		if (this->lexer->isNextType(Token::Type::TYPE)) {
 			this->lexer->skip(1);
-			auto output = new ASTStructType(this->lexer->text());
-			auto stms = this->statements();
-			if (stms != nullptr) {
+			(*output) = new ASTStructType(this->lexer->text());
+
+			ASTStatements* stms;
+			if (this->statements(&stms)) {
 				for (auto const &it : stms->list) {
 					if (auto var = dynamic_cast<ASTVariable*>(it))
-						output->attrs.push_back(var);
+						(*output)->attrs.push_back(var);
 					else if (auto fn = dynamic_cast<ASTFunction*>(it))
-						output->methods.push_back(fn);
+						(*output)->methods.push_back(fn);
 					else error("Expected attribute or method inside type");
 				}
 			} else this->lexer->skip(1);
-			this->context->add(output->name, output);
-			return output;
-		} else return nullptr;
+			this->context->add((*output)->name, (*output));
+			return true;
+		} else return false;
 	}
 
-	ASTVariable* var_def () {
+	bool var_def (ASTVariable** output) {
 		if (this->lexer->isNextType(Token::Type::LET)) {
 			this->lexer->skip(1);
 
-			auto output = this->_var_def();
+			this->_var_def(output);
 			if (this->lexer->isNextType(Token::Type::STM_END))
 				this->lexer->skip(1);
 			else expected("';'", "variable declaration");
 
-			this->context->add(output->name, output);
-			return output;
-		} else return nullptr;
+			this->context->add((*output)->name, (*output));
+			return true;
+		} else return false;
 	}
 
-	ASTReturn* returnStm () {
+	bool returnStm (ASTReturn** output) {
 		if (this->lexer->isNextType(Token::Type::RETURN)) {
 			this->lexer->skip(1);
-			ASTReturn* output = new ASTReturn();
-			output->exp = this->expression();
+			(*output) = new ASTReturn();
+			this->expression(&(*output)->exp);
 			if (this->lexer->isNextType(Token::Type::STM_END))
 				this->lexer->skip(1);
 			else expected("';'", "return expression");
-
-			return output;
-		} else return nullptr;
+			return true;
+		} else return false;
 	}
 
-	ASTFunction* function () {
+	bool function (ASTFunction** output) {
 		if (this->lexer->isNextType(Token::Type::FUNCTION)) {
 			this->lexer->skip(1);
-			auto output = new ASTFunction();
+			(*output) = new ASTFunction();
 			if (this->lexer->isNextType(Token::Type::ID))
-				output->name = this->lexer->text();
+				(*output)->name = this->lexer->text();
 			else expected("Identifier", "'fn' keyword");
-			output->type = this->functionType();
+			this->functionType(&(*output)->type);
 
 			this->context = this->context->push();
-			for (auto const &param : output->type->params)
+			for (auto const &param : (*output)->type->params)
 				this->context->add(param->name, param);
-			output->stms = this->statement();
+			this->statement(&(*output)->stms);
 			this->context = this->context->pop();
 
-			this->context->add(output->name, output);
-			return output;
-		} else return nullptr;
+			this->context->add((*output)->name, (*output));
+			return true;
+		} else return false;
 	}
 
-	ASTStatements* program () {
-		ASTStatements* output = this->statements(false);
+	bool program (ASTStatements** output) {
+		bool result = this->statements(output, false);
 		if (this->context->unresolved.size() > 0)
 			error("Could not resolve all names!");
-		return output;
+		return result;
 	}
 
 private:
@@ -246,100 +235,108 @@ private:
 		this->lexer = lexer;
 	}
 
-	ASTExpression* atom () {
+	bool atom (ASTExpression** output) {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
-			ASTExpression* exp = this->expression();
+			this->expression(output);
 			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
 				this->lexer->skip(1);
 			else error("Expected closing parenthesys after expression");
-			return exp;
+			return true;
 		} else if (this->lexer->isNextType(Token::Type::SUB)) {
 			this->lexer->skip(1);
-			ASTUnop* output = new ASTUnop(Token::Type::SUB);
-			output->exp = this->atom();
-			return (ASTExpression*) output;
+			auto unop = new ASTUnop(Token::Type::SUB);
+			this->atom(&unop->exp);
+			(*output) = unop;
+			return true;
 		} else if (this->lexer->isNextType(Token::Type::ADD)) {
 			this->lexer->skip(1);
-			return this->expression();
+			this->expression(output);
+			return true;
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
-			auto var = this->variable();
+			this->variable(output);
 			string name;
-			if (var == nullptr)
+			if ((*output) == nullptr)
 				name = string(this->lexer->text());
 			if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
-				ASTCall* fnCall = this->call();
-				if (var == nullptr)
+				ASTCall* fnCall;
+				this->call(&fnCall);
+				if ((*output) == nullptr)
 					this->context->addUnresolved(name, &fnCall->var);
-				else fnCall->var = var;
-				return fnCall;
-			} else return var;
-		} else return this->constant();
+				else fnCall->var = (*output);
+				(*output) = fnCall;
+				return true;
+			} else return true;
+		} else {
+			if (this->constant(reinterpret_cast<ASTConst**>(output)))
+				return true;
+			else return false;
+		}
 	}
 
-	ASTVariable* _var_def () {
+	bool _var_def (ASTVariable** output) {
 		if (this->lexer->isNextType(Token::Type::ID)) {
-			ASTVariable* output = new ASTVariable();
-			output->name = this->lexer->text();
+			(*output) = new ASTVariable();
+			(*output)->name = this->lexer->text();
 
 			char* typeName = nullptr;
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
 				if (this->lexer->isNextType(Token::Type::ID)) {
-					output->type = this->type();
-					if (output->type == nullptr)
+					this->typeInstance(&(*output)->type);
+					if ((*output)->type == nullptr)
 						typeName = this->lexer->text();
 				}
 			}
 
 			if (this->lexer->isNextType(Token::Type::EQUAL)) {
 				this->lexer->skip(1);
-				output->expression = this->expression();
-				if (output->expression == nullptr)
+				this->expression(&(*output)->expression);
+				if ((*output)->expression == nullptr)
 					expected("expression", "'='");
 			}
 
-			if (output->type == nullptr) {
-				if (output->expression != nullptr) {
-					ASTType* ty = output->expression->getType(context);
+			if ((*output)->type == nullptr) {
+				if ((*output)->expression != nullptr) {
+					ASTType* ty = (*output)->expression->getType(context);
 					if (ty != nullptr) {
-						output->type = ty;
+						(*output)->type = ty;
 					} else error("Type could not be inferred!");
 				} else {
 					if (typeName != nullptr)
-						this->context->addUnresolved(typeName, &output->type);
+						this->context->addUnresolved(typeName, &(*output)->type);
 				}
 			}
 			return output;
 		} else return nullptr;
 	}
 
-	ASTFnType* functionType () {
-		ASTFnType* output = new ASTFnType();
-		output->params = this->functionParameters();
+	bool functionType (ASTFnType** output) {
+		(*output) = new ASTFnType();
+		this->functionParameters(&(*output)->params);
 		if (this->lexer->isNextType(Token::Type::ARROW)) {
 			this->lexer->skip(1);
-			output->retType = this->type();
-		} else output->retType = ASTPrimitiveType::_void;
-		return output;
+			this->typeInstance(&(*output)->retType);
+		} else (*output)->retType = ASTPrimitiveType::_void;
+		return true;
 	}
 
-	vector<ASTVariable*> functionParameters () {
-		vector<ASTVariable*> output;
+	bool functionParameters (vector<ASTVariable*>* output) {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
-			ASTVariable* fnParam = this->_var_def();
-			while (fnParam != nullptr) {
-				output.push_back(fnParam);
+
+			ASTVariable* fnParam;
+			while (this->_var_def(&fnParam)) {
+				output->push_back(fnParam);
 				if (this->lexer->isNextType(Token::Type::COMMA))
 					this->lexer->skip(1);
-				fnParam = this->_var_def();
 			}
+
 			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
 				this->lexer->skip(1);
 			else expected("closing parenthesys", "function parameters");
-		}
-		return output;
+			return true;
+		} else return false;
 	}
 
 	void error (const char* message) {

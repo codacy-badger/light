@@ -199,11 +199,13 @@ int main (int argc, char** argv) {
 	LLVMContext GlobalContext;
 	LLVMBackend* backend = new LLVMBackend();
 
+	ASTStatements* stms = nullptr;
 	for (auto &filename : InputFilenames) {
 		Parser* parser = new Parser(filename.c_str());
-		ASTStatements* stms = parser->program();
-		ASTPrinter::print(stms);
-		backend->writeObj(stms);
+		if (parser->program(&stms)) {
+			ASTPrinter::print(stms);
+			backend->writeObj(stms);
+		}
 	}
 
 	outs() << "\n--- OBJ ---\n";

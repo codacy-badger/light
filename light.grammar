@@ -1,5 +1,0 @@
-alpha -> [a-zA-Z_]
-alphanum -> alpha | [0-9]
-id -> alpha | alphanum
-number -> ?
-string -> ?
