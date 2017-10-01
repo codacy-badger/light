@@ -267,15 +267,7 @@ private:
 				(*output) = fnCall;
 				return true;
 			} else return true;
-		} else {
-			if (this->constant(reinterpret_cast<ASTConst**>(output)))
-				return true;
-			else return false;
-		}
-	}
-
-	bool memory (ASTMemory** output) {
-		return true;
+		} else return this->constant(reinterpret_cast<ASTConst**>(output));
 	}
 
 	bool _var_def (ASTVariable** output) {

@@ -181,14 +181,6 @@ public:
 		return nullptr;
 	}
 
-	/*Value* codegen (ASTVariable* var) {
-		AllocaInst* alloca = this->scope->getVariable(var->name);
-		if (alloca == nullptr) {
-			panic("Variable " + var->name + " not found!");
-			return nullptr;
-		} else return builder.CreateLoad(alloca, "tmp");;
-	}*/
-
 	Value* codegen (ASTConst* con) {
 		switch (con->type) {
 			case ASTConst::TYPE::INT:

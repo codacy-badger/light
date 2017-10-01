@@ -13,10 +13,6 @@ struct ASTVariable : ASTMemory {
 	ASTType* getType(ASTContext* context) {
 		return this->type;
 	}
-
-	void onTypeResolved () {
-
-	}
 };
 
 struct ASTAttr : ASTMemory {
