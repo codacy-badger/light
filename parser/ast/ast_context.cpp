@@ -23,6 +23,7 @@ struct ASTContext {
 	}
 
 	void add (string name, ASTExpression* val) {
+		this->resolve(name, val);
 		auto it = this->variables.find(name);
 		if (it == this->variables.end()) {
 			this->variables[name] = val;
@@ -47,24 +48,14 @@ struct ASTContext {
 		} else unresolved[name].push_back(addr);
 	}
 
-	bool resolve () {
-		bool result = true;
-		cout << "Resolving names (" << unresolved.size() << ")\n";
-		for (auto it = unresolved.begin(); it != unresolved.end();) {
-			cout << "\t" << it->first << " -> " << it->second.size() << " ";
-			auto value = this->get(it->first);
-			if (value != nullptr) {
-				cout << "V";
-				for (auto addrs : it->second)
-					memcpy(addrs, &value, sizeof(ASTExpression*));
-				it = unresolved.erase(it);
-			} else {
-				result = false;
-				it++;
-			}
-			cout << "\n";
-		}
-		return result;
+	bool resolve (string name, ASTExpression* value) {
+		auto it = this->unresolved.find(name);
+		if (it != this->unresolved.end()) {
+			for (auto addrs : it->second)
+				memcpy(addrs, &value, sizeof(ASTExpression*));
+			this->unresolved.erase(it);
+			return true;
+		} else return false;
 	}
 
 	ASTContext* push () {
@@ -72,7 +63,6 @@ struct ASTContext {
 	}
 
 	ASTContext* pop () {
-		this->resolve();
 		if (this->parent != nullptr) {
 			auto pUnr = &this->parent->unresolved;
 			for (auto const &it : unresolved) {

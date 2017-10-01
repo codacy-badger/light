@@ -71,7 +71,7 @@ public:
 	ASTExpression* variable () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			string name(this->lexer->nextText);
-			auto output = dynamic_cast<ASTExpression*>(this->context->get(name));
+			auto output = this->context->get(name);
 			if (output != nullptr) this->lexer->skip(1);
 
 			Token::Type tt = this->lexer->nextType;
@@ -232,7 +232,7 @@ public:
 
 	ASTStatements* program () {
 		ASTStatements* output = this->statements(false);
-		if (!this->context->resolve())
+		if (this->context->unresolved.size() > 0)
 			error("Could not resolve all names!");
 		return output;
 	}
