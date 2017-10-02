@@ -9,6 +9,13 @@ struct ASTExpression;
 
 struct ASTStatement : ASTNode {
 	virtual ~ASTStatement() {}
+
+	template <typename Callback>
+	void forEach (Callback cb, bool recursive = false) {
+		if (auto stms = dynamic_cast<ASTScope*>(this))
+			stms->forEach(cb, recursive);
+		else cb(this);
+	}
 };
 
 struct ASTReturn : ASTStatement {
@@ -19,4 +26,24 @@ struct ASTScope : ASTStatement {
 	std::vector<ASTType*> types;
 	std::vector<ASTFunction*> functions;
 	std::vector<ASTStatement*> list;
+
+	template <typename Callback>
+	void forEach (Callback cb, bool recursive = false) {
+		for (auto const& ty : types) {
+			cb(ty);
+			if (auto strTy = dynamic_cast<ASTStructType*>(ty)) {
+				for (auto const& fn : strTy->methods) {
+					cb(fn);
+					if (fn->stm != nullptr)
+						fn->stm->forEach(cb, recursive);
+				}
+			}
+		}
+		for (auto const& fn : functions) {
+			cb(fn);
+			if (fn->stm != nullptr)
+				fn->stm->forEach(cb, recursive);
+		}
+		for (auto const& stm : list) stm->forEach(cb, recursive);
+	}
 };

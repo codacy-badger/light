@@ -31,8 +31,8 @@ struct ASTUnop : ASTExpression {
 		return this->exp->isConstant();
 	}
 
-	ASTType* getType(ASTContext* context) {
-		return this->exp->getType(context);
+	ASTType* getType() {
+		return this->exp->getType();
 	}
 };
 

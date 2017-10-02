@@ -10,7 +10,7 @@ struct ASTVariable : ASTMemory {
 	ASTExpression* expression = nullptr;
 
 	bool isConstant() { return false; }
-	ASTType* getType(ASTContext* context) {
+	ASTType* getType() {
 		return this->type;
 	}
 };
@@ -24,7 +24,7 @@ struct ASTAttr : ASTMemory {
 	}
 
 	bool isConstant() { return false; }
-	ASTType* getType(ASTContext* context) {
+	ASTType* getType() {
 		// TODO: store variables in context to query type
 		return nullptr;
 	}

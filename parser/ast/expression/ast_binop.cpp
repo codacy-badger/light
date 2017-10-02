@@ -39,9 +39,9 @@ struct ASTBinop : ASTExpression {
 		return this->lhs->isConstant() && this->rhs->isConstant();
 	}
 
-	ASTType* getType(ASTContext* context) {
-		ASTType* lhsTy = this->lhs->getType(context);
-		ASTType* rhsTy = this->rhs->getType(context);
+	ASTType* getType() {
+		ASTType* lhsTy = this->lhs->getType();
+		ASTType* rhsTy = this->rhs->getType();
 		if (lhsTy == rhsTy) return lhsTy;
 		else return nullptr;
 	}

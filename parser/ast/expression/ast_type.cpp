@@ -10,7 +10,7 @@ struct ASTType : ASTExpression {
 	virtual bool isPrimitive () = 0;
 
 	virtual bool isConstant() { return true; }
-	virtual ASTType* getType(ASTContext* context) {
+	virtual ASTType* getType() {
 		//TODO: return special Type for consistency
 		return nullptr;
 	}

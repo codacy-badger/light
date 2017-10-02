@@ -73,8 +73,7 @@ public:
 			}
 
 			cout << "\n";
-			if (stm->stms != nullptr)
-				print(stm->stms, tabs + 1);
+			if (stm->stm != nullptr) print(stm->stm, tabs + 1);
 		} else cout << "]";
 	}
 

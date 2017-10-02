@@ -221,7 +221,7 @@ public:
 			this->context = this->context->push();
 			for (auto const &param : (*output)->type->params)
 				this->context->add(param->name, param);
-			this->statement(&(*output)->stms);
+			this->statement(&(*output)->stm);
 			this->context = this->context->pop();
 
 			this->context->add((*output)->name, (*output));
@@ -230,10 +230,7 @@ public:
 	}
 
 	bool program (ASTScope** output) {
-		bool result = this->statements(output, false);
-		if (this->context->unresolved.size() > 0)
-			error("Could not resolve all names!");
-		return result;
+		return this->statements(output, false);
 	}
 
 private:
@@ -300,12 +297,12 @@ private:
 					expected("expression", "'='");
 			}
 
-			if (!isTypeFound && (*output)->expression != nullptr) {
-				ASTType* ty = (*output)->expression->getType(context);
+			/*if (!isTypeFound && (*output)->expression != nullptr) {
+				ASTType* ty = (*output)->expression->getType();
 				if (ty != nullptr) {
 					(*output)->type = ty;
 				} else error("Type could not be inferred!");
-			}
+			}*/
 			return output;
 		} else return nullptr;
 	}

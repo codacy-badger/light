@@ -222,14 +222,14 @@ public:
 			arg.setName(fn->type->params[index++]->name);
 		this->scope->addFunction(fn, function);
 
-		if (fn->stms != nullptr) {
+		if (fn->stm != nullptr) {
 			BasicBlock* entryBlock = BasicBlock::Create(context, "entry", function);
 			BasicBlock* prevBlock = builder.GetInsertBlock();
 			builder.SetInsertPoint(entryBlock);
 
 			this->scope = scope->push();
 			this->scope->addParameters(fn);
-			this->codegen(fn->stms);
+			this->codegen(fn->stm);
 			this->scope = scope->pop();
 			if (fn->type->retType == ASTPrimitiveType::_void
 				&& !entryBlock->back().isTerminator())

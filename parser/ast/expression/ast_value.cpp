@@ -11,9 +11,8 @@ struct ASTCall : ASTValue {
 		return false;
 	}
 
-	ASTType* getType(ASTContext* context) {
-		// TODO: store variables in context to query type
-		return nullptr;
+	ASTType* getType() {
+		return var->type->retType;
 	}
 };
 
@@ -38,7 +37,7 @@ struct ASTLiteral : ASTValue {
 		return true;
 	}
 
-	ASTType* getType(ASTContext* context) {
+	ASTType* getType() {
 		switch (type) {
 			case BYTE:   	return nullptr;
 			case SHORT:  	return nullptr;

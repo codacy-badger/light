@@ -217,7 +217,16 @@ void typeInference (ASTScope* scope) {
 
 void runCompilerPasses (ASTScope* scope) {
 	compilerPassV("Type Inference", [&]() {
-		typeInference(scope);
+		scope->forEach([&](ASTStatement* stm) {
+			if (auto var = dynamic_cast<ASTVariable*>(stm)) {
+				if (var->type == nullptr) {
+					auto ty = var->expression->getType();
+					if (ty == nullptr) {
+						cout << "Type of " << var->name << " could not be inferred\n";
+					} else var->type = ty;
+				}
+			}
+		}, true);
 	});
 }
 
@@ -233,22 +242,22 @@ int main (int argc, char** argv) {
 
 	ASTScope* scope = nullptr;
 	for (auto &filename : InputFilenames) {
-		Parser* parser = new Parser(filename.c_str());
-	    auto start = clock(), frontStart = clock();
+		auto parser = new Parser(filename.c_str());
+	    auto start = clock(), front = clock(), total = clock();
 	    auto isParsed = parser->program(&scope);
-		std::cout << "  Parser " << clockStop(start) << "s" << std::endl;
+		std::cout << "  AST Parser " << clockStop(start) << "s" << std::endl;
 
 		if (isParsed) {
 			runCompilerPasses(scope);
-			std::cout << "Frontend " << clockStop(frontStart) << "s" << std::endl;
+			std::cout << "Frontend " << clockStop(front) << "s" << std::endl;
 			//ASTPrinter::print(scope);
 		    start = clock();
 			backend->writeObj(scope);
 			std::cout << "LLVM Backend " << clockStop(start) << "s" << std::endl;
+			std::cout << "TOTAL " << clockStop(total) << "s" << std::endl;
 		}
 	}
 
-	outs() << "\n--- OBJ ---\n";
 	Module* module = getIfElseModule(GlobalContext, 12000);
 	//module->print(outs(), nullptr);
 	auto moduleName = "test\\" + module->getModuleIdentifier() + ".obj";
