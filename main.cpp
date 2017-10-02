@@ -202,7 +202,7 @@ Rv compilerPass(const char *name, Fcn f) {
     std::cout << "  + " << name;
     auto start = clock();
     auto rv = f();
-    std::cout << " took " << clockStop(start) << "s" << std::endl;
+    std::cout << " " << clockStop(start) << "s" << std::endl;
     return rv;
 }
 
@@ -236,15 +236,15 @@ int main (int argc, char** argv) {
 		Parser* parser = new Parser(filename.c_str());
 	    auto start = clock(), frontStart = clock();
 	    auto isParsed = parser->program(&scope);
-		std::cout << "  Parser took " << clockStop(start) << "s" << std::endl;
+		std::cout << "  Parser " << clockStop(start) << "s" << std::endl;
 
 		if (isParsed) {
 			runCompilerPasses(scope);
-			std::cout << "Frontend took " << clockStop(frontStart) << "s" << std::endl;
+			std::cout << "Frontend " << clockStop(frontStart) << "s" << std::endl;
 			//ASTPrinter::print(scope);
 		    start = clock();
 			backend->writeObj(scope);
-			std::cout << "LLVM Backend took " << clockStop(start) << "s" << std::endl;
+			std::cout << "LLVM Backend " << clockStop(start) << "s" << std::endl;
 		}
 	}
 
