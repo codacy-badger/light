@@ -64,7 +64,7 @@ public:
 
 	Value* codegen (ASTStatement* stm) {
 		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) 	return codegen(obj, true);
-		else if (auto obj = dynamic_cast<ASTScope*>(stm)) 	return codegen(obj);
+		else if (auto obj = dynamic_cast<ASTScope*>(stm)) 		return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) 	return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) 		return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTType*>(stm)) {
@@ -131,7 +131,7 @@ public:
 	Value* codegen (ASTExpression* exp) {
 		if 		(auto binop = dynamic_cast<ASTBinop*>(exp))   return codegen(binop);
 		else if (auto unop  = dynamic_cast<ASTUnop*>(exp))    return codegen(unop);
-		else if (auto con   = dynamic_cast<ASTLiteral*>(exp))   return codegen(con);
+		else if (auto con   = dynamic_cast<ASTLiteral*>(exp)) return codegen(con);
 		else if (auto call  = dynamic_cast<ASTCall*>(exp)) 	  return codegen(call);
 		else if (auto attr  = dynamic_cast<ASTAttr*>(exp)) 	  return codegen(attr);
 		else if (auto var   = dynamic_cast<ASTVariable*>(exp)) {
