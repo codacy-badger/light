@@ -68,8 +68,6 @@ public:
 			errs() << "TheTargetMachine can't emit a file of this type";
 		pass.run(*module);
 		dest.flush();
-
-		outs() << "Wrote '" << filename << "'\n";
 	}
 
 	~LLVMBackend () { /* empty */ }

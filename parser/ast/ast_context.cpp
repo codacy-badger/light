@@ -51,10 +51,8 @@ struct ASTContext {
 	bool resolve (string name, ASTExpression* value) {
 		if (dynamic_cast<ASTFunction*>(value)
 			|| dynamic_cast<ASTType*>(value)) {
-			cout << "Added name: " << name << "\n";
 			auto it = this->unresolved.find(name);
 			if (it != this->unresolved.end()) {
-				cout << "\tResolving!\n";
 				for (auto addrs : it->second)
 					memcpy(addrs, &value, sizeof(ASTExpression*));
 				this->unresolved.erase(it);

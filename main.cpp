@@ -193,13 +193,16 @@ Module* getStructModule (LLVMContext& context, int number, const char* message) 
 	return module;
 }
 
+double clockStop (clock_t start) {
+	return (clock() - start) / static_cast<double>(CLOCKS_PER_SEC);
+}
+
 template <typename Rv, typename Fcn>
 Rv compilerPass(const char *name, Fcn f) {
-    std::cout << "  + " << name << std::endl;
+    std::cout << "  + " << name;
     auto start = clock();
     auto rv = f();
-	auto elapsed = (clock() - start) / static_cast<double>(CLOCKS_PER_SEC);
-    std::cout << "    DONE (" << elapsed << " s) " << std::endl;
+    std::cout << " (" << clockStop(start) << " s) " << std::endl;
     return rv;
 }
 
@@ -209,7 +212,7 @@ void compilerPassV(const char *name, Fcn f) {
 }
 
 void typeInference (ASTScope* scope) {
-	cout << "Stms -> " << scope->functions.size() << "\n";
+	//TODO: loop all varaibles -> infer their type
 }
 
 void runCompilerPasses (ASTScope* scope) {
@@ -223,7 +226,7 @@ int main (int argc, char** argv) {
 	cl::HideUnrelatedOptions(LightCategory);
 	cl::ParseCommandLineOptions(argc, argv);
 
-	std::cout << std::fixed << std::setprecision(6);
+	std::cout << std::fixed << std::setprecision(3);
 
 	LLVMContext GlobalContext;
 	LLVMBackend* backend = new LLVMBackend();
@@ -231,18 +234,17 @@ int main (int argc, char** argv) {
 	ASTScope* scope = nullptr;
 	for (auto &filename : InputFilenames) {
 		Parser* parser = new Parser(filename.c_str());
-	    auto start = clock();
+	    auto start = clock(), frontStart = clock();
 	    auto isParsed = parser->program(&scope);
-		auto elapsed = (clock() - start) / static_cast<double>(CLOCKS_PER_SEC);
-		std::cout << "Parser took " << elapsed << "s" << std::endl;
+		std::cout << "  Parser took " << clockStop(start) << "s" << std::endl;
 
 		if (isParsed) {
 			runCompilerPasses(scope);
-			ASTPrinter::print(scope);
+			std::cout << "Frontend took " << clockStop(frontStart) << "s" << std::endl;
+			//ASTPrinter::print(scope);
 		    start = clock();
 			backend->writeObj(scope);
-			elapsed = (clock() - start) / static_cast<double>(CLOCKS_PER_SEC);
-			std::cout << "LLVM Backend took " << elapsed << "s" << std::endl;
+			std::cout << "LLVM Backend took " << clockStop(start) << "s" << std::endl;
 		}
 	}
 
