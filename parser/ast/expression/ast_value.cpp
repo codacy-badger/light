@@ -17,7 +17,7 @@ struct ASTCall : ASTValue {
 	}
 };
 
-struct ASTConst : ASTValue {
+struct ASTLiteral : ASTValue {
 	enum TYPE { BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, STRING, COUNT };
 	TYPE type = TYPE::COUNT;
 	union {
@@ -30,7 +30,7 @@ struct ASTConst : ASTValue {
 		char* stringValue;
 	};
 
-	ASTConst (TYPE type) {
+	ASTLiteral (TYPE type) {
 		this->type = type;
 	}
 

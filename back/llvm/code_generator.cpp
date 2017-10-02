@@ -130,7 +130,7 @@ public:
 	Value* codegen (ASTExpression* exp) {
 		if 		(auto binop = dynamic_cast<ASTBinop*>(exp))   return codegen(binop);
 		else if (auto unop  = dynamic_cast<ASTUnop*>(exp))    return codegen(unop);
-		else if (auto con   = dynamic_cast<ASTConst*>(exp))   return codegen(con);
+		else if (auto con   = dynamic_cast<ASTLiteral*>(exp))   return codegen(con);
 		else if (auto call  = dynamic_cast<ASTCall*>(exp)) 	  return codegen(call);
 		else if (auto attr  = dynamic_cast<ASTAttr*>(exp)) 	  return codegen(attr);
 		else if (auto var   = dynamic_cast<ASTVariable*>(exp)) {
@@ -186,11 +186,11 @@ public:
 		return nullptr;
 	}
 
-	Value* codegen (ASTConst* con) {
+	Value* codegen (ASTLiteral* con) {
 		switch (con->type) {
-			case ASTConst::TYPE::INT:
+			case ASTLiteral::TYPE::INT:
 				return ConstantInt::get(context, APInt(32, con->intValue));
-			case ASTConst::TYPE::STRING:
+			case ASTLiteral::TYPE::STRING:
 				return builder.CreateGlobalStringPtr(con->stringValue);
 			default: break;
 		}

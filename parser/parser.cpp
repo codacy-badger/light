@@ -41,13 +41,13 @@ public:
 		} else return false;
 	}
 
-	bool constant (ASTConst** output) {
+	bool constant (ASTLiteral** output) {
 		if (this->lexer->isNextType(Token::Type::STRING)) {
-			(*output) = new ASTConst(ASTConst::TYPE::STRING);
+			(*output) = new ASTLiteral(ASTLiteral::TYPE::STRING);
 			(*output)->stringValue = this->lexer->text();
 			return true;
 		} else if (this->lexer->isNextType(Token::Type::NUMBER)) {
-			(*output) = new ASTConst(ASTConst::TYPE::INT);
+			(*output) = new ASTLiteral(ASTLiteral::TYPE::INT);
 			(*output)->intValue = atoi(this->lexer->text());
 			return true;
 		} else return nullptr;
@@ -276,7 +276,7 @@ private:
 				(*output) = fnCall;
 				return true;
 			} else return true;
-		} else return this->constant(reinterpret_cast<ASTConst**>(output));
+		} else return this->constant(reinterpret_cast<ASTLiteral**>(output));
 	}
 
 	bool _var_def (ASTVariable** output) {

@@ -119,7 +119,7 @@ public:
 	static void print (ASTExpression* exp, int tabs = 0) {
 		if 		(auto obj = dynamic_cast<ASTBinop*>(exp))    print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTUnop*>(exp))     print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTConst*>(exp))    print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTLiteral*>(exp))    print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTCall*>(exp))     print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTAttr*>(exp))     print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTFunction*>(exp)) print(obj, tabs, true);
@@ -146,15 +146,15 @@ public:
 		cout << ")";
 	}
 
-	static void print (ASTConst* cons, int tabs = 0) {
+	static void print (ASTLiteral* cons, int tabs = 0) {
 		switch (cons->type) {
-			case ASTConst::BYTE:   cout << cons->byteValue;   break;
-			case ASTConst::SHORT:  cout << cons->shortValue;  break;
-			case ASTConst::INT:    cout << cons->intValue;    break;
-			case ASTConst::LONG:   cout << cons->longValue;   break;
-			case ASTConst::FLOAT:  cout << cons->floatValue;  break;
-			case ASTConst::DOUBLE: cout << cons->doubleValue; break;
-			case ASTConst::STRING: cout << "\"" << cons->stringValue << "\""; break;
+			case ASTLiteral::BYTE:   cout << cons->byteValue;   break;
+			case ASTLiteral::SHORT:  cout << cons->shortValue;  break;
+			case ASTLiteral::INT:    cout << cons->intValue;    break;
+			case ASTLiteral::LONG:   cout << cons->longValue;   break;
+			case ASTLiteral::FLOAT:  cout << cons->floatValue;  break;
+			case ASTLiteral::DOUBLE: cout << cons->doubleValue; break;
+			case ASTLiteral::STRING: cout << "\"" << cons->stringValue << "\""; break;
 			default: break;
 		}
 	}
