@@ -11,9 +11,9 @@ struct ASTStatement : ASTNode {
 	virtual ~ASTStatement() {}
 
 	template <typename Callback>
-	void forEach (Callback cb, bool recursive = false) {
+	void forEach (Callback cb) {
 		if (auto stms = dynamic_cast<ASTScope*>(this))
-			stms->forEach(cb, recursive);
+			stms->forEach(cb);
 		else cb(this);
 	}
 };
@@ -28,22 +28,22 @@ struct ASTScope : ASTStatement {
 	std::vector<ASTStatement*> list;
 
 	template <typename Callback>
-	void forEach (Callback cb, bool recursive = false) {
+	void forEach (Callback cb) {
 		for (auto const& ty : types) {
 			cb(ty);
 			if (auto strTy = dynamic_cast<ASTStructType*>(ty)) {
 				for (auto const& fn : strTy->methods) {
 					cb(fn);
 					if (fn->stm != nullptr)
-						fn->stm->forEach(cb, recursive);
+						fn->stm->forEach(cb);
 				}
 			}
 		}
 		for (auto const& fn : functions) {
 			cb(fn);
 			if (fn->stm != nullptr)
-				fn->stm->forEach(cb, recursive);
+				fn->stm->forEach(cb);
 		}
-		for (auto const& stm : list) stm->forEach(cb, recursive);
+		for (auto const& stm : list) stm->forEach(cb);
 	}
 };

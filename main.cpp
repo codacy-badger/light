@@ -226,7 +226,7 @@ void runCompilerPasses (ASTScope* scope) {
 					} else var->type = ty;
 				}
 			}
-		}, true);
+		});
 	});
 }
 
