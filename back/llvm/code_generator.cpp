@@ -51,7 +51,7 @@ public:
 		this->codegen(stms);
 
 		verifyModule(*module);
-		//module->print(outs(), nullptr);
+		module->print(outs(), nullptr);
 		return module;
 	}
 
@@ -66,8 +66,10 @@ public:
 		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) 	return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) 	return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) 		return codegen(obj);
-		else if (auto obj = dynamic_cast<ASTType*>(stm)) 		return codegen(obj);
-		else if (auto obj = dynamic_cast<ASTExpression*>(stm)) 	return codegen(obj);
+		else if (auto obj = dynamic_cast<ASTType*>(stm)) {
+			codegen(obj);
+			return nullptr;
+		} else if (auto obj = dynamic_cast<ASTExpression*>(stm)) 	return codegen(obj);
 		else {
 			std::string msg = "Unrecognized statement?! -> ";
 			msg += typeid(*stm).name();
@@ -79,7 +81,7 @@ public:
 
 	Value* codegen (ASTVariable* varDef, bool alloca = false) {
 		if (alloca) {
-			auto type = this->scope->getType(varDef->type);
+			auto type = this->codegen(varDef->type);
 			auto alloca = builder.CreateAlloca(type, nullptr, varDef->name);
 			if (varDef->expression != NULL) {
 				Value* val = this->codegen(varDef->expression);
@@ -92,30 +94,33 @@ public:
 		}
 	}
 
-	Value* codegen (ASTType* ty) {
-		if (auto obj = dynamic_cast<ASTPrimitiveType*>(ty))   return nullptr;
-		else if (auto obj = dynamic_cast<ASTStructType*>(ty)) return codegen(obj);
+	Type* codegen (ASTType* ty) {
+		auto type = this->scope->getType(ty);
+		if (type != nullptr) return type;
 		else {
-			std::string msg = "Unrecognized type struct?! -> ";
-			msg += typeid(*ty).name();
-			msg += "\n";
-			panic(msg.c_str());
-			return nullptr;
+			if (auto obj = dynamic_cast<ASTStructType*>(ty)) return codegen(obj);
+			else {
+				std::string msg = "Unrecognized type struct?! -> ";
+				msg += typeid(*ty).name();
+				msg += "\n";
+				panic(msg.c_str());
+				return nullptr;
+			}
 		}
 	}
 
-	Value* codegen (ASTStructType* ty) {
+	Type* codegen (ASTStructType* ty) {
 		StructType* structTy = nullptr;
 		if (ty->attrs.size() > 0) {
 			vector<Type*> attrTypes;
 			for (auto &attr : ty->attrs)
-				attrTypes.push_back(this->scope->getType(attr->type));
+				attrTypes.push_back(this->codegen(attr->type));
 			structTy = StructType::create(attrTypes, ty->name);
 		} else {
 			structTy = StructType::create(builder.getContext(), ty->name);
 		}
 		this->scope->addType(ty, structTy);
-		return nullptr;
+		return structTy;
 	}
 
 	Value* codegen (ASTCall* call) {
@@ -131,7 +136,7 @@ public:
 		else if (auto var   = dynamic_cast<ASTVariable*>(exp)) {
 			return builder.CreateLoad(codegen(var), var->name);
 		} else {
-			std::string msg = "Unrecognized statement?! -> ";
+			std::string msg = "Unrecognized expression?! -> ";
 			msg += typeid(*exp).name();
 			msg += "\n";
 			panic(msg.c_str());

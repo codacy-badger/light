@@ -29,9 +29,14 @@ public:
 
 	bool typeInstance (ASTType** output) {
 		if (this->lexer->isNextType(Token::Type::ID)) {
-			auto typeName = this->lexer->nextText;
-			(*output) = dynamic_cast<ASTType*>(this->context->get(typeName));
-			if ((*output) != nullptr) this->lexer->skip(1);
+			auto typeName = this->lexer->text();
+			auto typeExp = this->context->get(typeName);
+			if (typeExp == nullptr) {
+				this->context->addUnresolved(typeName, output);
+			} else {
+				(*output) = dynamic_cast<ASTType*>(typeExp);
+				if ((*output) == nullptr) error("Name is not a type!");
+			}
 			return true;
 		} else return false;
 	}
@@ -138,11 +143,15 @@ public:
 			else return false;
 		}
 
-		(*output) = new ASTStatements();
+		auto stms = new ASTStatements();
 		ASTStatement* exp;
 		while (this->statement(&exp)) {
-			(*output)->list.push_back(exp);
+			if (dynamic_cast<ASTType*>(exp)) {
+				stms->list.insert(stms->list.begin(), exp);
+			} else stms->list.push_back(exp);
+			
 		}
+		(*output) = stms;
 
 		if (forceBraquets) {
 			if (this->lexer->isNextType(Token::Type::BRAC_CLOSE))
@@ -275,13 +284,10 @@ private:
 			(*output) = new ASTVariable();
 			(*output)->name = this->lexer->text();
 
-			char* typeName = nullptr;
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
 				if (this->lexer->isNextType(Token::Type::ID)) {
 					this->typeInstance(&(*output)->type);
-					if ((*output)->type == nullptr)
-						typeName = this->lexer->text();
 				}
 			}
 
@@ -298,9 +304,6 @@ private:
 					if (ty != nullptr) {
 						(*output)->type = ty;
 					} else error("Type could not be inferred!");
-				} else {
-					if (typeName != nullptr)
-						this->context->addUnresolved(typeName, &(*output)->type);
 				}
 			}
 			return output;

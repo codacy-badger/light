@@ -49,12 +49,17 @@ struct ASTContext {
 	}
 
 	bool resolve (string name, ASTExpression* value) {
-		auto it = this->unresolved.find(name);
-		if (it != this->unresolved.end()) {
-			for (auto addrs : it->second)
-				memcpy(addrs, &value, sizeof(ASTExpression*));
-			this->unresolved.erase(it);
-			return true;
+		if (dynamic_cast<ASTFunction*>(value)
+			|| dynamic_cast<ASTType*>(value)) {
+			cout << "Added name: " << name << "\n";
+			auto it = this->unresolved.find(name);
+			if (it != this->unresolved.end()) {
+				cout << "\tResolving!\n";
+				for (auto addrs : it->second)
+					memcpy(addrs, &value, sizeof(ASTExpression*));
+				this->unresolved.erase(it);
+				return true;
+			} else return false;
 		} else return false;
 	}
 

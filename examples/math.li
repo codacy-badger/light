@@ -1,8 +1,4 @@
 
-type Vec2 {
-	let x: i32;
-	let y: i32;
-}
 
 fn main {
 	let a := -(1);
@@ -23,7 +19,17 @@ fn main {
 	system_exit(0);
 }
 
+type Val {
+	let num: i32;
+}
+
+type Vec2 {
+	let x: Val;
+	let y: Val;
+}
+
 fn calc (a: i32, b: i32) -> i32 {
+	let v1: Vec2;
 	return a * b;
 }
 
