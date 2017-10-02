@@ -211,22 +211,18 @@ void compilerPassV(const char *name, Fcn f) {
     compilerPass<int>(name, [&]() { f(); return 0; });
 }
 
-void typeInference (ASTScope* scope) {
-	//TODO: loop all varaibles -> infer their type
+void typeInferencePass (ASTVariable* var) {
+	if (var->type == nullptr) {
+		auto ty = var->expression->getType();
+		if (ty == nullptr) {
+			cout << "Type of " << var->name << " could not be inferred\n";
+		} else var->type = ty;
+	}
 }
 
 void runCompilerPasses (ASTScope* scope) {
 	compilerPassV("Type Inference", [&]() {
-		scope->forEach([&](ASTStatement* stm) {
-			if (auto var = dynamic_cast<ASTVariable*>(stm)) {
-				if (var->type == nullptr) {
-					auto ty = var->expression->getType();
-					if (ty == nullptr) {
-						cout << "Type of " << var->name << " could not be inferred\n";
-					} else var->type = ty;
-				}
-			}
-		});
+		scope->forEachVariable(typeInferencePass);
 	});
 }
 

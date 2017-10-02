@@ -9,13 +9,6 @@ struct ASTExpression;
 
 struct ASTStatement : ASTNode {
 	virtual ~ASTStatement() {}
-
-	template <typename Callback>
-	void forEach (Callback cb) {
-		if (auto stms = dynamic_cast<ASTScope*>(this))
-			stms->forEach(cb);
-		else cb(this);
-	}
 };
 
 struct ASTReturn : ASTStatement {
@@ -27,23 +20,23 @@ struct ASTScope : ASTStatement {
 	std::vector<ASTFunction*> functions;
 	std::vector<ASTStatement*> list;
 
-	template <typename Callback>
-	void forEach (Callback cb) {
-		for (auto const& ty : types) {
-			cb(ty);
-			if (auto strTy = dynamic_cast<ASTStructType*>(ty)) {
-				for (auto const& fn : strTy->methods) {
-					cb(fn);
-					if (fn->stm != nullptr)
-						fn->stm->forEach(cb);
-				}
+	template <typename ScopeCallback>
+	void forEachScope (ScopeCallback cb) {
+		cb(this);
+		for (auto const& stm : this->list) {
+			if (auto obj = dynamic_cast<ASTScope*>(stm)) cb(obj);
+		}
+		for (auto const& fn : this->functions) {
+			if (auto obj = dynamic_cast<ASTScope*>(fn->stm)) cb(obj);
+		}
+	}
+
+	template <typename VarCallback>
+	void forEachVariable (VarCallback cb) {
+		this->forEachScope([&](ASTScope* stms) {
+			for (auto const& stm : stms->list) {
+				if (auto var = dynamic_cast<ASTVariable*>(stm)) cb(var);
 			}
-		}
-		for (auto const& fn : functions) {
-			cb(fn);
-			if (fn->stm != nullptr)
-				fn->stm->forEach(cb);
-		}
-		for (auto const& stm : list) stm->forEach(cb);
+		});
 	}
 };
