@@ -8,6 +8,8 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <iomanip>
+
 #include "parser/parser.cpp"
 #include "parser/ast/ast_printer.cpp"
 #include "back/llvm/backend.cpp"
@@ -191,10 +193,37 @@ Module* getStructModule (LLVMContext& context, int number, const char* message) 
 	return module;
 }
 
+template <typename Rv, typename Fcn>
+Rv compilerPass(const char *name, Fcn f) {
+    std::cout << "  + " << name << std::endl;
+    auto start = clock();
+    auto rv = f();
+	auto elapsed = (clock() - start) / static_cast<double>(CLOCKS_PER_SEC);
+    std::cout << "    DONE (" << elapsed << " s) " << std::endl;
+    return rv;
+}
+
+template <typename Fcn>
+void compilerPassV(const char *name, Fcn f) {
+    compilerPass<int>(name, [&]() { f(); return 0; });
+}
+
+void typeInference (ASTScope* scope) {
+	cout << "Stms -> " << scope->functions.size() << "\n";
+}
+
+void runCompilerPasses (ASTScope* scope) {
+	compilerPassV("Type Inference", [&]() {
+		typeInference(scope);
+	});
+}
+
 int main (int argc, char** argv) {
 	cl::SetVersionPrinter(printVersion);
 	cl::HideUnrelatedOptions(LightCategory);
 	cl::ParseCommandLineOptions(argc, argv);
+
+	std::cout << std::fixed << std::setprecision(6);
 
 	LLVMContext GlobalContext;
 	LLVMBackend* backend = new LLVMBackend();
@@ -202,9 +231,18 @@ int main (int argc, char** argv) {
 	ASTScope* scope = nullptr;
 	for (auto &filename : InputFilenames) {
 		Parser* parser = new Parser(filename.c_str());
-		if (parser->program(&scope)) {
+	    auto start = clock();
+	    auto isParsed = parser->program(&scope);
+		auto elapsed = (clock() - start) / static_cast<double>(CLOCKS_PER_SEC);
+		std::cout << "Parser took " << elapsed << "s" << std::endl;
+
+		if (isParsed) {
+			runCompilerPasses(scope);
 			ASTPrinter::print(scope);
+		    start = clock();
 			backend->writeObj(scope);
+			elapsed = (clock() - start) / static_cast<double>(CLOCKS_PER_SEC);
+			std::cout << "LLVM Backend took " << elapsed << "s" << std::endl;
 		}
 	}
 
