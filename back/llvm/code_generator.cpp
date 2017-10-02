@@ -56,8 +56,9 @@ public:
 	}
 
 	Value* codegen (ASTStatements* stms) {
-		for(auto const& value: stms->list)
-			this->codegen(value);
+		for(auto const& ty: stms->types) this->codegen(ty);
+		for(auto const& fn: stms->functions) this->codegen(fn);
+		for(auto const& stm: stms->list) this->codegen(stm);
 		return nullptr;
 	}
 

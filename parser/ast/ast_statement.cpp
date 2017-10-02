@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+struct ASTType;
+struct ASTFunction;
 struct ASTExpression;
 
 struct ASTStatement : ASTNode {
@@ -10,6 +12,8 @@ struct ASTStatement : ASTNode {
 };
 
 struct ASTStatements : ASTStatement {
+	std::vector<ASTType*> types;
+	std::vector<ASTFunction*> functions;
 	std::vector<ASTStatement*> list;
 };
 

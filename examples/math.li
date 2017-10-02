@@ -1,5 +1,10 @@
 
 
+type Vec2 {
+	let x: Val;
+	let y: Val;
+}
+
 fn main {
 	let a := -(1);
 	let b = 6 * 2 - 9 / 3;
@@ -17,11 +22,6 @@ fn main {
 	}
 
 	system_exit(0);
-}
-
-type Vec2 {
-	let x: Val;
-	let y: Val;
 }
 
 type Val2 {

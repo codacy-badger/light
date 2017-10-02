@@ -146,10 +146,11 @@ public:
 		auto stms = new ASTStatements();
 		ASTStatement* exp;
 		while (this->statement(&exp)) {
-			if (dynamic_cast<ASTType*>(exp)) {
-				stms->list.insert(stms->list.begin(), exp);
-			} else stms->list.push_back(exp);
-
+			if (auto ty = dynamic_cast<ASTType*>(exp))
+				stms->types.push_back(ty);
+			else if (auto fn = dynamic_cast<ASTFunction*>(exp))
+				stms->functions.push_back(fn);
+			else stms->list.push_back(exp);
 		}
 		(*output) = stms;
 
