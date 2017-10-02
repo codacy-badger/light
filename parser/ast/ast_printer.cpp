@@ -51,7 +51,7 @@ public:
 		if (!nameOnly) {
 			_tabs(tabs);
 			cout << "fn ";
-		}
+		} else cout << "[fn ";
 
 		cout << stm->name;
 
@@ -73,7 +73,7 @@ public:
 			cout << "\n";
 			if (stm->stms != nullptr)
 				print(stm->stms, tabs + 1);
-		}
+		} else cout << "]";
 	}
 
 	static void print (ASTReturn* ret, int tabs = 0) {

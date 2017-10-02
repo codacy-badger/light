@@ -149,7 +149,7 @@ public:
 			if (dynamic_cast<ASTType*>(exp)) {
 				stms->list.insert(stms->list.begin(), exp);
 			} else stms->list.push_back(exp);
-			
+
 		}
 		(*output) = stms;
 
@@ -284,10 +284,11 @@ private:
 			(*output) = new ASTVariable();
 			(*output)->name = this->lexer->text();
 
+			bool isTypeFound = false;
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
 				if (this->lexer->isNextType(Token::Type::ID)) {
-					this->typeInstance(&(*output)->type);
+					isTypeFound = this->typeInstance(&(*output)->type);
 				}
 			}
 
@@ -298,13 +299,11 @@ private:
 					expected("expression", "'='");
 			}
 
-			if ((*output)->type == nullptr) {
-				if ((*output)->expression != nullptr) {
-					ASTType* ty = (*output)->expression->getType(context);
-					if (ty != nullptr) {
-						(*output)->type = ty;
-					} else error("Type could not be inferred!");
-				}
+			if (!isTypeFound && (*output)->expression != nullptr) {
+				ASTType* ty = (*output)->expression->getType(context);
+				if (ty != nullptr) {
+					(*output)->type = ty;
+				} else error("Type could not be inferred!");
 			}
 			return output;
 		} else return nullptr;

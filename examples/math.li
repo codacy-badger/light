@@ -19,13 +19,18 @@ fn main {
 	system_exit(0);
 }
 
-type Val {
-	let num: i32;
-}
-
 type Vec2 {
 	let x: Val;
 	let y: Val;
+}
+
+type Val2 {
+	let num1: int;
+	let num2: int;
+}
+
+type Val {
+	let v: Val2;
 }
 
 fn calc (a: i32, b: i32) -> i32 {
