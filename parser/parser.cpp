@@ -127,7 +127,7 @@ public:
 		if (this->function(reinterpret_cast<ASTFunction**>(output))) return true;
 		if (this->var_def(reinterpret_cast<ASTVariable**>(output))) return true;
 		if (this->returnStm(reinterpret_cast<ASTReturn**>(output))) return true;
-		if (this->statements(reinterpret_cast<ASTStatements**>(output))) return true;
+		if (this->statements(reinterpret_cast<ASTScope**>(output))) return true;
 		if (this->expression(reinterpret_cast<ASTExpression**>(output))) {
 			if (this->lexer->isNextType(Token::Type::STM_END))
 				this->lexer->skip(1);
@@ -136,14 +136,14 @@ public:
 		} else return false;
 	}
 
-	bool statements (ASTStatements** output, bool forceBraquets = true) {
+	bool statements (ASTScope** output, bool forceBraquets = true) {
 		if (forceBraquets) {
 			if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
 				this->lexer->skip(1);
 			else return false;
 		}
 
-		auto stms = new ASTStatements();
+		auto stms = new ASTScope();
 		ASTStatement* exp;
 		while (this->statement(&exp)) {
 			if (auto ty = dynamic_cast<ASTType*>(exp))
@@ -168,7 +168,7 @@ public:
 			this->lexer->skip(1);
 			(*output) = new ASTStructType(this->lexer->text());
 
-			ASTStatements* stms;
+			ASTScope* stms;
 			if (this->statements(&stms)) {
 				for (auto const &it : stms->list) {
 					if (auto var = dynamic_cast<ASTVariable*>(it))
@@ -229,7 +229,7 @@ public:
 		} else return false;
 	}
 
-	bool program (ASTStatements** output) {
+	bool program (ASTScope** output) {
 		bool result = this->statements(output, false);
 		if (this->context->unresolved.size() > 0)
 			error("Could not resolve all names!");

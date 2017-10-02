@@ -34,7 +34,7 @@ public:
 		InitializeAllAsmPrinters();
 	}
 
-	void writeObj (ASTStatements* stms, const char* filepath = nullptr) {
+	void writeObj (ASTScope* stms, const char* filepath = nullptr) {
 		LLVMCodeGenerator* generator = new LLVMCodeGenerator();
 		Module* module = generator->buildModule(stms);
 		this->writeObj(module, filepath);

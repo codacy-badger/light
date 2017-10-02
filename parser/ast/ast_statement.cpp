@@ -11,12 +11,12 @@ struct ASTStatement : ASTNode {
 	virtual ~ASTStatement() {}
 };
 
-struct ASTStatements : ASTStatement {
+struct ASTReturn : ASTStatement {
+	ASTExpression* exp = nullptr;
+};
+
+struct ASTScope : ASTStatement {
 	std::vector<ASTType*> types;
 	std::vector<ASTFunction*> functions;
 	std::vector<ASTStatement*> list;
-};
-
-struct ASTReturn : ASTStatement {
-	ASTExpression* exp = nullptr;
 };

@@ -45,7 +45,7 @@ public:
 		scope->addType(ASTPrimitiveType::_int, ASTPrimitiveType::_i32);
 	}
 
-	Module* buildModule (ASTStatements* stms) {
+	Module* buildModule (ASTScope* stms) {
 		module = new Module("output", context);
 
 		this->codegen(stms);
@@ -55,7 +55,7 @@ public:
 		return module;
 	}
 
-	Value* codegen (ASTStatements* stms) {
+	Value* codegen (ASTScope* stms) {
 		for(auto const& ty: stms->types) this->codegen(ty);
 		for(auto const& fn: stms->functions) this->codegen(fn);
 		for(auto const& stm: stms->list) this->codegen(stm);
@@ -64,7 +64,7 @@ public:
 
 	Value* codegen (ASTStatement* stm) {
 		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) 	return codegen(obj, true);
-		else if (auto obj = dynamic_cast<ASTStatements*>(stm)) 	return codegen(obj);
+		else if (auto obj = dynamic_cast<ASTScope*>(stm)) 	return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) 	return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) 		return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTType*>(stm)) {
