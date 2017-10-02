@@ -202,7 +202,7 @@ Rv compilerPass(const char *name, Fcn f) {
     std::cout << "  + " << name;
     auto start = clock();
     auto rv = f();
-    std::cout << " (" << clockStop(start) << " s) " << std::endl;
+    std::cout << " took " << clockStop(start) << "s" << std::endl;
     return rv;
 }
 
