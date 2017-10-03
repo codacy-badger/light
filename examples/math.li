@@ -1,6 +1,6 @@
 type Vec2 {
-	let x: Val;
-	let y: Val;
+	x: Val;
+	y: Val;
 }
 
 fn main {
@@ -16,6 +16,9 @@ fn main {
 	a = 42;
 	println_i32(a);
 
+	b = b + 1;
+	println_i32(b);
+
 	fn work -> i32 {
 		let v1: Vec2;
 		let res : i32 = calc(5, 5);
@@ -26,12 +29,17 @@ fn main {
 }
 
 type Val2 {
-	let num1: int;
-	let num2: int;
+	num1: int;
+	num2: int;
 }
 
 type Val {
-	let v: Val2;
+	v: Val2;
+}
+
+fn calc (a: i32, b: i32) -> i32 {
+	let v1: Vec2;
+	return a * b;
 }
 
 fn calc (a: i32, b: i32) -> i32 {

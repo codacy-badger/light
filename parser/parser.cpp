@@ -168,16 +168,24 @@ public:
 			this->lexer->skip(1);
 			(*output) = new ASTStructType(this->lexer->text());
 
-			ASTScope* stms;
-			if (this->statements(&stms)) {
-				for (auto const &it : stms->list) {
-					if (auto var = dynamic_cast<ASTVariable*>(it))
-						(*output)->attrs.push_back(var);
-					else if (auto fn = dynamic_cast<ASTFunction*>(it))
-						(*output)->methods.push_back(fn);
-					else error("Expected attribute or method inside type");
-				}
-			} else this->lexer->skip(1);
+			ASTStatement* stm;
+			if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
+				this->lexer->skip(1);
+			else expected("'{'", "type name");
+			while (this->typeBody(&stm)) {
+				if (auto var = dynamic_cast<ASTVariable*>(stm)) {
+					(*output)->attrs.push_back(var);
+					if (this->lexer->isNextType(Token::Type::STM_END))
+						this->lexer->skip(1);
+					else expected("';'", "type attribute");
+				} else if (auto fn = dynamic_cast<ASTFunction*>(stm))
+					(*output)->methods.push_back(fn);
+				else error("Expected attribute or method inside type");
+			}
+			if (this->lexer->isNextType(Token::Type::BRAC_CLOSE))
+				this->lexer->skip(1);
+			else expected("'}'", "type body");
+
 			this->context->add((*output)->name, (*output));
 			return true;
 		} else return false;
@@ -217,6 +225,7 @@ public:
 				(*output)->name = this->lexer->text();
 			else expected("Identifier", "'fn' keyword");
 			this->functionType(&(*output)->type);
+			this->context->add((*output)->name, (*output));
 
 			this->context = this->context->push();
 			for (auto const &param : (*output)->type->params)
@@ -224,7 +233,6 @@ public:
 			this->statement(&(*output)->stm);
 			this->context = this->context->pop();
 
-			this->context->add((*output)->name, (*output));
 			return true;
 		} else return false;
 	}
@@ -282,12 +290,10 @@ private:
 			(*output) = new ASTVariable();
 			(*output)->name = this->lexer->text();
 
-			bool isTypeFound = false;
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
-				if (this->lexer->isNextType(Token::Type::ID)) {
-					isTypeFound = this->typeInstance(&(*output)->type);
-				}
+				if (this->lexer->isNextType(Token::Type::ID))
+					this->typeInstance(&(*output)->type);
 			}
 
 			if (this->lexer->isNextType(Token::Type::EQUAL)) {
@@ -296,15 +302,17 @@ private:
 				if ((*output)->expression == nullptr)
 					expected("expression", "'='");
 			}
-
-			/*if (!isTypeFound && (*output)->expression != nullptr) {
-				ASTType* ty = (*output)->expression->getType();
-				if (ty != nullptr) {
-					(*output)->type = ty;
-				} else error("Type could not be inferred!");
-			}*/
 			return output;
 		} else return nullptr;
+	}
+
+	bool typeBody (ASTStatement** output) {
+		if (this->lexer->isNextType(Token::Type::FUNCTION)) {
+			return this->function(reinterpret_cast<ASTFunction**>(output));
+		} else if (this->lexer->isNextType(Token::Type::LET)) {
+			this->lexer->skip(1);
+			return this->_var_def(reinterpret_cast<ASTVariable**>(output));
+		} else return this->_var_def(reinterpret_cast<ASTVariable**>(output));
 	}
 
 	bool functionType (ASTFnType** output) {
