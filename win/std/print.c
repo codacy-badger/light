@@ -1,4 +1,4 @@
-#include <windows.h>
+
 
 int _strlen (const char* message) {
 	int len;

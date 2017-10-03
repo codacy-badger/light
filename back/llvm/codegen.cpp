@@ -7,6 +7,7 @@
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "llvm/IR/LegacyPassManager.h"
@@ -16,6 +17,7 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
+#include "llvm/Support/SourceMgr.h"
 
 #include "codegen_primitive.cpp"
 #include "scope.cpp"
@@ -46,6 +48,12 @@ public:
 	}
 
 	Module* buildModule (ASTScope* stms) {
+		/*SMDiagnostic error;
+		auto mod = parseIRFile("win/std/std.bc", error, context);
+		cout << "STD -> " << mod.get()->getSourceFileName() << "\n";
+		cout << "sys -> " << mod.get()->getFunction("system_") << "\n";
+
+		module = mod.release();*/
 		module = new Module("output", context);
 
 		this->codegen(stms);
