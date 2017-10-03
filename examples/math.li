@@ -19,6 +19,9 @@ fn main {
 	b = b + 1;
 	println_i32(b);
 
+	c = a + b;
+	println_i32(c);
+
 	fn work -> i32 {
 		let v1: Vec2;
 		let res : i32 = calc(5, 5);
@@ -35,11 +38,6 @@ type Val2 {
 
 type Val {
 	v: Val2;
-}
-
-fn calc (a: i32, b: i32) -> i32 {
-	let v1: Vec2;
-	return a * b;
 }
 
 fn calc (a: i32, b: i32) -> i32 {

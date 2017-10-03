@@ -51,7 +51,7 @@ public:
 		this->codegen(stms);
 
 		verifyModule(*module);
-		module->print(outs(), nullptr);
+		//module->print(outs(), nullptr);
 		return module;
 	}
 
@@ -70,7 +70,7 @@ public:
 		else if (auto obj = dynamic_cast<ASTType*>(stm)) {
 			codegen(obj);
 			return nullptr;
-		} else if (auto obj = dynamic_cast<ASTExpression*>(stm)) 	return codegen(obj);
+		} else if (auto obj = dynamic_cast<ASTExpression*>(stm)) return codegen(obj);
 		else {
 			std::string msg = "Unrecognized statement?! -> ";
 			msg += typeid(*stm).name();

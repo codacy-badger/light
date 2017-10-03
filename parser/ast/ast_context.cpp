@@ -29,6 +29,7 @@ struct ASTContext {
 			this->variables[name] = val;
 		} else {
 			cout << "ERROR: name collision: " << name << "\n";
+			exit(1);
 		}
 	}
 
