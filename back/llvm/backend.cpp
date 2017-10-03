@@ -17,14 +17,14 @@
 #include "llvm/Target/TargetOptions.h"
 
 #include "parser/ast/ast.hpp"
-#include "code_generator.cpp"
+#include "codegen.cpp"
 
 using namespace llvm;
 using namespace std;
 
 class LLVMBackend {
 public:
-	LLVMCodeGenerator* generator;
+	LLVMCodegen* generator = new LLVMCodegen();
 
 	LLVMBackend () {
 		InitializeAllTargetInfos();
@@ -35,11 +35,9 @@ public:
 	}
 
 	void writeObj (ASTScope* stms, const char* filepath = nullptr) {
-		LLVMCodeGenerator* generator = new LLVMCodeGenerator();
 		Module* module = generator->buildModule(stms);
 		this->writeObj(module, filepath);
 		delete module;
-		delete generator;
 	}
 
 	void writeObj (Module* module, const char* filepath = nullptr) {

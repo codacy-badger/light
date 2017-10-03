@@ -19,8 +19,11 @@
 
 using namespace llvm;
 
-class PrimitiveOP {
-public:
+struct LLVMCodegenPrimitive {
+	static Value* assign (IRBuilder<>* builder, Value* lhs, Value* rhs) {
+		return builder->CreateStore(rhs, lhs);
+	}
+
 	static Value* add (IRBuilder<>* builder, Value* lhs, Value* rhs) {
 		return builder->CreateAdd(lhs, rhs, "add");
 	}

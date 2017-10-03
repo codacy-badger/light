@@ -17,7 +17,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
-#include "primitive_op.cpp"
+#include "codegen_primitive.cpp"
 #include "scope.cpp"
 
 #include <string>
@@ -29,16 +29,16 @@
 using namespace llvm;
 using namespace std;
 
-class LLVMCodeGenerator {
+class LLVMCodegen {
 public:
 	LLVMContext context;
 	IRBuilder<> builder;
 
-	Module* module = nullptr;
-	stack<Function*> functionStack;
 	LLVMScope* scope;
 
-	LLVMCodeGenerator () : builder(context) {
+	Module* module = nullptr;
+
+	LLVMCodegen () : builder(context) {
 		scope = new LLVMScope(&builder);
 		scope->addType(ASTPrimitiveType::_void, Type::getVoidTy(context));
 		scope->addType(ASTPrimitiveType::_i32, Type::getInt32Ty(context));
@@ -51,7 +51,7 @@ public:
 		this->codegen(stms);
 
 		verifyModule(*module);
-		//module->print(outs(), nullptr);
+		module->print(outs(), nullptr);
 		return module;
 	}
 
@@ -77,21 +77,6 @@ public:
 			msg += "\n";
 			panic(msg.c_str());
 			return nullptr;
-		}
-	}
-
-	Value* codegen (ASTVariable* varDef, bool alloca = false) {
-		if (alloca) {
-			auto type = this->codegen(varDef->type);
-			auto alloca = builder.CreateAlloca(type, nullptr, varDef->name);
-			if (varDef->expression != NULL) {
-				Value* val = this->codegen(varDef->expression);
-				builder.CreateStore(val, alloca);
-			}
-			this->scope->addVariable(varDef, alloca);
-			return alloca;
-		} else {
-			return this->scope->getVariable(varDef);
 		}
 	}
 
@@ -135,7 +120,7 @@ public:
 		else if (auto call  = dynamic_cast<ASTCall*>(exp)) 	  return codegen(call);
 		else if (auto attr  = dynamic_cast<ASTAttr*>(exp)) 	  return codegen(attr);
 		else if (auto var   = dynamic_cast<ASTVariable*>(exp)) {
-			return builder.CreateLoad(codegen(var), var->name);
+			return builder.CreateLoad(this->codegen(var), var->name);
 		} else {
 			std::string msg = "Unrecognized expression?! -> ";
 			msg += typeid(*exp).name();
@@ -146,27 +131,54 @@ public:
 	}
 
 	Value* codegen (ASTBinop* binop) {
-		Value* lhs = this->codegen(binop->lhs);
-		Value* rhs = this->codegen(binop->rhs);
 		switch (binop->op) {
 			case ASTBinop::OP::ADD:
-				return PrimitiveOP::add(&builder, lhs, rhs);
+				return LLVMCodegenPrimitive::add(&builder,
+					this->codegen(binop->lhs), this->codegen(binop->rhs));
 			case ASTBinop::OP::SUB:
-				return PrimitiveOP::sub(&builder, lhs, rhs);
+				return LLVMCodegenPrimitive::sub(&builder,
+					this->codegen(binop->lhs), this->codegen(binop->rhs));
 			case ASTBinop::OP::MUL:
-				return PrimitiveOP::mul(&builder, lhs, rhs);
+				return LLVMCodegenPrimitive::mul(&builder,
+					this->codegen(binop->lhs), this->codegen(binop->rhs));
 			case ASTBinop::OP::DIV:
-				return PrimitiveOP::div(&builder, lhs, rhs);
+				return LLVMCodegenPrimitive::div(&builder,
+					this->codegen(binop->lhs), this->codegen(binop->rhs));
+			case ASTBinop::OP::ASSIGN: {
+				if (auto mem = dynamic_cast<ASTMemory*>(binop->lhs)) {
+					return LLVMCodegenPrimitive::assign(&builder,
+						this->codegen(mem), this->codegen(binop->rhs));
+				} else cout << "Assigment LHS is not memory!\n";
+			}
 			default: break;
 		}
 		return nullptr;
+	}
+
+	Value* codegen(ASTMemory* mem) {
+		if (auto var = dynamic_cast<ASTVariable*>(mem))
+			return this->codegen(var);
+		else return nullptr;
+	}
+
+	Value* codegen (ASTVariable* varDef, bool alloca = false) {
+		if (alloca) {
+			auto type = this->codegen(varDef->type);
+			auto alloca = builder.CreateAlloca(type, nullptr, varDef->name);
+			if (varDef->expression != NULL) {
+				Value* val = this->codegen(varDef->expression);
+				builder.CreateStore(val, alloca);
+			}
+			this->scope->addVariable(varDef, alloca);
+			return alloca;
+		} else return this->scope->getVariable(varDef);
 	}
 
 	Value* codegen (ASTUnop* unop) {
 		Value* val = this->codegen(unop->exp);
 		switch (unop->op) {
 			case ASTUnop::OP::NEG:
-				return PrimitiveOP::neg(&builder, val);
+				return LLVMCodegenPrimitive::neg(&builder, val);
 			default: break;
 		}
 		return nullptr;
@@ -206,7 +218,7 @@ public:
 	}
 
 	Function* codegen (ASTFunction* fn) {
-		auto function = module->getFunction(fn->name);
+		auto function = this->scope->getFunction(fn);
 		if (function != nullptr) return function;
 
 		vector<Type*> argTypes;
@@ -241,8 +253,6 @@ public:
 		verifyFunction(*function);
 		return function;
 	}
-
-	~LLVMCodeGenerator () { /* empty */ }
 
 private:
 	Value* createCall (ASTCall* call, std::string tmpName = "") {

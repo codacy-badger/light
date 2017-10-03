@@ -23,14 +23,14 @@
 using namespace llvm;
 using namespace std;
 
-class LLVMScope {
-public:
+struct LLVMScope {
 	LLVMScope* parent = nullptr;
 	IRBuilder<>* builder = nullptr;
 
 	map<ASTVariable*, AllocaInst*> variables;
-	map<ASTFunction*, Function*> functions;
-	map<ASTType*, Type*> types;
+
+	static map<ASTType*, Type*> types;
+	static map<ASTFunction*, Function*> functions;
 
 	LLVMScope (IRBuilder<>* builder, LLVMScope* parent = nullptr) {
 		this->builder = builder;
@@ -127,3 +127,6 @@ public:
 		}
 	}
 };
+
+map<ASTType*, Type*> LLVMScope::types;
+map<ASTFunction*, Function*> LLVMScope::functions;
