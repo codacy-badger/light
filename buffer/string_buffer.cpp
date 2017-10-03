@@ -10,7 +10,7 @@ using namespace std;
 class StringBuffer : public PushbackBuffer {
 	public:
 		StringBuffer (const char* source) :
-			PushbackBuffer(new istringstream(source))
+			PushbackBuffer(new istringstream(source), "<string>")
 		{ /* ignore */ }
 };
 

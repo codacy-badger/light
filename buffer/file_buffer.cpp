@@ -10,7 +10,7 @@ using namespace std;
 class FileBuffer : public PushbackBuffer {
 	public:
 		FileBuffer (const char* filename) :
-			PushbackBuffer(new ifstream(filename, ifstream::in))
+			PushbackBuffer(new ifstream(filename, ifstream::in), filename)
 		{ /* ignore */ }
 };
 

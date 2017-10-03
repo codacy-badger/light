@@ -17,14 +17,15 @@ using namespace std;
 
 class Parser {
 public:
+	Lexer* lexer;
 	ASTContext* context = new ASTContext();
 
 	Parser (const char* filename) {
-		this->initParser(new Lexer(filename), filename);
+		this->lexer = new Lexer(filename);
 	}
 
 	Parser (PushbackBuffer* buffer) {
-		this->initParser(new Lexer(buffer), "<buffer>");
+		this->lexer = new Lexer(buffer);
 	}
 
 	bool typeInstance (ASTType** output) {
@@ -242,14 +243,6 @@ public:
 	}
 
 private:
-	const char* source = nullptr;
-	Lexer* lexer = nullptr;
-
-	void initParser (Lexer* lexer, const char* source) {
-		this->source = source;
-		this->lexer = lexer;
-	}
-
 	bool atom (ASTExpression** output) {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
@@ -345,18 +338,18 @@ private:
 
 	void error (const char* message) {
 		cout << "[Light] ERROR: " << message << endl;
-		cout << "        in '" << this->source << "' @ " <<
-			this->lexer->buffer->line << ", " <<
-			this->lexer->buffer->col << endl;
+		cout << "        at ";
+		this->lexer->buffer->printLocation();
+		cout << endl;
 		exit(EXIT_FAILURE);
 	}
 
 	void expected (const char* expect, const char* after) {
 		cout << "[Light] ERROR: Expected " << expect
 			<< " after " << after << endl;
-		cout << "        in '" << this->source << "' @ " <<
-			this->lexer->buffer->line << ", " <<
-			this->lexer->buffer->col << endl;
+		cout << "        at ";
+		this->lexer->buffer->printLocation();
+		cout << endl;
 		exit(EXIT_FAILURE);
 	}
 };

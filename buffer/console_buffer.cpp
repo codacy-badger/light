@@ -7,7 +7,7 @@ using namespace std;
 
 class ConsoleBuffer : public PushbackBuffer {
 	public:
-		ConsoleBuffer () : PushbackBuffer(&cin)
+		ConsoleBuffer () : PushbackBuffer(&cin, "<console>")
 		{ /* ignore */ }
 };
 

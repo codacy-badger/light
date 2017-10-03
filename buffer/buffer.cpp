@@ -12,10 +12,12 @@ using namespace std;
 
 class PushbackBuffer {
 public:
+	const char* source;
 	unsigned int line = 1, col = 1;
 
-	PushbackBuffer (istream* stream) {
+	PushbackBuffer (istream* stream, const char* source = "<buffer>") {
 		this->stream = stream;
+		this->source = source;
 	}
 
 	int next () {
@@ -82,6 +84,11 @@ public:
 				if (++i == strlen(stopper)) return;
 			} else i = 0;
 		}
+	}
+
+	void printLocation () {
+		cout << "'" << this->source << "' @ "
+			<< this->line << ", " << this->col;
 	}
 
 	~PushbackBuffer () {
