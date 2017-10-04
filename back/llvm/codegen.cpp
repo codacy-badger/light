@@ -44,7 +44,6 @@ public:
 		scope = new LLVMScope(&builder);
 		scope->addType(ASTPrimitiveType::_void, Type::getVoidTy(context));
 		scope->addType(ASTPrimitiveType::_i32, Type::getInt32Ty(context));
-		scope->addType(ASTPrimitiveType::_int, ASTPrimitiveType::_i32);
 	}
 
 	Module* buildModule (ASTScope* stms) {

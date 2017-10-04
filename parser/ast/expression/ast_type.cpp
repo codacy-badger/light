@@ -7,12 +7,24 @@ struct ASTVariable;
 struct ASTFunction;
 
 struct ASTType : ASTExpression {
+	std::vector<ASTVariable*> attrs;
+	std::vector<ASTFunction*> methods;
+
 	virtual bool isPrimitive () = 0;
 
 	virtual bool isConstant() { return true; }
 	virtual ASTType* getType() {
 		//TODO: return special Type for consistency
 		return nullptr;
+	}
+};
+
+struct ASTAliasType : ASTType {
+	std::string name;
+	ASTType* type = nullptr;
+
+	bool isPrimitive () {
+		return type->isPrimitive();
 	}
 };
 
@@ -27,8 +39,6 @@ struct ASTFnType : ASTType {
 
 struct ASTStructType : ASTType {
 	std::string name;
-	std::vector<ASTVariable*> attrs;
-	std::vector<ASTFunction*> methods;
 
 	ASTStructType (std::string name = "") { this->name = name; }
 	bool isPrimitive () { return false; }
@@ -44,9 +54,7 @@ struct ASTPrimitiveType : ASTType {
 
 	static ASTType* _void;
 	static ASTType* _i32;
-	static ASTType* _int;
 };
 
 ASTType* ASTPrimitiveType::_void = new ASTPrimitiveType("void");
 ASTType* ASTPrimitiveType::_i32 = new ASTPrimitiveType("i32");
-ASTType* ASTPrimitiveType::_int = new ASTPrimitiveType("int");

@@ -124,7 +124,7 @@ public:
 			return false;
 		}
 
-		if (this->type(reinterpret_cast<ASTStructType**>(output))) return true;
+		if (this->type(reinterpret_cast<ASTType**>(output))) return true;
 		if (this->function(reinterpret_cast<ASTFunction**>(output))) return true;
 		if (this->var_def(reinterpret_cast<ASTVariable**>(output))) return true;
 		if (this->returnStm(reinterpret_cast<ASTReturn**>(output))) return true;
@@ -164,32 +164,51 @@ public:
 		return true;
 	}
 
-	bool type (ASTStructType** output) {
+	bool type (ASTType** output) {
 		if (this->lexer->isNextType(Token::Type::TYPE)) {
 			this->lexer->skip(1);
-			(*output) = new ASTStructType(this->lexer->text());
+			auto name = this->lexer->text();
 
-			ASTStatement* stm;
-			if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
+			if (this->lexer->isNextType(Token::Type::EQUAL)) {
 				this->lexer->skip(1);
-			else expected("'{'", "type name");
-			while (this->typeBody(&stm)) {
-				if (auto var = dynamic_cast<ASTVariable*>(stm)) {
-					(*output)->attrs.push_back(var);
-					if (this->lexer->isNextType(Token::Type::STM_END))
-						this->lexer->skip(1);
-					else expected("';'", "type attribute");
-				} else if (auto fn = dynamic_cast<ASTFunction*>(stm))
-					(*output)->methods.push_back(fn);
-				else error("Expected attribute or method inside type");
+				ASTType* ty;
+				this->typeInstance(&ty);
+				if (ty != nullptr) this->context->add(name, ty);
+				if (this->lexer->isNextType(Token::Type::STM_END))
+					this->lexer->skip(1);
+				else expected("';'", "type alias");
+			} else {
+				auto ptr = reinterpret_cast<ASTStructType**>(output);
+				return this->structType(ptr, name);
 			}
-			if (this->lexer->isNextType(Token::Type::BRAC_CLOSE))
-				this->lexer->skip(1);
-			else expected("'}'", "type body");
 
-			this->context->add((*output)->name, (*output));
 			return true;
 		} else return false;
+	}
+
+	bool structType (ASTStructType** output, string name) {
+		(*output) = new ASTStructType(name);
+
+		ASTStatement* stm;
+		if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
+			this->lexer->skip(1);
+		else expected("'{'", "type name");
+		while (this->typeBody(&stm)) {
+			if (auto var = dynamic_cast<ASTVariable*>(stm)) {
+				(*output)->attrs.push_back(var);
+				if (this->lexer->isNextType(Token::Type::STM_END))
+					this->lexer->skip(1);
+				else expected("';'", "type attribute");
+			} else if (auto fn = dynamic_cast<ASTFunction*>(stm))
+				(*output)->methods.push_back(fn);
+			else error("Expected attribute or method inside type");
+		}
+		if (this->lexer->isNextType(Token::Type::BRAC_CLOSE))
+			this->lexer->skip(1);
+		else expected("'}'", "type body");
+
+		this->context->add((*output)->name, (*output));
+		return true;
 	}
 
 	bool var_def (ASTVariable** output) {
