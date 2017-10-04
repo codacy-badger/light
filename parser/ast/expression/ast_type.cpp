@@ -19,12 +19,11 @@ struct ASTType : ASTExpression {
 	}
 };
 
-struct ASTAliasType : ASTType {
-	std::string name;
-	ASTType* type = nullptr;
+struct ASTPointerType : ASTType {
+	ASTType* base = nullptr;
 
 	bool isPrimitive () {
-		return type->isPrimitive();
+		return base->isPrimitive();
 	}
 };
 

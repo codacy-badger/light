@@ -29,7 +29,13 @@ public:
 	}
 
 	bool typeInstance (ASTType** output) {
-		if (this->lexer->isNextType(Token::Type::ID)) {
+		if (this->lexer->isNextType(Token::Type::MUL)) {
+			this->lexer->skip(1);
+			auto ptrTy = new ASTPointerType();
+			auto result = this->typeInstance(&ptrTy->base);
+			(*output) = ptrTy;
+			return result;
+		} else if (this->lexer->isNextType(Token::Type::ID)) {
 			auto typeName = this->lexer->text();
 			auto typeExp = this->context->get(typeName);
 			if (typeExp == nullptr) {
@@ -304,8 +310,7 @@ private:
 
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
-				if (this->lexer->isNextType(Token::Type::ID))
-					this->typeInstance(&(*output)->type);
+				this->typeInstance(&(*output)->type);
 			}
 
 			if (this->lexer->isNextType(Token::Type::EQUAL)) {

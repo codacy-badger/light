@@ -18,7 +18,6 @@ struct ASTContext {
 		if (parent == nullptr) {
 			this->add("void", ASTPrimitiveType::_void);
 			this->add("i32", ASTPrimitiveType::_i32);
-			//this->add("int", ASTPrimitiveType::_i32);
 		}
 	}
 

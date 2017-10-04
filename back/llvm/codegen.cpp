@@ -86,6 +86,7 @@ public:
 		if (type != nullptr) return type;
 		else {
 			if (auto obj = dynamic_cast<ASTStructType*>(ty)) return codegen(obj);
+			else if (auto obj = dynamic_cast<ASTPointerType*>(ty)) return codegen(obj);
 			else {
 				std::string msg = "Unrecognized type struct?! -> ";
 				msg += typeid(*ty).name();
@@ -94,6 +95,19 @@ public:
 				return nullptr;
 			}
 		}
+	}
+
+	Type* codegen (ASTPointerType* ty) {
+		PointerType* ptrTy = nullptr;
+		Type* baseTy = this->codegen(ty->base);
+		if (PointerType::isValidElementType(baseTy)) {
+			return PointerType::get(baseTy, 0);
+		} else {
+			outs() << "Invalid type to use in pointer: ";
+			baseTy->print(outs());
+			exit(1);
+		}
+		return ptrTy;
 	}
 
 	Type* codegen (ASTStructType* ty) {
