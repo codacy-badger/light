@@ -133,10 +133,8 @@ public:
 		else if (auto unop  = dynamic_cast<ASTUnop*>(exp))    return codegen(unop);
 		else if (auto con   = dynamic_cast<ASTLiteral*>(exp)) return codegen(con);
 		else if (auto call  = dynamic_cast<ASTCall*>(exp)) 	  return codegen(call);
-		else if (auto attr  = dynamic_cast<ASTAttr*>(exp)) 	  return codegen(attr);
-		else if (auto var   = dynamic_cast<ASTVariable*>(exp)) {
-			return builder.CreateLoad(this->codegen(var), var->name);
-		} else {
+		else if (auto mem  = dynamic_cast<ASTMemory*>(exp))   return codegen(mem, true);
+		else {
 			std::string msg = "Unrecognized expression?! -> ";
 			msg += typeid(*exp).name();
 			msg += "\n";
@@ -170,10 +168,18 @@ public:
 		return nullptr;
 	}
 
-	Value* codegen(ASTMemory* mem) {
-		if (auto var = dynamic_cast<ASTVariable*>(mem))
-			return this->codegen(var);
-		else return nullptr;
+	Value* codegen(ASTMemory* mem, bool autoDeref = false) {
+		Value* val = nullptr;
+		if (auto ref  = dynamic_cast<ASTRef*>(mem)) return codegen(ref);
+		else if (auto var = dynamic_cast<ASTVariable*>(mem)) {
+			val = codegen(var);
+		} else if (auto attr  = dynamic_cast<ASTAttr*>(mem)) {
+			val = codegen(var);
+		} else if (auto der  = dynamic_cast<ASTDeref*>(mem)) {
+			val = codegen(var);
+		} else return nullptr;
+		if (autoDeref) val =  builder.CreateLoad(val, ".der");
+		return val;
 	}
 
 	Value* codegen (ASTVariable* varDef, bool alloca = false) {
@@ -187,6 +193,15 @@ public:
 			this->scope->addVariable(varDef, alloca);
 			return alloca;
 		} else return this->scope->getVariable(varDef);
+	}
+
+	Value* codegen (ASTRef* ref) {
+		return this->codegen(ref->memory);
+	}
+
+	Value* codegen (ASTDeref* deref) {
+		auto val = this->codegen(deref->memory);
+		return builder.CreateLoad(val, "");
 	}
 
 	Value* codegen (ASTUnop* unop) {

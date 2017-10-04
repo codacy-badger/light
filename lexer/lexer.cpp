@@ -54,6 +54,7 @@ public:
 	    LITERAL_TOKEN("}", Token::Type::BRAC_CLOSE);
 	    LITERAL_TOKEN("[", Token::Type::SQ_BRAC_OPEN);
 	    LITERAL_TOKEN("]", Token::Type::SQ_BRAC_CLOSE);
+		LITERAL_TOKEN("&", Token::Type::AMP);
 		LITERAL_TOKEN("let", Token::Type::LET);
 	    LITERAL_TOKEN("type", Token::Type::TYPE);
 	    LITERAL_TOKEN("fn", Token::Type::FUNCTION);

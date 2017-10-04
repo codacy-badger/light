@@ -271,17 +271,31 @@ private:
 	bool atom (ASTExpression** output) {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
-			this->expression(output);
+			auto result = this->expression(output);
 			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
 				this->lexer->skip(1);
 			else error("Expected closing parenthesys after expression");
-			return true;
+			return result;
 		} else if (this->lexer->isNextType(Token::Type::SUB)) {
 			this->lexer->skip(1);
 			auto unop = new ASTUnop(Token::Type::SUB);
-			this->atom(&unop->exp);
+			auto result = this->atom(&unop->exp);
 			(*output) = unop;
-			return true;
+			return result;
+		} else if (this->lexer->isNextType(Token::Type::AMP)) {
+			this->lexer->skip(1);
+			auto deref = new ASTDeref();
+			auto memAsExp = reinterpret_cast<ASTExpression**>(&deref->memory);
+			auto result = this->atom(memAsExp);
+			(*output) = deref;
+			return result;
+		} else if (this->lexer->isNextType(Token::Type::MUL)) {
+			this->lexer->skip(1);
+			auto ref = new ASTRef();
+			auto memAsExp = reinterpret_cast<ASTExpression**>(&ref->memory);
+			auto result = this->atom(memAsExp);
+			(*output) = ref;
+			return result;
 		} else if (this->lexer->isNextType(Token::Type::ADD)) {
 			this->lexer->skip(1);
 			this->expression(output);

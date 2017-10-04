@@ -17,6 +17,7 @@ public:
 		DIV,
 		MUL,
 		LET,
+		AMP,
 		ARROW,
 		TYPE,
 		FUNCTION,
@@ -46,6 +47,7 @@ public:
 			ENUM_STR(DIV);
 			ENUM_STR(MUL);
 			ENUM_STR(LET);
+			ENUM_STR(AMP);
 			ENUM_STR(ARROW);
 			ENUM_STR(TYPE);
 			ENUM_STR(FUNCTION);

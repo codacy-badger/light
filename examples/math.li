@@ -5,12 +5,14 @@ type Vec2 {
 
 fn main {
 	let v1: *int;
+	println_i32(v1);
 
 	let a := -(1);
 	let b = 6 * 2 - 9 / 3;
 	let c = -a + 2;
 	let d = c + work();
 	println_i32(a);
+	println_i32(*a);
 	println_i32(b);
 	println_i32(c);
 	println_i32(d);

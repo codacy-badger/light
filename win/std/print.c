@@ -43,8 +43,7 @@ void println () {
 
 void print_i32 (int value) {
 	char buffer[15];
-	char* addr = &buffer[0];
-	_i32_toString(value, addr);
+	_i32_toString(value, buffer);
 	print(buffer);
 }
 

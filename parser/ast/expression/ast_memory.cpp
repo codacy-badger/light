@@ -15,6 +15,32 @@ struct ASTVariable : ASTMemory {
 	}
 };
 
+struct ASTRef : ASTMemory {
+	ASTMemory* memory = nullptr;
+
+	bool isConstant() {
+		return this->memory->isConstant();
+	}
+
+	ASTType* getType() {
+		// TODO: return some sort of custom pointer type
+		return nullptr;
+	}
+};
+
+struct ASTDeref : ASTMemory {
+	ASTMemory* memory = nullptr;
+
+	bool isConstant() {
+		return this->memory->isConstant();
+	}
+
+	ASTType* getType() {
+		// TODO: return some sort of custom pointer type
+		return nullptr;
+	}
+};
+
 struct ASTAttr : ASTMemory {
 	ASTExpression* exp = nullptr;
 	std::string name;
