@@ -14,22 +14,12 @@ fn main {
 
 	let a := -(1);
 	let b = 6 * 2 - 9 / 3;
-	let c = -a + 2;
-	let d = c + work();
+	let d = b + work();
 	println_i32(a);
-	println_i32(*a);
 	println_i32(b);
-	println_i32(c);
 	println_i32(d);
 
-	a = 42;
-	println_i32(a);
-
-	b = b + 1;
-	println_i32(b);
-
-	c = a + b;
-	println_i32(c);
+	let boolean : i1;
 
 	fn work -> i32 {
 		let res : i32 = calc(5, 5);

@@ -43,7 +43,12 @@ public:
 	LLVMCodegen () : builder(context) {
 		scope = new LLVMScope(&builder);
 		scope->addType(ASTPrimitiveType::_void, Type::getVoidTy(context));
-		scope->addType(ASTPrimitiveType::_i32, Type::getInt32Ty(context));
+		scope->addType(ASTPrimitiveType::_i1,   Type::getInt1Ty(context));
+		scope->addType(ASTPrimitiveType::_i8,   Type::getInt8Ty(context));
+		scope->addType(ASTPrimitiveType::_i16,  Type::getInt16Ty(context));
+		scope->addType(ASTPrimitiveType::_i32,  Type::getInt32Ty(context));
+		scope->addType(ASTPrimitiveType::_i64,  Type::getInt64Ty(context));
+		scope->addType(ASTPrimitiveType::_i128, Type::getInt128Ty(context));
 	}
 
 	Module* buildModule (ASTScope* stms) {
@@ -52,7 +57,7 @@ public:
 		this->codegen(stms);
 
 		verifyModule(*module);
-		//module->print(outs(), nullptr);
+		module->print(outs(), nullptr);
 		return module;
 	}
 

@@ -17,7 +17,12 @@ struct ASTContext {
 		this->parent = parent;
 		if (parent == nullptr) {
 			this->add("void", ASTPrimitiveType::_void);
+			this->add("i1", ASTPrimitiveType::_i1);
+			this->add("i8", ASTPrimitiveType::_i8);
+			this->add("i16", ASTPrimitiveType::_i16);
 			this->add("i32", ASTPrimitiveType::_i32);
+			this->add("i64", ASTPrimitiveType::_i64);
+			this->add("i128", ASTPrimitiveType::_i128);
 		}
 	}
 
