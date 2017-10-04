@@ -52,7 +52,7 @@ public:
 		this->codegen(stms);
 
 		verifyModule(*module);
-		module->print(outs(), nullptr);
+		//module->print(outs(), nullptr);
 		return module;
 	}
 
@@ -178,7 +178,7 @@ public:
 		} else if (auto der = dynamic_cast<ASTDeref*>(mem)) {
 			val = codegen(der);
 		} else return nullptr;
-		if (autoDeref) val =  builder.CreateLoad(val, ".der");
+		if (autoDeref) val =  builder.CreateLoad(val);
 		return val;
 	}
 
