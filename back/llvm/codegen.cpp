@@ -48,12 +48,6 @@ public:
 	}
 
 	Module* buildModule (ASTScope* stms) {
-		/*SMDiagnostic error;
-		auto mod = parseIRFile("win/std/std.bc", error, context);
-		cout << "STD -> " << mod.get()->getSourceFileName() << "\n";
-		cout << "sys -> " << mod.get()->getFunction("system_") << "\n";
-
-		module = mod.release();*/
 		module = new Module("output", context);
 
 		this->codegen(stms);

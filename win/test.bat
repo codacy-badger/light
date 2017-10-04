@@ -18,5 +18,5 @@ test\for
 test\struct
 
 echo.
-link /nologo /ENTRY:main output.obj kernel32.lib build\std_li.lib
-output
+link /nologo /ENTRY:main /OUT:"build\output.exe" build/output.obj kernel32.lib build\std_li.lib
+build\output
