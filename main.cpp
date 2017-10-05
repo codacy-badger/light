@@ -248,7 +248,7 @@ int main (int argc, char** argv) {
 			std::cout << "Frontend " << clockStop(front) << "s" << std::endl;
 			//ASTPrinter::print(scope);
 		    start = clock();
-			//backend->writeObj(scope, OutputFilename.c_str());
+			backend->writeObj(scope, OutputFilename.c_str());
 			std::cout << "LLVM Backend " << clockStop(start) << "s" << std::endl;
 			std::cout << "TOTAL " << clockStop(total) << "s" << std::endl;
 		}
