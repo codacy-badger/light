@@ -246,7 +246,7 @@ int main (int argc, char** argv) {
 		if (isParsed) {
 			runCompilerPasses(scope);
 			std::cout << "Frontend " << clockStop(front) << "s" << std::endl;
-			//ASTPrinter::print(scope);
+			ASTPrinter::print(scope);
 		    start = clock();
 			backend->writeObj(scope, OutputFilename.c_str());
 			std::cout << "LLVM Backend " << clockStop(start) << "s" << std::endl;

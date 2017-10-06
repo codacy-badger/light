@@ -88,6 +88,7 @@ public:
 	static void print (ASTType* type, int tabs = 0, bool nameOnly = false) {
 		if 		(auto obj = dynamic_cast<ASTPrimitiveType*>(type)) 	print(obj, tabs, nameOnly);
 		else if (auto obj = dynamic_cast<ASTStructType*>(type))    	print(obj, tabs, nameOnly);
+		else if (auto obj = dynamic_cast<ASTPointerType*>(type))    print(obj, tabs, nameOnly);
 		else if (auto obj = dynamic_cast<ASTFnType*>(type))    		print(obj, tabs, nameOnly);
 		else {
 			std::string msg = "Unrecognized type struct?! -> ";
@@ -102,10 +103,6 @@ public:
 		cout << type->name;
 	}
 
-	static void print (ASTFnType* type, int tabs = 0, bool nameOnly = false) {
-		cout << "+FnType+" ;
-	}
-
 	static void print (ASTStructType* type, int tabs = 0, bool nameOnly = false) {
 		if (!nameOnly) cout << "struct type ";
 		cout << type->name;
@@ -117,12 +114,23 @@ public:
 		}
 	}
 
+	static void print (ASTPointerType* type, int tabs = 0, bool nameOnly = false) {
+		cout << "*";
+		print(type->base, tabs, nameOnly);
+	}
+
+	static void print (ASTFnType* type, int tabs = 0, bool nameOnly = false) {
+		cout << "+FnType+" ;
+	}
+
 	static void print (ASTExpression* exp, int tabs = 0) {
 		if 		(auto obj = dynamic_cast<ASTBinop*>(exp))    print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTUnop*>(exp))     print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTLiteral*>(exp))    print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTLiteral*>(exp))  print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTCall*>(exp))     print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTAttr*>(exp))     print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTRef*>(exp))      print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTDeref*>(exp))    print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTFunction*>(exp)) print(obj, tabs, true);
 		else if (auto obj = dynamic_cast<ASTVariable*>(exp)) print(obj, tabs, true);
 		else {
@@ -158,6 +166,18 @@ public:
 			case ASTLiteral::STRING: cout << "\"" << cons->stringValue << "\""; break;
 			default: break;
 		}
+	}
+
+	static void print (ASTRef* ref, int tabs = 0) {
+		cout << "(*";
+		print(ref->memory, tabs);
+		cout << ")";
+	}
+
+	static void print (ASTDeref* deref, int tabs = 0) {
+		cout << "(&";
+		print(deref->memory, tabs);
+		cout << ")";
 	}
 
 	static void print (ASTCall* call, int tabs = 0) {
