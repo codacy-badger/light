@@ -15,24 +15,14 @@
 
 using namespace std;
 
-class Parser {
-public:
+struct Parser {
 	Lexer* lexer;
-	ASTScope* scope = new ASTScope();
+	ASTScope* scope;
 
-	Parser (const char* filename) {
-		this->lexer = new Lexer(filename);
-		this->scope->add("void", ASTPrimitiveType::_void);
-		this->scope->add("i1", ASTPrimitiveType::_i1);
-		this->scope->add("i8", ASTPrimitiveType::_i8);
-		this->scope->add("i16", ASTPrimitiveType::_i16);
-		this->scope->add("i32", ASTPrimitiveType::_i32);
-		this->scope->add("i64", ASTPrimitiveType::_i64);
-		this->scope->add("i128", ASTPrimitiveType::_i128);
-	}
-
-	Parser (PushbackBuffer* buffer) {
-		this->lexer = new Lexer(buffer);
+	template <typename LexerParam>
+	Parser (LexerParam param) {
+		this->lexer = new Lexer(param);
+		this->scope = new ASTScope();
 		this->scope->add("void", ASTPrimitiveType::_void);
 		this->scope->add("i1", ASTPrimitiveType::_i1);
 		this->scope->add("i8", ASTPrimitiveType::_i8);
