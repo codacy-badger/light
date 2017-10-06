@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
@@ -21,29 +22,41 @@ T* setASTLocation (Lexer* lexer, T* node) {
 	node->filename = lexer->buffer->source;
 	node->line = lexer->buffer->line;
 	node->col = lexer->buffer->col;
-	node->print();
 	return node;
 }
 
 struct Parser {
 	Lexer* lexer;
-	ASTScope* scope;
+	ASTScope* currentScope;
 
 	template <typename LexerParam>
 	Parser (LexerParam param) {
 		this->lexer = new Lexer(param);
-		this->scope = AST_NEW(ASTScope);
-		this->scope->add("void", ASTPrimitiveType::_void);
-		this->scope->add("i1", ASTPrimitiveType::_i1);
-		this->scope->add("i8", ASTPrimitiveType::_i8);
-		this->scope->add("i16", ASTPrimitiveType::_i16);
-		this->scope->add("i32", ASTPrimitiveType::_i32);
-		this->scope->add("i64", ASTPrimitiveType::_i64);
-		this->scope->add("i128", ASTPrimitiveType::_i128);
+		this->currentScope = AST_NEW(ASTScope, "<global>");
+		this->currentScope->add("void", ASTPrimitiveType::_void);
+		this->currentScope->add("i1",   ASTPrimitiveType::_i1);
+		this->currentScope->add("i8",   ASTPrimitiveType::_i8);
+		this->currentScope->add("i16",  ASTPrimitiveType::_i16);
+		this->currentScope->add("i32",  ASTPrimitiveType::_i32);
+		this->currentScope->add("i64",  ASTPrimitiveType::_i64);
+		this->currentScope->add("i128", ASTPrimitiveType::_i128);
 	}
 
-	bool program (ASTScope** output) {
-		return this->statements(output, false);
+	ASTScope* program () {
+		this->statements();
+		return this->currentScope;
+	}
+
+	bool statements () {
+		ASTStatement* exp;
+		while (this->statement(&exp)) {
+			if (auto ty = dynamic_cast<ASTType*>(exp))
+				this->currentScope->types.push_back(ty);
+			else if (auto fn = dynamic_cast<ASTFunction*>(exp))
+				this->currentScope->functions.push_back(fn);
+			else this->currentScope->list.push_back(exp);
+		}
+		return true;
 	}
 
 	bool statement (ASTStatement** output) {
@@ -65,7 +78,15 @@ struct Parser {
 				return this->returnStm(reinterpret_cast<ASTReturn**>(output));
 			}
 			case Token::Type::BRAC_OPEN: {
-				return this->statements(reinterpret_cast<ASTScope**>(output));
+				this->scopePush("<anon>");
+				this->lexer->skip(1);
+				auto result = this->statements();
+				if(this->lexer->isNextType(Token::Type::BRAC_CLOSE))
+					this->lexer->skip(1);
+				else expected("'}'", "statements");
+				(*output) = this->currentScope;
+				this->scopePop();
+				return result;
 			}
 			default: {
 				if (this->expression(reinterpret_cast<ASTExpression**>(output))) {
@@ -88,7 +109,7 @@ struct Parser {
 				this->lexer->skip(1);
 				ASTType* ty;
 				this->_typeInstance(&ty);
-				if (ty != nullptr) this->scope->add(name, ty);
+				if (ty != nullptr) this->currentScope->add(name, ty);
 				if (this->lexer->isNextType(Token::Type::STM_END))
 					this->lexer->skip(1);
 				else expected("';'", "type alias");
@@ -122,7 +143,7 @@ struct Parser {
 			this->lexer->skip(1);
 		else expected("'}'", "type body");
 
-		this->scope->add((*output)->name, (*output));
+		this->currentScope->add((*output)->name, (*output));
 		return true;
 	}
 
@@ -143,26 +164,22 @@ struct Parser {
 				(*output)->name = this->lexer->text();
 			else expected("Identifier", "'fn' keyword");
 			this->_functionType(&(*output)->type);
-			this->scope->add((*output)->name, (*output));
+			this->currentScope->add((*output)->name, (*output));
 
-			this->scope = AST_NEW(ASTScope, this->scope);
-			for (auto const &param : (*output)->type->params)
-				this->scope->add(param->name, param);
-			this->statement(&(*output)->stm);
-			if (this->scope->parent != nullptr) {
-				auto pUnr = &this->scope->parent->unresolved;
-				for (auto const &it : this->scope->unresolved) {
-					auto entry = pUnr->find(it.first);
-					if (entry == pUnr->end()) {
-						(*pUnr)[it.first] = it.second;
-					} else {
-						for (auto const &ref : it.second)
-							(*pUnr)[it.first].push_back(ref);
-					}
-				}
+			if (this->lexer->isNextType(Token::Type::STM_END))
+				this->lexer->skip(1);
+			else if (this->lexer->isNextType(Token::Type::BRAC_OPEN)) {
+				this->scopePush((*output)->name);
+				this->lexer->skip(1);
+				for (auto const &param : (*output)->type->params)
+					this->currentScope->add(param->name, param);
+				this->statements();
+				if(this->lexer->isNextType(Token::Type::BRAC_CLOSE))
+					this->lexer->skip(1);
+				else expected("'}'", "function body");
+				(*output)->stm = this->currentScope;
+				this->scopePop();
 			}
-			this->scope = this->scope->parent;
-
 			return true;
 		} else return false;
 	}
@@ -204,7 +221,7 @@ struct Parser {
 				this->lexer->skip(1);
 			else expected("';'", "variable declaration");
 
-			this->scope->add((*output)->name, (*output));
+			this->currentScope->add((*output)->name, (*output));
 			return true;
 		} else return false;
 	}
@@ -238,9 +255,9 @@ struct Parser {
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
 			auto typeName = this->lexer->text();
-			auto typeExp = this->scope->get(typeName);
+			auto typeExp = this->currentScope->get(typeName);
 			if (typeExp == nullptr) {
-				this->scope->addUnresolved(typeName, output);
+				this->currentScope->addUnresolved(typeName, output);
 			} else {
 				(*output) = dynamic_cast<ASTType*>(typeExp);
 				if ((*output) == nullptr) error("Name is not a type!");
@@ -259,33 +276,6 @@ struct Parser {
 			else expected("';'", "return expression");
 			return true;
 		} else return false;
-	}
-
-	bool statements (ASTScope** output, bool forceBraquets = true) {
-		if (forceBraquets) {
-			if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
-				this->lexer->skip(1);
-			else return false;
-		}
-
-		auto stms = AST_NEW(ASTScope);
-		ASTStatement* exp;
-		while (this->statement(&exp)) {
-			if (auto ty = dynamic_cast<ASTType*>(exp))
-				stms->types.push_back(ty);
-			else if (auto fn = dynamic_cast<ASTFunction*>(exp))
-				stms->functions.push_back(fn);
-			else stms->list.push_back(exp);
-		}
-		(*output) = stms;
-
-		if (forceBraquets) {
-			if (this->lexer->isNextType(Token::Type::BRAC_CLOSE))
-				this->lexer->skip(1);
-			else expected("'}'", "statements");
-		}
-
-		return true;
 	}
 
 	bool expression (ASTExpression** output, short minPrecedence = 1) {
@@ -352,7 +342,7 @@ struct Parser {
 				ASTCall* fnCall;
 				this->call(&fnCall);
 				if ((*output) == nullptr)
-					this->scope->addUnresolved(name, &fnCall->var);
+					this->currentScope->addUnresolved(name, &fnCall->var);
 				else fnCall->var = dynamic_cast<ASTFunction*>(*output);
 				(*output) = fnCall;
 				return true;
@@ -393,7 +383,7 @@ struct Parser {
 	bool variable (ASTExpression** output) {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			string name(this->lexer->nextText);
-			(*output) = this->scope->get(name);
+			(*output) = this->currentScope->get(name);
 			if ((*output) != nullptr) this->lexer->skip(1);
 
 			Token::Type tt = this->lexer->nextType;
@@ -411,6 +401,26 @@ struct Parser {
 
 			return output;
 		} else return nullptr;
+	}
+
+	void scopePush (std::string name) {
+		assert(this->currentScope);
+		this->currentScope = AST_NEW(ASTScope, name, this->currentScope);
+	}
+
+	void scopePop () {
+		assert(this->currentScope->parent);
+		auto pUnr = &this->currentScope->parent->unresolved;
+		for (auto const &it : this->currentScope->unresolved) {
+			auto entry = pUnr->find(it.first);
+			if (entry == pUnr->end()) {
+				(*pUnr)[it.first] = it.second;
+			} else {
+				for (auto const &ref : it.second)
+					(*pUnr)[it.first].push_back(ref);
+			}
+		}
+		this->currentScope = this->currentScope->parent;
 	}
 
 	void error (const char* message) {

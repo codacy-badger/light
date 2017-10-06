@@ -236,19 +236,18 @@ int main (int argc, char** argv) {
 	LLVMContext GlobalContext;
 	LLVMBackend* backend = new LLVMBackend();
 
-	ASTScope* scope = nullptr;
 	for (auto &filename : InputFilenames) {
 		auto parser = new Parser(filename.c_str());
 	    auto start = clock(), front = clock(), total = clock();
-	    auto isParsed = parser->program(&scope);
+	    auto globalScope = parser->program();
 		std::cout << "  AST Parser " << clockStop(start) << "s" << std::endl;
 
-		if (isParsed) {
-			runCompilerPasses(scope);
+		if (globalScope) {
+			runCompilerPasses(globalScope);
 			std::cout << "Frontend " << clockStop(front) << "s" << std::endl;
-			ASTPrinter::print(scope);
+			ASTPrinter::print(globalScope);
 		    start = clock();
-			backend->writeObj(scope, OutputFilename.c_str());
+			backend->writeObj(globalScope, OutputFilename.c_str());
 			std::cout << "LLVM Backend " << clockStop(start) << "s" << std::endl;
 			std::cout << "TOTAL " << clockStop(total) << "s" << std::endl;
 		}

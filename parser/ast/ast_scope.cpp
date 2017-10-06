@@ -1,6 +1,7 @@
 #pragma once
 
 struct ASTScope : ASTStatement {
+	std::string name;
 	std::vector<ASTType*> types;
 	std::vector<ASTFunction*> functions;
 	std::vector<ASTStatement*> list;
@@ -9,8 +10,9 @@ struct ASTScope : ASTStatement {
 	map<string, ASTExpression*> variables;
 	map<string, vector<void*>> unresolved;
 
-	ASTScope (ASTScope* parent = nullptr) {
+	ASTScope (std::string name, ASTScope* parent = nullptr) {
 		this->parent = parent;
+		this->name = name;
 	}
 
 	void add (string name, ASTExpression* val) {
