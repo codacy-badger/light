@@ -15,6 +15,16 @@
 
 using namespace std;
 
+#define AST_NEW(T, ...) setASTLocation(lexer, new T(__VA_ARGS__))
+template <typename T>
+T* setASTLocation (Lexer* lexer, T* node) {
+	node->filename = lexer->buffer->source;
+	node->line = lexer->buffer->line;
+	node->col = lexer->buffer->col;
+	node->print();
+	return node;
+}
+
 struct Parser {
 	Lexer* lexer;
 	ASTScope* scope;
@@ -22,7 +32,7 @@ struct Parser {
 	template <typename LexerParam>
 	Parser (LexerParam param) {
 		this->lexer = new Lexer(param);
-		this->scope = new ASTScope();
+		this->scope = AST_NEW(ASTScope);
 		this->scope->add("void", ASTPrimitiveType::_void);
 		this->scope->add("i1", ASTPrimitiveType::_i1);
 		this->scope->add("i8", ASTPrimitiveType::_i8);
@@ -92,7 +102,7 @@ struct Parser {
 	}
 
 	bool structType (ASTStructType** output, string name) {
-		(*output) = new ASTStructType(name);
+		(*output) = AST_NEW(ASTStructType, name);
 
 		ASTStatement* stm;
 		if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
@@ -128,14 +138,14 @@ struct Parser {
 	bool function (ASTFunction** output) {
 		if (this->lexer->isNextType(Token::Type::FUNCTION)) {
 			this->lexer->skip(1);
-			(*output) = new ASTFunction();
+			(*output) = AST_NEW(ASTFunction);
 			if (this->lexer->isNextType(Token::Type::ID))
 				(*output)->name = this->lexer->text();
 			else expected("Identifier", "'fn' keyword");
 			this->_functionType(&(*output)->type);
 			this->scope->add((*output)->name, (*output));
 
-			this->scope = new ASTScope(this->scope);
+			this->scope = AST_NEW(ASTScope, this->scope);
 			for (auto const &param : (*output)->type->params)
 				this->scope->add(param->name, param);
 			this->statement(&(*output)->stm);
@@ -158,7 +168,7 @@ struct Parser {
 	}
 
 	bool _functionType (ASTFnType** output) {
-		(*output) = new ASTFnType();
+		(*output) = AST_NEW(ASTFnType);
 		this->_functionParameters(&(*output)->params);
 		if (this->lexer->isNextType(Token::Type::ARROW)) {
 			this->lexer->skip(1);
@@ -201,7 +211,7 @@ struct Parser {
 
 	bool _var_def (ASTVariable** output) {
 		if (this->lexer->isNextType(Token::Type::ID)) {
-			(*output) = new ASTVariable();
+			(*output) = AST_NEW(ASTVariable);
 			(*output)->name = this->lexer->text();
 
 			if (this->lexer->isNextType(Token::Type::COLON)) {
@@ -222,7 +232,7 @@ struct Parser {
 	bool _typeInstance (ASTType** output) {
 		if (this->lexer->isNextType(Token::Type::MUL)) {
 			this->lexer->skip(1);
-			auto ptrTy = new ASTPointerType();
+			auto ptrTy = AST_NEW(ASTPointerType);
 			auto result = this->_typeInstance(&ptrTy->base);
 			(*output) = ptrTy;
 			return result;
@@ -242,7 +252,7 @@ struct Parser {
 	bool returnStm (ASTReturn** output) {
 		if (this->lexer->isNextType(Token::Type::RETURN)) {
 			this->lexer->skip(1);
-			(*output) = new ASTReturn();
+			(*output) = AST_NEW(ASTReturn);
 			this->expression(&(*output)->exp);
 			if (this->lexer->isNextType(Token::Type::STM_END))
 				this->lexer->skip(1);
@@ -258,7 +268,7 @@ struct Parser {
 			else return false;
 		}
 
-		auto stms = new ASTScope();
+		auto stms = AST_NEW(ASTScope);
 		ASTStatement* exp;
 		while (this->statement(&exp)) {
 			if (auto ty = dynamic_cast<ASTType*>(exp))
@@ -289,7 +299,7 @@ struct Parser {
 				if (ASTBinop::getLeftAssociativity(tt))
 					nextMinPrec += 1;
 
-				ASTBinop* _tmp = new ASTBinop(tt);
+				ASTBinop* _tmp = AST_NEW(ASTBinop, tt);
 				this->expression(&_tmp->rhs, nextMinPrec);
 				_tmp->lhs = (*output);
 				(*output) = _tmp;
@@ -311,20 +321,20 @@ struct Parser {
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::SUB)) {
 			this->lexer->skip(1);
-			auto unop = new ASTUnop(Token::Type::SUB);
+			auto unop = AST_NEW(ASTUnop, Token::Type::SUB);
 			auto result = this->_atom(&unop->exp);
 			(*output) = unop;
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::AMP)) {
 			this->lexer->skip(1);
-			auto deref = new ASTDeref();
+			auto deref = AST_NEW(ASTDeref);
 			auto memAsExp = reinterpret_cast<ASTExpression**>(&deref->memory);
 			auto result = this->_atom(memAsExp);
 			(*output) = deref;
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::MUL)) {
 			this->lexer->skip(1);
-			auto ref = new ASTRef();
+			auto ref = AST_NEW(ASTRef);
 			auto memAsExp = reinterpret_cast<ASTExpression**>(&ref->memory);
 			auto result = this->_atom(memAsExp);
 			(*output) = ref;
@@ -352,11 +362,11 @@ struct Parser {
 
 	bool literal (ASTLiteral** output) {
 		if (this->lexer->isNextType(Token::Type::STRING)) {
-			(*output) = new ASTLiteral(ASTLiteral::TYPE::STRING);
+			(*output) = AST_NEW(ASTLiteral, ASTLiteral::TYPE::STRING);
 			(*output)->stringValue = this->lexer->text();
 			return true;
 		} else if (this->lexer->isNextType(Token::Type::NUMBER)) {
-			(*output) = new ASTLiteral(ASTLiteral::TYPE::INT);
+			(*output) = AST_NEW(ASTLiteral, ASTLiteral::TYPE::INT);
 			(*output)->intValue = atoi(this->lexer->text());
 			return true;
 		} else return nullptr;
@@ -365,7 +375,7 @@ struct Parser {
 	bool call (ASTCall** output) {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
-			(*output) = new ASTCall();
+			(*output) = AST_NEW(ASTCall);
 			ASTExpression* exp;
 			while (this->expression(&exp)) {
 				(*output)->params.push_back(exp);
@@ -390,7 +400,7 @@ struct Parser {
 			while (tt == Token::Type::DOT) {
 				this->lexer->skip(1);
 				if (tt == Token::Type::DOT) {
-					auto attr = new ASTAttr((*output));
+					auto attr = AST_NEW(ASTAttr, (*output));
 					if (this->lexer->isNextType(Token::Type::ID))
 						attr->name = this->lexer->text();
 					else expected("name", "attribute access");

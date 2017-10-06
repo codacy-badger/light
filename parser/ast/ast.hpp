@@ -3,7 +3,16 @@
 #include "lexer/lexer.cpp"
 
 struct ASTNode {
+	long line, col;
+	const char* filename;
+
 	~ASTNode () {}
+
+	void print () {
+		cout << typeid(*this).name() << " ";
+		cout << filename << "(" << line;
+		cout << ", " << col << ")\n";
+	}
 };
 
 #include "ast_statement.cpp"
