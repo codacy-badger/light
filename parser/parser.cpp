@@ -251,13 +251,7 @@ struct Parser {
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
 			auto typeName = this->lexer->text();
-			auto typeExp = this->currentScope->get(typeName);
-			if (typeExp == nullptr) {
-				this->currentScope->addUnresolved(typeName, output);
-			} else {
-				(*output) = dynamic_cast<ASTType*>(typeExp);
-				if ((*output) == nullptr) error("Name is not a type!");
-			}
+			(*output) = this->currentScope->get<ASTType>(typeName);
 			return true;
 		} else return false;
 	}
@@ -337,9 +331,7 @@ struct Parser {
 			if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 				ASTCall* fnCall;
 				this->call(&fnCall);
-				if ((*output) == nullptr)
-					this->currentScope->addUnresolved(name, &fnCall->var);
-				else fnCall->var = dynamic_cast<ASTFunction*>(*output);
+				fnCall->var = dynamic_cast<ASTFunction*>(*output);
 				(*output) = fnCall;
 				return true;
 			} else return true;
@@ -379,7 +371,7 @@ struct Parser {
 	bool variable (ASTExpression** output) {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			string name(this->lexer->nextText);
-			(*output) = this->currentScope->get(name);
+			(*output) = this->currentScope->get<ASTExpression>(name);
 			if ((*output) != nullptr) this->lexer->skip(1);
 
 			Token::Type tt = this->lexer->nextType;
@@ -406,16 +398,6 @@ struct Parser {
 
 	void scopePop () {
 		assert(this->currentScope->parent);
-		auto pUnr = &this->currentScope->parent->unresolved;
-		for (auto const &it : this->currentScope->unresolved) {
-			auto entry = pUnr->find(it.first);
-			if (entry == pUnr->end()) {
-				(*pUnr)[it.first] = it.second;
-			} else {
-				for (auto const &ref : it.second)
-					(*pUnr)[it.first].push_back(ref);
-			}
-		}
 		this->currentScope = this->currentScope->parent;
 	}
 

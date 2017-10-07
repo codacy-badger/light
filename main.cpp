@@ -11,7 +11,7 @@
 #include <iomanip>
 
 #include "parser/parser.cpp"
-#include "parser/ast/ast_printer.cpp"
+#include "parser/printer.cpp"
 #include "back/llvm/backend.cpp"
 
 using namespace llvm;

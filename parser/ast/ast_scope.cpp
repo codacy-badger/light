@@ -5,8 +5,7 @@ struct ASTScope : ASTStatement {
 	std::vector<ASTStatement*> list;
 
 	ASTScope* parent = nullptr;
-	map<string, ASTExpression*> variables;
-	map<string, vector<void*>> unresolved;
+	map<std::string, ASTExpression*> symbols;
 
 	ASTScope (std::string name, ASTScope* parent = nullptr) {
 		this->parent = parent;
@@ -14,39 +13,23 @@ struct ASTScope : ASTStatement {
 	}
 
 	void add (string name, ASTExpression* val) {
-		this->resolve(name, val);
-		auto it = this->variables.find(name);
-		if (it == this->variables.end()) {
-			this->variables[name] = val;
+		auto it = this->symbols.find(name);
+		if (it == this->symbols.end()) {
+			this->symbols[name] = val;
 		} else {
 			cout << "ERROR: name collision: " << name << "\n";
 			exit(1);
 		}
 	}
 
-	ASTExpression* get (string name) {
-		auto it = this->variables.find(name);
-		if (it == this->variables.end()) {
-			if (this->parent == nullptr)  return nullptr;
-			else return this->parent->get(name);
-		} else return this->variables[name];
-	}
-
-	void addUnresolved (string name, void* addr) {
-		auto it = unresolved.find(name);
-		if (it == unresolved.end()) {
-			vector<void*> toEdit { addr };
-			unresolved[name] = toEdit;
-		} else unresolved[name].push_back(addr);
-	}
-
-	bool resolve (string name, ASTExpression* value) {
-		auto it = this->unresolved.find(name);
-		if (it != this->unresolved.end()) {
-			for (auto addrs : it->second)
-				memcpy(addrs, &value, sizeof(ASTExpression*));
-			this->unresolved.erase(it);
-			return true;
-		} else return false;
+	template <typename T>
+	T* get (string name) {
+		auto it = this->symbols.find(name);
+		if (it != this->symbols.end()) {
+			auto obj = this->symbols[name];
+			if (auto casted = dynamic_cast<T*>(obj))
+				return casted;
+			else return nullptr;
+		} else return this->parent->get<T>(name);
 	}
 };
