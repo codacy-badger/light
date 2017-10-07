@@ -22,14 +22,21 @@ struct ASTScope : ASTStatement {
 		}
 	}
 
-	template <typename T>
-	T* get (string name) {
+	ASTExpression* get (string name) {
 		auto it = this->symbols.find(name);
 		if (it != this->symbols.end()) {
-			auto obj = this->symbols[name];
-			if (auto casted = dynamic_cast<T*>(obj))
-				return casted;
+			return this->symbols[name];
+		} else {
+			if (this->parent)
+				return this->parent->get(name);
 			else return nullptr;
-		} else return this->parent->get<T>(name);
+		}
+	}
+
+	template <typename T>
+	T* get (string name) {
+		if (auto casted = dynamic_cast<T*>(this->get(name)))
+			return casted;
+		else return nullptr;
 	}
 };

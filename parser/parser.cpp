@@ -371,7 +371,7 @@ struct Parser {
 	bool variable (ASTExpression** output) {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			string name(this->lexer->nextText);
-			(*output) = this->currentScope->get<ASTExpression>(name);
+			(*output) = this->currentScope->get(name);
 			if ((*output) != nullptr) this->lexer->skip(1);
 
 			Token::Type tt = this->lexer->nextType;
