@@ -180,7 +180,7 @@ public:
 
 	static void print (ASTCall* call, int tabs = 0) {
 		cout << "(";
-		print(call->var, tabs, true);
+		print(call->fn, tabs, true);
 		cout << "( ";
 		if (call->params.size() > 0) {
 			print(call->params[0], tabs);

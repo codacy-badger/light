@@ -17,9 +17,7 @@ struct ASTFunction : ASTExpression {
 	ASTStatement* stm = nullptr;
 
 	bool isConstant() { return false; }
-	ASTType* getType() {
-		return this->type;
-	}
+	ASTType* getType() { return this->type; }
 };
 
 #include "ast_binop.cpp"

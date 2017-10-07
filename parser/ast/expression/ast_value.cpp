@@ -4,7 +4,7 @@ struct ASTValue : ASTExpression {
 };
 
 struct ASTCall : ASTValue {
-	ASTFunction* var;
+	ASTFunction* fn;
 	std::vector<ASTExpression*> params;
 
 	bool isConstant () {
@@ -12,7 +12,7 @@ struct ASTCall : ASTValue {
 	}
 
 	ASTType* getType() {
-		return var->type->retType;
+		return fn->type->retType;
 	}
 };
 

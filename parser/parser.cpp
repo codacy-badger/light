@@ -325,15 +325,10 @@ struct Parser {
 			return true;
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
 			this->variable(output);
-			string name;
-			if ((*output) == nullptr)
-				name = string(this->lexer->text());
 			if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
-				ASTCall* fnCall;
-				this->call(&fnCall);
-				fnCall->var = dynamic_cast<ASTFunction*>(*output);
-				(*output) = fnCall;
-				return true;
+				auto callPtr = reinterpret_cast<ASTCall**>(output);
+				auto fnPtr = reinterpret_cast<ASTFunction*>(*output);
+				return this->call(callPtr, fnPtr);
 			} else return true;
 		} else return this->literal(reinterpret_cast<ASTLiteral**>(output));
 	}
@@ -350,10 +345,11 @@ struct Parser {
 		} else return nullptr;
 	}
 
-	bool call (ASTCall** output) {
+	bool call (ASTCall** output, ASTFunction* fn) {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
 			(*output) = AST_NEW(ASTCall);
+			(*output)->fn = fn;
 			ASTExpression* exp;
 			while (this->expression(&exp)) {
 				(*output)->params.push_back(exp);
@@ -362,7 +358,7 @@ struct Parser {
 			}
 			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
 				this->lexer->skip(1);
-			else expected("closing parenthesys", "call arguments");
+			else expected("closing parenthesys", "function arguments");
 
 			return true;
 		} else return false;
@@ -372,7 +368,7 @@ struct Parser {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			string name(this->lexer->nextText);
 			(*output) = this->currentScope->get(name);
-			if ((*output) != nullptr) this->lexer->skip(1);
+			if (*output) this->lexer->skip(1);
 
 			Token::Type tt = this->lexer->nextType;
 			while (tt == Token::Type::DOT) {

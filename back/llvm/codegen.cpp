@@ -290,7 +290,7 @@ public:
 private:
 	Value* createCall (ASTCall* call, std::string tmpName = "") {
 		Function* function = nullptr;
-		if (auto fn = dynamic_cast<ASTFunction*>(call->var)) {
+		if (auto fn = dynamic_cast<ASTFunction*>(call->fn)) {
 			function = this->scope->getFunction(fn);
 			if (function == nullptr)
 				function = this->codegen(fn);
