@@ -59,10 +59,12 @@ public:
 			ENUM_STR(BRAC_CLOSE);
 			ENUM_STR(SQ_BRAC_OPEN);
 			ENUM_STR(SQ_BRAC_CLOSE);
-			ENUM_STR(DOT);
+			ENUM_STR(COLON);
 			ENUM_STR(COMMA);
+			ENUM_STR(DOT);
 			ENUM_STR(ID);
 			ENUM_STR(NUMBER);
+			ENUM_STR(STRING);
 
 			default: return "?";
 		}

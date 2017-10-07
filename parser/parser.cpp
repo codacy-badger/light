@@ -42,6 +42,11 @@ struct Parser {
 		this->currentScope->add("i128", ASTPrimitiveType::_i128);
 	}
 
+	template <typename T, typename O>
+	T** cast2 (O** obj) {
+		return reinterpret_cast<T**>(obj);
+	}
+
 	ASTScope* program () {
 		this->statements();
 		return this->currentScope;
@@ -49,9 +54,8 @@ struct Parser {
 
 	bool statements () {
 		ASTStatement* exp;
-		while (this->statement(&exp)) {
+		while (this->statement(&exp))
 			this->currentScope->list.push_back(exp);
-		}
 		return true;
 	}
 
@@ -62,20 +66,20 @@ struct Parser {
 				return false;
 			}
 			case Token::Type::TYPE: {
-				return this->type(reinterpret_cast<ASTType**>(output));
+				return this->type(cast2<ASTType>(output));
 			}
 			case Token::Type::FUNCTION: {
-				return this->function(reinterpret_cast<ASTFunction**>(output));
+				return this->function(cast2<ASTFunction>(output));
 			}
 			case Token::Type::LET: {
-				return this->var_def(reinterpret_cast<ASTVariable**>(output));
+				return this->var_def(cast2<ASTVariable>(output));
 			}
 			case Token::Type::RETURN: {
-				return this->returnStm(reinterpret_cast<ASTReturn**>(output));
+				return this->returnStm(cast2<ASTReturn>(output));
 			}
 			case Token::Type::BRAC_OPEN: {
-				this->scopePush("<anon>");
 				this->lexer->skip(1);
+				this->scopePush("<anon>");
 				auto result = this->statements();
 				if(this->lexer->isNextType(Token::Type::BRAC_CLOSE))
 					this->lexer->skip(1);
@@ -85,7 +89,7 @@ struct Parser {
 				return result;
 			}
 			default: {
-				if (this->expression(reinterpret_cast<ASTExpression**>(output))) {
+				if (this->expression(cast2<ASTExpression>(output))) {
 					if (this->lexer->isNextType(Token::Type::STM_END)) {
 						this->lexer->skip(1);
 						return true;
@@ -110,7 +114,7 @@ struct Parser {
 					this->lexer->skip(1);
 				else expected("';'", "type alias");
 			} else {
-				auto ptr = reinterpret_cast<ASTStructType**>(output);
+				auto ptr = cast2<ASTStructType>(output);
 				return this->structType(ptr, name);
 			}
 
@@ -145,11 +149,11 @@ struct Parser {
 
 	bool _typeBody (ASTStatement** output) {
 		if (this->lexer->isNextType(Token::Type::FUNCTION)) {
-			return this->function(reinterpret_cast<ASTFunction**>(output));
+			return this->function(cast2<ASTFunction>(output));
 		} else if (this->lexer->isNextType(Token::Type::LET)) {
 			this->lexer->skip(1);
-			return this->_var_def(reinterpret_cast<ASTVariable**>(output));
-		} else return this->_var_def(reinterpret_cast<ASTVariable**>(output));
+			return this->_var_def(cast2<ASTVariable>(output));
+		} else return this->_var_def(cast2<ASTVariable>(output));
 	}
 
 	bool function (ASTFunction** output) {
@@ -308,14 +312,14 @@ struct Parser {
 		} else if (this->lexer->isNextType(Token::Type::AMP)) {
 			this->lexer->skip(1);
 			auto deref = AST_NEW(ASTDeref);
-			auto memAsExp = reinterpret_cast<ASTExpression**>(&deref->memory);
+			auto memAsExp = cast2<ASTExpression>(&deref->memory);
 			auto result = this->_atom(memAsExp);
 			(*output) = deref;
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::MUL)) {
 			this->lexer->skip(1);
 			auto ref = AST_NEW(ASTRef);
-			auto memAsExp = reinterpret_cast<ASTExpression**>(&ref->memory);
+			auto memAsExp = cast2<ASTExpression>(&ref->memory);
 			auto result = this->_atom(memAsExp);
 			(*output) = ref;
 			return result;
@@ -326,11 +330,11 @@ struct Parser {
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
 			this->variable(output);
 			if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
-				auto callPtr = reinterpret_cast<ASTCall**>(output);
+				auto callPtr = cast2<ASTCall>(output);
 				auto fnPtr = reinterpret_cast<ASTFunction*>(*output);
 				return this->call(callPtr, fnPtr);
 			} else return true;
-		} else return this->literal(reinterpret_cast<ASTLiteral**>(output));
+		} else return this->literal(cast2<ASTLiteral>(output));
 	}
 
 	bool literal (ASTLiteral** output) {
