@@ -197,35 +197,6 @@ double clockStop (clock_t start) {
 	return (clock() - start) / static_cast<double>(CLOCKS_PER_SEC);
 }
 
-template <typename Rv, typename Fcn>
-Rv compilerPass(const char *name, Fcn f) {
-    std::cout << "  + " << name;
-    auto start = clock();
-    auto rv = f();
-    std::cout << " " << clockStop(start) << "s" << std::endl;
-    return rv;
-}
-
-template <typename Fcn>
-void compilerPassV(const char *name, Fcn f) {
-    compilerPass<int>(name, [&]() { f(); return 0; });
-}
-
-void typeInferencePass (ASTVariable* var) {
-	if (var->type == nullptr) {
-		auto ty = var->expression->getType();
-		if (ty == nullptr) {
-			cout << "Type of " << var->name << " could not be inferred\n";
-		} else var->type = ty;
-	}
-}
-
-void runCompilerPasses (ASTScope* scope) {
-	compilerPassV("Type Inference", [&]() {
-		scope->forEachVariable(typeInferencePass);
-	});
-}
-
 int main (int argc, char** argv) {
 	cl::SetVersionPrinter(printVersion);
 	cl::HideUnrelatedOptions(LightCategory);
@@ -243,7 +214,6 @@ int main (int argc, char** argv) {
 		std::cout << "  AST Parser " << clockStop(start) << "s" << std::endl;
 
 		if (globalScope) {
-			runCompilerPasses(globalScope);
 			std::cout << "Frontend " << clockStop(front) << "s" << std::endl;
 			ASTPrinter::print(globalScope);
 		    start = clock();

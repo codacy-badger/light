@@ -2,8 +2,6 @@
 
 struct ASTScope : ASTStatement {
 	std::string name;
-	std::vector<ASTType*> types;
-	std::vector<ASTFunction*> functions;
 	std::vector<ASTStatement*> list;
 
 	ASTScope* parent = nullptr;
@@ -50,25 +48,5 @@ struct ASTScope : ASTStatement {
 			this->unresolved.erase(it);
 			return true;
 		} else return false;
-	}
-
-	template <typename ScopeCallback>
-	void forEachScope (ScopeCallback cb) {
-		cb(this);
-		for (auto const& stm : this->list) {
-			if (auto obj = dynamic_cast<ASTScope*>(stm)) cb(obj);
-		}
-		for (auto const& fn : this->functions) {
-			if (auto obj = dynamic_cast<ASTScope*>(fn->stm)) cb(obj);
-		}
-	}
-
-	template <typename VarCallback>
-	void forEachVariable (VarCallback cb) {
-		this->forEachScope([&](ASTScope* stms) {
-			for (auto const& stm : stms->list) {
-				if (auto var = dynamic_cast<ASTVariable*>(stm)) cb(var);
-			}
-		});
 	}
 };

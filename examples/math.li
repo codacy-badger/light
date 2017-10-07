@@ -20,7 +20,7 @@ fn main {
 	println_i32(d);
 
 	fn work -> i32 {
-		let res : i32 = calc(5, 5);
+		let res : i32 = calc(7, 3);
 		return calc(5, 5);
 	}
 

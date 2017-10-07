@@ -62,8 +62,6 @@ public:
 	}
 
 	Value* codegen (ASTScope* stms) {
-		for(auto const& ty: stms->types) this->codegen(ty);
-		for(auto const& fn: stms->functions) this->codegen(fn);
 		for(auto const& stm: stms->list) this->codegen(stm);
 		return nullptr;
 	}

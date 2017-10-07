@@ -1,12 +1,20 @@
-fn calc (a: int, b: int) -> int {
+
+fn println_i32(number: i32);
+fn system_exit(result: i32);
+
+type Vec {
+	x : i32;
+	y : i32;
+}
+
+fn calc (a: i32, b: i32) -> i32 {
 	return a / 2 + b;
 }
 
 fn main () {
-	let a: int = 12;
-	let b: int = 3 - calc(8, a);
-	print("Value: ");
-	print_i32(b);
-	print(" (should be -13)\n");
+	let v : Vec;
+	let a: i32 = 12;
+	let b: i32 = 3 - calc(8, a);
+	println_i32(b);
 	system_exit(0);
 }

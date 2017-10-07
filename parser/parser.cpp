@@ -50,11 +50,7 @@ struct Parser {
 	bool statements () {
 		ASTStatement* exp;
 		while (this->statement(&exp)) {
-			if (auto ty = dynamic_cast<ASTType*>(exp))
-				this->currentScope->types.push_back(ty);
-			else if (auto fn = dynamic_cast<ASTFunction*>(exp))
-				this->currentScope->functions.push_back(fn);
-			else this->currentScope->list.push_back(exp);
+			this->currentScope->list.push_back(exp);
 		}
 		return true;
 	}

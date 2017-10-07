@@ -44,8 +44,6 @@ public:
 	}
 
 	static void print (ASTScope* stm, int tabs = 0) {
-		for(auto const& ty: stm->types) print(ty, tabs);
-		for(auto const& fn: stm->functions) print(fn, tabs);
 		for(auto const& stm: stm->list) print(stm, tabs);
 	}
 
