@@ -209,7 +209,9 @@ int main (int argc, char** argv) {
 
 	for (auto &filename : InputFilenames) {
 		auto parser = new Parser(filename.c_str());
-	    auto start = clock(), front = clock(), total = clock();
+
+		clock_t start, front, total;
+	    start = front = total = clock();
 	    auto globalScope = parser->program();
 		std::cout << "  AST Parser " << clockStop(start) << "s" << std::endl;
 

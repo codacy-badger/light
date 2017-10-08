@@ -16,6 +16,10 @@
 
 using namespace std;
 
+#define CHECK_TYPE(T, S) if(this->lexer->isNextType(Token::Type::T))	\
+		this->lexer->skip(1);											\
+	else expected(Token::typeToString(Token::Type::T), S)
+
 #define AST_NEW(T, ...) setASTLocation(lexer, new T(__VA_ARGS__))
 template <typename T>
 T* setASTLocation (Lexer* lexer, T* node) {
@@ -23,6 +27,11 @@ T* setASTLocation (Lexer* lexer, T* node) {
 	node->line = lexer->buffer->line;
 	node->col = lexer->buffer->col;
 	return node;
+}
+
+template <typename T, typename O>
+T** cast2 (O** obj) {
+	return reinterpret_cast<T**>(obj);
 }
 
 struct Parser {
@@ -42,17 +51,12 @@ struct Parser {
 		this->currentScope->add("i128", ASTPrimitiveType::_i128);
 	}
 
-	template <typename T, typename O>
-	T** cast2 (O** obj) {
-		return reinterpret_cast<T**>(obj);
-	}
-
 	ASTScope* program () {
-		this->statements();
+		this->scope();
 		return this->currentScope;
 	}
 
-	bool statements () {
+	bool scope () {
 		ASTStatement* exp;
 		while (this->statement(&exp))
 			this->currentScope->list.push_back(exp);
@@ -80,20 +84,16 @@ struct Parser {
 			case Token::Type::BRAC_OPEN: {
 				this->lexer->skip(1);
 				this->scopePush("<anon>");
-				auto result = this->statements();
-				if(this->lexer->isNextType(Token::Type::BRAC_CLOSE))
-					this->lexer->skip(1);
-				else expected("'}'", "statements");
+				auto result = this->scope();
+				CHECK_TYPE(BRAC_CLOSE, "scope");
 				(*output) = this->currentScope;
 				this->scopePop();
 				return result;
 			}
 			default: {
 				if (this->expression(cast2<ASTExpression>(output))) {
-					if (this->lexer->isNextType(Token::Type::STM_END)) {
-						this->lexer->skip(1);
-						return true;
-					} else expected("';'", "expression");
+					CHECK_TYPE(STM_END, "expression");
+					return true;
 				}
 				return false;
 			}
@@ -110,9 +110,7 @@ struct Parser {
 				ASTType* ty;
 				this->_typeInstance(&ty);
 				if (ty != nullptr) this->currentScope->add(name, ty);
-				if (this->lexer->isNextType(Token::Type::STM_END))
-					this->lexer->skip(1);
-				else expected("';'", "type alias");
+				CHECK_TYPE(STM_END, "type alias");
 			} else {
 				auto ptr = cast2<ASTStructType>(output);
 				return this->structType(ptr, name);
@@ -126,22 +124,16 @@ struct Parser {
 		(*output) = AST_NEW(ASTStructType, name);
 
 		ASTStatement* stm;
-		if (this->lexer->isNextType(Token::Type::BRAC_OPEN))
-			this->lexer->skip(1);
-		else expected("'{'", "type name");
+		CHECK_TYPE(BRAC_OPEN, "type name");
 		while (this->_typeBody(&stm)) {
 			if (auto var = dynamic_cast<ASTVariable*>(stm)) {
 				(*output)->attrs.push_back(var);
-				if (this->lexer->isNextType(Token::Type::STM_END))
-					this->lexer->skip(1);
-				else expected("';'", "type attribute");
+				CHECK_TYPE(STM_END, "type attribute");
 			} else if (auto fn = dynamic_cast<ASTFunction*>(stm))
 				(*output)->methods.push_back(fn);
-			else error("Expected attribute or method inside type");
+			else expected("attribute or method", "type");
 		}
-		if (this->lexer->isNextType(Token::Type::BRAC_CLOSE))
-			this->lexer->skip(1);
-		else expected("'}'", "type body");
+		CHECK_TYPE(BRAC_CLOSE, "type body");
 
 		this->currentScope->add((*output)->name, (*output));
 		return true;
@@ -173,10 +165,8 @@ struct Parser {
 				this->lexer->skip(1);
 				for (auto const &param : (*output)->type->params)
 					this->currentScope->add(param->name, param);
-				this->statements();
-				if(this->lexer->isNextType(Token::Type::BRAC_CLOSE))
-					this->lexer->skip(1);
-				else expected("'}'", "function body");
+				this->scope();
+				CHECK_TYPE(BRAC_CLOSE, "function body");
 				(*output)->stm = this->currentScope;
 				this->scopePop();
 			}
@@ -217,9 +207,7 @@ struct Parser {
 			this->lexer->skip(1);
 
 			this->_var_def(output);
-			if (this->lexer->isNextType(Token::Type::STM_END))
-				this->lexer->skip(1);
-			else expected("';'", "variable declaration");
+			CHECK_TYPE(STM_END, "variable declaration");
 
 			this->currentScope->add((*output)->name, (*output));
 			return true;
@@ -265,9 +253,7 @@ struct Parser {
 			this->lexer->skip(1);
 			(*output) = AST_NEW(ASTReturn);
 			this->expression(&(*output)->exp);
-			if (this->lexer->isNextType(Token::Type::STM_END))
-				this->lexer->skip(1);
-			else expected("';'", "return expression");
+			CHECK_TYPE(STM_END, "return expression");
 			return true;
 		} else return false;
 	}
@@ -299,9 +285,7 @@ struct Parser {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
 			auto result = this->expression(output);
-			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
-				this->lexer->skip(1);
-			else error("Expected closing parenthesys after expression");
+			CHECK_TYPE(PAR_CLOSE, "expression");
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::SUB)) {
 			this->lexer->skip(1);
@@ -312,15 +296,13 @@ struct Parser {
 		} else if (this->lexer->isNextType(Token::Type::AMP)) {
 			this->lexer->skip(1);
 			auto deref = AST_NEW(ASTDeref);
-			auto memAsExp = cast2<ASTExpression>(&deref->memory);
-			auto result = this->_atom(memAsExp);
+			auto result = this->_atom(cast2<ASTExpression>(&deref->memory));
 			(*output) = deref;
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::MUL)) {
 			this->lexer->skip(1);
 			auto ref = AST_NEW(ASTRef);
-			auto memAsExp = cast2<ASTExpression>(&ref->memory);
-			auto result = this->_atom(memAsExp);
+			auto result = this->_atom(cast2<ASTExpression>(&ref->memory));
 			(*output) = ref;
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::ADD)) {
@@ -360,9 +342,7 @@ struct Parser {
 				if (this->lexer->isNextType(Token::Type::COMMA))
 					this->lexer->skip(1);
 			}
-			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
-				this->lexer->skip(1);
-			else expected("closing parenthesys", "function arguments");
+			CHECK_TYPE(PAR_CLOSE, "function arguments");
 
 			return true;
 		} else return false;
@@ -399,14 +379,6 @@ struct Parser {
 	void scopePop () {
 		assert(this->currentScope->parent);
 		this->currentScope = this->currentScope->parent;
-	}
-
-	void error (const char* message) {
-		cout << "[Light] ERROR: " << message << endl;
-		cout << "        at ";
-		this->lexer->buffer->printLocation();
-		cout << endl;
-		exit(EXIT_FAILURE);
 	}
 
 	void expected (const char* expect, const char* after) {
