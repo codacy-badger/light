@@ -244,6 +244,7 @@ struct Parser {
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
 			auto typeName = this->lexer->text();
 			(*output) = this->currentScope->get<ASTType>(typeName);
+			if (!(*output)) (*output) = AST_NEW(ASTUnresolvedTy, typeName);
 			return true;
 		} else return false;
 	}
@@ -331,11 +332,11 @@ struct Parser {
 		} else return nullptr;
 	}
 
-	bool call (ASTCall** output, ASTFunction* fn) {
+	bool call (ASTCall** output, ASTExpression* callee) {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
 			(*output) = AST_NEW(ASTCall);
-			(*output)->fn = fn;
+			(*output)->fn = callee;
 			ASTExpression* exp;
 			while (this->expression(&exp)) {
 				(*output)->params.push_back(exp);
@@ -352,7 +353,8 @@ struct Parser {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			string name(this->lexer->nextText);
 			(*output) = this->currentScope->get(name);
-			if (*output) this->lexer->skip(1);
+			if (!(*output)) (*output) = AST_NEW(ASTUnresolvedExp, name);
+			this->lexer->skip(1);
 
 			Token::Type tt = this->lexer->nextType;
 			while (tt == Token::Type::DOT) {

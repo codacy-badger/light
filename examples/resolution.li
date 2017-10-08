@@ -1,0 +1,14 @@
+
+fn main {
+	let vec : Vec2;
+	let val : i32 = calc(2, 1);
+}
+
+type Vec2 {
+	x: i32;
+	y: i32;
+}
+
+fn calc (a: i32, b: i32) -> i32 {
+	return a * b + 12;
+}

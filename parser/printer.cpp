@@ -88,6 +88,7 @@ public:
 		else if (auto obj = dynamic_cast<ASTStructType*>(type))    	print(obj, tabs, nameOnly);
 		else if (auto obj = dynamic_cast<ASTPointerType*>(type))    print(obj, tabs, nameOnly);
 		else if (auto obj = dynamic_cast<ASTFnType*>(type))    		print(obj, tabs, nameOnly);
+		else if (auto obj = dynamic_cast<ASTUnresolved*>(type))    	print(obj, tabs);
 		else {
 			std::string msg = "Unrecognized type struct?! -> ";
 			msg += typeid(*type).name();
@@ -122,15 +123,16 @@ public:
 	}
 
 	static void print (ASTExpression* exp, int tabs = 0) {
-		if 		(auto obj = dynamic_cast<ASTBinop*>(exp))    print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTUnop*>(exp))     print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTLiteral*>(exp))  print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTCall*>(exp))     print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTAttr*>(exp))     print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTRef*>(exp))      print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTDeref*>(exp))    print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTFunction*>(exp)) print(obj, tabs, true);
-		else if (auto obj = dynamic_cast<ASTVariable*>(exp)) print(obj, tabs, true);
+		if 		(auto obj = dynamic_cast<ASTBinop*>(exp))    	print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTUnop*>(exp))     	print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTLiteral*>(exp))  	print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTCall*>(exp))     	print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTAttr*>(exp))     	print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTRef*>(exp))      	print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTDeref*>(exp))    	print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTFunction*>(exp)) 	print(obj, tabs, true);
+		else if (auto obj = dynamic_cast<ASTVariable*>(exp)) 	print(obj, tabs, true);
+		else if (auto obj = dynamic_cast<ASTUnresolved*>(exp)) 	print(obj, tabs);
 		else {
 			std::string msg = "Unrecognized expression?! -> ";
 			msg += typeid(*exp).name();
@@ -180,7 +182,7 @@ public:
 
 	static void print (ASTCall* call, int tabs = 0) {
 		cout << "(";
-		print(call->fn, tabs, true);
+		print(call->fn, tabs);
 		cout << "( ";
 		if (call->params.size() > 0) {
 			print(call->params[0], tabs);
@@ -196,6 +198,12 @@ public:
 		cout << "((";
 		print(attr->exp, tabs);
 		cout << ") ATTR " << attr->name << ")";
+	}
+
+	static void print (ASTUnresolved* unres, int tabs = 0) {
+		cout << "(?";
+		cout << unres->name;
+		cout << "?)";
 	}
 private:
 	static void _tabs (int count) {
