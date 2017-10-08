@@ -12,6 +12,7 @@
 
 #include "lexer/lexer.cpp"
 
+#include "pipes.cpp"
 #include "ast/ast.hpp"
 
 using namespace std;
@@ -34,7 +35,7 @@ T** cast2 (O** obj) {
 	return reinterpret_cast<T**>(obj);
 }
 
-struct Parser {
+struct Parser : Pipe {
 	Lexer* lexer;
 	ASTScope* currentScope;
 
@@ -111,6 +112,7 @@ struct Parser {
 				this->_typeInstance(&ty);
 				if (ty != nullptr) this->currentScope->add(name, ty);
 				CHECK_TYPE(STM_END, "type alias");
+				this->onType(ty);
 			} else {
 				auto ptr = cast2<ASTStructType>(output);
 				return this->structType(ptr, name);
@@ -170,6 +172,8 @@ struct Parser {
 				(*output)->stm = this->currentScope;
 				this->scopePop();
 			}
+
+			this->onFunction((*output));
 			return true;
 		} else return false;
 	}

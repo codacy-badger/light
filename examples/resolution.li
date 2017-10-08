@@ -1,7 +1,7 @@
 
 fn main {
-	let vec : Vec2;
 	let val : i32 = calc(2, 1);
+	let vec : Vec2;
 }
 
 type Vec2 {

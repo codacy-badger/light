@@ -103,12 +103,11 @@ public:
 	}
 
 	static void print (ASTStructType* type, int tabs = 0, bool nameOnly = false) {
-		if (!nameOnly) cout << "struct type ";
+		if (!nameOnly) cout << "type ";
 		cout << type->name;
 		if (!nameOnly) {
 			cout << "\n";
 			for (auto const &attr : type->attrs) print(attr, tabs + 1);
-			cout << "\n";
 			for (auto const &mthd : type->methods) print(mthd, tabs + 1);
 		}
 	}
@@ -201,9 +200,9 @@ public:
 	}
 
 	static void print (ASTUnresolved* unres, int tabs = 0) {
-		cout << "(?";
+		cout << "!";
 		cout << unres->name;
-		cout << "?)";
+		cout << "!";
 	}
 private:
 	static void _tabs (int count) {
