@@ -19,6 +19,7 @@
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Support/SourceMgr.h"
 
+#include "parser/pipes.cpp"
 #include "codegen_primitive.cpp"
 #include "scope.cpp"
 
@@ -31,8 +32,7 @@
 using namespace llvm;
 using namespace std;
 
-class LLVMCodegen {
-public:
+struct LLVMCodegen : Pipe {
 	LLVMContext context;
 	IRBuilder<> builder;
 
@@ -82,6 +82,10 @@ public:
 			panic(msg.c_str());
 			return nullptr;
 		}
+	}
+
+	void onType (ASTType* ty) {
+		this->codegen(ty);
 	}
 
 	Type* codegen (ASTType* ty) {
@@ -250,6 +254,10 @@ public:
 		} else return builder.CreateRetVoid();
 	}
 
+	void onFunction (ASTFunction* fn) {
+		this->codegen(fn);
+	}
+
 	Function* codegen (ASTFunction* fn) {
 		auto function = this->scope->getFunction(fn);
 		if (function != nullptr) return function;
@@ -287,7 +295,6 @@ public:
 		return function;
 	}
 
-private:
 	Value* createCall (ASTCall* call, std::string tmpName = "") {
 		Function* function = nullptr;
 		if (auto fn = dynamic_cast<ASTFunction*>(call->fn)) {

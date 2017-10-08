@@ -1,6 +1,6 @@
 @echo off
 
-bin\light -o test\test.obj examples\resolution.li
+bin\light -o test\test.obj examples\func.li
 
 link /nologo /ENTRY:main /SUBSYSTEM:CONSOLE /OUT:".\test\ifelse.exe" test\ifelse.obj ^
  	build\std_li.lib kernel32.lib
