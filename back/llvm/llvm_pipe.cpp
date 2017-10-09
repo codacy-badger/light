@@ -46,7 +46,7 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onFunction (ASTFunction* fn) {
-		ASTPrinter::print(fn);
+		//ASTPrinter::print(fn);
 
 		vector<Type*> argTypes;
 		for(auto const& param: fn->type->params)
@@ -229,7 +229,7 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onType (ASTType* ty) {
-		ASTPrinter::print(ty);
+		//ASTPrinter::print(ty);
 
 		if (auto obj = dynamic_cast<ASTStructType*>(ty)) 		codegen(obj);
 		else if (auto obj = dynamic_cast<ASTPointerType*>(ty))  codegen(obj);
@@ -264,7 +264,7 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onFinish () {
-		module->print(outs(), nullptr);
+		//module->print(outs(), nullptr);
 		auto start = clock();
 		LLVMObjWritter::writeObj(module);
 		Timer::print("  Write OBJ ", start);
