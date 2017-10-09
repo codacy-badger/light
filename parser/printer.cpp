@@ -6,7 +6,7 @@ class ASTPrinter {
 public:
 	static void print (ASTStatement* stm, int tabs = 0) {
 		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTScope*>(stm)) print(obj, tabs);
+		else if (auto obj = dynamic_cast<ASTBlock*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTFunction*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTType*>(stm)) print(obj, tabs);
@@ -43,7 +43,7 @@ public:
 		} else cout << "]";
 	}
 
-	static void print (ASTScope* stm, int tabs = 0) {
+	static void print (ASTBlock* stm, int tabs = 0) {
 		for(auto const& stm: stm->list) print(stm, tabs);
 	}
 

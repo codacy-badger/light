@@ -39,7 +39,7 @@ int main (int argc, char** argv) {
 		clock_t start, total;
 	    start = total = clock();
 
-	    parser->scope();
+	    parser->block();
 		Timer::print("  Parser ", start);
 		parser->onFinish();
 		Timer::print("TOTAL ", total);

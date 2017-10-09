@@ -15,4 +15,4 @@ struct ASTReturn : ASTStatement {
 	ASTExpression* exp = nullptr;
 };
 
-#include "ast_scope.cpp"
+#include "ast_block.cpp"

@@ -37,12 +37,12 @@ T** cast2 (O** obj) {
 
 struct Parser : Pipe {
 	Lexer* lexer;
-	ASTScope* currentScope;
+	ASTBlock* currentScope;
 
 	template <typename LexerParam>
 	Parser (LexerParam param) {
 		this->lexer = new Lexer(param);
-		this->currentScope = AST_NEW(ASTScope, "<global>");
+		this->currentScope = AST_NEW(ASTBlock, "<global>");
 		this->currentScope->add("void", ASTPrimitiveType::_void);
 		this->currentScope->add("i1",   ASTPrimitiveType::_i1);
 		this->currentScope->add("i8",   ASTPrimitiveType::_i8);
@@ -52,7 +52,7 @@ struct Parser : Pipe {
 		this->currentScope->add("i128", ASTPrimitiveType::_i128);
 	}
 
-	bool scope () {
+	bool block () {
 		ASTStatement* exp;
 		while (this->statement(&exp))
 			this->currentScope->list.push_back(exp);
@@ -80,8 +80,8 @@ struct Parser : Pipe {
 			case Token::Type::BRAC_OPEN: {
 				this->lexer->skip(1);
 				this->scopePush("<anon>");
-				auto result = this->scope();
-				CHECK_TYPE(BRAC_CLOSE, "scope");
+				auto result = this->block();
+				CHECK_TYPE(BRAC_CLOSE, "block");
 				(*output) = this->currentScope;
 				this->scopePop();
 				return result;
@@ -164,7 +164,7 @@ struct Parser : Pipe {
 				this->lexer->skip(1);
 				for (auto const &param : (*output)->type->params)
 					this->currentScope->add(param->name, param);
-				this->scope();
+				this->block();
 				CHECK_TYPE(BRAC_CLOSE, "function body");
 				(*output)->stm = this->currentScope;
 				this->scopePop();
@@ -376,7 +376,7 @@ struct Parser : Pipe {
 
 	void scopePush (std::string name) {
 		assert(this->currentScope);
-		this->currentScope = AST_NEW(ASTScope, name, this->currentScope);
+		this->currentScope = AST_NEW(ASTBlock, name, this->currentScope);
 	}
 
 	void scopePop () {

@@ -82,7 +82,7 @@ struct LLVMPipe : Pipe {
 
 	Value* codegen (ASTStatement* stm) {
 		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) 	return codegen(obj, true);
-		else if (auto obj = dynamic_cast<ASTScope*>(stm)) 		return codegen(obj);
+		else if (auto obj = dynamic_cast<ASTBlock*>(stm)) 		return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) 		return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTExpression*>(stm))  return codegen(obj);
 		else {
@@ -91,7 +91,7 @@ struct LLVMPipe : Pipe {
 		}
 	}
 
-	Value* codegen (ASTScope* stms) {
+	Value* codegen (ASTBlock* stms) {
 		for(auto const& stm: stms->list) this->codegen(stm);
 		return nullptr;
 	}

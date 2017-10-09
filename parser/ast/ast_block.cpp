@@ -1,13 +1,13 @@
 #pragma once
 
-struct ASTScope : ASTStatement {
+struct ASTBlock : ASTStatement {
 	std::string name;
 	std::vector<ASTStatement*> list;
 
-	ASTScope* parent = nullptr;
+	ASTBlock* parent = nullptr;
 	map<std::string, ASTExpression*> symbols;
 
-	ASTScope (std::string name, ASTScope* parent = nullptr) {
+	ASTBlock (std::string name, ASTBlock* parent = nullptr) {
 		this->parent = parent;
 		this->name = name;
 	}
