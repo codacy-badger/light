@@ -1,7 +1,7 @@
 @echo off
 
 for /r %%i in (win\std\*.c) do (
-	cl /nologo /O2 /c /MDd /Zi "%%i"
+	cl /nologo /O2 /c "%%i"
 )
 
 set "STD_OBJS="
