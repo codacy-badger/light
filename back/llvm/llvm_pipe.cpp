@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include "timer.cpp"
 #include "parser/pipes.cpp"
 #include "codegen_primitive.cpp"
 #include "llvm_obj_writter.cpp"
@@ -45,8 +46,7 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onFunction (ASTFunction* fn) {
-		auto function = this->scope->getFunction(fn);
-		if (function != nullptr) return;
+		ASTPrinter::print(fn);
 
 		vector<Type*> argTypes;
 		for(auto const& param: fn->type->params)
@@ -54,7 +54,7 @@ struct LLVMPipe : Pipe {
 		Type* retType = this->scope->getType(fn->type->retType);
 		auto fnType = FunctionType::get(retType, argTypes, false);
 		auto constValue = module->getOrInsertFunction(fn->name, fnType);
-		function = static_cast<Function*>(constValue);
+		auto function = static_cast<Function*>(constValue);
 
 		int index = 0;
 		for (auto& arg: function->args())
@@ -229,13 +229,11 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onType (ASTType* ty) {
-		auto type = this->scope->getType(ty);
-		if (type != nullptr) return;
-		else {
-			if (auto obj = dynamic_cast<ASTStructType*>(ty)) 		codegen(obj);
-			else if (auto obj = dynamic_cast<ASTPointerType*>(ty))  codegen(obj);
-			else cout << "ERROR\n\n";
-		}
+		ASTPrinter::print(ty);
+
+		if (auto obj = dynamic_cast<ASTStructType*>(ty)) 		codegen(obj);
+		else if (auto obj = dynamic_cast<ASTPointerType*>(ty))  codegen(obj);
+		else cout << "ERROR\n\n";
 	}
 
 	Type* codegen (ASTPointerType* ty) {
@@ -267,6 +265,8 @@ struct LLVMPipe : Pipe {
 
 	void onFinish () {
 		module->print(outs(), nullptr);
+		auto start = clock();
 		LLVMObjWritter::writeObj(module);
+		Timer::print("  Write OBJ ", start);
 	}
 };

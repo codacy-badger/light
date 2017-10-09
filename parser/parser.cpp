@@ -52,10 +52,8 @@ struct Parser : Pipe {
 		this->currentScope->add("i128", ASTPrimitiveType::_i128);
 	}
 
-	ASTScope* program () {
+	void run () {
 		this->scope();
-		this->onFinish();
-		return this->currentScope;
 	}
 
 	bool scope () {

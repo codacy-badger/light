@@ -1,6 +1,7 @@
 #include <iomanip>
 
 #include "llvm/Support/CommandLine.h"
+#include "timer.cpp"
 #include "parser/parser.cpp"
 #include "parser/printer.cpp"
 #include "back/llvm/llvm_pipe.cpp"
@@ -35,18 +36,13 @@ int main (int argc, char** argv) {
 		auto parser = new Parser(filename.c_str());
 		parser->append(new LLVMPipe(OutputFilename.c_str()));
 
-		clock_t start, front, total;
-	    start = front = total = clock();
-	    auto globalScope = parser->program();
-		std::cout << "  AST Parser " << clockStop(start) << "s" << std::endl;
+		clock_t start, total;
+	    start = total = clock();
 
-		if (globalScope) {
-			std::cout << "Frontend " << clockStop(front) << "s" << std::endl;
-			ASTPrinter::print(globalScope);
-		    start = clock();
-			std::cout << "LLVM Backend " << clockStop(start) << "s" << std::endl;
-			std::cout << "TOTAL " << clockStop(total) << "s" << std::endl;
-		}
+	    parser->run();
+		Timer::print("  Parser ", start);
+		parser->onFinish();
+		Timer::print("TOTAL ", total);
 	}
 
 	return 0;
