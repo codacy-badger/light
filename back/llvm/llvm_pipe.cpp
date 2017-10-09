@@ -25,7 +25,7 @@
 #include "parser/pipes.cpp"
 #include "codegen_primitive.cpp"
 #include "llvm_obj_writter.cpp"
-#include "scope.cpp"
+#include "llvm_scope.cpp"
 
 struct LLVMPipe : Pipe {
 	LLVMContext context;
