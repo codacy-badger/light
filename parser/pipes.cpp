@@ -8,15 +8,15 @@ struct Pipe {
 	Pipe* next = nullptr;
 
 	virtual void onFunction (ASTFunction* fn) {
-		cout << "NEXT: Function -> " << fn->name << "\n";
 		if (next) next->onFunction(fn);
 	}
 
 	virtual void onType (ASTType* ty) {
-		if (auto prim = dynamic_cast<ASTPrimitiveType*>(ty))
-			cout << "NEXT: Type -> " << prim->name << "\n";
-		else if (auto stct = dynamic_cast<ASTStructType*>(ty))
-			cout << "NEXT: Type -> " << stct->name << "\n";
+		if (next) next->onType(ty);
+	}
+
+	virtual void onFinish () {
+		if (next) next->onFinish();
 	}
 
 	void append (Pipe* next) {

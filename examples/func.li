@@ -15,6 +15,7 @@ fn main () {
 	let v : Vec;
 	let a: i32 = 12;
 	let b: i32 = 3 - calc(8, a);
+	println_i32(a);
 	println_i32(b);
 	system_exit(0);
 }

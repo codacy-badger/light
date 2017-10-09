@@ -54,6 +54,7 @@ struct Parser : Pipe {
 
 	ASTScope* program () {
 		this->scope();
+		this->onFinish();
 		return this->currentScope;
 	}
 
@@ -138,6 +139,7 @@ struct Parser : Pipe {
 		CHECK_TYPE(BRAC_CLOSE, "type body");
 
 		this->currentScope->add((*output)->name, (*output));
+		this->onType((*output));
 		return true;
 	}
 

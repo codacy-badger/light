@@ -12,7 +12,7 @@
 
 #include "parser/parser.cpp"
 #include "parser/printer.cpp"
-#include "back/llvm/backend.cpp"
+#include "back/llvm/llvm_pipe.cpp"
 
 using namespace llvm;
 using namespace std;
@@ -40,9 +40,9 @@ int main (int argc, char** argv) {
 
 	std::cout << std::fixed << std::setprecision(3);
 
-	auto backend = new LLVMBackend();
 	for (auto &filename : InputFilenames) {
 		auto parser = new Parser(filename.c_str());
+		parser->append(new LLVMPipe(OutputFilename.c_str()));
 
 		clock_t start, front, total;
 	    start = front = total = clock();
@@ -53,7 +53,6 @@ int main (int argc, char** argv) {
 			std::cout << "Frontend " << clockStop(front) << "s" << std::endl;
 			ASTPrinter::print(globalScope);
 		    start = clock();
-			backend->writeObj(globalScope, OutputFilename.c_str());
 			std::cout << "LLVM Backend " << clockStop(start) << "s" << std::endl;
 			std::cout << "TOTAL " << clockStop(total) << "s" << std::endl;
 		}

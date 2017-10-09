@@ -16,31 +16,15 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
-#include "parser/ast/ast.hpp"
-#include "codegen.cpp"
-
 using namespace llvm;
 using namespace std;
 
-class LLVMBackend {
-public:
-	LLVMCodegen* generator = new LLVMCodegen();
+struct LLVMObjWritter {
+	static bool init;
 
-	LLVMBackend () {
-		InitializeAllTargetInfos();
-		InitializeAllTargets();
-		InitializeAllTargetMCs();
-		InitializeAllAsmParsers();
-		InitializeAllAsmPrinters();
-	}
+	static void writeObj (Module* module, const char* filepath = nullptr) {
+		if (!init) LLVMObjWritter::initLLVM();
 
-	void writeObj (ASTScope* stms, const char* filepath = nullptr) {
-		Module* module = generator->buildModule(stms);
-		this->writeObj(module, filepath);
-		delete module;
-	}
-
-	void writeObj (Module* module, const char* filepath = nullptr) {
 		auto TargetTriple = sys::getDefaultTargetTriple();
 		module->setTargetTriple(TargetTriple);
 
@@ -53,7 +37,7 @@ public:
 		auto TheTargetMachine = Target->createTargetMachine(TargetTriple, "generic", "", opt, RM);
 		module->setDataLayout(TheTargetMachine->createDataLayout());
 
-		auto filename = module->getModuleIdentifier() + ".obj";
+		auto filename = module->getModuleIdentifier();
 		if (filepath != nullptr && filepath[0] != '\0')
 			filename = filepath;
 
@@ -68,5 +52,14 @@ public:
 		dest.flush();
 	}
 
-	~LLVMBackend () { /* empty */ }
+	static void initLLVM () {
+		InitializeAllTargetInfos();
+		InitializeAllTargets();
+		InitializeAllTargetMCs();
+		InitializeAllAsmParsers();
+		InitializeAllAsmPrinters();
+		LLVMObjWritter::init = true;
+	}
 };
+
+bool LLVMObjWritter::init = false;
