@@ -8,15 +8,23 @@ struct Pipe {
 	Pipe* next = nullptr;
 
 	virtual void onFunction (ASTFunction* fn) {
-		if (next) next->onFunction(fn);
+		this->toNext(fn);
 	}
 
 	virtual void onType (ASTType* ty) {
-		if (next) next->onType(ty);
+		this->toNext(ty);
 	}
 
 	virtual void onFinish () {
 		if (next) next->onFinish();
+	}
+
+	void toNext (ASTFunction* fn) {
+		if (next) next->onFunction(fn);
+	}
+
+	void toNext (ASTType* ty) {
+		if (next) next->onType(ty);
 	}
 
 	void append (Pipe* next) {

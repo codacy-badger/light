@@ -4,6 +4,9 @@
 #include "timer.cpp"
 #include "parser/parser.cpp"
 #include "parser/printer.cpp"
+
+#include "parser/pipe/print_pipe.cpp"
+#include "parser/pipe/name_resolution_pipe.cpp"
 #include "back/llvm/llvm_pipe.cpp"
 
 using namespace llvm;
@@ -34,7 +37,9 @@ int main (int argc, char** argv) {
 
 	for (auto &filename : InputFilenames) {
 		auto parser = new Parser(filename.c_str());
-		parser->append(new LLVMPipe(OutputFilename.c_str()));
+		parser->append(new PrintPipe());
+		parser->append(new NameResolutionPipe());
+		//parser->append(new LLVMPipe(OutputFilename.c_str()));
 
 		clock_t start, total;
 	    start = total = clock();

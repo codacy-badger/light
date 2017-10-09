@@ -46,8 +46,6 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onFunction (ASTFunction* fn) {
-		//ASTPrinter::print(fn);
-
 		vector<Type*> argTypes;
 		for(auto const& param: fn->type->params)
 			argTypes.push_back(this->scope->getType(param->type));
@@ -229,8 +227,6 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onType (ASTType* ty) {
-		//ASTPrinter::print(ty);
-
 		if (auto obj = dynamic_cast<ASTStructType*>(ty)) 		codegen(obj);
 		else if (auto obj = dynamic_cast<ASTPointerType*>(ty))  codegen(obj);
 		else cout << "ERROR\n\n";
@@ -264,9 +260,9 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onFinish () {
-		module->print(outs(), nullptr);
+		//module->print(outs(), nullptr);
 		auto start = clock();
-		LLVMObjWritter::writeObj(module);
+		//LLVMObjWritter::writeObj(module);
 		Timer::print("  Write OBJ ", start);
 	}
 };

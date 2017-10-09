@@ -200,9 +200,9 @@ public:
 	}
 
 	static void print (ASTUnresolved* unres, int tabs = 0) {
-		cout << "!";
+		cout << "!_";
 		cout << unres->name;
-		cout << "!";
+		cout << "_!";
 	}
 private:
 	static void _tabs (int count) {
