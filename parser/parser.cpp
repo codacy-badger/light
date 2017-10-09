@@ -99,22 +99,25 @@ struct Parser : Pipe {
 	bool type (ASTType** output) {
 		if (this->lexer->isNextType(Token::Type::TYPE)) {
 			this->lexer->skip(1);
-			auto name = this->lexer->text();
 
+			auto name = this->lexer->text();
 			if (this->lexer->isNextType(Token::Type::EQUAL)) {
 				this->lexer->skip(1);
 				ASTType* ty;
-				this->_typeInstance(&ty);
-				if (ty != nullptr) this->currentScope->add(name, ty);
+				auto result = this->_typeInstance(&ty);
+				this->currentScope->add(name, ty);
 				CHECK_TYPE(STM_END, "type alias");
 				this->onType(ty);
-			} else {
+				return result;
+			} else if (this->lexer->isNextType(Token::Type::BRAC_OPEN)) {
 				auto ptr = cast2<ASTStructType>(output);
-				return this->structType(ptr, name);
+				auto result = this->structType(ptr, name);
+				this->currentScope->add(name, (*ptr));
+				this->onType(*ptr);
+				return result;
 			}
-
-			return true;
-		} else return false;
+		}
+		return false;
 	}
 
 	bool structType (ASTStructType** output, string name) {
@@ -132,8 +135,6 @@ struct Parser : Pipe {
 		}
 		CHECK_TYPE(BRAC_CLOSE, "type body");
 
-		this->currentScope->add((*output)->name, (*output));
-		this->onType((*output));
 		return true;
 	}
 
