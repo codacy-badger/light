@@ -51,17 +51,39 @@ struct NameResolutionPipe : Pipe {
 	void onFunction (ASTFunction* fn) {
 		AddrDeps deps;
 		check(fn, &deps);
+		if (deps.addrs.size() > 0) {
+			//cout << "Function -> " << fn->name << "\n";
+			//deps->print();
+			this->addDependencies(&deps, fn);
+		}
+		else {
+			this->toNext(fn);
+			this->resolve(fn->name, fn);
+		}
 	}
 
 	void onType (ASTType* ty) {
 		AddrDeps deps;
 		check(ty, &deps);
+		if (deps.addrs.size() > 0) {
+			//cout << "Type -> " << ty->name << "\n";
+			//deps->print();
+			this->addDependencies(&deps, ty);
+		}
+		else {
+			this->toNext(ty);
+			if (auto namedTy = dynamic_cast<ASTStructType*>(ty)) {
+				this->resolve(namedTy->name, namedTy);
+			}
+		}
 	}
 
 	void onFinish () {
 		if (astDeps.size() > 0) {
-			for (auto const &entry : astDeps)
+			for (auto const &entry : astDeps) {
 				cout << "ERROR: unresolved symbol: " << entry.first << "\n";
+				for (auto const &res : entry.second) res->exp->print();
+			}
 		} else this->tryFinish();
 	}
 
@@ -99,14 +121,6 @@ struct NameResolutionPipe : Pipe {
 	void check (ASTFunction* fn, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&fn->type)) check(fn->type, deps);
 		if (!deps->addIfUnresolved(&fn->stm))  check(fn->stm, deps);
-		if (deps->addrs.size() > 0) {
-			//cout << "Function -> " << fn->name << "\n";
-			//deps->print();
-			this->addDependencies(deps, fn);
-		} else {
-			this->toNext(fn);
-			this->resolve(fn->name, fn);
-		}
 	}
 
 	void check (ASTStatement* stm, AddrDeps* deps) {
@@ -183,15 +197,7 @@ struct NameResolutionPipe : Pipe {
 	}
 
 	void check (ASTStructType* ty, AddrDeps* deps) {
-		for (auto const& attr : ty->attrs) check(attr, deps);
-		if (deps->addrs.size() > 0) {
-			//cout << "Type -> " << ty->name << "\n";
-			//deps->print();
-			this->addDependencies(deps, ty);
-		} else {
-			this->toNext(ty);
-			this->resolve(ty->name, ty);
-		}
+		for (auto attr : ty->attrs) check(attr, deps);
 	}
 
 	void check (ASTPointerType* ty, AddrDeps* deps) {

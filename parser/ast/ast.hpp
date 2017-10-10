@@ -9,8 +9,7 @@ struct ASTNode {
 	~ASTNode () {}
 
 	void print () {
-		cout << typeid(*this).name() << " ";
-		cout << filename << "(" << line;
+		cout << "\tat " << filename << "(" << line;
 		cout << ", " << col << ")\n";
 	}
 };

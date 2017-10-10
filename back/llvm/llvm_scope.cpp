@@ -92,12 +92,17 @@ struct LLVMScope {
 
 	Type* getType (ASTType* ty) {
 		if (ty == nullptr) return Type::getVoidTy(builder->getContext());
-		auto it = types.find(ty);
-		if (it != types.end())
-			return types[ty];
-		else if (this->parent != nullptr) {
-			return this->parent->getType(ty);
-		} else return nullptr;
+		else if (auto ptrTy = dynamic_cast<ASTPointerType*>(ty)) {
+			auto baseTy = this->getType(ptrTy->base);
+			return PointerType::get(baseTy, 0);
+		} else {
+			auto it = types.find(ty);
+			if (it != types.end())
+				return types[ty];
+			else if (this->parent != nullptr) {
+				return this->parent->getType(ty);
+			} else return nullptr;
+		}
 	}
 
 	void addFunction (ASTFunction* fn, Function* function) {

@@ -5,7 +5,7 @@ fn system_exit(result: i32);
 fn main () {
 	let v : *Vec;
 	let a: i32 = 12;
-	let b: i32 = 3 - calc(8, a);
+	let b: i32 = 3 - calc(8, *a);
 	println_i32(a);
 	println_i32(b);
 	let v2 : Vec;
@@ -13,7 +13,8 @@ fn main () {
 	system_exit(0);
 }
 
-fn calc (a: i32, b: i32) -> i32 {
+fn calc (a: i32, b: *i32) -> i32 {
+	println_i32(&b);
 	return a / (2 + b);
 }
 
