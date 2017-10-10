@@ -16,15 +16,20 @@ struct Pipe {
 	}
 
 	virtual void onFinish () {
+		this->tryFinish();
+	}
+
+	void tryFinish() {
 		if (next) next->onFinish();
 	}
 
-	void toNext (ASTFunction* fn) {
-		if (next) next->onFunction(fn);
-	}
-
-	void toNext (ASTType* ty) {
-		if (next) next->onType(ty);
+	template <typename T>
+	void toNext (T* node) {
+		if (auto obj = dynamic_cast<ASTFunction*>(node)) {
+			if (next) next->onFunction(obj);
+		} else if (auto obj = dynamic_cast<ASTType*>(node)) {
+			if (next) next->onType(obj);
+		}
 	}
 
 	void append (Pipe* next) {

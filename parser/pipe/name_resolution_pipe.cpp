@@ -46,7 +46,7 @@ struct AddrDeps {
 
 struct NameResolutionPipe : Pipe {
 	std::map<std::string, std::set<void**>> ptrDeps;
-	std::map<std::string, ExpDesp> astDeps;
+	std::map<std::string, std::set<ExpDesp*>> astDeps;
 
 	void onFunction (ASTFunction* fn) {
 		AddrDeps deps;
@@ -62,23 +62,50 @@ struct NameResolutionPipe : Pipe {
 		if (astDeps.size() > 0) {
 			for (auto const &entry : astDeps)
 				cout << "ERROR: unresolved symbol: " << entry.first << "\n";
-		} else if (this->next) this->next->onFinish();
+		} else this->tryFinish();
+	}
+
+	void addDependencies (AddrDeps* deps, ASTExpression* exp) {
+		auto expDesp = new ExpDesp();
+		expDesp->exp = exp;
+		for (auto const &entry : deps->addrs) {
+			expDesp->names.insert(entry.first);
+			astDeps[entry.first].insert(expDesp);
+			ptrDeps[entry.first] = entry.second;
+		}
+	}
+
+	void resolve (std::string name, ASTExpression* exp) {
+		auto it = ptrDeps.find(name);
+		if (it != ptrDeps.end()) {
+			//cout << "Resolving: " << name << "\n";
+			for (auto const &entry : ptrDeps[name]) *entry = exp;
+			ptrDeps.erase(name);
+			for (auto entry : astDeps[name]) {
+				entry->names.erase(name);
+				if (entry->names.size() == 0) {
+					if (auto obj = dynamic_cast<ASTStructType*>(entry->exp)) {
+						this->resolve(obj->name, obj);
+					} else if (auto obj = dynamic_cast<ASTFunction*>(entry->exp)) {
+						this->resolve(obj->name, obj);
+					}
+					this->toNext(entry->exp);
+				}
+			}
+			astDeps.erase(name);
+		}
 	}
 
 	void check (ASTFunction* fn, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&fn->type)) check(fn->type, deps);
 		if (!deps->addIfUnresolved(&fn->stm))  check(fn->stm, deps);
 		if (deps->addrs.size() > 0) {
-			cout << "Function -> " << fn->name << "\n";
-			deps->print();
-			for (auto const &entry : deps->addrs) {
-				astDeps[entry.first].exp = fn;
-				for (auto const &entry2 : deps->addrs)
-					astDeps[entry.first].names.insert(entry2.first);
-			}
+			//cout << "Function -> " << fn->name << "\n";
+			//deps->print();
+			this->addDependencies(deps, fn);
 		} else {
 			this->toNext(fn);
-			//TODO: trigger name resolution in case is possible
+			this->resolve(fn->name, fn);
 		}
 	}
 
@@ -158,14 +185,12 @@ struct NameResolutionPipe : Pipe {
 	void check (ASTStructType* ty, AddrDeps* deps) {
 		for (auto const& attr : ty->attrs) check(attr, deps);
 		if (deps->addrs.size() > 0) {
-			cout << "Type -> " << ty->name << "\n";
-			deps->print();
-			astDeps[ty->name].exp = ty;
-			for (auto const &entry : deps->addrs)
-				astDeps[ty->name].names.insert(entry.first);
+			//cout << "Type -> " << ty->name << "\n";
+			//deps->print();
+			this->addDependencies(deps, ty);
 		} else {
 			this->toNext(ty);
-			//TODO: trigger name resolution in case is possible
+			this->resolve(ty->name, ty);
 		}
 	}
 
