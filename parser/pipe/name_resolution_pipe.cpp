@@ -8,15 +8,17 @@
 #include "../pipes.cpp"
 #include "parser/ast/ast.hpp"
 
+struct ExpDesp {
+	ASTExpression* exp;
+	std::set<std::string> names;
+};
+
 struct AddrDeps {
 	std::map<std::string, std::set<void**>> addrs;
 
-	bool addIfUnresolved (ASTType** ty) {
-		return this->addIfUnresolved(reinterpret_cast<ASTExpression**>(ty));
-	}
-
-	bool addIfUnresolved (ASTMemory** mem) {
-		return this->addIfUnresolved(reinterpret_cast<ASTExpression**>(mem));
+	template <typename T>
+	bool addIfUnresolved (T** exp) {
+		return this->addIfUnresolved(reinterpret_cast<ASTExpression**>(exp));
 	}
 
 	bool addIfUnresolved (ASTExpression** exp) {
@@ -43,29 +45,41 @@ struct AddrDeps {
 };
 
 struct NameResolutionPipe : Pipe {
+	std::map<std::string, std::set<void**>> ptrDeps;
+	std::map<std::string, ExpDesp> astDeps;
+
 	void onFunction (ASTFunction* fn) {
 		AddrDeps deps;
 		check(fn, &deps);
-		if (deps.addrs.size() > 0) {
-			cout << "Function -> " << fn->name << "\n";
-			deps.print();
-		}
-		this->toNext(fn);
 	}
 
 	void onType (ASTType* ty) {
 		AddrDeps deps;
 		check(ty, &deps);
-		if (deps.addrs.size() > 0) {
-			cout << "Type\n";
-			deps.print();
-		}
-		this->toNext(ty);
+	}
+
+	void onFinish () {
+		if (astDeps.size() > 0) {
+			for (auto const &entry : astDeps)
+				cout << "ERROR: unresolved symbol: " << entry.first << "\n";
+		} else if (this->next) this->next->onFinish();
 	}
 
 	void check (ASTFunction* fn, AddrDeps* deps) {
-		check(fn->type, deps);
-		check(fn->stm, deps);
+		if (!deps->addIfUnresolved(&fn->type)) check(fn->type, deps);
+		if (!deps->addIfUnresolved(&fn->stm))  check(fn->stm, deps);
+		if (deps->addrs.size() > 0) {
+			cout << "Function -> " << fn->name << "\n";
+			deps->print();
+			for (auto const &entry : deps->addrs) {
+				astDeps[entry.first].exp = fn;
+				for (auto const &entry2 : deps->addrs)
+					astDeps[entry.first].names.insert(entry2.first);
+			}
+		} else {
+			this->toNext(fn);
+			//TODO: trigger name resolution in case is possible
+		}
 	}
 
 	void check (ASTStatement* stm, AddrDeps* deps) {
@@ -108,17 +122,12 @@ struct NameResolutionPipe : Pipe {
 
 	void check (ASTValue* val, AddrDeps* deps) {
 		if 		(auto obj = dynamic_cast<ASTCall*>(val)) 	check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTLiteral*>(val))	check(obj, deps);
 		else if (auto obj = dynamic_cast<ASTMemory*>(val))	check(obj, deps);
 	}
 
 	void check (ASTCall* call, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&call->fn)) check(call->fn, deps);
 		for (auto const& param : call->params) check(param, deps);
-	}
-
-	void check (ASTLiteral* lit, AddrDeps* deps) {
-		return /* noop */;
 	}
 
 	void check (ASTMemory* mem, AddrDeps* deps) {
@@ -148,6 +157,16 @@ struct NameResolutionPipe : Pipe {
 
 	void check (ASTStructType* ty, AddrDeps* deps) {
 		for (auto const& attr : ty->attrs) check(attr, deps);
+		if (deps->addrs.size() > 0) {
+			cout << "Type -> " << ty->name << "\n";
+			deps->print();
+			astDeps[ty->name].exp = ty;
+			for (auto const &entry : deps->addrs)
+				astDeps[ty->name].names.insert(entry.first);
+		} else {
+			this->toNext(ty);
+			//TODO: trigger name resolution in case is possible
+		}
 	}
 
 	void check (ASTPointerType* ty, AddrDeps* deps) {
