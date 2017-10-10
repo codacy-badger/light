@@ -14,9 +14,9 @@ fn main {
 	&&&___v1 = 42;
 	println_i32(v1);
 
-	let a : i32 = -(1);
-	let b : i32 = 6 * 2 - 9 / 3;
-	let d : i32 = b + work();
+	let a : int = -(1);
+	let b : int = 6 * 2 - 9 / 3;
+	let d : int = b + work();
 	println_i32(a);
 	println_i32(b);
 	println_i32(d);
@@ -27,6 +27,7 @@ fn main {
 	}
 
 	system_exit(0);
+	return;
 }
 
 type Val2 {
@@ -39,6 +40,7 @@ type Val {
 }
 
 fn calc (a: i32, b: i32) -> i32 {
+	return 0;
 	let v1: Vec2;
 	return a * b;
 }

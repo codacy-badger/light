@@ -33,6 +33,10 @@ struct LLVMPipe : Pipe {
 	Module* module;
 	LLVMScope* scope;
 
+	Function* currentFunction;
+	AllocaInst* currentReturnVal;
+	bool functionHasReturned;
+
 	LLVMPipe (std::string output) : builder(context) {
 		module = new Module(output, context);
 		scope = new LLVMScope(&builder);
@@ -60,18 +64,34 @@ struct LLVMPipe : Pipe {
 		this->scope->addFunction(fn, function);
 
 		if (fn->stm != nullptr) {
-			BasicBlock* entryBlock = BasicBlock::Create(context, "entry", function);
 			BasicBlock* prevBlock = builder.GetInsertBlock();
-			builder.SetInsertPoint(entryBlock);
+			this->functionHasReturned = false;
+			this->currentFunction = function;
 
+			BasicBlock* entryBlock = BasicBlock::Create(context, "entry", function);
+			BasicBlock* retBlock = BasicBlock::Create(context, "return", function);
+			if (fn->type->retType != ASTPrimitiveType::_void) {
+				builder.SetInsertPoint(entryBlock);
+				auto type = this->codegen(fn->type->retType);
+				this->currentReturnVal = builder.CreateAlloca(type, nullptr, "retVal");
+				builder.SetInsertPoint(retBlock);
+				auto retVal = builder.CreateLoad(this->currentReturnVal);
+				builder.CreateRet(retVal);
+			} else {
+				this->currentReturnVal = nullptr;
+				builder.SetInsertPoint(retBlock);
+				builder.CreateRetVoid();
+			}
+
+			builder.SetInsertPoint(entryBlock);
 			this->scope = scope->push();
 			this->scope->addParameters(fn);
 			this->codegen(fn->stm);
 			this->scope = scope->pop();
-			if (fn->type->retType == ASTPrimitiveType::_void
-				&& !entryBlock->back().isTerminator())
-				builder.CreateRetVoid();
 
+			if (!builder.GetInsertBlock()->back().isTerminator()) {
+				builder.CreateBr(retBlock);
+			}
 			builder.SetInsertPoint(prevBlock);
 		}
 
@@ -83,14 +103,14 @@ struct LLVMPipe : Pipe {
 		else if (auto obj = dynamic_cast<ASTBlock*>(stm)) 		return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) 		return codegen(obj);
 		else if (auto obj = dynamic_cast<ASTExpression*>(stm))  return codegen(obj);
-		else {
-			cout << "ERROR!\n\n";
-			return nullptr;
-		}
+		else return nullptr;
 	}
 
 	Value* codegen (ASTBlock* stms) {
-		for(auto const& stm: stms->list) this->codegen(stm);
+		for(auto const& stm: stms->list) {
+			this->codegen(stm);
+			if (dynamic_cast<ASTReturn*>(stm)) return nullptr;
+		}
 		return nullptr;
 	}
 
@@ -108,10 +128,12 @@ struct LLVMPipe : Pipe {
 	}
 
 	Value* codegen (ASTReturn* ret) {
-		if (ret->exp != nullptr) {
+		this->functionHasReturned = false;
+		if (ret->exp != nullptr && this->currentReturnVal != nullptr) {
 			Value* retValue = this->codegen(ret->exp);
-			return builder.CreateRet(retValue);
-		} else return builder.CreateRetVoid();
+			builder.CreateStore(retValue, this->currentReturnVal);
+		}
+		return builder.CreateBr(&this->currentFunction->back());
 	}
 
 	Value* codegen (ASTExpression* exp) {
@@ -262,7 +284,7 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onFinish () {
-		//module->print(outs(), nullptr);
+		module->print(outs(), nullptr);
 		auto start = clock();
 		LLVMObjWritter::writeObj(module);
 		Timer::print("  Write OBJ ", start);
