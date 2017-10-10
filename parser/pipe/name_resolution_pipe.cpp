@@ -71,7 +71,7 @@ struct NameResolutionPipe : Pipe {
 		for (auto const &entry : deps->addrs) {
 			expDesp->names.insert(entry.first);
 			astDeps[entry.first].insert(expDesp);
-			ptrDeps[entry.first] = entry.second;
+			ptrDeps[entry.first].insert(entry.second.begin(), entry.second.end());
 		}
 	}
 

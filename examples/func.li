@@ -9,6 +9,7 @@ fn main () {
 	println_i32(a);
 	println_i32(b);
 	let v2 : Vec;
+	let v3 : *Val;
 	system_exit(0);
 }
 
@@ -17,6 +18,10 @@ fn calc (a: i32, b: i32) -> i32 {
 }
 
 type Vec {
-	x : i32;
+	x : Val;
 	y : i32;
+}
+
+type Val {
+	num : i32;
 }
