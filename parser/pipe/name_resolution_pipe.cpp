@@ -55,8 +55,7 @@ struct NameResolutionPipe : Pipe {
 			//cout << "Function -> " << fn->name << "\n";
 			//deps->print();
 			this->addDependencies(&deps, fn);
-		}
-		else {
+		} else {
 			this->toNext(fn);
 			this->resolve(fn->name, fn);
 		}
@@ -69,8 +68,7 @@ struct NameResolutionPipe : Pipe {
 			//cout << "Type -> " << ty->name << "\n";
 			//deps->print();
 			this->addDependencies(&deps, ty);
-		}
-		else {
+		} else {
 			this->toNext(ty);
 			if (auto namedTy = dynamic_cast<ASTStructType*>(ty)) {
 				this->resolve(namedTy->name, namedTy);
@@ -106,12 +104,12 @@ struct NameResolutionPipe : Pipe {
 			for (auto entry : astDeps[name]) {
 				entry->names.erase(name);
 				if (entry->names.size() == 0) {
+					this->toNext(entry->exp);
 					if (auto obj = dynamic_cast<ASTStructType*>(entry->exp)) {
 						this->resolve(obj->name, obj);
 					} else if (auto obj = dynamic_cast<ASTFunction*>(entry->exp)) {
 						this->resolve(obj->name, obj);
 					}
-					this->toNext(entry->exp);
 				}
 			}
 			astDeps.erase(name);

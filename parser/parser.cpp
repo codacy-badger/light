@@ -107,7 +107,6 @@ struct Parser : Pipe {
 				auto result = this->_typeInstance(&ty);
 				this->currentScope->add(name, ty);
 				CHECK_TYPE(STM_END, "type alias");
-				this->toNext(ty);
 				return result;
 			} else if (this->lexer->isNextType(Token::Type::BRAC_OPEN)) {
 				auto ptr = cast2<ASTStructType>(output);

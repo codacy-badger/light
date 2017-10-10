@@ -120,13 +120,7 @@ struct LLVMPipe : Pipe {
 		else if (auto con   = dynamic_cast<ASTLiteral*>(exp)) return codegen(con);
 		else if (auto call  = dynamic_cast<ASTCall*>(exp)) 	  return codegen(call);
 		else if (auto mem  = dynamic_cast<ASTMemory*>(exp))   return codegen(mem, true);
-		else {
-			std::string msg = "Unrecognized expression?! -> ";
-			msg += typeid(*exp).name();
-			msg += "\n";
-			cout << msg;
-			return nullptr;
-		}
+		else return nullptr;
 	}
 
 	Value* codegen (ASTBinop* binop) {

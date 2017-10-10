@@ -1,3 +1,5 @@
+type int = i32;
+
 type Vec2 {
 	x: Val;
 	y: Val;
@@ -40,8 +42,6 @@ fn calc (a: i32, b: i32) -> i32 {
 	let v1: Vec2;
 	return a * b;
 }
-
-type int = i32;
 
 fn println_i32(number: i32);
 fn system_exit(result: i32);
