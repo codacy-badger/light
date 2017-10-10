@@ -3,7 +3,7 @@ fn println_i32(number: i32);
 fn system_exit(result: i32);
 
 fn main () {
-	let v : Vec;
+	let v : *Vec;
 	let a: i32 = 12;
 	let b: i32 = 3 - calc(8, a);
 	println_i32(a);

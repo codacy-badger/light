@@ -48,8 +48,8 @@ struct LLVMPipe : Pipe {
 	void onFunction (ASTFunction* fn) {
 		vector<Type*> argTypes;
 		for(auto const& param: fn->type->params)
-			argTypes.push_back(this->scope->getType(param->type));
-		Type* retType = this->scope->getType(fn->type->retType);
+			argTypes.push_back(this->codegen(param->type));
+		Type* retType = this->codegen(fn->type->retType);
 		auto fnType = FunctionType::get(retType, argTypes, false);
 		auto constValue = module->getOrInsertFunction(fn->name, fnType);
 		auto function = static_cast<Function*>(constValue);
@@ -96,7 +96,7 @@ struct LLVMPipe : Pipe {
 
 	Value* codegen (ASTVariable* varDef, bool alloca = false) {
 		if (alloca) {
-			auto type = this->scope->getType(varDef->type);
+			auto type = this->codegen(varDef->type);
 			auto alloca = builder.CreateAlloca(type, nullptr, varDef->name);
 			if (varDef->expression != NULL) {
 				Value* val = this->codegen(varDef->expression);
@@ -227,14 +227,22 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onType (ASTType* ty) {
-		if (auto obj = dynamic_cast<ASTStructType*>(ty)) 		codegen(obj);
-		else if (auto obj = dynamic_cast<ASTPointerType*>(ty))  codegen(obj);
+		this->codegen(ty);
+	}
+
+	Type* codegen (ASTType* ty) {
+		auto cachedTy = this->scope->getType(ty);
+		if (cachedTy) return cachedTy;
+
+		if (auto obj = dynamic_cast<ASTStructType*>(ty)) 		return codegen(obj);
+		else if (auto obj = dynamic_cast<ASTPointerType*>(ty))  return codegen(obj);
 		else cout << "ERROR\n\n";
+		return nullptr;
 	}
 
 	Type* codegen (ASTPointerType* ty) {
 		PointerType* ptrTy = nullptr;
-		Type* baseTy = this->scope->getType(ty->base);
+		Type* baseTy = this->codegen(ty->base);
 		if (PointerType::isValidElementType(baseTy)) {
 			return PointerType::get(baseTy, 0);
 		} else {
@@ -246,11 +254,11 @@ struct LLVMPipe : Pipe {
 	}
 
 	Type* codegen (ASTStructType* ty) {
-		StructType* structTy = nullptr;
+		StructType* structTy;
 		if (ty->attrs.size() > 0) {
 			vector<Type*> attrTypes;
 			for (auto &attr : ty->attrs)
-				attrTypes.push_back(this->scope->getType(attr->type));
+				attrTypes.push_back(this->codegen(attr->type));
 			structTy = StructType::create(attrTypes, ty->name);
 		} else {
 			structTy = StructType::create(builder.getContext(), ty->name);
