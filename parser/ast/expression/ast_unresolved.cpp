@@ -11,7 +11,6 @@ struct ASTUnresolved {
 };
 
 struct ASTUnresolvedExp : ASTUnresolved, ASTExpression {
-	std::string name;
 
 	ASTUnresolvedExp (std::string name = "") : ASTUnresolved(name)
 	{ /* empty */ }
