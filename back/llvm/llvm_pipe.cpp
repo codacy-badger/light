@@ -287,6 +287,6 @@ struct LLVMPipe : Pipe {
 		//module->print(outs(), nullptr);
 		auto start = clock();
 		LLVMObjWritter::writeObj(module);
-		Timer::print("  Write OBJ ", start);
+		Timer::print("  Write ", start);
 	}
 };

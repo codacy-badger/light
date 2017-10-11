@@ -40,7 +40,7 @@ void link (std::string output) {
 
 	system(linkerCommand.c_str());
 	system("del _tmp_.obj");
-	Timer::print("  Linker ", linker);
+	Timer::print("  Link  ", linker);
 }
 
 int main (int argc, char** argv) {
@@ -50,6 +50,7 @@ int main (int argc, char** argv) {
 
 	std::cout << std::fixed << std::setprecision(3);
 
+	auto total = clock();
 	for (auto &filename : InputFilenames) {
 		cout << filename.c_str() << "\n";
 
@@ -58,16 +59,13 @@ int main (int argc, char** argv) {
 		//parser->append(new PrintPipe());
 		parser->append(new LLVMPipe("_tmp_.obj"));
 
-		clock_t start, total;
-		start = total = clock();
-
+		clock_t start = clock();
 		parser->block();
-		Timer::print("  Parser ", start);
+		Timer::print("  Parse ", start);
 		parser->onFinish();
 		link(OutputFilename.c_str());
-
-		Timer::print("TOTAL ", total);
 	}
+	Timer::print("TOTAL   ", total);
 
 	return 0;
 }
