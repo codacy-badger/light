@@ -27,7 +27,6 @@ fn main {
 	}
 
 	system_exit(0);
-	return;
 }
 
 type Val2 {

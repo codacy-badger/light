@@ -31,8 +31,8 @@ T* setASTLocation (Lexer* lexer, T* node) {
 }
 
 template <typename T, typename O>
-T** cast2 (O** obj) {
-	return reinterpret_cast<T**>(obj);
+T* cast2 (O* obj) {
+	return reinterpret_cast<T*>(obj);
 }
 
 struct Parser : Pipe {
@@ -54,142 +54,138 @@ struct Parser : Pipe {
 
 	bool block () {
 		ASTStatement* exp;
-		while (this->statement(&exp))
+		while (exp = this->statement())
 			this->currentScope->list.push_back(exp);
 		return true;
 	}
 
-	bool statement (ASTStatement** output) {
+	ASTStatement* statement () {
 		switch (this->lexer->nextType) {
 			case Token::Type::STM_END: {
 				this->lexer->skip(1);
-				return false;
+				return nullptr;
 			}
 			case Token::Type::TYPE: {
-				return this->type(cast2<ASTType>(output));
+				return this->type();
 			}
 			case Token::Type::FUNCTION: {
-				return this->function(cast2<ASTFunction>(output));
+				return this->function();
 			}
 			case Token::Type::LET: {
-				return this->var_def(cast2<ASTVariable>(output));
+				return this->var_def();
 			}
 			case Token::Type::RETURN: {
-				return this->returnStm(cast2<ASTReturn>(output));
+				return this->returnStm();
 			}
 			case Token::Type::BRAC_OPEN: {
 				this->lexer->skip(1);
 				this->scopePush("<anon>");
-				auto result = this->block();
+				this->block();
 				CHECK_TYPE(BRAC_CLOSE, "block");
-				(*output) = this->currentScope;
+				auto output = this->currentScope;
 				this->scopePop();
-				return result;
+				return output;
 			}
 			default: {
-				if (this->expression(cast2<ASTExpression>(output))) {
-					CHECK_TYPE(STM_END, "expression");
-					return true;
-				}
-				return false;
+				auto exp = this->expression();
+				if (exp) CHECK_TYPE(STM_END, "expression");
+				return exp;
 			}
 		}
 	}
 
-	bool type (ASTType** output) {
+	ASTType* type () {
 		if (this->lexer->isNextType(Token::Type::TYPE)) {
 			this->lexer->skip(1);
 
 			auto name = this->lexer->text();
 			if (this->lexer->isNextType(Token::Type::EQUAL)) {
 				this->lexer->skip(1);
-				ASTType* ty;
-				auto result = this->_typeInstance(&ty);
-				this->currentScope->add(name, ty);
+				auto result = this->_typeInstance();
+				this->currentScope->add(name, result);
 				CHECK_TYPE(STM_END, "type alias");
 				return result;
 			} else if (this->lexer->isNextType(Token::Type::BRAC_OPEN)) {
-				auto ptr = cast2<ASTStructType>(output);
-				auto result = this->structType(ptr, name);
-				this->currentScope->add(name, (*ptr));
-				this->toNext(*ptr);
+				auto result = this->structType(name);
+				this->toNext(result);
 				return result;
 			}
 		}
-		return false;
+		return nullptr;
 	}
 
-	bool structType (ASTStructType** output, string name) {
-		(*output) = AST_NEW(ASTStructType, name);
+	ASTStructType* structType (string name) {
+		auto output = AST_NEW(ASTStructType, name);
+		this->currentScope->add(name, output);
 
-		ASTStatement* stm;
+		ASTStatement* stm = nullptr;
 		CHECK_TYPE(BRAC_OPEN, "type name");
-		while (this->_typeBody(&stm)) {
+		while (stm = this->_typeBody()) {
 			if (auto var = dynamic_cast<ASTVariable*>(stm)) {
-				(*output)->attrs.push_back(var);
+				output->attrs.push_back(var);
 				CHECK_TYPE(STM_END, "type attribute");
 			} else if (auto fn = dynamic_cast<ASTFunction*>(stm))
-				(*output)->methods.push_back(fn);
+				output->methods.push_back(fn);
 			else expected("attribute or method", "type");
 		}
 		CHECK_TYPE(BRAC_CLOSE, "type body");
 
-		return true;
+		return output;
 	}
 
-	bool _typeBody (ASTStatement** output) {
+	ASTStatement* _typeBody () {
 		if (this->lexer->isNextType(Token::Type::FUNCTION)) {
-			return this->function(cast2<ASTFunction>(output));
+			return this->function();
 		} else if (this->lexer->isNextType(Token::Type::LET)) {
 			this->lexer->skip(1);
-			return this->_var_def(cast2<ASTVariable>(output));
-		} else return this->_var_def(cast2<ASTVariable>(output));
+			return this->_var_def();
+		} else return this->_var_def();
 	}
 
-	bool function (ASTFunction** output) {
+	ASTFunction* function () {
 		if (this->lexer->isNextType(Token::Type::FUNCTION)) {
 			this->lexer->skip(1);
-			(*output) = AST_NEW(ASTFunction);
+			auto output = AST_NEW(ASTFunction);
 			if (this->lexer->isNextType(Token::Type::ID))
-				(*output)->name = this->lexer->text();
+				output->name = this->lexer->text();
 			else expected("Identifier", "'fn' keyword");
-			this->_functionType(&(*output)->type);
-			this->currentScope->add((*output)->name, (*output));
+			output->type = this->_functionType();
+			this->currentScope->add(output->name, output);
 
 			if (this->lexer->isNextType(Token::Type::STM_END))
 				this->lexer->skip(1);
 			else if (this->lexer->isNextType(Token::Type::BRAC_OPEN)) {
-				this->scopePush((*output)->name);
+				this->scopePush(output->name);
 				this->lexer->skip(1);
-				for (auto const &param : (*output)->type->params)
+				for (auto const &param : output->type->params)
 					this->currentScope->add(param->name, param);
 				this->block();
 				CHECK_TYPE(BRAC_CLOSE, "function body");
-				(*output)->stm = this->currentScope;
+				output->stm = this->currentScope;
 				this->scopePop();
 			}
 
-			this->toNext((*output));
-			return true;
-		} else return false;
+			this->toNext(output);
+			return output;
+		} else return nullptr;
 	}
 
-	bool _functionType (ASTFnType** output) {
-		(*output) = AST_NEW(ASTFnType);
-		this->_functionParameters(&(*output)->params);
+	ASTFnType* _functionType () {
+		auto output = AST_NEW(ASTFnType);
+		this->_functionParameters(&output->params);
 		if (this->lexer->isNextType(Token::Type::ARROW)) {
 			this->lexer->skip(1);
-			this->_typeInstance(&(*output)->retType);
-		} else (*output)->retType = ASTPrimitiveType::_void;
-		return true;
+			output->retType = this->_typeInstance();
+		} else output->retType = ASTPrimitiveType::_void;
+		return output;
 	}
 
-	bool _functionParameters (vector<ASTVariable*>* output) {
+	void _functionParameters (vector<ASTVariable*>* output) {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
 
-			ASTVariable* fnParam;
-			while (this->_var_def(&fnParam)) {
+			ASTVariable* fnParam = nullptr;
+			while (fnParam = this->_var_def()) {
 				output->push_back(fnParam);
 				if (this->lexer->isNextType(Token::Type::COMMA))
 					this->lexer->skip(1);
@@ -198,69 +194,68 @@ struct Parser : Pipe {
 			if(this->lexer->isNextType(Token::Type::PAR_CLOSE))
 				this->lexer->skip(1);
 			else expected("closing parenthesys", "function parameters");
-			return true;
-		} else return false;
+		}
 	}
 
-	bool var_def (ASTVariable** output) {
+	ASTVariable* var_def () {
 		if (this->lexer->isNextType(Token::Type::LET)) {
 			this->lexer->skip(1);
 
-			this->_var_def(output);
+			auto output = this->_var_def();
 			CHECK_TYPE(STM_END, "variable declaration");
 
-			this->currentScope->add((*output)->name, (*output));
-			return true;
-		} else return false;
+			this->currentScope->add(output->name, output);
+			return output;
+		} else return nullptr;
 	}
 
-	bool _var_def (ASTVariable** output) {
+	ASTVariable* _var_def () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
-			(*output) = AST_NEW(ASTVariable);
-			(*output)->name = this->lexer->text();
+			auto output = AST_NEW(ASTVariable);
+			output->name = this->lexer->text();
 
 			if (this->lexer->isNextType(Token::Type::COLON)) {
 				this->lexer->skip(1);
-				this->_typeInstance(&(*output)->type);
+				output->type = this->_typeInstance();
 			}
 
 			if (this->lexer->isNextType(Token::Type::EQUAL)) {
 				this->lexer->skip(1);
-				this->expression(&(*output)->expression);
-				if ((*output)->expression == nullptr)
+				output->expression = this->expression();
+				if (output->expression == nullptr)
 					expected("expression", "'='");
 			}
 			return output;
 		} else return nullptr;
 	}
 
-	bool _typeInstance (ASTType** output) {
+	ASTType* _typeInstance () {
 		if (this->lexer->isNextType(Token::Type::MUL)) {
 			this->lexer->skip(1);
 			auto ptrTy = AST_NEW(ASTPointerType);
-			auto result = this->_typeInstance(&ptrTy->base);
-			(*output) = ptrTy;
-			return result;
+			ptrTy->base = this->_typeInstance();
+			return ptrTy;
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
 			auto typeName = this->lexer->text();
-			(*output) = this->currentScope->get<ASTType>(typeName);
-			if (!(*output)) (*output) = AST_NEW(ASTUnresolvedTy, typeName);
-			return true;
-		} else return false;
+			auto output = this->currentScope->get<ASTType>(typeName);
+			if (!output) output = AST_NEW(ASTUnresolvedTy, typeName);
+			return output;
+		} else return nullptr;
 	}
 
-	bool returnStm (ASTReturn** output) {
+	ASTReturn* returnStm () {
 		if (this->lexer->isNextType(Token::Type::RETURN)) {
 			this->lexer->skip(1);
-			(*output) = AST_NEW(ASTReturn);
-			this->expression(&(*output)->exp);
+			auto output = AST_NEW(ASTReturn);
+			output->exp = this->expression();
 			CHECK_TYPE(STM_END, "return expression");
-			return true;
-		} else return false;
+			return output;
+		} else return nullptr;
 	}
 
-	bool expression (ASTExpression** output, short minPrecedence = 1) {
-	    if (this->_atom(output)) {
+	ASTExpression* expression (short minPrecedence = 1) {
+		ASTExpression* output;
+	    if (output = this->_atom()) {
 	        Token::Type tt = this->lexer->nextType;
 			auto precedence = ASTBinop::getPrecedence(tt);
 			while (precedence >= minPrecedence) {
@@ -271,100 +266,101 @@ struct Parser : Pipe {
 					nextMinPrec += 1;
 
 				ASTBinop* _tmp = AST_NEW(ASTBinop, tt);
-				this->expression(&_tmp->rhs, nextMinPrec);
-				_tmp->lhs = (*output);
-				(*output) = _tmp;
+				_tmp->rhs = this->expression(nextMinPrec);
+				_tmp->lhs = output;
+				output = _tmp;
 
 				tt = this->lexer->nextType;
 				precedence = ASTBinop::getPrecedence(tt);
 			}
-	        return true;
-	    } else return false;
+	    }
+		return output;
 	}
 
-	bool _atom (ASTExpression** output) {
+	ASTExpression* _atom () {
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
-			auto result = this->expression(output);
+			auto result = this->expression();
 			CHECK_TYPE(PAR_CLOSE, "expression");
 			return result;
 		} else if (this->lexer->isNextType(Token::Type::SUB)) {
 			this->lexer->skip(1);
 			auto unop = AST_NEW(ASTUnop, Token::Type::SUB);
-			auto result = this->_atom(&unop->exp);
-			(*output) = unop;
-			return result;
+			unop->exp = this->_atom();
+			return unop;
 		} else if (this->lexer->isNextType(Token::Type::AMP)) {
 			this->lexer->skip(1);
 			auto deref = AST_NEW(ASTDeref);
-			auto result = this->_atom(cast2<ASTExpression>(&deref->memory));
-			(*output) = deref;
-			return result;
+			auto exp = this->_atom();
+			if (auto mem = dynamic_cast<ASTMemory*>(exp)) {
+				deref->memory = mem;
+			} // TODO: we should report a parsing error in else block
+			return deref;
 		} else if (this->lexer->isNextType(Token::Type::MUL)) {
 			this->lexer->skip(1);
 			auto ref = AST_NEW(ASTRef);
-			auto result = this->_atom(cast2<ASTExpression>(&ref->memory));
-			(*output) = ref;
-			return result;
+			auto exp = this->_atom();
+			if (auto mem = dynamic_cast<ASTMemory*>(exp)) {
+				ref->memory = mem;
+			} // TODO: we should report a parsing error in else block
+			return ref;
 		} else if (this->lexer->isNextType(Token::Type::ADD)) {
 			this->lexer->skip(1);
-			this->expression(output);
-			return true;
+			return this->expression();
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
-			this->variable(output);
+			auto output = this->variable();
 			if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
-				auto callPtr = cast2<ASTCall>(output);
-				auto fnPtr = reinterpret_cast<ASTFunction*>(*output);
-				return this->call(callPtr, fnPtr);
-			} else return true;
-		} else return this->literal(cast2<ASTLiteral>(output));
+				auto fnPtr = reinterpret_cast<ASTFunction*>(output);
+				return this->call(fnPtr);
+			} else return output;
+		} else return this->literal();
 	}
 
-	bool literal (ASTLiteral** output) {
+	ASTLiteral* literal () {
+		ASTLiteral* output = nullptr;
 		if (this->lexer->isNextType(Token::Type::STRING)) {
-			(*output) = AST_NEW(ASTLiteral, ASTLiteral::TYPE::STRING);
-			(*output)->stringValue = this->lexer->text();
-			return true;
+			output = AST_NEW(ASTLiteral, ASTLiteral::TYPE::STRING);
+			output->stringValue = this->lexer->text();
 		} else if (this->lexer->isNextType(Token::Type::NUMBER)) {
-			(*output) = AST_NEW(ASTLiteral, ASTLiteral::TYPE::INT);
-			(*output)->intValue = atoi(this->lexer->text());
-			return true;
-		} else return nullptr;
+			output = AST_NEW(ASTLiteral, ASTLiteral::TYPE::INT);
+			output->intValue = atoi(this->lexer->text());
+		}
+		return output;
 	}
 
-	bool call (ASTCall** output, ASTExpression* callee) {
+	ASTCall* call (ASTExpression* callee) {
+		ASTCall* output = nullptr;
 		if (this->lexer->isNextType(Token::Type::PAR_OPEN)) {
 			this->lexer->skip(1);
-			(*output) = AST_NEW(ASTCall);
-			(*output)->fn = callee;
-			ASTExpression* exp;
-			while (this->expression(&exp)) {
-				(*output)->params.push_back(exp);
+			output = AST_NEW(ASTCall);
+			output->fn = callee;
+			ASTExpression* exp = nullptr;
+			while (exp = this->expression()) {
+				output->params.push_back(exp);
 				if (this->lexer->isNextType(Token::Type::COMMA))
 					this->lexer->skip(1);
 			}
 			CHECK_TYPE(PAR_CLOSE, "function arguments");
-
-			return true;
-		} else return false;
+		}
+		return output;
 	}
 
-	bool variable (ASTExpression** output) {
+	ASTExpression* variable () {
 		if (this->lexer->isNextType(Token::Type::ID)) {
 			string name(this->lexer->nextText);
-			(*output) = this->currentScope->get(name);
-			if (!(*output)) (*output) = AST_NEW(ASTUnresolvedExp, name);
+			auto output = this->currentScope->get(name);
+			if (!output) output = AST_NEW(ASTUnresolvedExp, name);
 			this->lexer->skip(1);
 
 			Token::Type tt = this->lexer->nextType;
 			while (tt == Token::Type::DOT) {
 				this->lexer->skip(1);
 				if (tt == Token::Type::DOT) {
-					auto attr = AST_NEW(ASTAttr, (*output));
+					auto attr = AST_NEW(ASTAttr, output);
 					if (this->lexer->isNextType(Token::Type::ID))
 						attr->name = this->lexer->text();
 					else expected("name", "attribute access");
-					(*output) = attr;
+					output = attr;
 					tt = this->lexer->nextType;
 				}
 			}
