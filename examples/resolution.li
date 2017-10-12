@@ -2,6 +2,7 @@
 fn main {
 	let val : i32 = calc(2, 1);
 	let vec : Vec2;
+	system_exit(0);
 }
 
 type Vec2 {
@@ -12,3 +13,5 @@ type Vec2 {
 fn calc (a: i32, b: i32) -> i32 {
 	return a * b + 12;
 }
+
+fn system_exit(result: i32);

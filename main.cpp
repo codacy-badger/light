@@ -56,7 +56,7 @@ int main (int argc, char** argv) {
 
 		auto parser = new Parser(filename.c_str());
 		parser->append(new NameResolutionPipe());
-		//parser->append(new PrintPipe());
+		parser->append(new PrintPipe());
 		parser->append(new LLVMPipe("_tmp_.obj"));
 
 		clock_t start = clock();

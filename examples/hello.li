@@ -1,4 +1,0 @@
-fn main {
-	print("Hello Light!\n");
-	system_exit(0);
-}

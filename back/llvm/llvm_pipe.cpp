@@ -223,17 +223,16 @@ struct LLVMPipe : Pipe {
 	}
 
 	Value* codegen (ASTAttr* attr) {
-		Value* val = this->codegen(attr->exp);
+		auto mem = dynamic_cast<ASTMemory*>(attr->exp);
+		Value* val = this->codegen(mem);
 		Type* ty = val->getType();
 		if (ty->isPointerTy()) {
-			PointerType* pTy = static_cast<PointerType*>(ty);
-			Type* actualType = pTy->getElementType();
-			if (actualType->isStructTy()) {
-				//return builder.CreateStructGEP(actualType, val, 0);
-				Value* attrPointer = builder.CreateStructGEP(actualType, val, 0);
-				return builder.CreateLoad(attrPointer, "attr." + attr->name);
-			}
-		} else cout << "[ASTAttr::codegen] value type is not a struct!";
+			PointerType* ptrTy = static_cast<PointerType*>(ty);
+			if (ptrTy->getElementType()->isStructTy()) {
+				auto structTy = ptrTy->getElementType();
+				return builder.CreateStructGEP(structTy, val, 0);
+			} else cout << "[ASTAttr::codegen] value type is not a struct!";
+		}
 		return nullptr;
 	}
 
@@ -284,7 +283,7 @@ struct LLVMPipe : Pipe {
 	}
 
 	void onFinish () {
-		//module->print(outs(), nullptr);
+		module->print(outs(), nullptr);
 		auto start = clock();
 		LLVMObjWritter::writeObj(module);
 		Timer::print("  Write ", start);
