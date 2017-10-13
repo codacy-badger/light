@@ -5,7 +5,7 @@
 #include <string>
 #include "lexer/token.cpp"
 
-struct ASTType;
+struct Ast_Type_Definition;
 struct ASTBlock;
 struct ASTFunction;
 struct ASTExpression;
@@ -14,20 +14,18 @@ struct ASTVariable;
 using namespace std;
 
 enum Ast_Type {
-	Ast_Statement,
-	Ast_Block,
-	Ast_Declaration,
-	Ast_Return,
+	AST_STATEMENT,
+	AST_BLOCK,
+	AST_DECLARATION,
+	AST_RETURN,
 
-	Ast_Type_Instance,
-
-	Ast_Expression,
-	Ast_Function,
-	Ast_Type_Declaration,
-	Ast_Literal,
-	Ast_Binary,
-	Ast_Unary,
-	Ast_Call,
+	AST_EXPRESSION,
+	AST_FUNCTION,
+	AST_TYPE_DEFINITION,
+	AST_LITERAL,
+	AST_BINARY,
+	AST_UNARY,
+	AST_CALL,
 };
 
 struct AST {
@@ -40,7 +38,7 @@ struct AST {
 };
 
 struct ASTStatement : AST {
-	ASTStatement() {this->type = Ast_Statement;}
+	ASTStatement() { this->type = AST_STATEMENT; }
 	virtual ~ASTStatement() {}
 };
 
@@ -52,7 +50,7 @@ struct ASTBlock : ASTStatement {
 	map<string, ASTExpression*> symbols;
 
 	ASTBlock (string name, ASTBlock* parent = nullptr) {
-		this->type = Ast_Block;
+		this->type = AST_BLOCK;
 		this->parent = parent;
 		this->name = name;
 	}
@@ -89,68 +87,60 @@ struct ASTBlock : ASTStatement {
 struct ASTReturn : ASTStatement {
 	ASTExpression* exp = nullptr;
 
-	ASTReturn() {this->type = Ast_Return;}
+	ASTReturn() { this->type = AST_RETURN; }
 };
 
 struct ASTExpression : ASTStatement {
-	ASTExpression() {this->type = Ast_Expression;}
+	ASTExpression() { this->type = AST_EXPRESSION; }
 	virtual ~ASTExpression() {}
-	virtual ASTType* getType() = 0;
 };
 
-struct ASTType : ASTExpression {
+struct Ast_Type_Definition : ASTExpression {
 	vector<ASTVariable*> attrs;
 	vector<ASTFunction*> methods;
-
-	virtual ASTType* getType() {
-		//TODO: return special Type for consistency
-		return nullptr;
-	}
 };
 
-struct ASTPointerType : ASTType {
-	ASTType* base = nullptr;
+struct ASTPointerType : Ast_Type_Definition {
+	Ast_Type_Definition* base = nullptr;
 };
 
-struct ASTFnType : ASTType {
+struct ASTFnType : Ast_Type_Definition {
 	vector<ASTVariable*> params;
-	ASTType* retType = nullptr;
+	Ast_Type_Definition* retType = nullptr;
 };
 
-struct ASTStructType : ASTType {
+struct ASTStructType : Ast_Type_Definition {
 	string name;
 
 	ASTStructType (string name = "") { this->name = name; }
 };
 
-struct ASTPrimitiveType : ASTType {
+struct ASTPrimitiveType : Ast_Type_Definition {
 	string name;
 
 	ASTPrimitiveType (string name) { this->name = name; }
 
-	static ASTType* _void;
-	static ASTType* _i1;
-	static ASTType* _i8;
-	static ASTType* _i16;
-	static ASTType* _i32;
-	static ASTType* _i64;
-	static ASTType* _i128;
+	static Ast_Type_Definition* _void;
+	static Ast_Type_Definition* _i1;
+	static Ast_Type_Definition* _i8;
+	static Ast_Type_Definition* _i16;
+	static Ast_Type_Definition* _i32;
+	static Ast_Type_Definition* _i64;
+	static Ast_Type_Definition* _i128;
 };
 
-ASTType* ASTPrimitiveType::_void = new ASTPrimitiveType("void");
-ASTType* ASTPrimitiveType::_i1 =   new ASTPrimitiveType("i1");
-ASTType* ASTPrimitiveType::_i8 =   new ASTPrimitiveType("i8");
-ASTType* ASTPrimitiveType::_i16 =  new ASTPrimitiveType("i16");
-ASTType* ASTPrimitiveType::_i32 =  new ASTPrimitiveType("i32");
-ASTType* ASTPrimitiveType::_i64 =  new ASTPrimitiveType("i64");
-ASTType* ASTPrimitiveType::_i128 = new ASTPrimitiveType("i128");
+Ast_Type_Definition* ASTPrimitiveType::_void = new ASTPrimitiveType("void");
+Ast_Type_Definition* ASTPrimitiveType::_i1 =   new ASTPrimitiveType("i1");
+Ast_Type_Definition* ASTPrimitiveType::_i8 =   new ASTPrimitiveType("i8");
+Ast_Type_Definition* ASTPrimitiveType::_i16 =  new ASTPrimitiveType("i16");
+Ast_Type_Definition* ASTPrimitiveType::_i32 =  new ASTPrimitiveType("i32");
+Ast_Type_Definition* ASTPrimitiveType::_i64 =  new ASTPrimitiveType("i64");
+Ast_Type_Definition* ASTPrimitiveType::_i128 = new ASTPrimitiveType("i128");
 
 struct ASTFunction : ASTExpression {
 	string name;
 	ASTFnType* type = nullptr;
 	ASTStatement* stm = nullptr;
-
-	ASTType* getType() { return this->type; }
 };
 
 struct ASTBinop : ASTExpression {
@@ -184,13 +174,6 @@ struct ASTBinop : ASTExpression {
 				exit(1);
 		};
 		return OP::COUNT;
-	}
-
-	ASTType* getType() {
-		ASTType* lhsTy = this->lhs->getType();
-		ASTType* rhsTy = this->rhs->getType();
-		if (lhsTy == rhsTy) return lhsTy;
-		else return nullptr;
 	}
 
 	static short getPrecedence (Token::Type opToken) {
@@ -248,10 +231,6 @@ struct ASTUnop : ASTExpression {
 		};
 		return OP::COUNT;
 	}
-
-	ASTType* getType() {
-		return this->exp->getType();
-	}
 };
 
 map<ASTUnop::OP, const char*> ASTUnop::opChar = {
@@ -264,12 +243,6 @@ struct ASTValue : ASTExpression {
 struct ASTCall : ASTValue {
 	ASTExpression* fn;
 	vector<ASTExpression*> params;
-
-	ASTType* getType() {
-		if (auto _fn = dynamic_cast<ASTFunction*>(fn)) {
-			return _fn->type->retType;
-		} else return nullptr;
-	}
 };
 
 struct ASTLiteral : ASTValue {
@@ -288,19 +261,6 @@ struct ASTLiteral : ASTValue {
 	ASTLiteral (TYPE type) {
 		this->type = type;
 	}
-
-	ASTType* getType() {
-		switch (type) {
-			case BYTE:   	return nullptr;
-			case SHORT:  	return nullptr;
-			case INT:    	return ASTPrimitiveType::_i32;
-			case LONG:   	return nullptr;
-			case FLOAT:  	return nullptr;
-			case DOUBLE: 	return nullptr;
-			case STRING: 	return nullptr;
-			default:		return nullptr;
-		}
-	}
 };
 
 struct ASTMemory : ASTValue {
@@ -309,31 +269,18 @@ struct ASTMemory : ASTValue {
 
 struct ASTVariable : ASTMemory {
 	string name = "";
-	ASTType* type = nullptr;
+	Ast_Type_Definition* type = nullptr;
 	ASTExpression* expression = nullptr;
 
 	bool isConstant() { return false; }
-	ASTType* getType() {
-		return this->type;
-	}
 };
 
 struct ASTRef : ASTMemory {
 	ASTMemory* memory = nullptr;
-
-	ASTType* getType() {
-		// TODO: return some sort of custom pointer type
-		return nullptr;
-	}
 };
 
 struct ASTDeref : ASTMemory {
 	ASTMemory* memory = nullptr;
-
-	ASTType* getType() {
-		// TODO: return some sort of custom pointer type
-		return nullptr;
-	}
 };
 
 struct ASTAttr : ASTMemory {
@@ -342,11 +289,6 @@ struct ASTAttr : ASTMemory {
 
 	ASTAttr (ASTExpression* exp = nullptr) {
 		this->exp = exp;
-	}
-
-	ASTType* getType() {
-		// TODO: store variables in context to query type
-		return nullptr;
 	}
 };
 
@@ -359,21 +301,13 @@ struct ASTUnresolved {
 };
 
 struct ASTUnresolvedExp : ASTUnresolved, ASTExpression {
-
-	ASTUnresolvedExp (string name = "") : ASTUnresolved(name)
-	{ /* empty */ }
-
-	ASTType* getType() { return nullptr; }
+	ASTUnresolvedExp (string name = "") : ASTUnresolved(name) { /* empty */ }
 };
 
-struct ASTUnresolvedTy : ASTUnresolved, ASTType {
-
-	ASTUnresolvedTy (string name = "") : ASTUnresolved(name)
-	{ /* empty */ }
+struct ASTUnresolvedTy : ASTUnresolved, Ast_Type_Definition {
+	ASTUnresolvedTy (string name = "") : ASTUnresolved(name) { /* empty */ }
 };
 
 struct ASTUnresolvedFn : ASTUnresolved, ASTFunction {
-
-	ASTUnresolvedFn (string name = "") : ASTUnresolved(name)
-	{ /* empty */ }
+	ASTUnresolvedFn (string name = "") : ASTUnresolved(name) { /* empty */ }
 };

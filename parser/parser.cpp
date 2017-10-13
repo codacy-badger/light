@@ -93,7 +93,7 @@ struct Parser : Pipe {
 		}
 	}
 
-	ASTType* type () {
+	Ast_Type_Definition* type () {
 		if (this->lexer->isNextType(Token::Type::TYPE)) {
 			this->lexer->skip(1);
 
@@ -228,7 +228,7 @@ struct Parser : Pipe {
 		} else return nullptr;
 	}
 
-	ASTType* _typeInstance () {
+	Ast_Type_Definition* _typeInstance () {
 		if (this->lexer->isNextType(Token::Type::MUL)) {
 			this->lexer->skip(1);
 			auto ptrTy = AST_NEW(ASTPointerType);
@@ -236,7 +236,7 @@ struct Parser : Pipe {
 			return ptrTy;
 		} else if (this->lexer->isNextType(Token::Type::ID)) {
 			auto typeName = this->lexer->text();
-			auto output = this->currentScope->get<ASTType>(typeName);
+			auto output = this->currentScope->get<Ast_Type_Definition>(typeName);
 			if (!output) output = AST_NEW(ASTUnresolvedTy, typeName);
 			return output;
 		} else return nullptr;

@@ -241,11 +241,11 @@ struct LLVMPipe : Pipe {
 		return builder.CreateLoad(val, "");
 	}
 
-	void onType (ASTType* ty) {
+	void onType (Ast_Type_Definition* ty) {
 		this->codegen(ty);
 	}
 
-	Type* codegen (ASTType* ty) {
+	Type* codegen (Ast_Type_Definition* ty) {
 		auto cachedTy = this->scope->getType(ty);
 		if (cachedTy) return cachedTy;
 

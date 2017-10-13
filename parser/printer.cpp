@@ -8,7 +8,7 @@ public:
 		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTBlock*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) print(obj, tabs);
-		else if (auto obj = dynamic_cast<ASTType*>(stm)) print(obj, tabs);
+		else if (auto obj = dynamic_cast<Ast_Type_Definition*>(stm)) print(obj, tabs);
 		else if (auto obj = dynamic_cast<ASTExpression*>(stm)) {
 			_tabs(tabs);
 			print(obj, tabs);
@@ -82,7 +82,7 @@ public:
 		cout << endl;
 	}
 
-	static void print (ASTType* type, int tabs = 0, bool nameOnly = false) {
+	static void print (Ast_Type_Definition* type, int tabs = 0, bool nameOnly = false) {
 		if 		(auto obj = dynamic_cast<ASTPrimitiveType*>(type)) 	print(obj, tabs, nameOnly);
 		else if (auto obj = dynamic_cast<ASTStructType*>(type))    	print(obj, tabs, nameOnly);
 		else if (auto obj = dynamic_cast<ASTPointerType*>(type))    print(obj, tabs, nameOnly);

@@ -29,7 +29,7 @@ struct LLVMScope {
 
 	map<ASTVariable*, AllocaInst*> variables;
 
-	static map<ASTType*, Type*> types;
+	static map<Ast_Type_Definition*, Type*> types;
 	static map<ASTFunction*, Function*> functions;
 
 	LLVMScope (IRBuilder<>* builder, LLVMScope* parent = nullptr) {
@@ -77,20 +77,20 @@ struct LLVMScope {
 		return nullptr;
 	}
 
-	void addType (ASTType* ty, Type* type) {
+	void addType (Ast_Type_Definition* ty, Type* type) {
 		auto it = types.find(ty);
 		if (it == types.end()) types[ty] = type;
 		//TODO: print the name of the type (virtual function?)
 		else cout << "Type already exists \n";
 	}
 
-	void addType (ASTType* alias, ASTType* original) {
+	void addType (Ast_Type_Definition* alias, Ast_Type_Definition* original) {
 		auto it = types.find(original);
 		if (it != types.end()) types[alias] = types[original];
 		else cout << "Type  not found\n";
 	}
 
-	Type* getType (ASTType* ty) {
+	Type* getType (Ast_Type_Definition* ty) {
 		if (ty == nullptr) return Type::getVoidTy(builder->getContext());
 		else if (auto ptrTy = dynamic_cast<ASTPointerType*>(ty)) {
 			auto baseTy = this->getType(ptrTy->base);
@@ -133,5 +133,5 @@ struct LLVMScope {
 	}
 };
 
-map<ASTType*, Type*> LLVMScope::types;
+map<Ast_Type_Definition*, Type*> LLVMScope::types;
 map<ASTFunction*, Function*> LLVMScope::functions;

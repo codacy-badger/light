@@ -10,7 +10,7 @@ struct PrintPipe : Pipe {
 		this->toNext(fn);
 	}
 
-	void onType (ASTType* ty) {
+	void onType (Ast_Type_Definition* ty) {
 		ASTPrinter::print(ty);
 		this->toNext(ty);
 	}

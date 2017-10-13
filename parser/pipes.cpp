@@ -11,7 +11,7 @@ struct Pipe {
 		this->toNext(fn);
 	}
 
-	virtual void onType (ASTType* ty) {
+	virtual void onType (Ast_Type_Definition* ty) {
 		this->toNext(ty);
 	}
 
@@ -27,7 +27,7 @@ struct Pipe {
 	void toNext (T* node) {
 		if (auto obj = dynamic_cast<ASTFunction*>(node)) {
 			if (next) next->onFunction(obj);
-		} else if (auto obj = dynamic_cast<ASTType*>(node)) {
+		} else if (auto obj = dynamic_cast<Ast_Type_Definition*>(node)) {
 			if (next) next->onType(obj);
 		}
 	}

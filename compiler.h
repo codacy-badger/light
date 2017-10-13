@@ -8,11 +8,11 @@ struct Light_Compiler {
 	void report_warning(AST* node, char* format, ...);
 	void report_error(AST* node, char* format, ...);
 
-	ASTType* type_def_void;
-	ASTType* type_def_i1;
-	ASTType* type_def_i8;
-	ASTType* type_def_i16;
-	ASTType* type_def_i32;
-	ASTType* type_def_i64;
-	ASTType* type_def_i128;
+	Ast_Type_Definition* type_def_void;
+	Ast_Type_Definition* type_def_i1;
+	Ast_Type_Definition* type_def_i8;
+	Ast_Type_Definition* type_def_i16;
+	Ast_Type_Definition* type_def_i32;
+	Ast_Type_Definition* type_def_i64;
+	Ast_Type_Definition* type_def_i128;
 };

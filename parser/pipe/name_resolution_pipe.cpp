@@ -60,7 +60,7 @@ struct NameResolutionPipe : Pipe {
 		}
 	}
 
-	void onType (ASTType* ty) {
+	void onType (Ast_Type_Definition* ty) {
 		AddrDeps deps;
 		check(ty, &deps);
 		if (deps.addrs.size() > 0) {
@@ -187,7 +187,7 @@ struct NameResolutionPipe : Pipe {
 		if (!deps->addIfUnresolved(&attr->exp)) check(attr->exp, deps);
 	}
 
-	void check (ASTType* ty, AddrDeps* deps) {
+	void check (Ast_Type_Definition* ty, AddrDeps* deps) {
 		if 		(auto obj = dynamic_cast<ASTStructType*>(ty)) 	check(obj, deps);
 		else if (auto obj = dynamic_cast<ASTPointerType*>(ty))  check(obj, deps);
 		else if (auto obj = dynamic_cast<ASTFnType*>(ty))  		check(obj, deps);
