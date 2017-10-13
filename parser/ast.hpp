@@ -70,7 +70,6 @@ struct ASTBlock : ASTStatement {
 
 struct ASTExpression : ASTStatement {
 	virtual ~ASTExpression() {}
-	virtual bool isConstant() = 0;
 	virtual ASTType* getType() = 0;
 };
 
@@ -80,7 +79,6 @@ struct ASTType : ASTExpression {
 
 	virtual bool isPrimitive () = 0;
 
-	virtual bool isConstant() { return true; }
 	virtual ASTType* getType() {
 		//TODO: return special Type for consistency
 		return nullptr;
@@ -137,7 +135,6 @@ struct ASTFunction : ASTExpression {
 	ASTFnType* type = nullptr;
 	ASTStatement* stm = nullptr;
 
-	bool isConstant() { return false; }
 	ASTType* getType() { return this->type; }
 };
 
@@ -172,10 +169,6 @@ struct ASTBinop : ASTExpression {
 				exit(1);
 		};
 		return OP::COUNT;
-	}
-
-	bool isConstant () {
-		return this->lhs->isConstant() && this->rhs->isConstant();
 	}
 
 	ASTType* getType() {
@@ -241,10 +234,6 @@ struct ASTUnop : ASTExpression {
 		return OP::COUNT;
 	}
 
-	bool isConstant () {
-		return this->exp->isConstant();
-	}
-
 	ASTType* getType() {
 		return this->exp->getType();
 	}
@@ -260,10 +249,6 @@ struct ASTValue : ASTExpression {
 struct ASTCall : ASTValue {
 	ASTExpression* fn;
 	std::vector<ASTExpression*> params;
-
-	bool isConstant () {
-		return false;
-	}
 
 	ASTType* getType() {
 		if (auto _fn = dynamic_cast<ASTFunction*>(fn)) {
@@ -287,10 +272,6 @@ struct ASTLiteral : ASTValue {
 
 	ASTLiteral (TYPE type) {
 		this->type = type;
-	}
-
-	bool isConstant () {
-		return true;
 	}
 
 	ASTType* getType() {
@@ -325,10 +306,6 @@ struct ASTVariable : ASTMemory {
 struct ASTRef : ASTMemory {
 	ASTMemory* memory = nullptr;
 
-	bool isConstant() {
-		return this->memory->isConstant();
-	}
-
 	ASTType* getType() {
 		// TODO: return some sort of custom pointer type
 		return nullptr;
@@ -337,10 +314,6 @@ struct ASTRef : ASTMemory {
 
 struct ASTDeref : ASTMemory {
 	ASTMemory* memory = nullptr;
-
-	bool isConstant() {
-		return this->memory->isConstant();
-	}
 
 	ASTType* getType() {
 		// TODO: return some sort of custom pointer type
@@ -356,7 +329,6 @@ struct ASTAttr : ASTMemory {
 		this->exp = exp;
 	}
 
-	bool isConstant() { return false; }
 	ASTType* getType() {
 		// TODO: store variables in context to query type
 		return nullptr;
@@ -376,8 +348,7 @@ struct ASTUnresolvedExp : ASTUnresolved, ASTExpression {
 	ASTUnresolvedExp (std::string name = "") : ASTUnresolved(name)
 	{ /* empty */ }
 
-	virtual bool isConstant() { return false; }
-	virtual ASTType* getType() { return nullptr; }
+	ASTType* getType() { return nullptr; }
 };
 
 struct ASTUnresolvedTy : ASTUnresolved, ASTType {
@@ -385,7 +356,7 @@ struct ASTUnresolvedTy : ASTUnresolved, ASTType {
 	ASTUnresolvedTy (std::string name = "") : ASTUnresolved(name)
 	{ /* empty */ }
 
-	virtual bool isPrimitive () { return false; }
+	bool isPrimitive () { return false; }
 };
 
 struct ASTUnresolvedFn : ASTUnresolved, ASTFunction {

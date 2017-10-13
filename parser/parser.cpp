@@ -368,7 +368,7 @@ struct Parser : Pipe {
 		} else return nullptr;
 	}
 
-	void scopePush (std::string name) {
+	void scopePush (string name) {
 		assert(this->currentScope);
 		this->currentScope = AST_NEW(ASTBlock, name, this->currentScope);
 	}
