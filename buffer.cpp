@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <deque>
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -11,8 +12,8 @@ using namespace std;
 
 struct Buffer {
 	istream* stream;
-	vector<int> pushback_buffer;
-	
+	deque<int> pushback_buffer;
+
 	const char* source;
 	unsigned int line = 1, col = 1;
 
@@ -34,9 +35,8 @@ struct Buffer {
 		int output = 0;
 		if (this->pushback_buffer.empty()) output = this->stream->get();
 		else {
-			output = this->pushback_buffer[0];
-			this->pushback_buffer.erase(this->pushback_buffer.begin(),
-				this->pushback_buffer.begin() + 1);
+			output = this->pushback_buffer.front();
+			this->pushback_buffer.pop_front();
 		}
 		this->handleLineCol(output);
 		return output;

@@ -58,13 +58,13 @@ int main (int argc, char** argv) {
 		auto parser = new Parser(filename.c_str());
 		parser->append(new NameResolutionPipe());
 		//parser->append(new PrintPipe());
-		parser->append(new LLVMPipe("_tmp_.obj"));
+		//parser->append(new LLVMPipe("_tmp_.obj"));
 
 		clock_t start = clock();
 		parser->block();
 		Timer::print("  Parse ", start);
 		parser->onFinish();
-		link(OutputFilename.c_str());
+		//link(OutputFilename.c_str());
 	}
 	Timer::print("TOTAL   ", total);
 
