@@ -1,12 +1,8 @@
 #pragma once
 
 #include <fstream>
-#include <sstream>
+#include <string>
 #include <deque>
-
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
 
 using namespace std;
 
