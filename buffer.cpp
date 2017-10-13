@@ -1,5 +1,4 @@
-#ifndef LIGHT_PUSHBACK_BUFFER
-#define LIGHT_PUSHBACK_BUFFER
+#pragma once
 
 #include <fstream>
 #include <sstream>
@@ -10,14 +9,25 @@
 
 using namespace std;
 
-class PushbackBuffer {
-public:
+struct Buffer {
+	istream* stream;
+	vector<int> pushback_buffer;
+	
 	const char* source;
 	unsigned int line = 1, col = 1;
 
-	PushbackBuffer (istream* stream, const char* source = "<buffer>") {
+	Buffer (istream* stream, const char* source = "<buffer>") {
 		this->stream = stream;
 		this->source = source;
+	}
+
+	Buffer (const char* filename) {
+		this->stream = new ifstream(filename, ifstream::in);
+		this->source = filename;
+	}
+
+	~Buffer () {
+		delete stream;
 	}
 
 	int next () {
@@ -91,14 +101,6 @@ public:
 			<< this->line << ", " << this->col;
 	}
 
-	~PushbackBuffer () {
-		delete stream;
-	}
-
-private:
-	istream* stream;
-	vector<int> pushback_buffer;
-
 	void fillPushbackBuffer (unsigned int limit) {
 		for (unsigned int i = this->pushback_buffer.size(); i < limit; i++) {
 			this->pushback_buffer.push_back(this->stream->get());
@@ -113,5 +115,3 @@ private:
 		} else col += 1;
 	}
 };
-
-#endif

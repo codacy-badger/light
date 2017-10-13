@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../pipes.cpp"
-#include "parser/ast/ast.hpp"
 #include "parser/printer.cpp"
 
 struct PrintPipe : Pipe {

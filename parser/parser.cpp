@@ -7,13 +7,12 @@
 #include <string>
 #include <map>
 
-#include "buffer/buffer.cpp"
-#include "buffer/file_buffer.cpp"
+#include "buffer.cpp"
 
 #include "lexer/lexer.cpp"
 
 #include "pipes.cpp"
-#include "ast/ast.hpp"
+#include "ast.hpp"
 
 using namespace std;
 

@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "ast/ast.hpp"
+#include "ast.hpp"
 
 struct Pipe {
 	Pipe* next = nullptr;

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../buffer/file_buffer.cpp"
+#include "../buffer.cpp"
 #include "token.cpp"
 
 #define LEXER_DEBUG false
@@ -20,18 +20,21 @@
 	handleToken(type, literal); return true; }
 #define FUNCTION_TOKEN(func) if (func()) return true;
 
-class Lexer {
-public:
-	PushbackBuffer* buffer;
+struct Lexer {
+	Buffer* buffer;
 
 	char* nextText;
 	Token::Type nextType;
 
-	Lexer (const char* filename)
-	{ this->initLexer(new FileBuffer(filename)); }
+	Lexer (const char* filename) {
+		this->buffer = new Buffer(filename);
+		this->parse_next();
+	}
 
-	Lexer (PushbackBuffer* buffer)
-	{ this->initLexer(buffer); }
+	Lexer (Buffer* buffer) {
+		this->buffer = buffer;
+		this->parse_next();
+	}
 
 	bool parse_next () {
 		while (this->skip_ignored_and_comments());
@@ -83,12 +86,6 @@ public:
 		char* text = this->nextText;
 		this->skip(1);
 		return text;
-	}
-
-private:
-	void initLexer (PushbackBuffer* buffer) {
-		this->buffer = buffer;
-		this->parse_next();
 	}
 
 	bool id () {
