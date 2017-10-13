@@ -12,7 +12,7 @@
 #include "lexer/lexer.cpp"
 
 #include "pipes.cpp"
-#include "ast.hpp"
+#include "ast.h"
 
 using namespace std;
 

@@ -79,7 +79,7 @@ struct NameResolutionPipe : Pipe {
 		if (astDeps.size() > 0) {
 			for (auto const &entry : astDeps) {
 				cout << "ERROR: unresolved symbol: " << entry.first << "\n";
-				for (auto const &res : entry.second) res->exp->print();
+				//for (auto const &res : entry.second) res->exp->print();
 			}
 		} else this->tryFinish();
 	}
