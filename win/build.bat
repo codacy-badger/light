@@ -1,6 +1,6 @@
 @echo off
 
-cl /nologo /Od /c /MD /Zi /GR -I"." %LLVMCLFlags% main.cpp /Fo".\build\light.obj" /Fd".\build\light.pdb"
+cl /nologo /Od /c /MD /Zi /GR -I"src" %LLVMCLFlags% src/main.cpp /Fo".\build\light.obj" /Fd".\build\light.pdb"
 
 setlocal disableDelayedExpansion
 set "LLVMLinkLibs="
