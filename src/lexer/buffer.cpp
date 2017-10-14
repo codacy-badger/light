@@ -1,114 +1,101 @@
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <deque>
+#include "lexer/buffer.hpp"
 
-using namespace std;
+Buffer::Buffer (istream* stream, const char* source) {
+	this->stream = stream;
+	this->source = source;
+}
 
-struct Buffer {
-	istream* stream;
-	deque<int> pushback_buffer;
+Buffer::Buffer (const char* filename) {
+	this->stream = new ifstream(filename, ifstream::in);
+	this->source = filename;
+}
 
-	const char* source;
-	unsigned int line = 1, col = 1;
+Buffer::~Buffer () {
+	delete stream;
+}
 
-	Buffer (istream* stream, const char* source = "<buffer>") {
-		this->stream = stream;
-		this->source = source;
+int Buffer::next () {
+	int output = 0;
+	if (this->pushback_buffer.empty()) output = this->stream->get();
+	else {
+		output = this->pushback_buffer.front();
+		this->pushback_buffer.pop_front();
 	}
+	this->handleLineCol(output);
+	return output;
+}
 
-	Buffer (const char* filename) {
-		this->stream = new ifstream(filename, ifstream::in);
-		this->source = filename;
-	}
+void Buffer::pushback (char c) {
+	this->pushback_buffer.push_back(c);
+}
 
-	~Buffer () {
-		delete stream;
-	}
+bool Buffer::hasNext () {
+	return !this->pushback_buffer.empty() || !this->stream->eof();
+}
 
-	int next () {
-		int output = 0;
-		if (this->pushback_buffer.empty()) output = this->stream->get();
-		else {
-			output = this->pushback_buffer.front();
-			this->pushback_buffer.pop_front();
-		}
-		this->handleLineCol(output);
-		return output;
-	}
+int Buffer::peek (unsigned int offset) {
+	if (this->pushback_buffer.size() < (offset + 1))
+		this->fillPushbackBuffer(offset + 1);
+	return this->pushback_buffer[offset];
+}
 
-	void pushback (char c) {
-		this->pushback_buffer.push_back(c);
-	}
+bool Buffer::isNext (int c) {
+	return this->peek(0) == c;
+}
 
-	bool hasNext () {
-		return !this->pushback_buffer.empty() || !this->stream->eof();
-	}
+bool Buffer::isNext (const char* expected) {
+	this->fillPushbackBuffer(strlen(expected));
+	for (unsigned int i = 0; i < strlen(expected); i++) {
+        if (this->peek(i) != expected[i])
+            return false;
+    }
+    return true;
+}
 
-	int peek (unsigned int offset) {
-		if (this->pushback_buffer.size() < (offset + 1))
-			this->fillPushbackBuffer(offset + 1);
-		return this->pushback_buffer[offset];
+void Buffer::skip (unsigned int count) {
+	unsigned int i = 0;
+	while (this->hasNext() && i < count) {
+		this->next();
+		i += 1;
 	}
+}
 
-	bool isNext (int c) {
-		return this->peek(0) == c;
+void Buffer::skipAny (const char* chars) {
+	while (this->hasNext()) {
+		char _c = this->peek(0);
+		if (strchr(chars, _c) == NULL) {
+			break;
+		} else this->next();
 	}
+}
 
-	bool isNext (const char* expected) {
-		this->fillPushbackBuffer(strlen(expected));
-		for (unsigned int i = 0; i < strlen(expected); i++) {
-	        if (this->peek(i) != expected[i])
-	            return false;
-	    }
-	    return true;
+void Buffer::skipUntil (const char* stopper) {
+	unsigned int i = 0;
+	while (this->hasNext()) {
+		char _c = this->next();
+		if (_c == stopper[i]) {
+			if (++i == strlen(stopper)) return;
+		} else i = 0;
 	}
+}
 
-	void skip (unsigned int count) {
-		unsigned int i = 0;
-		while (this->hasNext() && i < count) {
-			this->next();
-			i += 1;
-		}
-	}
+void Buffer::printLocation () {
+	cout << "'" << this->source << "' @ "
+		<< this->line << ", " << this->col;
+}
 
-	void skipAny (const char* chars) {
-		while (this->hasNext()) {
-			char _c = this->peek(0);
-			if (strchr(chars, _c) == NULL) {
-				break;
-			} else this->next();
-		}
+void Buffer::fillPushbackBuffer (unsigned int limit) {
+	for (unsigned int i = this->pushback_buffer.size(); i < limit; i++) {
+		this->pushback_buffer.push_back(this->stream->get());
 	}
+}
 
-	void skipUntil (const char* stopper) {
-		unsigned int i = 0;
-		while (this->hasNext()) {
-			char _c = this->next();
-			if (_c == stopper[i]) {
-				if (++i == strlen(stopper)) return;
-			} else i = 0;
-		}
-	}
-
-	void printLocation () {
-		cout << "'" << this->source << "' @ "
-			<< this->line << ", " << this->col;
-	}
-
-	void fillPushbackBuffer (unsigned int limit) {
-		for (unsigned int i = this->pushback_buffer.size(); i < limit; i++) {
-			this->pushback_buffer.push_back(this->stream->get());
-		}
-	}
-
-	void handleLineCol (int character) {
-		if (character == EOF) return;
-		if (character == '\n') {
-			line += 1;
-			col = 1;
-		} else col += 1;
-	}
-};
+void Buffer::handleLineCol (int character) {
+	if (character == EOF) return;
+	if (character == '\n') {
+		line += 1;
+		col = 1;
+	} else col += 1;
+}

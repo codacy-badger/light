@@ -1,12 +1,6 @@
 #pragma once
 
-#include <string>
-#include <ostream>
-#include <iostream>
-#include <vector>
-
-#include "buffer.cpp"
-#include "token.cpp"
+#include "lexer/lexer.hpp"
 
 #define LEXER_DEBUG false
 
@@ -19,175 +13,165 @@
 	handleToken(type, literal); return true; }
 #define FUNCTION_TOKEN(func) if (func()) return true;
 
-struct Lexer {
-	Buffer* buffer;
+Lexer::Lexer (const char* filename) {
+	this->buffer = new Buffer(filename);
+	this->parse_next();
+}
 
-	char* nextText;
-	Token::Type nextType;
+Lexer::Lexer (Buffer* buffer) {
+	this->buffer = buffer;
+	this->parse_next();
+}
 
-	Lexer (const char* filename) {
-		this->buffer = new Buffer(filename);
+bool Lexer::parse_next () {
+	while (this->skip_ignored_and_comments());
+
+    LITERAL_TOKEN("->", TOKEN_TYPE_ARROW);
+
+	LITERAL_TOKEN("=", TOKEN_TYPE_EQUAL);
+	LITERAL_TOKEN(":", TOKEN_TYPE_COLON);
+	LITERAL_TOKEN(";", TOKEN_TYPE_STM_END);
+	LITERAL_TOKEN("+", TOKEN_TYPE_ADD);
+	LITERAL_TOKEN("-", TOKEN_TYPE_SUB);
+	LITERAL_TOKEN("*", TOKEN_TYPE_MUL);
+	LITERAL_TOKEN("/", TOKEN_TYPE_DIV);
+
+    LITERAL_TOKEN(".", TOKEN_TYPE_DOT);
+    LITERAL_TOKEN(",", TOKEN_TYPE_COMMA);
+    LITERAL_TOKEN("(", TOKEN_TYPE_PAR_OPEN);
+    LITERAL_TOKEN(")", TOKEN_TYPE_PAR_CLOSE);
+    LITERAL_TOKEN("{", TOKEN_TYPE_BRAC_OPEN);
+    LITERAL_TOKEN("}", TOKEN_TYPE_BRAC_CLOSE);
+    LITERAL_TOKEN("[", TOKEN_TYPE_SQ_BRAC_OPEN);
+    LITERAL_TOKEN("]", TOKEN_TYPE_SQ_BRAC_CLOSE);
+	LITERAL_TOKEN("&", TOKEN_TYPE_AMP);
+	LITERAL_TOKEN("let", TOKEN_TYPE_LET);
+    LITERAL_TOKEN("type", TOKEN_TYPE_TYPE);
+    LITERAL_TOKEN("fn", TOKEN_TYPE_FUNCTION);
+    LITERAL_TOKEN("return", TOKEN_TYPE_RETURN);
+
+	FUNCTION_TOKEN(number);
+	FUNCTION_TOKEN(string);
+	FUNCTION_TOKEN(id);
+
+	return false;
+}
+
+bool Lexer::isNextType (Token_Type type) {
+	return this->nextType == type;
+}
+
+void Lexer::skip (unsigned int count) {
+	for (unsigned int i = 0; i < count; i++)
 		this->parse_next();
-	}
+}
 
-	Lexer (Buffer* buffer) {
-		this->buffer = buffer;
-		this->parse_next();
-	}
+char* Lexer::text () {
+	char* text = this->nextText;
+	this->skip(1);
+	return text;
+}
 
-	bool parse_next () {
-		while (this->skip_ignored_and_comments());
-
-	    LITERAL_TOKEN("->", Token::Type::ARROW);
-
-		LITERAL_TOKEN("=", Token::Type::EQUAL);
-		LITERAL_TOKEN(":", Token::Type::COLON);
-		LITERAL_TOKEN(";", Token::Type::STM_END);
-		LITERAL_TOKEN("+", Token::Type::ADD);
-		LITERAL_TOKEN("-", Token::Type::SUB);
-		LITERAL_TOKEN("*", Token::Type::MUL);
-		LITERAL_TOKEN("/", Token::Type::DIV);
-
-	    LITERAL_TOKEN(".", Token::Type::DOT);
-	    LITERAL_TOKEN(",", Token::Type::COMMA);
-	    LITERAL_TOKEN("(", Token::Type::PAR_OPEN);
-	    LITERAL_TOKEN(")", Token::Type::PAR_CLOSE);
-	    LITERAL_TOKEN("{", Token::Type::BRAC_OPEN);
-	    LITERAL_TOKEN("}", Token::Type::BRAC_CLOSE);
-	    LITERAL_TOKEN("[", Token::Type::SQ_BRAC_OPEN);
-	    LITERAL_TOKEN("]", Token::Type::SQ_BRAC_CLOSE);
-		LITERAL_TOKEN("&", Token::Type::AMP);
-		LITERAL_TOKEN("let", Token::Type::LET);
-	    LITERAL_TOKEN("type", Token::Type::TYPE);
-	    LITERAL_TOKEN("fn", Token::Type::FUNCTION);
-	    LITERAL_TOKEN("return", Token::Type::RETURN);
-
-		FUNCTION_TOKEN(number);
-		FUNCTION_TOKEN(string);
-		FUNCTION_TOKEN(id);
-
-		return false;
-	}
-
-	bool isNextType (Token::Type type) {
-		if (LEXER_DEBUG)
-			std::cout << "isNextType " << Token::typeToString(type) << " -> " <<
-			Token::typeToString(this->nextType) << std::endl;
-		return this->nextType == type;
-	}
-
-	void skip (unsigned int count) {
-		for (unsigned int i = 0; i < count; i++)
-			this->parse_next();
-	}
-
-	char* text () {
-		char* text = this->nextText;
-		this->skip(1);
-		return text;
-	}
-
-	bool id () {
-		char c = this->buffer->peek(0);
-	    if (ALPHA(c)) {
-			std::string _buff;
-	        while (ALPHANUM(c)) {
-		        _buff.push_back(c);
-				this->buffer->skip(1);
-		        c = this->buffer->peek(0);
-	        }
-	        this->nextType = Token::Type::ID;
-			this->nextText = copyString(_buff);
-	        return true;
-	    }
-	    return false;
-	}
-
-	bool string () {
-		char c = this->buffer->peek(0);
-	    if (c == '"') {
-			this->buffer->skip(1);
-	        this->nextType = Token::Type::STRING;
-
-			std::string _buff;
-			c = this->buffer->next();
-			while (c != '"') {
-				if (c == '\\') {
-					c = this->buffer->next();
-					if (c == 'n') {
-						_buff.push_back('\n');
-						c = this->buffer->next();
-						continue;
-					} else if (c == 't') {
-						_buff.push_back('\t');
-						c = this->buffer->next();
-						continue;
-					}
-				}
-				_buff.push_back(c);
-				c = this->buffer->next();
-			}
-			this->nextText = copyString(_buff);
-	        return true;
-	    } else return false;
-	}
-
-	bool number () {
+bool Lexer::id () {
+	char c = this->buffer->peek(0);
+    if (ALPHA(c)) {
 		std::string _buff;
-		char c = this->buffer->peek(0);
-	    if (c == '+' || c == '-') {
+        while (ALPHANUM(c)) {
 	        _buff.push_back(c);
 			this->buffer->skip(1);
 	        c = this->buffer->peek(0);
-	    }
-	    if (DIGIT(c) || c == '.') {
-	        while (DIGIT(c)) {
-				_buff.push_back(c);
-				this->buffer->skip(1);
-		        c = this->buffer->peek(0);
-	        }
-	        if (c == '.') {
+        }
+        this->nextType = TOKEN_TYPE_ID;
+		this->nextText = copyString(_buff);
+        return true;
+    }
+    return false;
+}
+
+bool Lexer::string () {
+	char c = this->buffer->peek(0);
+    if (c == '"') {
+		this->buffer->skip(1);
+        this->nextType = TOKEN_TYPE_STRING;
+
+		std::string _buff;
+		c = this->buffer->next();
+		while (c != '"') {
+			if (c == '\\') {
+				c = this->buffer->next();
+				if (c == 'n') {
+					_buff.push_back('\n');
+					c = this->buffer->next();
+					continue;
+				} else if (c == 't') {
+					_buff.push_back('\t');
+					c = this->buffer->next();
+					continue;
+				}
+			}
+			_buff.push_back(c);
+			c = this->buffer->next();
+		}
+		this->nextText = copyString(_buff);
+        return true;
+    } else return false;
+}
+
+bool Lexer::number () {
+	std::string _buff;
+	char c = this->buffer->peek(0);
+    if (c == '+' || c == '-') {
+        _buff.push_back(c);
+		this->buffer->skip(1);
+        c = this->buffer->peek(0);
+    }
+    if (DIGIT(c) || c == '.') {
+        while (DIGIT(c)) {
+			_buff.push_back(c);
+			this->buffer->skip(1);
+	        c = this->buffer->peek(0);
+        }
+        if (c == '.') {
+            _buff.push_back(c);
+            this->buffer->skip(1);
+            c = this->buffer->peek(0);
+            while (DIGIT(c)) {
 	            _buff.push_back(c);
 	            this->buffer->skip(1);
 	            c = this->buffer->peek(0);
-	            while (DIGIT(c)) {
-		            _buff.push_back(c);
-		            this->buffer->skip(1);
-		            c = this->buffer->peek(0);
-	            }
-	        }
-	        this->nextType = Token::Type::NUMBER;
-			this->nextText = copyString(_buff);
-	        return true;
-	    }
-	    return false;
-	}
+            }
+        }
+        this->nextType = TOKEN_TYPE_NUMBER;
+		this->nextText = copyString(_buff);
+        return true;
+    }
+    return false;
+}
 
-	char* copyString (std::string str) {
-		char* cstr = new char[str.length() + 1];
-		strcpy(cstr, str.c_str());
-		return cstr;
-	}
+char* Lexer::copyString (std::string str) {
+	char* cstr = new char[str.length() + 1];
+	strcpy(cstr, str.c_str());
+	return cstr;
+}
 
-	void handleToken (Token::Type type, const char* text) {
-		this->buffer->skip(strlen(text));
-		this->nextText = nullptr;
-		this->nextType = type;
-	}
+void Lexer::handleToken (Token_Type type, const char* text) {
+	this->buffer->skip(strlen(text));
+	this->nextText = nullptr;
+	this->nextType = type;
+}
 
-	bool skip_ignored_and_comments () {
-		this->buffer->skipAny(LEXER_IGNORED);
-	    if (this->buffer->peek(0) == '/') {
-	        if (this->buffer->peek(1) == '/') {
-				this->buffer->skipUntil("\n");
-				this->buffer->skipAny(LEXER_IGNORED);
-				return true;
-	        } else if (this->buffer->peek(1) == '*') {
-				this->buffer->skipUntil("*/");
-				this->buffer->skipAny(LEXER_IGNORED);
-				return true;
-	        }
-	    }
-		return false;
-	}
-};
+bool Lexer::skip_ignored_and_comments () {
+	this->buffer->skipAny(LEXER_IGNORED);
+    if (this->buffer->peek(0) == '/') {
+        if (this->buffer->peek(1) == '/') {
+			this->buffer->skipUntil("\n");
+			this->buffer->skipAny(LEXER_IGNORED);
+			return true;
+        } else if (this->buffer->peek(1) == '*') {
+			this->buffer->skipUntil("*/");
+			this->buffer->skipAny(LEXER_IGNORED);
+			return true;
+        }
+    }
+	return false;
+}

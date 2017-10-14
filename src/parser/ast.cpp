@@ -29,18 +29,18 @@ Ast_Expression* Ast_Block::get (string name) {
 	}
 }
 
-void AST_Binary::setOP (Token::Type tType) {
+void AST_Binary::setOP (Token_Type tType) {
 	this->op = this->typeToOP(tType);
 }
 
-Ast_Binary_Type AST_Binary::typeToOP (Token::Type tType) {
+Ast_Binary_Type AST_Binary::typeToOP (Token_Type tType) {
 	switch (tType) {
-		case Token::Type::EQUAL: 	return AST_BINARY_ASSIGN;
-		case Token::Type::DOT: 		return AST_BINARY_ATTRIBUTE;
-		case Token::Type::ADD: 		return AST_BINARY_ADD;
-		case Token::Type::SUB: 		return AST_BINARY_SUB;
-		case Token::Type::MUL: 		return AST_BINARY_MUL;
-		case Token::Type::DIV: 		return AST_BINARY_DIV;
+		case TOKEN_TYPE_EQUAL: 	return AST_BINARY_ASSIGN;
+		case TOKEN_TYPE_DOT: 		return AST_BINARY_ATTRIBUTE;
+		case TOKEN_TYPE_ADD: 		return AST_BINARY_ADD;
+		case TOKEN_TYPE_SUB: 		return AST_BINARY_SUB;
+		case TOKEN_TYPE_MUL: 		return AST_BINARY_MUL;
+		case TOKEN_TYPE_DIV: 		return AST_BINARY_DIV;
 		default: {
 			cout << "[ERROR] Binary operator unknown: " << tType << "\n";
 			return AST_BINARY_UNINITIALIZED;
@@ -48,27 +48,27 @@ Ast_Binary_Type AST_Binary::typeToOP (Token::Type tType) {
 	};
 }
 
-short AST_Binary::getPrecedence (Token::Type opToken) {
+short AST_Binary::getPrecedence (Token_Type opToken) {
 	auto it = AST_Binary::precedence.find(opToken);
 	if (it != AST_Binary::precedence.end())
 		return AST_Binary::precedence[opToken];
 	else return -1;
 }
 
-bool AST_Binary::getLeftAssociativity (Token::Type opToken) {
+bool AST_Binary::getLeftAssociativity (Token_Type opToken) {
 	auto it = AST_Binary::isLeftAssociate.find(opToken);
 	if (it != AST_Binary::isLeftAssociate.end())
 		return AST_Binary::isLeftAssociate[opToken];
 	else return false;
 }
 
-void AST_Unary::setOP (Token::Type tType) {
+void AST_Unary::setOP (Token_Type tType) {
 	this->op = this->typeToOP(tType);
 }
 
-Ast_Unary_Type AST_Unary::typeToOP (Token::Type tType) {
+Ast_Unary_Type AST_Unary::typeToOP (Token_Type tType) {
 	switch (tType) {
-		case Token::Type::SUB: return AST_UNARY_NEGATE;
+		case TOKEN_TYPE_SUB: return AST_UNARY_NEGATE;
 		default: {
 			cout << "[ERROR] Unary operator unknown: " << tType << "\n";
 			return AST_UNARY_UNINITIALIZED;
@@ -76,15 +76,15 @@ Ast_Unary_Type AST_Unary::typeToOP (Token::Type tType) {
 	};
 }
 
-map<Token::Type, short> AST_Binary::precedence = {
-	{Token::Type::EQUAL, 	1}, {Token::Type::DOT, 1},
-	{Token::Type::ADD, 		2}, {Token::Type::SUB, 2},
-	{Token::Type::MUL, 		3}, {Token::Type::DIV, 3}
+map<Token_Type, short> AST_Binary::precedence = {
+	{TOKEN_TYPE_EQUAL, 	1}, {TOKEN_TYPE_DOT, 1},
+	{TOKEN_TYPE_ADD, 		2}, {TOKEN_TYPE_SUB, 2},
+	{TOKEN_TYPE_MUL, 		3}, {TOKEN_TYPE_DIV, 3}
 };
-map<Token::Type, bool> AST_Binary::isLeftAssociate = {
-	{Token::Type::EQUAL, 	false}, {Token::Type::DOT, false},
-	{Token::Type::ADD, 		false}, {Token::Type::SUB, false},
-	{Token::Type::MUL, 		false}, {Token::Type::DIV, false}
+map<Token_Type, bool> AST_Binary::isLeftAssociate = {
+	{TOKEN_TYPE_EQUAL, 	false}, {TOKEN_TYPE_DOT, false},
+	{TOKEN_TYPE_ADD, 		false}, {TOKEN_TYPE_SUB, false},
+	{TOKEN_TYPE_MUL, 		false}, {TOKEN_TYPE_DIV, false}
 };
 
 Ast_Type_Definition* Ast_Primitive_Type::_void = new Ast_Primitive_Type("void");

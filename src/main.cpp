@@ -2,9 +2,10 @@
 #include <stdlib.h>
 
 #include "llvm/Support/CommandLine.h"
+
 #include "compiler.hpp"
 #include "timer.hpp"
-#include "parser/parser.cpp"
+#include "parser/parser.hpp"
 #include "parser/printer.cpp"
 
 #include "parser/pipe/print_pipe.cpp"

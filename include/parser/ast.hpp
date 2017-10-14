@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "lexer/token.cpp"
+#include "lexer/lexer.hpp"
 
 struct Ast_Function;
 struct Ast_Expression;
@@ -121,22 +121,22 @@ enum Ast_Binary_Type {
 };
 
 struct AST_Binary : Ast_Expression {
-	static map<Token::Type, bool> isLeftAssociate;
-	static map<Token::Type, short> precedence;
+	static map<Token_Type, bool> isLeftAssociate;
+	static map<Token_Type, short> precedence;
 
 	Ast_Binary_Type op = AST_BINARY_UNINITIALIZED;
 	Ast_Expression* lhs = nullptr;
 	Ast_Expression* rhs = nullptr;
 
-	AST_Binary (Token::Type tType) {
+	AST_Binary (Token_Type tType) {
 		this->setOP(tType);
 	}
 
-	void setOP (Token::Type tType);
+	void setOP (Token_Type tType);
 
-	Ast_Binary_Type typeToOP (Token::Type tType);
-	static short getPrecedence (Token::Type opToken);
-	static bool getLeftAssociativity (Token::Type opToken);
+	Ast_Binary_Type typeToOP (Token_Type tType);
+	static short getPrecedence (Token_Type opToken);
+	static bool getLeftAssociativity (Token_Type opToken);
 };
 
 enum Ast_Unary_Type {
@@ -148,12 +148,12 @@ struct AST_Unary : Ast_Expression {
 	Ast_Unary_Type op = AST_UNARY_UNINITIALIZED;
 	Ast_Expression* exp = nullptr;
 
-	AST_Unary (Token::Type tType) {
+	AST_Unary (Token_Type tType) {
 		this->setOP(tType);
 	}
 
-	void setOP (Token::Type tType);
-	Ast_Unary_Type typeToOP (Token::Type tType);
+	void setOP (Token_Type tType);
+	Ast_Unary_Type typeToOP (Token_Type tType);
 };
 
 struct Ast_Value : Ast_Expression {
