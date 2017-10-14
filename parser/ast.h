@@ -5,8 +5,6 @@
 #include <string>
 #include "lexer/token.cpp"
 
-struct Ast_Type_Definition;
-struct Ast_Block;
 struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Variable;
@@ -153,7 +151,6 @@ enum Ast_Binary_Type {
 
 struct AST_Binary : Ast_Expression {
 	static map<Token::Type, bool> isLeftAssociate;
-	static map<Ast_Binary_Type, const char*> opChar;
 	static map<Token::Type, short> precedence;
 
 	Ast_Binary_Type op = AST_BINARY_UNINITIALIZED;
@@ -198,11 +195,6 @@ struct AST_Binary : Ast_Expression {
 	}
 };
 
-map<Ast_Binary_Type, const char*> AST_Binary::opChar = {
-	{AST_BINARY_ASSIGN, "="}, 	{AST_BINARY_ATTRIBUTE, 	"."},
-	{AST_BINARY_ADD, 	"+"}, 	{AST_BINARY_SUB, 		"-"},
-	{AST_BINARY_MUL, 	"*"}, 	{AST_BINARY_DIV, 		"/"}
-};
 map<Token::Type, short> AST_Binary::precedence = {
 	{Token::Type::EQUAL, 	1}, {Token::Type::DOT, 1},
 	{Token::Type::ADD, 		2}, {Token::Type::SUB, 2},
@@ -220,8 +212,6 @@ enum Ast_Unary_Type {
 };
 
 struct AST_Unary : Ast_Expression {
-	static map<Ast_Unary_Type, const char*> opChar;
-
 	Ast_Unary_Type op = AST_UNARY_UNINITIALIZED;
 	Ast_Expression* exp = nullptr;
 
@@ -242,10 +232,6 @@ struct AST_Unary : Ast_Expression {
 			}
 		};
 	}
-};
-
-map<Ast_Unary_Type, const char*> AST_Unary::opChar = {
-	{AST_UNARY_NEGATE, "-"}
 };
 
 struct Ast_Value : Ast_Expression {

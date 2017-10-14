@@ -143,13 +143,28 @@ public:
 	static void print (AST_Binary* binop, int tabs = 0) {
 		cout << "(";
 		print(binop->lhs, tabs);
-		cout << " " << AST_Binary::opChar[binop->op] << " ";
+		cout << " ";
+		switch (binop->op) {
+			case AST_BINARY_ASSIGN: 	cout << "="; break;
+			case AST_BINARY_ATTRIBUTE: 	cout << "."; break;
+			case AST_BINARY_ADD: 		cout << "+"; break;
+			case AST_BINARY_SUB: 		cout << "-"; break;
+			case AST_BINARY_MUL: 		cout << "*"; break;
+			case AST_BINARY_DIV: 		cout << "/"; break;
+			default: 					cout << "_?_";
+		}
+		cout << " ";
 		print(binop->rhs, tabs);
 		cout << ")";
 	}
 
 	static void print (AST_Unary* unop, int tabs = 0) {
-		cout << "(" << AST_Unary::opChar[unop->op] << " ";
+		cout << "(";
+		switch (unop->op) {
+			case AST_UNARY_NEGATE: 	cout << "-"; break;
+			default: 				cout << "_?_";
+		}
+		cout << " ";
 		print(unop->exp, tabs);
 		cout << ")";
 	}
