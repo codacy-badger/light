@@ -1,40 +1,25 @@
 #pragma once
 
-#include <iostream>
+#include "parser/pipes.hpp"
 
-#include "ast.hpp"
+void Pipe::onFunction (Ast_Function* fn) {
+	this->toNext(fn);
+}
 
-struct Pipe {
-	Pipe* next = nullptr;
+void Pipe::onType (Ast_Type_Definition* ty) {
+	this->toNext(ty);
+}
 
-	virtual void onFunction (Ast_Function* fn) {
-		this->toNext(fn);
-	}
+void Pipe::onFinish () {
+	this->tryFinish();
+}
 
-	virtual void onType (Ast_Type_Definition* ty) {
-		this->toNext(ty);
-	}
+void Pipe::tryFinish() {
+	if (next) next->onFinish();
+}
 
-	virtual void onFinish () {
-		this->tryFinish();
-	}
-
-	void tryFinish() {
-		if (next) next->onFinish();
-	}
-
-	template <typename T>
-	void toNext (T* node) {
-		if (auto obj = dynamic_cast<Ast_Function*>(node)) {
-			if (next) next->onFunction(obj);
-		} else if (auto obj = dynamic_cast<Ast_Type_Definition*>(node)) {
-			if (next) next->onType(obj);
-		}
-	}
-
-	void append (Pipe* next) {
-		Pipe* last = this;
-		while (last->next) last = last->next;
-		last->next = next;
-	}
-};
+void Pipe::append (Pipe* next) {
+	Pipe* last = this;
+	while (last->next) last = last->next;
+	last->next = next;
+}

@@ -3,13 +3,13 @@
 
 #include "llvm/Support/CommandLine.h"
 #include "compiler.hpp"
-#include "timer.cpp"
+#include "timer.hpp"
 #include "parser/parser.cpp"
 #include "parser/printer.cpp"
 
 #include "parser/pipe/print_pipe.cpp"
 #include "parser/pipe/name_resolution_pipe.cpp"
-#include "back/llvm/llvm_pipe.cpp"
+#include "back/llvm/llvm_pipe.hpp"
 
 using namespace llvm;
 using namespace std;
@@ -57,7 +57,7 @@ int main (int argc, char** argv) {
 
 		auto parser = new Parser(filename.c_str());
 		parser->append(new NameResolutionPipe());
-		parser->append(new PrintPipe());
+		//parser->append(new PrintPipe());
 		//parser->append(new LLVMPipe("_tmp_.obj"));
 
 		clock_t start = clock();

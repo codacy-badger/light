@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ast.hpp"
+#include "parser/ast.hpp"
 
 class ASTPrinter {
 public:

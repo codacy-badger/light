@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../buffer.cpp"
+#include "buffer.cpp"
 #include "token.cpp"
 
 #define LEXER_DEBUG false

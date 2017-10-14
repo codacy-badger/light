@@ -5,7 +5,7 @@
 #include <set>
 #include <map>
 
-#include "../pipes.cpp"
+#include "parser/pipes.hpp"
 
 struct ExpDesp {
 	Ast_Expression* exp;

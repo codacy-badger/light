@@ -7,12 +7,10 @@
 #include <string>
 #include <map>
 
-#include "buffer.cpp"
-
 #include "lexer/lexer.cpp"
 
-#include "pipes.cpp"
-#include "ast.hpp"
+#include "parser/pipes.hpp"
+#include "parser/ast.hpp"
 
 using namespace std;
 

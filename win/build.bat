@@ -1,10 +1,18 @@
 @echo off
 
-cl /nologo /Od /c /MD /Zi /GR -I"src" %LLVMCLFlags% src/main.cpp /Fo".\build\light.obj" /Fd".\build\light.pdb"
+pushd build
 
-setlocal disableDelayedExpansion
-set "LLVMLinkLibs="
-for /r %%i in (%LLVMLibs%\*.lib) do @call set LLVMLinkLibs=%%LLVMLinkLibs%% "%%i"
+cl /nologo /Od /c /MD /Zi /GR -I"../src" -I"../include" %LLVMCLFlags% ^
+	../src/*.cpp ../src/lexer/*.cpp ../src/parser/*.cpp ../src/parser/pipe/*.cpp ^
+	 ../src/back/llvm/*.cpp
 
-link /nologo /ENTRY:mainCRTStartup /OUT:.\bin\light.exe /DEBUG %LLVMLinkLibs% %LLVMLinkSystemLibs%  .\build\light.obj
-set "LLVMLinkLibs="
+if errorlevel 1 (
+	echo Stoping due to compilation error/s
+	popd
+	exit /B
+)
+
+link /nologo /ENTRY:mainCRTStartup /OUT:"..\bin\light.exe" /DEBUG ..\llvm\Release\lib\*.lib ^
+ 	psapi.lib shell32.lib ole32.lib uuid.lib *.obj
+
+popd

@@ -1,10 +1,9 @@
 #pragma once
 
-#include "../pipes.cpp"
+#include "parser/pipes.hpp"
 #include "parser/printer.cpp"
 
 struct PrintPipe : Pipe {
-
 	void onFunction (Ast_Function* fn) {
 		ASTPrinter::print(fn);
 		this->toNext(fn);
