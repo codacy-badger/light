@@ -5,7 +5,7 @@
 
 struct PrintPipe : Pipe {
 
-	void onFunction (ASTFunction* fn) {
+	void onFunction (Ast_Function* fn) {
 		ASTPrinter::print(fn);
 		this->toNext(fn);
 	}

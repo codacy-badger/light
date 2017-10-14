@@ -27,29 +27,29 @@ struct LLVMScope {
 	LLVMScope* parent = nullptr;
 	IRBuilder<>* builder = nullptr;
 
-	map<ASTVariable*, AllocaInst*> variables;
+	map<Ast_Variable*, AllocaInst*> variables;
 
 	static map<Ast_Type_Definition*, Type*> types;
-	static map<ASTFunction*, Function*> functions;
+	static map<Ast_Function*, Function*> functions;
 
 	LLVMScope (IRBuilder<>* builder, LLVMScope* parent = nullptr) {
 		this->builder = builder;
 		this->parent = parent;
 	}
 
-	void addVariable (ASTVariable* var) {
+	void addVariable (Ast_Variable* var) {
 		auto type = this->getType(var->type);
 		auto alloca = builder->CreateAlloca(type, nullptr, var->name);
 		this->addVariable(var, alloca);
 	}
 
-	void addVariable (ASTVariable* var, AllocaInst* alloca) {
+	void addVariable (Ast_Variable* var, AllocaInst* alloca) {
 		auto it = variables.find(var);
 		if (it == variables.end()) variables[var] = alloca;
 		else cout << "Variable already exists " << var->name << "\n";
 	}
 
-	void addParameters (ASTFunction* fn) {
+	void addParameters (Ast_Function* fn) {
 		int i = 0;
 		auto function = this->getFunction(fn);
 		for (auto &param : fn->type->params) {
@@ -63,7 +63,7 @@ struct LLVMScope {
 		}
 	}
 
-	AllocaInst* getVariable (ASTVariable* var) {
+	AllocaInst* getVariable (Ast_Variable* var) {
 		auto it = variables.find(var);
 		if (it == variables.end()) return nullptr;
 		else return variables[var];
@@ -92,7 +92,7 @@ struct LLVMScope {
 
 	Type* getType (Ast_Type_Definition* ty) {
 		if (ty == nullptr) return Type::getVoidTy(builder->getContext());
-		else if (auto ptrTy = dynamic_cast<ASTPointerType*>(ty)) {
+		else if (auto ptrTy = dynamic_cast<Ast_Pointer_Type*>(ty)) {
 			auto baseTy = this->getType(ptrTy->base);
 			return PointerType::get(baseTy, 0);
 		} else {
@@ -105,13 +105,13 @@ struct LLVMScope {
 		}
 	}
 
-	void addFunction (ASTFunction* fn, Function* function) {
+	void addFunction (Ast_Function* fn, Function* function) {
 		auto it = functions.find(fn);
 		if (it == functions.end()) functions[fn] = function;
 		else cout << "Function already exists " << fn->name << "\n";
 	}
 
-	Function* getFunction (ASTFunction* fn) {
+	Function* getFunction (Ast_Function* fn) {
 		auto it = functions.find(fn);
 		if (it != functions.end())
 			return functions[fn];
@@ -134,4 +134,4 @@ struct LLVMScope {
 };
 
 map<Ast_Type_Definition*, Type*> LLVMScope::types;
-map<ASTFunction*, Function*> LLVMScope::functions;
+map<Ast_Function*, Function*> LLVMScope::functions;

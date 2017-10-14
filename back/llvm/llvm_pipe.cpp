@@ -40,16 +40,16 @@ struct LLVMPipe : Pipe {
 	LLVMPipe (std::string output) : builder(context) {
 		module = new Module(output, context);
 		scope = new LLVMScope(&builder);
-		scope->addType(ASTPrimitiveType::_void, Type::getVoidTy(context));
-		scope->addType(ASTPrimitiveType::_i1,   Type::getInt1Ty(context));
-		scope->addType(ASTPrimitiveType::_i8,   Type::getInt8Ty(context));
-		scope->addType(ASTPrimitiveType::_i16,  Type::getInt16Ty(context));
-		scope->addType(ASTPrimitiveType::_i32,  Type::getInt32Ty(context));
-		scope->addType(ASTPrimitiveType::_i64,  Type::getInt64Ty(context));
-		scope->addType(ASTPrimitiveType::_i128, Type::getInt128Ty(context));
+		scope->addType(Ast_Primitive_Type::_void, Type::getVoidTy(context));
+		scope->addType(Ast_Primitive_Type::_i1,   Type::getInt1Ty(context));
+		scope->addType(Ast_Primitive_Type::_i8,   Type::getInt8Ty(context));
+		scope->addType(Ast_Primitive_Type::_i16,  Type::getInt16Ty(context));
+		scope->addType(Ast_Primitive_Type::_i32,  Type::getInt32Ty(context));
+		scope->addType(Ast_Primitive_Type::_i64,  Type::getInt64Ty(context));
+		scope->addType(Ast_Primitive_Type::_i128, Type::getInt128Ty(context));
 	}
 
-	void onFunction (ASTFunction* fn) {
+	void onFunction (Ast_Function* fn) {
 		vector<Type*> argTypes;
 		for(auto const& param: fn->type->params)
 			argTypes.push_back(this->codegen(param->type));
@@ -70,7 +70,7 @@ struct LLVMPipe : Pipe {
 
 			BasicBlock* entryBlock = BasicBlock::Create(context, "entry", function);
 			BasicBlock* retBlock = BasicBlock::Create(context, "return", function);
-			if (fn->type->retType != ASTPrimitiveType::_void) {
+			if (fn->type->retType != Ast_Primitive_Type::_void) {
 				builder.SetInsertPoint(entryBlock);
 				auto type = this->codegen(fn->type->retType);
 				this->currentReturnVal = builder.CreateAlloca(type, nullptr, "retVal");
@@ -98,23 +98,23 @@ struct LLVMPipe : Pipe {
 		verifyFunction(*function);
 	}
 
-	Value* codegen (ASTStatement* stm) {
-		if 		(auto obj = dynamic_cast<ASTVariable*>(stm)) 	return codegen(obj, true);
-		else if (auto obj = dynamic_cast<ASTBlock*>(stm)) 		return codegen(obj);
-		else if (auto obj = dynamic_cast<ASTReturn*>(stm)) 		return codegen(obj);
-		else if (auto obj = dynamic_cast<ASTExpression*>(stm))  return codegen(obj);
+	Value* codegen (Ast_Statement* stm) {
+		if 		(auto obj = dynamic_cast<Ast_Variable*>(stm)) 	return codegen(obj, true);
+		else if (auto obj = dynamic_cast<Ast_Block*>(stm)) 		return codegen(obj);
+		else if (auto obj = dynamic_cast<Ast_Return*>(stm)) 		return codegen(obj);
+		else if (auto obj = dynamic_cast<Ast_Expression*>(stm))  return codegen(obj);
 		else return nullptr;
 	}
 
-	Value* codegen (ASTBlock* stms) {
+	Value* codegen (Ast_Block* stms) {
 		for(auto const& stm: stms->list) {
 			this->codegen(stm);
-			if (dynamic_cast<ASTReturn*>(stm)) return nullptr;
+			if (dynamic_cast<Ast_Return*>(stm)) return nullptr;
 		}
 		return nullptr;
 	}
 
-	Value* codegen (ASTVariable* varDef, bool alloca = false) {
+	Value* codegen (Ast_Variable* varDef, bool alloca = false) {
 		if (alloca) {
 			auto type = this->codegen(varDef->type);
 			auto alloca = builder.CreateAlloca(type, nullptr, varDef->name);
@@ -127,7 +127,7 @@ struct LLVMPipe : Pipe {
 		} else return this->scope->getVariable(varDef);
 	}
 
-	Value* codegen (ASTReturn* ret) {
+	Value* codegen (Ast_Return* ret) {
 		this->functionHasReturned = false;
 		if (ret->exp != nullptr && this->currentReturnVal != nullptr) {
 			Value* retValue = this->codegen(ret->exp);
@@ -136,31 +136,31 @@ struct LLVMPipe : Pipe {
 		return builder.CreateBr(&this->currentFunction->back());
 	}
 
-	Value* codegen (ASTExpression* exp) {
-		if 		(auto binop = dynamic_cast<ASTBinop*>(exp))   return codegen(binop);
-		else if (auto unop  = dynamic_cast<ASTUnop*>(exp))    return codegen(unop);
-		else if (auto con   = dynamic_cast<ASTLiteral*>(exp)) return codegen(con);
-		else if (auto call  = dynamic_cast<ASTCall*>(exp)) 	  return codegen(call);
-		else if (auto mem  = dynamic_cast<ASTMemory*>(exp))   return codegen(mem, true);
+	Value* codegen (Ast_Expression* exp) {
+		if 		(auto binop = dynamic_cast<AST_Binary*>(exp))   return codegen(binop);
+		else if (auto unop  = dynamic_cast<AST_Unary*>(exp))    return codegen(unop);
+		else if (auto con   = dynamic_cast<Ast_Literal*>(exp)) return codegen(con);
+		else if (auto call  = dynamic_cast<Ast_Function_Call*>(exp)) 	  return codegen(call);
+		else if (auto mem  = dynamic_cast<AST_Memory*>(exp))   return codegen(mem, true);
 		else return nullptr;
 	}
 
-	Value* codegen (ASTBinop* binop) {
+	Value* codegen (AST_Binary* binop) {
 		switch (binop->op) {
-			case ASTBinop::OP::ADD:
+			case AST_Binary::OP::ADD:
 				return LLVMCodegenPrimitive::add(&builder,
 					this->codegen(binop->lhs), this->codegen(binop->rhs));
-			case ASTBinop::OP::SUB:
+			case AST_Binary::OP::SUB:
 				return LLVMCodegenPrimitive::sub(&builder,
 					this->codegen(binop->lhs), this->codegen(binop->rhs));
-			case ASTBinop::OP::MUL:
+			case AST_Binary::OP::MUL:
 				return LLVMCodegenPrimitive::mul(&builder,
 					this->codegen(binop->lhs), this->codegen(binop->rhs));
-			case ASTBinop::OP::DIV:
+			case AST_Binary::OP::DIV:
 				return LLVMCodegenPrimitive::div(&builder,
 					this->codegen(binop->lhs), this->codegen(binop->rhs));
-			case ASTBinop::OP::ASSIGN: {
-				if (auto mem = dynamic_cast<ASTMemory*>(binop->lhs)) {
+			case AST_Binary::OP::ASSIGN: {
+				if (auto mem = dynamic_cast<AST_Memory*>(binop->lhs)) {
 					return LLVMCodegenPrimitive::assign(&builder,
 						this->codegen(mem), this->codegen(binop->rhs));
 				} else cout << "Assigment LHS is not memory!\n";
@@ -170,30 +170,30 @@ struct LLVMPipe : Pipe {
 		return nullptr;
 	}
 
-	Value* codegen (ASTUnop* unop) {
+	Value* codegen (AST_Unary* unop) {
 		Value* val = this->codegen(unop->exp);
 		switch (unop->op) {
-			case ASTUnop::OP::NEG:
+			case AST_Unary::OP::NEG:
 				return LLVMCodegenPrimitive::neg(&builder, val);
 			default: break;
 		}
 		return nullptr;
 	}
 
-	Value* codegen (ASTLiteral* con) {
+	Value* codegen (Ast_Literal* con) {
 		switch (con->type) {
-			case ASTLiteral::TYPE::INT:
+			case Ast_Literal::TYPE::INT:
 				return ConstantInt::get(context, APInt(32, con->intValue));
-			case ASTLiteral::TYPE::STRING:
+			case Ast_Literal::TYPE::STRING:
 				return builder.CreateGlobalStringPtr(con->stringValue);
 			default: break;
 		}
 		return nullptr;
 	}
 
-	Value* codegen (ASTCall* call) {
+	Value* codegen (Ast_Function_Call* call) {
 		Function* function = nullptr;
-		if (auto fn = dynamic_cast<ASTFunction*>(call->fn)) {
+		if (auto fn = dynamic_cast<Ast_Function*>(call->fn)) {
 			function = this->scope->getFunction(fn);
 		}
 		if (function == nullptr) cout << "Function not found!";
@@ -204,26 +204,26 @@ struct LLVMPipe : Pipe {
 		return builder.CreateCall(function, params, "fnCall");
 	}
 
-	Value* codegen(ASTMemory* mem, bool autoDeref = false) {
+	Value* codegen(AST_Memory* mem, bool autoDeref = false) {
 		Value* val = nullptr;
-		if (auto ref  = dynamic_cast<ASTRef*>(mem)) return codegen(ref);
-		else if (auto var = dynamic_cast<ASTVariable*>(mem)) {
+		if (auto ref  = dynamic_cast<AST_Ref*>(mem)) return codegen(ref);
+		else if (auto var = dynamic_cast<Ast_Variable*>(mem)) {
 			val = codegen(var);
-		} else if (auto attr = dynamic_cast<ASTAttr*>(mem)) {
+		} else if (auto attr = dynamic_cast<Ast_Attribute*>(mem)) {
 			val = codegen(attr);
-		} else if (auto der = dynamic_cast<ASTDeref*>(mem)) {
+		} else if (auto der = dynamic_cast<Ast_Deref*>(mem)) {
 			val = codegen(der);
 		} else return nullptr;
 		if (autoDeref) val =  builder.CreateLoad(val);
 		return val;
 	}
 
-	Value* codegen (ASTRef* ref) {
+	Value* codegen (AST_Ref* ref) {
 		return this->codegen(ref->memory);
 	}
 
-	Value* codegen (ASTAttr* attr) {
-		auto mem = dynamic_cast<ASTMemory*>(attr->exp);
+	Value* codegen (Ast_Attribute* attr) {
+		auto mem = dynamic_cast<AST_Memory*>(attr->exp);
 		Value* val = this->codegen(mem);
 		Type* ty = val->getType();
 		if (ty->isPointerTy()) {
@@ -231,12 +231,12 @@ struct LLVMPipe : Pipe {
 			if (ptrTy->getElementType()->isStructTy()) {
 				auto structTy = ptrTy->getElementType();
 				return builder.CreateStructGEP(structTy, val, 0);
-			} else cout << "[ASTAttr::codegen] value type is not a struct!";
+			} else cout << "[Ast_Attribute::codegen] value type is not a struct!";
 		}
 		return nullptr;
 	}
 
-	Value* codegen (ASTDeref* deref) {
+	Value* codegen (Ast_Deref* deref) {
 		auto val = this->codegen(deref->memory);
 		return builder.CreateLoad(val, "");
 	}
@@ -249,13 +249,13 @@ struct LLVMPipe : Pipe {
 		auto cachedTy = this->scope->getType(ty);
 		if (cachedTy) return cachedTy;
 
-		if (auto obj = dynamic_cast<ASTStructType*>(ty)) 		return codegen(obj);
-		else if (auto obj = dynamic_cast<ASTPointerType*>(ty))  return codegen(obj);
+		if (auto obj = dynamic_cast<Ast_Struct_Type*>(ty)) 		return codegen(obj);
+		else if (auto obj = dynamic_cast<Ast_Pointer_Type*>(ty))  return codegen(obj);
 		else cout << "ERROR\n\n";
 		return nullptr;
 	}
 
-	Type* codegen (ASTPointerType* ty) {
+	Type* codegen (Ast_Pointer_Type* ty) {
 		PointerType* ptrTy = nullptr;
 		Type* baseTy = this->codegen(ty->base);
 		if (PointerType::isValidElementType(baseTy)) {
@@ -268,7 +268,7 @@ struct LLVMPipe : Pipe {
 		return ptrTy;
 	}
 
-	Type* codegen (ASTStructType* ty) {
+	Type* codegen (Ast_Struct_Type* ty) {
 		StructType* structTy;
 		if (ty->attrs.size() > 0) {
 			vector<Type*> attrTypes;

@@ -6,10 +6,10 @@
 #include "lexer/token.cpp"
 
 struct Ast_Type_Definition;
-struct ASTBlock;
-struct ASTFunction;
-struct ASTExpression;
-struct ASTVariable;
+struct Ast_Block;
+struct Ast_Function;
+struct Ast_Expression;
+struct Ast_Variable;
 
 using namespace std;
 
@@ -33,29 +33,27 @@ struct AST {
 
 	const char* filename;
 	long line, col;
-
-	virtual ~AST () {}
 };
 
-struct ASTStatement : AST {
-	ASTStatement() { this->type = AST_STATEMENT; }
-	virtual ~ASTStatement() {}
+struct Ast_Statement : AST {
+	Ast_Statement() { this->type = AST_STATEMENT; }
+	virtual ~Ast_Statement() {}
 };
 
-struct ASTBlock : ASTStatement {
+struct Ast_Block : Ast_Statement {
 	string name;
-	vector<ASTStatement*> list;
+	vector<Ast_Statement*> list;
 
-	ASTBlock* parent = nullptr;
-	map<string, ASTExpression*> symbols;
+	Ast_Block* parent = nullptr;
+	map<string, Ast_Expression*> symbols;
 
-	ASTBlock (string name, ASTBlock* parent = nullptr) {
+	Ast_Block (string name, Ast_Block* parent = nullptr) {
 		this->type = AST_BLOCK;
 		this->parent = parent;
 		this->name = name;
 	}
 
-	void add (string name, ASTExpression* val) {
+	void add (string name, Ast_Expression* val) {
 		auto it = this->symbols.find(name);
 		if (it == this->symbols.end()) {
 			this->symbols[name] = val;
@@ -65,7 +63,7 @@ struct ASTBlock : ASTStatement {
 		}
 	}
 
-	ASTExpression* get (string name) {
+	Ast_Expression* get (string name) {
 		auto it = this->symbols.find(name);
 		if (it != this->symbols.end()) {
 			return this->symbols[name];
@@ -84,41 +82,41 @@ struct ASTBlock : ASTStatement {
 	}
 };
 
-struct ASTReturn : ASTStatement {
-	ASTExpression* exp = nullptr;
+struct Ast_Return : Ast_Statement {
+	Ast_Expression* exp = nullptr;
 
-	ASTReturn() { this->type = AST_RETURN; }
+	Ast_Return() { this->type = AST_RETURN; }
 };
 
-struct ASTExpression : ASTStatement {
-	ASTExpression() { this->type = AST_EXPRESSION; }
-	virtual ~ASTExpression() {}
+struct Ast_Expression : Ast_Statement {
+	Ast_Expression() { this->type = AST_EXPRESSION; }
+	virtual ~Ast_Expression() {}
 };
 
-struct Ast_Type_Definition : ASTExpression {
-	vector<ASTVariable*> attrs;
-	vector<ASTFunction*> methods;
+struct Ast_Type_Definition : Ast_Expression {
+	vector<Ast_Variable*> attrs;
+	vector<Ast_Function*> methods;
 };
 
-struct ASTPointerType : Ast_Type_Definition {
+struct Ast_Pointer_Type : Ast_Type_Definition {
 	Ast_Type_Definition* base = nullptr;
 };
 
-struct ASTFnType : Ast_Type_Definition {
-	vector<ASTVariable*> params;
+struct Ast_Function_Type : Ast_Type_Definition {
+	vector<Ast_Variable*> params;
 	Ast_Type_Definition* retType = nullptr;
 };
 
-struct ASTStructType : Ast_Type_Definition {
+struct Ast_Struct_Type : Ast_Type_Definition {
 	string name;
 
-	ASTStructType (string name = "") { this->name = name; }
+	Ast_Struct_Type (string name = "") { this->name = name; }
 };
 
-struct ASTPrimitiveType : Ast_Type_Definition {
+struct Ast_Primitive_Type : Ast_Type_Definition {
 	string name;
 
-	ASTPrimitiveType (string name) { this->name = name; }
+	Ast_Primitive_Type (string name) { this->name = name; }
 
 	static Ast_Type_Definition* _void;
 	static Ast_Type_Definition* _i1;
@@ -129,31 +127,31 @@ struct ASTPrimitiveType : Ast_Type_Definition {
 	static Ast_Type_Definition* _i128;
 };
 
-Ast_Type_Definition* ASTPrimitiveType::_void = new ASTPrimitiveType("void");
-Ast_Type_Definition* ASTPrimitiveType::_i1 =   new ASTPrimitiveType("i1");
-Ast_Type_Definition* ASTPrimitiveType::_i8 =   new ASTPrimitiveType("i8");
-Ast_Type_Definition* ASTPrimitiveType::_i16 =  new ASTPrimitiveType("i16");
-Ast_Type_Definition* ASTPrimitiveType::_i32 =  new ASTPrimitiveType("i32");
-Ast_Type_Definition* ASTPrimitiveType::_i64 =  new ASTPrimitiveType("i64");
-Ast_Type_Definition* ASTPrimitiveType::_i128 = new ASTPrimitiveType("i128");
+Ast_Type_Definition* Ast_Primitive_Type::_void = new Ast_Primitive_Type("void");
+Ast_Type_Definition* Ast_Primitive_Type::_i1 =   new Ast_Primitive_Type("i1");
+Ast_Type_Definition* Ast_Primitive_Type::_i8 =   new Ast_Primitive_Type("i8");
+Ast_Type_Definition* Ast_Primitive_Type::_i16 =  new Ast_Primitive_Type("i16");
+Ast_Type_Definition* Ast_Primitive_Type::_i32 =  new Ast_Primitive_Type("i32");
+Ast_Type_Definition* Ast_Primitive_Type::_i64 =  new Ast_Primitive_Type("i64");
+Ast_Type_Definition* Ast_Primitive_Type::_i128 = new Ast_Primitive_Type("i128");
 
-struct ASTFunction : ASTExpression {
+struct Ast_Function : Ast_Expression {
 	string name;
-	ASTFnType* type = nullptr;
-	ASTStatement* stm = nullptr;
+	Ast_Function_Type* type = nullptr;
+	Ast_Statement* stm = nullptr;
 };
 
-struct ASTBinop : ASTExpression {
+struct AST_Binary : Ast_Expression {
 	enum OP { ASSIGN, ATTR, ADD, SUB, MUL, DIV, COUNT };
 	static map<Token::Type, bool> isLeftAssociate;
-	static map<ASTBinop::OP, const char*> opChar;
+	static map<AST_Binary::OP, const char*> opChar;
 	static map<Token::Type, short> precedence;
 
 	OP op = OP::COUNT;
-	ASTExpression* lhs = nullptr;
-	ASTExpression* rhs = nullptr;
+	Ast_Expression* lhs = nullptr;
+	Ast_Expression* rhs = nullptr;
 
-	ASTBinop (Token::Type tType) {
+	AST_Binary (Token::Type tType) {
 		this->setOP(tType);
 	}
 
@@ -177,44 +175,44 @@ struct ASTBinop : ASTExpression {
 	}
 
 	static short getPrecedence (Token::Type opToken) {
-		auto it = ASTBinop::precedence.find(opToken);
-		if (it != ASTBinop::precedence.end())
-			return ASTBinop::precedence[opToken];
+		auto it = AST_Binary::precedence.find(opToken);
+		if (it != AST_Binary::precedence.end())
+			return AST_Binary::precedence[opToken];
 		else return -1;
 	}
 
 	static bool getLeftAssociativity (Token::Type opToken) {
-		auto it = ASTBinop::isLeftAssociate.find(opToken);
-		if (it != ASTBinop::isLeftAssociate.end())
-			return ASTBinop::isLeftAssociate[opToken];
+		auto it = AST_Binary::isLeftAssociate.find(opToken);
+		if (it != AST_Binary::isLeftAssociate.end())
+			return AST_Binary::isLeftAssociate[opToken];
 		else return false;
 	}
 };
 
-map<ASTBinop::OP, const char*> ASTBinop::opChar = {
-	{ASTBinop::OP::ASSIGN, "="}, {ASTBinop::OP::ATTR, "."},
-	{ASTBinop::OP::ADD, "+"}, {ASTBinop::OP::SUB, "-"},
-	{ASTBinop::OP::MUL, "*"}, {ASTBinop::OP::DIV, "/"}
+map<AST_Binary::OP, const char*> AST_Binary::opChar = {
+	{AST_Binary::OP::ASSIGN, "="}, {AST_Binary::OP::ATTR, "."},
+	{AST_Binary::OP::ADD, "+"}, {AST_Binary::OP::SUB, "-"},
+	{AST_Binary::OP::MUL, "*"}, {AST_Binary::OP::DIV, "/"}
 };
-map<Token::Type, short> ASTBinop::precedence = {
+map<Token::Type, short> AST_Binary::precedence = {
 	{Token::Type::EQUAL, 1}, {Token::Type::DOT, 1},
 	{Token::Type::ADD, 2}, {Token::Type::SUB, 2},
 	{Token::Type::MUL, 3}, {Token::Type::DIV, 3}
 };
-map<Token::Type, bool> ASTBinop::isLeftAssociate = {
+map<Token::Type, bool> AST_Binary::isLeftAssociate = {
 	{Token::Type::EQUAL, false}, {Token::Type::DOT, false},
 	{Token::Type::ADD, false}, {Token::Type::SUB, false},
 	{Token::Type::MUL, false}, {Token::Type::DIV, false}
 };
 
-struct ASTUnop : ASTExpression {
+struct AST_Unary : Ast_Expression {
 	enum OP { NEG, COUNT };
-	static map<ASTUnop::OP, const char*> opChar;
+	static map<AST_Unary::OP, const char*> opChar;
 
 	OP op = OP::COUNT;
-	ASTExpression* exp = nullptr;
+	Ast_Expression* exp = nullptr;
 
-	ASTUnop (Token::Type tType) {
+	AST_Unary (Token::Type tType) {
 		this->setOP(tType);
 	}
 
@@ -233,19 +231,19 @@ struct ASTUnop : ASTExpression {
 	}
 };
 
-map<ASTUnop::OP, const char*> ASTUnop::opChar = {
-	{ASTUnop::OP::NEG, "-"}
+map<AST_Unary::OP, const char*> AST_Unary::opChar = {
+	{AST_Unary::OP::NEG, "-"}
 };
 
-struct ASTValue : ASTExpression {
+struct Ast_Value : Ast_Expression {
 };
 
-struct ASTCall : ASTValue {
-	ASTExpression* fn;
-	vector<ASTExpression*> params;
+struct Ast_Function_Call : Ast_Value {
+	Ast_Expression* fn;
+	vector<Ast_Expression*> params;
 };
 
-struct ASTLiteral : ASTValue {
+struct Ast_Literal : Ast_Value {
 	enum TYPE { BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, STRING, COUNT };
 	TYPE type = TYPE::COUNT;
 	union {
@@ -258,56 +256,56 @@ struct ASTLiteral : ASTValue {
 		char* stringValue;
 	};
 
-	ASTLiteral (TYPE type) {
+	Ast_Literal (TYPE type) {
 		this->type = type;
 	}
 };
 
-struct ASTMemory : ASTValue {
-	~ASTMemory () {}
+struct AST_Memory : Ast_Value {
+	~AST_Memory () {}
 };
 
-struct ASTVariable : ASTMemory {
+struct Ast_Variable : AST_Memory {
 	string name = "";
 	Ast_Type_Definition* type = nullptr;
-	ASTExpression* expression = nullptr;
+	Ast_Expression* expression = nullptr;
 
 	bool isConstant() { return false; }
 };
 
-struct ASTRef : ASTMemory {
-	ASTMemory* memory = nullptr;
+struct AST_Ref : AST_Memory {
+	AST_Memory* memory = nullptr;
 };
 
-struct ASTDeref : ASTMemory {
-	ASTMemory* memory = nullptr;
+struct Ast_Deref : AST_Memory {
+	AST_Memory* memory = nullptr;
 };
 
-struct ASTAttr : ASTMemory {
-	ASTExpression* exp = nullptr;
+struct Ast_Attribute : AST_Memory {
+	Ast_Expression* exp = nullptr;
 	string name;
 
-	ASTAttr (ASTExpression* exp = nullptr) {
+	Ast_Attribute (Ast_Expression* exp = nullptr) {
 		this->exp = exp;
 	}
 };
 
-struct ASTUnresolved {
+struct Ast_Unresolved {
 	string name;
 
-	ASTUnresolved (string name = "") {
+	Ast_Unresolved (string name = "") {
 		this->name = name;
 	}
 };
 
-struct ASTUnresolvedExp : ASTUnresolved, ASTExpression {
-	ASTUnresolvedExp (string name = "") : ASTUnresolved(name) { /* empty */ }
+struct Ast_Unresolved_Expression : Ast_Unresolved, Ast_Expression {
+	Ast_Unresolved_Expression (string name = "") : Ast_Unresolved(name) { /* empty */ }
 };
 
-struct ASTUnresolvedTy : ASTUnresolved, Ast_Type_Definition {
-	ASTUnresolvedTy (string name = "") : ASTUnresolved(name) { /* empty */ }
+struct Ast_Unresolved_Type : Ast_Unresolved, Ast_Type_Definition {
+	Ast_Unresolved_Type (string name = "") : Ast_Unresolved(name) { /* empty */ }
 };
 
-struct ASTUnresolvedFn : ASTUnresolved, ASTFunction {
-	ASTUnresolvedFn (string name = "") : ASTUnresolved(name) { /* empty */ }
+struct Ast_Unresolved_Function : Ast_Unresolved, Ast_Function {
+	Ast_Unresolved_Function (string name = "") : Ast_Unresolved(name) { /* empty */ }
 };

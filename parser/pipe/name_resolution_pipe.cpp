@@ -8,7 +8,7 @@
 #include "../pipes.cpp"
 
 struct ExpDesp {
-	ASTExpression* exp;
+	Ast_Expression* exp;
 	std::set<std::string> names;
 };
 
@@ -17,18 +17,18 @@ struct AddrDeps {
 
 	template <typename T>
 	bool addIfUnresolved (T** exp) {
-		return this->addIfUnresolved(reinterpret_cast<ASTExpression**>(exp));
+		return this->addIfUnresolved(reinterpret_cast<Ast_Expression**>(exp));
 	}
 
-	bool addIfUnresolved (ASTExpression** exp) {
-		auto un = dynamic_cast<ASTUnresolved*>(*exp);
+	bool addIfUnresolved (Ast_Expression** exp) {
+		auto un = dynamic_cast<Ast_Unresolved*>(*exp);
 		if (un) {
 			this->add(un->name, exp);
 			return true;
 		} else return false;
 	}
 
-	void add (std::string name, ASTExpression** exp) {
+	void add (std::string name, Ast_Expression** exp) {
 		auto vAddr = reinterpret_cast<void**>(exp);
 		addrs[name].insert(vAddr);
 	}
@@ -47,7 +47,7 @@ struct NameResolutionPipe : Pipe {
 	std::map<std::string, std::set<void**>> ptrDeps;
 	std::map<std::string, std::set<ExpDesp*>> astDeps;
 
-	void onFunction (ASTFunction* fn) {
+	void onFunction (Ast_Function* fn) {
 		AddrDeps deps;
 		check(fn, &deps);
 		if (deps.addrs.size() > 0) {
@@ -69,7 +69,7 @@ struct NameResolutionPipe : Pipe {
 			this->addDependencies(&deps, ty);
 		} else {
 			this->toNext(ty);
-			if (auto namedTy = dynamic_cast<ASTStructType*>(ty)) {
+			if (auto namedTy = dynamic_cast<Ast_Struct_Type*>(ty)) {
 				this->resolve(namedTy->name, namedTy);
 			}
 		}
@@ -84,7 +84,7 @@ struct NameResolutionPipe : Pipe {
 		} else this->tryFinish();
 	}
 
-	void addDependencies (AddrDeps* deps, ASTExpression* exp) {
+	void addDependencies (AddrDeps* deps, Ast_Expression* exp) {
 		auto expDesp = new ExpDesp();
 		expDesp->exp = exp;
 		for (auto const &entry : deps->addrs) {
@@ -94,7 +94,7 @@ struct NameResolutionPipe : Pipe {
 		}
 	}
 
-	void resolve (std::string name, ASTExpression* exp) {
+	void resolve (std::string name, Ast_Expression* exp) {
 		auto it = ptrDeps.find(name);
 		if (it != ptrDeps.end()) {
 			//cout << "Resolving: " << name << "\n";
@@ -104,9 +104,9 @@ struct NameResolutionPipe : Pipe {
 				entry->names.erase(name);
 				if (entry->names.size() == 0) {
 					this->toNext(entry->exp);
-					if (auto obj = dynamic_cast<ASTStructType*>(entry->exp)) {
+					if (auto obj = dynamic_cast<Ast_Struct_Type*>(entry->exp)) {
 						this->resolve(obj->name, obj);
-					} else if (auto obj = dynamic_cast<ASTFunction*>(entry->exp)) {
+					} else if (auto obj = dynamic_cast<Ast_Function*>(entry->exp)) {
 						this->resolve(obj->name, obj);
 					}
 				}
@@ -115,23 +115,23 @@ struct NameResolutionPipe : Pipe {
 		}
 	}
 
-	void check (ASTFunction* fn, AddrDeps* deps) {
+	void check (Ast_Function* fn, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&fn->type)) check(fn->type, deps);
 		if (!deps->addIfUnresolved(&fn->stm))  check(fn->stm, deps);
 	}
 
-	void check (ASTStatement* stm, AddrDeps* deps) {
-		if 		(auto obj = dynamic_cast<ASTVariable*>(stm))	check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTReturn*>(stm))		check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTBlock*>(stm))		check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTExpression*>(stm))	check(obj, deps);
+	void check (Ast_Statement* stm, AddrDeps* deps) {
+		if 		(auto obj = dynamic_cast<Ast_Variable*>(stm))	check(obj, deps);
+		else if (auto obj = dynamic_cast<Ast_Return*>(stm))		check(obj, deps);
+		else if (auto obj = dynamic_cast<Ast_Block*>(stm))		check(obj, deps);
+		else if (auto obj = dynamic_cast<Ast_Expression*>(stm))	check(obj, deps);
 	}
 
-	void check (ASTBlock* block, AddrDeps* deps) {
+	void check (Ast_Block* block, AddrDeps* deps) {
 		for (auto const& stm : block->list) check(stm, deps);
 	}
 
-	void check (ASTVariable* var, AddrDeps* deps) {
+	void check (Ast_Variable* var, AddrDeps* deps) {
 		if (var->type) {
 			if (!deps->addIfUnresolved(&var->type))
 				check(var->type, deps);
@@ -139,69 +139,69 @@ struct NameResolutionPipe : Pipe {
 		if (var->expression) check(var->expression, deps);
 	}
 
-	void check (ASTReturn* ret, AddrDeps* deps) {
+	void check (Ast_Return* ret, AddrDeps* deps) {
 		if (ret->exp) check(ret->exp, deps);
 	}
 
-	void check (ASTExpression* exp, AddrDeps* deps) {
-		if		(auto obj = dynamic_cast<ASTBinop*>(exp)) 	check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTUnop*>(exp))	check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTValue*>(exp))	check(obj, deps);
+	void check (Ast_Expression* exp, AddrDeps* deps) {
+		if		(auto obj = dynamic_cast<AST_Binary*>(exp)) 	check(obj, deps);
+		else if (auto obj = dynamic_cast<AST_Unary*>(exp))	check(obj, deps);
+		else if (auto obj = dynamic_cast<Ast_Value*>(exp))	check(obj, deps);
 	}
 
-	void check (ASTBinop* binop, AddrDeps* deps) {
+	void check (AST_Binary* binop, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&binop->lhs)) check(binop->lhs, deps);
 		if (!deps->addIfUnresolved(&binop->rhs)) check(binop->rhs, deps);
 	}
 
-	void check (ASTUnop* unop, AddrDeps* deps) {
+	void check (AST_Unary* unop, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&unop->exp)) check(unop->exp, deps);
 	}
 
-	void check (ASTValue* val, AddrDeps* deps) {
-		if 		(auto obj = dynamic_cast<ASTCall*>(val)) 	check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTMemory*>(val))	check(obj, deps);
+	void check (Ast_Value* val, AddrDeps* deps) {
+		if 		(auto obj = dynamic_cast<Ast_Function_Call*>(val)) 	check(obj, deps);
+		else if (auto obj = dynamic_cast<AST_Memory*>(val))	check(obj, deps);
 	}
 
-	void check (ASTCall* call, AddrDeps* deps) {
+	void check (Ast_Function_Call* call, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&call->fn)) check(call->fn, deps);
 		for (auto const& param : call->params) check(param, deps);
 	}
 
-	void check (ASTMemory* mem, AddrDeps* deps) {
-		if 		(auto obj = dynamic_cast<ASTVariable*>(mem))	check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTDeref*>(mem))		check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTRef*>(mem))			check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTAttr*>(mem))		check(obj, deps);
+	void check (AST_Memory* mem, AddrDeps* deps) {
+		if 		(auto obj = dynamic_cast<Ast_Variable*>(mem))	check(obj, deps);
+		else if (auto obj = dynamic_cast<Ast_Deref*>(mem))		check(obj, deps);
+		else if (auto obj = dynamic_cast<AST_Ref*>(mem))			check(obj, deps);
+		else if (auto obj = dynamic_cast<Ast_Attribute*>(mem))		check(obj, deps);
 	}
 
-	void check (ASTDeref* deref, AddrDeps* deps) {
+	void check (Ast_Deref* deref, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&deref->memory)) check(deref->memory, deps);
 	}
 
-	void check (ASTRef* ref, AddrDeps* deps) {
+	void check (AST_Ref* ref, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&ref->memory)) check(ref->memory, deps);
 	}
 
-	void check (ASTAttr* attr, AddrDeps* deps) {
+	void check (Ast_Attribute* attr, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&attr->exp)) check(attr->exp, deps);
 	}
 
 	void check (Ast_Type_Definition* ty, AddrDeps* deps) {
-		if 		(auto obj = dynamic_cast<ASTStructType*>(ty)) 	check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTPointerType*>(ty))  check(obj, deps);
-		else if (auto obj = dynamic_cast<ASTFnType*>(ty))  		check(obj, deps);
+		if 		(auto obj = dynamic_cast<Ast_Struct_Type*>(ty)) 	check(obj, deps);
+		else if (auto obj = dynamic_cast<Ast_Pointer_Type*>(ty))  check(obj, deps);
+		else if (auto obj = dynamic_cast<Ast_Function_Type*>(ty))  		check(obj, deps);
 	}
 
-	void check (ASTStructType* ty, AddrDeps* deps) {
+	void check (Ast_Struct_Type* ty, AddrDeps* deps) {
 		for (auto attr : ty->attrs) check(attr, deps);
 	}
 
-	void check (ASTPointerType* ty, AddrDeps* deps) {
+	void check (Ast_Pointer_Type* ty, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&ty->base)) this->check(ty->base, deps);
 	}
 
-	void check (ASTFnType* ty, AddrDeps* deps) {
+	void check (Ast_Function_Type* ty, AddrDeps* deps) {
 		if (!deps->addIfUnresolved(&ty->retType)) this->check(ty->retType, deps);
 	}
 };

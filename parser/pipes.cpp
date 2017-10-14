@@ -7,7 +7,7 @@
 struct Pipe {
 	Pipe* next = nullptr;
 
-	virtual void onFunction (ASTFunction* fn) {
+	virtual void onFunction (Ast_Function* fn) {
 		this->toNext(fn);
 	}
 
@@ -25,7 +25,7 @@ struct Pipe {
 
 	template <typename T>
 	void toNext (T* node) {
-		if (auto obj = dynamic_cast<ASTFunction*>(node)) {
+		if (auto obj = dynamic_cast<Ast_Function*>(node)) {
 			if (next) next->onFunction(obj);
 		} else if (auto obj = dynamic_cast<Ast_Type_Definition*>(node)) {
 			if (next) next->onType(obj);
