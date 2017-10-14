@@ -12,7 +12,7 @@ if errorlevel 1 (
 	exit /B
 )
 
-link /nologo /ENTRY:mainCRTStartup /OUT:"..\bin\light.exe" /DEBUG ..\llvm\Release\lib\*.lib ^
+link /nologo /ENTRY:mainCRTStartup /OUT:"..\bin\light.exe" /DEBUG %LLVMLibs% ^
  	psapi.lib shell32.lib ole32.lib uuid.lib *.obj
 
 popd

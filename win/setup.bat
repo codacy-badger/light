@@ -9,7 +9,7 @@ SET LLVMIncludes="..\llvm\include"
 echo   Path to LLVM include files
 
 REM Path to all the LLVM Lib files
-SET LLVMLibs="..\llvm\Release\lib"
+SET LLVMLibs="..\llvm\Release\lib\*.lib"
 echo   Path to LLVM LIB files
 
 REM Flags to compile the program using CL
