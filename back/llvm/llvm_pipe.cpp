@@ -173,7 +173,7 @@ struct LLVMPipe : Pipe {
 	Value* codegen (AST_Unary* unop) {
 		Value* val = this->codegen(unop->exp);
 		switch (unop->op) {
-			case AST_Unary::OP::NEG:
+			case AST_UNARY_NEGATE:
 				return LLVMCodegenPrimitive::neg(&builder, val);
 			default: break;
 		}

@@ -214,11 +214,15 @@ map<Token::Type, bool> AST_Binary::isLeftAssociate = {
 	{Token::Type::MUL, 		false}, {Token::Type::DIV, false}
 };
 
-struct AST_Unary : Ast_Expression {
-	enum OP { NEG, COUNT };
-	static map<AST_Unary::OP, const char*> opChar;
+enum Ast_Unary_Type {
+	AST_UNARY_UNINITIALIZED,
+	AST_UNARY_NEGATE,
+};
 
-	OP op = OP::COUNT;
+struct AST_Unary : Ast_Expression {
+	static map<Ast_Unary_Type, const char*> opChar;
+
+	Ast_Unary_Type op = AST_UNARY_UNINITIALIZED;
 	Ast_Expression* exp = nullptr;
 
 	AST_Unary (Token::Type tType) {
@@ -229,19 +233,19 @@ struct AST_Unary : Ast_Expression {
 		this->op = this->typeToOP(tType);
 	}
 
-	OP typeToOP (Token::Type tType) {
+	Ast_Unary_Type typeToOP (Token::Type tType) {
 		switch (tType) {
-			case Token::Type::SUB: return OP::NEG;
-			default:
-				cout << "PANIC -> " << tType << "\n";
-				exit(87);
+			case Token::Type::SUB: return AST_UNARY_NEGATE;
+			default: {
+				cout << "[ERROR] Unary operator unknown: " << tType << "\n";
+				return AST_UNARY_UNINITIALIZED;
+			}
 		};
-		return OP::COUNT;
 	}
 };
 
-map<AST_Unary::OP, const char*> AST_Unary::opChar = {
-	{AST_Unary::OP::NEG, "-"}
+map<Ast_Unary_Type, const char*> AST_Unary::opChar = {
+	{AST_UNARY_NEGATE, "-"}
 };
 
 struct Ast_Value : Ast_Expression {
