@@ -147,19 +147,19 @@ struct LLVMPipe : Pipe {
 
 	Value* codegen (AST_Binary* binop) {
 		switch (binop->op) {
-			case AST_Binary::OP::ADD:
+			case AST_BINARY_ADD:
 				return LLVMCodegenPrimitive::add(&builder,
 					this->codegen(binop->lhs), this->codegen(binop->rhs));
-			case AST_Binary::OP::SUB:
+			case AST_BINARY_SUB:
 				return LLVMCodegenPrimitive::sub(&builder,
 					this->codegen(binop->lhs), this->codegen(binop->rhs));
-			case AST_Binary::OP::MUL:
+			case AST_BINARY_MUL:
 				return LLVMCodegenPrimitive::mul(&builder,
 					this->codegen(binop->lhs), this->codegen(binop->rhs));
-			case AST_Binary::OP::DIV:
+			case AST_BINARY_DIV:
 				return LLVMCodegenPrimitive::div(&builder,
 					this->codegen(binop->lhs), this->codegen(binop->rhs));
-			case AST_Binary::OP::ASSIGN: {
+			case AST_BINARY_ASSIGN: {
 				if (auto mem = dynamic_cast<AST_Memory*>(binop->lhs)) {
 					return LLVMCodegenPrimitive::assign(&builder,
 						this->codegen(mem), this->codegen(binop->rhs));

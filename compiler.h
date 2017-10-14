@@ -15,4 +15,9 @@ struct Light_Compiler {
 	Ast_Type_Definition* type_def_i32;
 	Ast_Type_Definition* type_def_i64;
 	Ast_Type_Definition* type_def_i128;
+	Ast_Type_Definition* type_def_u8;
+	Ast_Type_Definition* type_def_u16;
+	Ast_Type_Definition* type_def_u32;
+	Ast_Type_Definition* type_def_u64;
+	Ast_Type_Definition* type_def_u128;
 };

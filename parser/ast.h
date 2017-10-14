@@ -141,13 +141,22 @@ struct Ast_Function : Ast_Expression {
 	Ast_Statement* stm = nullptr;
 };
 
+enum Ast_Binary_Type {
+	AST_BINARY_UNINITIALIZED,
+	AST_BINARY_ASSIGN,
+	AST_BINARY_ATTRIBUTE,
+	AST_BINARY_ADD,
+	AST_BINARY_SUB,
+	AST_BINARY_MUL,
+	AST_BINARY_DIV,
+};
+
 struct AST_Binary : Ast_Expression {
-	enum OP { ASSIGN, ATTR, ADD, SUB, MUL, DIV, COUNT };
 	static map<Token::Type, bool> isLeftAssociate;
-	static map<AST_Binary::OP, const char*> opChar;
+	static map<Ast_Binary_Type, const char*> opChar;
 	static map<Token::Type, short> precedence;
 
-	OP op = OP::COUNT;
+	Ast_Binary_Type op = AST_BINARY_UNINITIALIZED;
 	Ast_Expression* lhs = nullptr;
 	Ast_Expression* rhs = nullptr;
 
@@ -159,19 +168,19 @@ struct AST_Binary : Ast_Expression {
 		this->op = this->typeToOP(tType);
 	}
 
-	OP typeToOP (Token::Type tType) {
+	Ast_Binary_Type typeToOP (Token::Type tType) {
 		switch (tType) {
-			case Token::Type::EQUAL: return OP::ASSIGN;
-			case Token::Type::DOT: return OP::ATTR;
-			case Token::Type::ADD: return OP::ADD;
-			case Token::Type::SUB: return OP::SUB;
-			case Token::Type::MUL: return OP::MUL;
-			case Token::Type::DIV: return OP::DIV;
-			default:
+			case Token::Type::EQUAL: 	return AST_BINARY_ASSIGN;
+			case Token::Type::DOT: 		return AST_BINARY_ATTRIBUTE;
+			case Token::Type::ADD: 		return AST_BINARY_ADD;
+			case Token::Type::SUB: 		return AST_BINARY_SUB;
+			case Token::Type::MUL: 		return AST_BINARY_MUL;
+			case Token::Type::DIV: 		return AST_BINARY_DIV;
+			default: {
 				cout << "[ERROR] Binary operator unknown: " << tType << "\n";
-				exit(1);
+				return AST_BINARY_UNINITIALIZED;
+			}
 		};
-		return OP::COUNT;
 	}
 
 	static short getPrecedence (Token::Type opToken) {
@@ -189,20 +198,20 @@ struct AST_Binary : Ast_Expression {
 	}
 };
 
-map<AST_Binary::OP, const char*> AST_Binary::opChar = {
-	{AST_Binary::OP::ASSIGN, "="}, {AST_Binary::OP::ATTR, "."},
-	{AST_Binary::OP::ADD, "+"}, {AST_Binary::OP::SUB, "-"},
-	{AST_Binary::OP::MUL, "*"}, {AST_Binary::OP::DIV, "/"}
+map<Ast_Binary_Type, const char*> AST_Binary::opChar = {
+	{AST_BINARY_ASSIGN, "="}, 	{AST_BINARY_ATTRIBUTE, 	"."},
+	{AST_BINARY_ADD, 	"+"}, 	{AST_BINARY_SUB, 		"-"},
+	{AST_BINARY_MUL, 	"*"}, 	{AST_BINARY_DIV, 		"/"}
 };
 map<Token::Type, short> AST_Binary::precedence = {
-	{Token::Type::EQUAL, 1}, {Token::Type::DOT, 1},
-	{Token::Type::ADD, 2}, {Token::Type::SUB, 2},
-	{Token::Type::MUL, 3}, {Token::Type::DIV, 3}
+	{Token::Type::EQUAL, 	1}, {Token::Type::DOT, 1},
+	{Token::Type::ADD, 		2}, {Token::Type::SUB, 2},
+	{Token::Type::MUL, 		3}, {Token::Type::DIV, 3}
 };
 map<Token::Type, bool> AST_Binary::isLeftAssociate = {
-	{Token::Type::EQUAL, false}, {Token::Type::DOT, false},
-	{Token::Type::ADD, false}, {Token::Type::SUB, false},
-	{Token::Type::MUL, false}, {Token::Type::DIV, false}
+	{Token::Type::EQUAL, 	false}, {Token::Type::DOT, false},
+	{Token::Type::ADD, 		false}, {Token::Type::SUB, false},
+	{Token::Type::MUL, 		false}, {Token::Type::DIV, false}
 };
 
 struct AST_Unary : Ast_Expression {
