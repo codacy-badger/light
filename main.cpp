@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "llvm/Support/CommandLine.h"
-#include "compiler.h"
+#include "compiler.hpp"
 #include "timer.cpp"
 #include "parser/parser.cpp"
 #include "parser/printer.cpp"

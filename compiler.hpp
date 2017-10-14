@@ -1,4 +1,6 @@
-#include "parser/ast.h"
+#pragma once
+
+#include "parser/ast.hpp"
 
 struct Light_Compiler {
 	Light_Compiler () {}
