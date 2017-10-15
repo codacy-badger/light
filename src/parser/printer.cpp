@@ -11,12 +11,7 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 		_tabs(tabs);
 		print(obj, tabs);
 		cout << "\n";
-	} else {
-		std::string msg = "Unrecognized statement?! -> ";
-		msg += typeid(*stm).name();
-		msg += "\n";
-		_panic(msg.c_str());
-	}
+	} else cout << "-???-";
 }
 
 void ASTPrinter::print (Ast_Variable* stm, int tabs, bool nameOnly) {
@@ -85,13 +80,7 @@ void ASTPrinter::print (Ast_Type_Definition* type, int tabs, bool nameOnly) {
 	else if (auto obj = dynamic_cast<Ast_Struct_Type*>(type))    	print(obj, tabs, nameOnly);
 	else if (auto obj = dynamic_cast<Ast_Pointer_Type*>(type))    print(obj, tabs, nameOnly);
 	else if (auto obj = dynamic_cast<Ast_Function_Type*>(type))    		print(obj, tabs, nameOnly);
-	else if (auto obj = dynamic_cast<Ast_Unresolved*>(type))    	print(obj, tabs);
-	else {
-		std::string msg = "Unrecognized type struct?! -> ";
-		msg += typeid(*type).name();
-		msg += "\n";
-		_panic(msg.c_str());
-	}
+	else cout << "-???-";
 }
 
 void ASTPrinter::print (Ast_Primitive_Type* type, int tabs, bool nameOnly) {
@@ -129,13 +118,7 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs) {
 	else if (auto obj = dynamic_cast<Ast_Deref*>(exp))    	print(obj, tabs);
 	else if (auto obj = dynamic_cast<Ast_Function*>(exp)) 	print(obj, tabs, true);
 	else if (auto obj = dynamic_cast<Ast_Variable*>(exp)) 	print(obj, tabs, true);
-	else if (auto obj = dynamic_cast<Ast_Unresolved*>(exp)) 	print(obj, tabs);
-	else {
-		std::string msg = "Unrecognized expression?! -> ";
-		msg += typeid(*exp).name();
-		msg += "\n";
-		_panic(msg.c_str());
-	}
+	else cout << "-???-";
 }
 
 void ASTPrinter::print (AST_Binary* binop, int tabs) {
@@ -210,12 +193,6 @@ void ASTPrinter::print (Ast_Attribute* attr, int tabs) {
 	cout << "((";
 	print(attr->exp, tabs);
 	cout << ") ATTR " << attr->name << ")";
-}
-
-void ASTPrinter::print (Ast_Unresolved* unres, int tabs) {
-	cout << "!_";
-	cout << unres->name;
-	cout << "_!";
 }
 
 void ASTPrinter::_tabs (int count) {

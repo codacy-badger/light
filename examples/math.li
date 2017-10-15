@@ -1,8 +1,26 @@
 type int = i32;
 
+fn println_i32(number: i32);
+fn system_exit(result: i32);
+
+type Val2 {
+	num1: i32;
+	num2: i32;
+}
+
+type Val {
+	v: Val2;
+}
+
 type Vec2 {
 	x: Val;
 	y: Val;
+}
+
+fn calc (a: i32, b: i32) -> i32 {
+	return 0;
+	let v1: Vec2;
+	return a * b;
 }
 
 fn main {
@@ -14,6 +32,11 @@ fn main {
 	&&&___v1 = 42;
 	println_i32(v1);
 
+	fn work -> i32 {
+		let res : i32 = calc(7, 3);
+		return calc(5, 5);
+	}
+
 	let a : int = -(1);
 	let b : int = 6 * 2 - 9 / 3;
 	let d : int = b + work();
@@ -21,28 +44,5 @@ fn main {
 	println_i32(b);
 	println_i32(d);
 
-	fn work -> i32 {
-		let res : i32 = calc(7, 3);
-		return calc(5, 5);
-	}
-
 	system_exit(0);
 }
-
-type Val2 {
-	num1: i32;
-	num2: i32;
-}
-
-type Val {
-	v: Val2;
-}
-
-fn calc (a: i32, b: i32) -> i32 {
-	return 0;
-	let v1: Vec2;
-	return a * b;
-}
-
-fn println_i32(number: i32);
-fn system_exit(result: i32);

@@ -188,7 +188,6 @@ Ast_Type_Definition* Parser::_typeInstance () {
 	} else if (this->lexer->isNextType(TOKEN_TYPE_ID)) {
 		auto typeName = this->lexer->text();
 		auto output = this->currentScope->get<Ast_Type_Definition>(typeName);
-		if (!output) output = AST_NEW(Ast_Unresolved_Type, typeName);
 		return output;
 	} else return nullptr;
 }
@@ -299,7 +298,6 @@ Ast_Expression* Parser::variable () {
 	if (this->lexer->isNextType(TOKEN_TYPE_ID)) {
 		string name(this->lexer->nextText);
 		auto output = this->currentScope->get(name);
-		if (!output) output = AST_NEW(Ast_Unresolved_Expression, name);
 		this->lexer->skip(1);
 
 		Token_Type tt = this->lexer->nextType;

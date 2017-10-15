@@ -21,7 +21,6 @@ struct ASTPrinter {
 	static void print (Ast_Deref* deref, int tabs = 0);
 	static void print (Ast_Function_Call* call, int tabs = 0);
 	static void print (Ast_Attribute* attr, int tabs = 0);
-	static void print (Ast_Unresolved* unres, int tabs = 0);
 
 	static void _tabs (int count);
 	static void _panic (const char* message);

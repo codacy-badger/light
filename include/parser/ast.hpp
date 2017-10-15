@@ -210,23 +210,3 @@ struct Ast_Attribute : AST_Memory {
 		this->exp = exp;
 	}
 };
-
-struct Ast_Unresolved {
-	string name;
-
-	Ast_Unresolved (string name = "") {
-		this->name = name;
-	}
-};
-
-struct Ast_Unresolved_Expression : Ast_Unresolved, Ast_Expression {
-	Ast_Unresolved_Expression (string name = "") : Ast_Unresolved(name) { /* empty */ }
-};
-
-struct Ast_Unresolved_Type : Ast_Unresolved, Ast_Type_Definition {
-	Ast_Unresolved_Type (string name = "") : Ast_Unresolved(name) { /* empty */ }
-};
-
-struct Ast_Unresolved_Function : Ast_Unresolved, Ast_Function {
-	Ast_Unresolved_Function (string name = "") : Ast_Unresolved(name) { /* empty */ }
-};
