@@ -6,10 +6,9 @@
 #include "compiler.hpp"
 #include "timer.hpp"
 #include "parser/parser.hpp"
-#include "parser/printer.cpp"
+#include "parser/printer.hpp"
 
-#include "parser/pipe/print_pipe.cpp"
-#include "parser/pipe/name_resolution_pipe.cpp"
+#include "parser/pipe/print_pipe.hpp"
 #include "back/llvm/llvm_pipe.hpp"
 
 using namespace llvm;
@@ -57,7 +56,6 @@ int main (int argc, char** argv) {
 		cout << filename.c_str() << "\n";
 
 		auto parser = new Parser(filename.c_str());
-		parser->append(new NameResolutionPipe());
 		//parser->append(new PrintPipe());
 		//parser->append(new LLVMPipe("_tmp_.obj"));
 
