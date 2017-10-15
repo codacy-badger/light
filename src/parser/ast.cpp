@@ -2,33 +2,6 @@
 
 #include "parser/ast.hpp"
 
-Ast_Block::Ast_Block (string name, Ast_Block* parent) {
-	this->type = AST_BLOCK;
-	this->parent = parent;
-	this->name = name;
-}
-
-void Ast_Block::add (string name, Ast_Expression* val) {
-	auto it = this->symbols.find(name);
-	if (it == this->symbols.end()) {
-		this->symbols[name] = val;
-	} else {
-		cout << "ERROR: name collision: " << name << "\n";
-		exit(1);
-	}
-}
-
-Ast_Expression* Ast_Block::get (string name) {
-	auto it = this->symbols.find(name);
-	if (it != this->symbols.end()) {
-		return this->symbols[name];
-	} else {
-		if (this->parent)
-			return this->parent->get(name);
-		else return nullptr;
-	}
-}
-
 void AST_Binary::setOP (Token_Type tType) {
 	this->op = this->typeToOP(tType);
 }
@@ -68,7 +41,7 @@ void AST_Unary::setOP (Token_Type tType) {
 
 Ast_Unary_Type AST_Unary::typeToOP (Token_Type tType) {
 	switch (tType) {
-		case TOKEN_TYPE_SUB: return AST_UNARY_NEGATE;
+		case TOKEN_TYPE_SUB: return AST_UNARY_NEGATE_NUMBER;
 		default: {
 			cout << "[ERROR] Unary operator unknown: " << tType << "\n";
 			return AST_UNARY_UNINITIALIZED;

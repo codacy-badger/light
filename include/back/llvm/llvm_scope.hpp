@@ -29,17 +29,17 @@ struct LLVMScope {
 	LLVMScope* parent = nullptr;
 	IRBuilder<>* builder = nullptr;
 
-	map<Ast_Variable*, AllocaInst*> variables;
+	map<Ast_Declaration*, AllocaInst*> variables;
 
 	static map<Ast_Type_Definition*, Type*> types;
 	static map<Ast_Function*, Function*> functions;
 
 	LLVMScope (IRBuilder<>* builder, LLVMScope* parent = nullptr);
 
-	void addVariable (Ast_Variable* var);
-	void addVariable (Ast_Variable* var, AllocaInst* alloca);
+	void addVariable (Ast_Declaration* var);
+	void addVariable (Ast_Declaration* var, AllocaInst* alloca);
 	void addParameters (Ast_Function* fn);
-	AllocaInst* getVariable (Ast_Variable* var);
+	AllocaInst* getVariable (Ast_Declaration* var);
 	AllocaInst* getVariable (string name);
 
 	void addType (Ast_Type_Definition* ty, Type* type);

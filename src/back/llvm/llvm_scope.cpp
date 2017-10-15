@@ -7,13 +7,13 @@ LLVMScope::LLVMScope (IRBuilder<>* builder, LLVMScope* parent) {
 	this->parent = parent;
 }
 
-void LLVMScope::addVariable (Ast_Variable* var) {
+void LLVMScope::addVariable (Ast_Declaration* var) {
 	auto type = this->getType(var->type);
 	auto alloca = builder->CreateAlloca(type, nullptr, var->name);
 	this->addVariable(var, alloca);
 }
 
-void LLVMScope::addVariable (Ast_Variable* var, AllocaInst* alloca) {
+void LLVMScope::addVariable (Ast_Declaration* var, AllocaInst* alloca) {
 	auto it = variables.find(var);
 	if (it == variables.end()) variables[var] = alloca;
 	else cout << "Variable already exists " << var->name << "\n";
@@ -22,7 +22,7 @@ void LLVMScope::addVariable (Ast_Variable* var, AllocaInst* alloca) {
 void LLVMScope::addParameters (Ast_Function* fn) {
 	int i = 0;
 	auto function = this->getFunction(fn);
-	for (auto &param : fn->type->params) {
+	for (auto &param : fn->type->parameters) {
 		auto type = this->getType(param->type);
 		auto alloca = builder->CreateAlloca(type, 0, param->name + ".arg");
 
@@ -33,7 +33,7 @@ void LLVMScope::addParameters (Ast_Function* fn) {
 	}
 }
 
-AllocaInst* LLVMScope::getVariable (Ast_Variable* var) {
+AllocaInst* LLVMScope::getVariable (Ast_Declaration* var) {
 	auto it = variables.find(var);
 	if (it == variables.end()) return nullptr;
 	else return variables[var];
@@ -62,7 +62,8 @@ void LLVMScope::addType (Ast_Type_Definition* alias, Ast_Type_Definition* origin
 
 Type* LLVMScope::getType (Ast_Type_Definition* ty) {
 	if (ty == nullptr) return Type::getVoidTy(builder->getContext());
-	else if (auto ptrTy = dynamic_cast<Ast_Pointer_Type*>(ty)) {
+	else if (ty->type_def_type == AST_TYPE_DEF_POINTER) {
+		auto ptrTy = static_cast<Ast_Pointer_Type*>(ty);
 		auto baseTy = this->getType(ptrTy->base);
 		return PointerType::get(baseTy, 0);
 	} else {

@@ -8,36 +8,26 @@
 
 struct Ast_Function;
 struct Ast_Expression;
-struct Ast_Variable;
+struct Ast_Type_Definition;
 
 using namespace std;
 
-enum Ast_Type {
-	AST_STATEMENT,
-	AST_BLOCK,
-	AST_DECLARATION,
-	AST_RETURN,
-
-	AST_EXPRESSION,
-	AST_FUNCTION,
-	AST_TYPE_DEFINITION,
-	AST_LITERAL,
-	AST_BINARY,
-	AST_UNARY,
-	AST_CALL,
+enum Ast_Statement_Type {
+	AST_STATEMENT_UNDEFINED = 0,
+	AST_STATEMENT_BLOCK,
+	AST_STATEMENT_DECLARATION,
+	AST_STATEMENT_RETURN,
+	AST_STATEMENT_EXPRESSION,
 };
 
 struct AST {
-	Ast_Type type;
+	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 
 	const char* filename;
 	long line, col;
 };
 
-struct Ast_Statement : AST {
-	Ast_Statement() { this->type = AST_STATEMENT; }
-	virtual ~Ast_Statement() {}
-};
+struct Ast_Statement : AST { };
 
 struct Ast_Block : Ast_Statement {
 	string name;
@@ -46,54 +36,89 @@ struct Ast_Block : Ast_Statement {
 	Ast_Block* parent = nullptr;
 	map<string, Ast_Expression*> symbols;
 
-	Ast_Block (string name, Ast_Block* parent = nullptr);
-
-	void add (string name, Ast_Expression* val);
-	Ast_Expression* get (string name);
-
-	template <typename T>
-	T* get (string name) {
-		if (auto casted = dynamic_cast<T*>(this->get(name)))
-			return casted;
-		else return nullptr;
+	Ast_Block (string name, Ast_Block* parent = nullptr) {
+		this->stm_type = AST_STATEMENT_BLOCK;
+		this->parent = parent;
+		this->name = name;
 	}
+};
+
+struct Ast_Declaration : Ast_Statement {
+	string name;
+	Ast_Type_Definition* type;
+	Ast_Expression* expression;
+
+	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 };
 
 struct Ast_Return : Ast_Statement {
 	Ast_Expression* exp = nullptr;
 
-	Ast_Return() { this->type = AST_RETURN; }
+	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
+};
+
+enum Ast_Expression_Type {
+	AST_EXPRESSION_UNDEFINED = 0,
+	AST_EXPRESSION_TYPE_DEFINITION,
+	AST_EXPRESSION_FUNCTION,
+	AST_EXPRESSION_BINARY,
+	AST_EXPRESSION_UNARY,
+	AST_EXPRESSION_CALL,
+	AST_EXPRESSION_IDENT,
+	AST_EXPRESSION_LITERAL,
 };
 
 struct Ast_Expression : Ast_Statement {
-	Ast_Expression() { this->type = AST_EXPRESSION; }
-	virtual ~Ast_Expression() {}
+	Ast_Expression_Type exp_type = AST_EXPRESSION_UNDEFINED;
+
+	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
+};
+
+enum Ast_Type_Def_Type {
+	AST_TYPE_DEF_UNDEFINED = 0,
+	AST_TYPE_DEF_STRUCT,
+	AST_TYPE_DEF_POINTER,
+	AST_TYPE_DEF_FUNCTION,
+	AST_TYPE_DEF_PRIMITIVE,
 };
 
 struct Ast_Type_Definition : Ast_Expression {
-	vector<Ast_Variable*> attrs;
-	vector<Ast_Function*> methods;
+	Ast_Type_Def_Type type_def_type = AST_TYPE_DEF_UNDEFINED;
+
+	vector<Ast_Declaration*> attributes;
+
+	Ast_Type_Definition() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
 };
 
 struct Ast_Pointer_Type : Ast_Type_Definition {
 	Ast_Type_Definition* base = nullptr;
+
+	Ast_Pointer_Type() { this->type_def_type = AST_TYPE_DEF_POINTER; }
 };
 
 struct Ast_Function_Type : Ast_Type_Definition {
-	vector<Ast_Variable*> params;
+	vector<Ast_Declaration*> parameters;
 	Ast_Type_Definition* retType = nullptr;
+
+	Ast_Function_Type() { this->type_def_type = AST_TYPE_DEF_FUNCTION; }
 };
 
 struct Ast_Struct_Type : Ast_Type_Definition {
 	string name;
 
-	Ast_Struct_Type (string name = "") { this->name = name; }
+	Ast_Struct_Type(string name = "") {
+		this->type_def_type = AST_TYPE_DEF_STRUCT;
+		this->name = name;
+	}
 };
 
 struct Ast_Primitive_Type : Ast_Type_Definition {
 	string name;
 
-	Ast_Primitive_Type (string name) { this->name = name; }
+	Ast_Primitive_Type (string name) {
+		this->type_def_type = AST_TYPE_DEF_PRIMITIVE;
+		this->name = name;
+	}
 
 	static Ast_Type_Definition* _void;
 	static Ast_Type_Definition* _i1;
@@ -108,12 +133,15 @@ struct Ast_Function : Ast_Expression {
 	string name;
 	Ast_Function_Type* type = nullptr;
 	Ast_Statement* stm = nullptr;
+
+	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 };
 
 enum Ast_Binary_Type {
 	AST_BINARY_UNINITIALIZED,
 	AST_BINARY_ASSIGN,
 	AST_BINARY_ATTRIBUTE,
+	AST_BINARY_SUBSCRIPT,
 	AST_BINARY_ADD,
 	AST_BINARY_SUB,
 	AST_BINARY_MUL,
@@ -129,6 +157,7 @@ struct AST_Binary : Ast_Expression {
 	Ast_Expression* rhs = nullptr;
 
 	AST_Binary (Token_Type tType) {
+		this->exp_type = AST_EXPRESSION_BINARY;
 		this->setOP(tType);
 	}
 
@@ -141,7 +170,10 @@ struct AST_Binary : Ast_Expression {
 
 enum Ast_Unary_Type {
 	AST_UNARY_UNINITIALIZED,
-	AST_UNARY_NEGATE,
+	AST_UNARY_DEREFERENCE,
+	AST_UNARY_REFERENCE,
+	AST_UNARY_NEGATE_EXPRESSION,
+	AST_UNARY_NEGATE_NUMBER,
 };
 
 struct AST_Unary : Ast_Expression {
@@ -149,6 +181,7 @@ struct AST_Unary : Ast_Expression {
 	Ast_Expression* exp = nullptr;
 
 	AST_Unary (Token_Type tType) {
+		this->exp_type = AST_EXPRESSION_UNARY;
 		this->setOP(tType);
 	}
 
@@ -156,57 +189,33 @@ struct AST_Unary : Ast_Expression {
 	Ast_Unary_Type typeToOP (Token_Type tType);
 };
 
-struct Ast_Value : Ast_Expression {
-};
-
-struct Ast_Function_Call : Ast_Value {
+struct Ast_Function_Call : Ast_Expression {
 	Ast_Expression* fn;
-	vector<Ast_Expression*> params;
+	vector<Ast_Expression*> parameters;
+
+	Ast_Function_Call() { this->exp_type = AST_EXPRESSION_CALL; }
 };
 
-struct Ast_Literal : Ast_Value {
-	enum TYPE { BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, STRING, COUNT };
-	TYPE type = TYPE::COUNT;
+enum Ast_Literal_Type {
+	AST_LITERAL_UNINITIALIZED,
+	AST_LITERAL_INTEGER,
+	AST_LITERAL_DECIMAL,
+	AST_LITERAL_STRING,
+};
+
+struct Ast_Literal : Ast_Expression {
+	Ast_Literal_Type literal_type = AST_LITERAL_UNINITIALIZED;
 	union {
-		int8_t byteValue;
-		int16_t shortValue;
-		int32_t intValue;
-		int64_t longValue;
-		float floatValue;
-		double doubleValue;
-		char* stringValue;
+		int64_t integer_value;
+		double decimal_value;
+		char* string_value;
 	};
 
-	Ast_Literal (TYPE type) {
-		this->type = type;
-	}
+	Ast_Literal () { this->exp_type = AST_EXPRESSION_LITERAL; }
 };
 
-struct AST_Memory : Ast_Value {
-	~AST_Memory () {}
-};
-
-struct Ast_Variable : AST_Memory {
+struct Ast_Ident : Ast_Expression {
 	string name = "";
-	Ast_Type_Definition* type = nullptr;
-	Ast_Expression* expression = nullptr;
 
-	bool isConstant() { return false; }
-};
-
-struct AST_Ref : AST_Memory {
-	AST_Memory* memory = nullptr;
-};
-
-struct Ast_Deref : AST_Memory {
-	AST_Memory* memory = nullptr;
-};
-
-struct Ast_Attribute : AST_Memory {
-	Ast_Expression* exp = nullptr;
-	string name;
-
-	Ast_Attribute (Ast_Expression* exp = nullptr) {
-		this->exp = exp;
-	}
+	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };

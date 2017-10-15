@@ -7,19 +7,13 @@
 struct Pipe {
 	Pipe* next = nullptr;
 
-	virtual void onFunction (Ast_Function* fn);
-	virtual void onType (Ast_Type_Definition* ty);
+	virtual void onDeclaration (Ast_Declaration* decl);
 	virtual void onFinish ();
 
 	void tryFinish();
 
-	template <typename T>
-	void toNext (T* node) {
-		if (auto obj = dynamic_cast<Ast_Function*>(node)) {
-			if (next) next->onFunction(obj);
-		} else if (auto obj = dynamic_cast<Ast_Type_Definition*>(node)) {
-			if (next) next->onType(obj);
-		}
+	void toNext (Ast_Declaration* decl) {
+		if (next) next->onDeclaration(decl);
 	}
 
 	void append (Pipe* next);

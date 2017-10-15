@@ -2,12 +2,8 @@
 
 #include "parser/pipes.hpp"
 
-void Pipe::onFunction (Ast_Function* fn) {
-	this->toNext(fn);
-}
-
-void Pipe::onType (Ast_Type_Definition* ty) {
-	this->toNext(ty);
+void Pipe::onDeclaration (Ast_Declaration* decl) {
+	this->toNext(decl);
 }
 
 void Pipe::onFinish () {

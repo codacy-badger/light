@@ -21,9 +21,6 @@ Ast_Statement* Parser::statement () {
 		case TOKEN_TYPE_FUNCTION: {
 			return this->function();
 		}
-		case TOKEN_TYPE_LET: {
-			return this->var_def();
-		}
 		case TOKEN_TYPE_RETURN: {
 			return this->returnStm();
 		}
@@ -52,12 +49,10 @@ Ast_Type_Definition* Parser::type () {
 		if (this->lexer->isNextType(TOKEN_TYPE_EQUAL)) {
 			this->lexer->skip(1);
 			auto result = this->_typeInstance();
-			this->currentScope->add(name, result);
 			CHECK_TYPE(STM_END, "type alias");
 			return result;
 		} else if (this->lexer->isNextType(TOKEN_TYPE_BRAC_OPEN)) {
 			auto result = this->structType(name);
-			this->toNext(result);
 			return result;
 		}
 	}
@@ -66,30 +61,16 @@ Ast_Type_Definition* Parser::type () {
 
 Ast_Struct_Type* Parser::structType (string name) {
 	auto output = AST_NEW(Ast_Struct_Type, name);
-	this->currentScope->add(name, output);
 
-	Ast_Statement* stm = nullptr;
 	CHECK_TYPE(BRAC_OPEN, "type name");
-	while (stm = this->_typeBody()) {
-		if (auto var = dynamic_cast<Ast_Variable*>(stm)) {
-			output->attrs.push_back(var);
-			CHECK_TYPE(STM_END, "type attribute");
-		} else if (auto fn = dynamic_cast<Ast_Function*>(stm))
-			output->methods.push_back(fn);
-		else expected("attribute or method", "type");
-	}
+	this->_typeBody(&output->attributes);
 	CHECK_TYPE(BRAC_CLOSE, "type body");
 
 	return output;
 }
 
-Ast_Statement* Parser::_typeBody () {
-	if (this->lexer->isNextType(TOKEN_TYPE_FUNCTION)) {
-		return this->function();
-	} else if (this->lexer->isNextType(TOKEN_TYPE_LET)) {
-		this->lexer->skip(1);
-		return this->_var_def();
-	} else return this->_var_def();
+void Parser::_typeBody (vector<Ast_Declaration*>* attributes) {
+	assert(!"IMPLEMENT");
 }
 
 Ast_Function* Parser::function () {
@@ -100,29 +81,24 @@ Ast_Function* Parser::function () {
 			output->name = this->lexer->text();
 		else expected("Identifier", "'fn' keyword");
 		output->type = this->_functionType();
-		this->currentScope->add(output->name, output);
 
 		if (this->lexer->isNextType(TOKEN_TYPE_STM_END))
 			this->lexer->skip(1);
 		else if (this->lexer->isNextType(TOKEN_TYPE_BRAC_OPEN)) {
 			this->scopePush(output->name);
 			this->lexer->skip(1);
-			for (auto const &param : output->type->params)
-				this->currentScope->add(param->name, param);
 			this->block();
 			CHECK_TYPE(BRAC_CLOSE, "function body");
 			output->stm = this->currentScope;
 			this->scopePop();
 		}
-
-		this->toNext(output);
 		return output;
 	} else return nullptr;
 }
 
 Ast_Function_Type* Parser::_functionType () {
 	auto output = AST_NEW(Ast_Function_Type);
-	this->_functionParameters(&output->params);
+	this->_functionParameters(&output->parameters);
 	if (this->lexer->isNextType(TOKEN_TYPE_ARROW)) {
 		this->lexer->skip(1);
 		output->retType = this->_typeInstance();
@@ -130,53 +106,21 @@ Ast_Function_Type* Parser::_functionType () {
 	return output;
 }
 
-void Parser::_functionParameters (vector<Ast_Variable*>* output) {
+void Parser::_functionParameters (vector<Ast_Declaration*>* output) {
 	if (this->lexer->isNextType(TOKEN_TYPE_PAR_OPEN)) {
 		this->lexer->skip(1);
 
-		Ast_Variable* fnParam = nullptr;
+		/*Ast_Declaration* fnParam = nullptr;
 		while (fnParam = this->_var_def()) {
 			output->push_back(fnParam);
 			if (this->lexer->isNextType(TOKEN_TYPE_COMMA))
 				this->lexer->skip(1);
-		}
+		}*/
 
 		if(this->lexer->isNextType(TOKEN_TYPE_PAR_CLOSE))
 			this->lexer->skip(1);
 		else expected("closing parenthesys", "function parameters");
 	}
-}
-
-Ast_Variable* Parser::var_def () {
-	if (this->lexer->isNextType(TOKEN_TYPE_LET)) {
-		this->lexer->skip(1);
-
-		auto output = this->_var_def();
-		CHECK_TYPE(STM_END, "variable declaration");
-
-		this->currentScope->add(output->name, output);
-		return output;
-	} else return nullptr;
-}
-
-Ast_Variable* Parser::_var_def () {
-	if (this->lexer->isNextType(TOKEN_TYPE_ID)) {
-		auto output = AST_NEW(Ast_Variable);
-		output->name = this->lexer->text();
-
-		if (this->lexer->isNextType(TOKEN_TYPE_COLON)) {
-			this->lexer->skip(1);
-			output->type = this->_typeInstance();
-		}
-
-		if (this->lexer->isNextType(TOKEN_TYPE_EQUAL)) {
-			this->lexer->skip(1);
-			output->expression = this->expression();
-			if (output->expression == nullptr)
-				expected("expression", "'='");
-		}
-		return output;
-	} else return nullptr;
 }
 
 Ast_Type_Definition* Parser::_typeInstance () {
@@ -186,9 +130,7 @@ Ast_Type_Definition* Parser::_typeInstance () {
 		ptrTy->base = this->_typeInstance();
 		return ptrTy;
 	} else if (this->lexer->isNextType(TOKEN_TYPE_ID)) {
-		auto typeName = this->lexer->text();
-		auto output = this->currentScope->get<Ast_Type_Definition>(typeName);
-		return output;
+		return nullptr;
 	} else return nullptr;
 }
 
@@ -237,27 +179,11 @@ Ast_Expression* Parser::_atom () {
 		auto unop = AST_NEW(AST_Unary, TOKEN_TYPE_SUB);
 		unop->exp = this->_atom();
 		return unop;
-	} else if (this->lexer->isNextType(TOKEN_TYPE_AMP)) {
-		this->lexer->skip(1);
-		auto deref = AST_NEW(Ast_Deref);
-		auto exp = this->_atom();
-		if (auto mem = dynamic_cast<AST_Memory*>(exp)) {
-			deref->memory = mem;
-		} // TODO: we should report a parsing error in else block
-		return deref;
-	} else if (this->lexer->isNextType(TOKEN_TYPE_MUL)) {
-		this->lexer->skip(1);
-		auto ref = AST_NEW(AST_Ref);
-		auto exp = this->_atom();
-		if (auto mem = dynamic_cast<AST_Memory*>(exp)) {
-			ref->memory = mem;
-		} // TODO: we should report a parsing error in else block
-		return ref;
 	} else if (this->lexer->isNextType(TOKEN_TYPE_ADD)) {
 		this->lexer->skip(1);
 		return this->expression();
 	} else if (this->lexer->isNextType(TOKEN_TYPE_ID)) {
-		auto output = this->variable();
+		auto output = this->ident();
 		if (this->lexer->isNextType(TOKEN_TYPE_PAR_OPEN)) {
 			auto fnPtr = reinterpret_cast<Ast_Function*>(output);
 			return this->call(fnPtr);
@@ -267,12 +193,20 @@ Ast_Expression* Parser::_atom () {
 
 Ast_Literal* Parser::literal () {
 	Ast_Literal* output = nullptr;
-	if (this->lexer->isNextType(TOKEN_TYPE_STRING)) {
-		output = AST_NEW(Ast_Literal, Ast_Literal::TYPE::STRING);
-		output->stringValue = this->lexer->text();
-	} else if (this->lexer->isNextType(TOKEN_TYPE_NUMBER)) {
-		output = AST_NEW(Ast_Literal, Ast_Literal::TYPE::INT);
-		output->intValue = atoi(this->lexer->text());
+	switch (this->lexer->nextType) {
+		case TOKEN_TYPE_STRING: {
+			output = AST_NEW(Ast_Literal);
+			output->literal_type = AST_LITERAL_STRING;
+			output->string_value = this->lexer->text();
+			break;
+		}
+		case TOKEN_TYPE_NUMBER: {
+			output = AST_NEW(Ast_Literal);
+			output->literal_type = AST_LITERAL_INTEGER;
+			output->integer_value = atoi(this->lexer->text());
+			break;
+		}
+		default: break;
 	}
 	return output;
 }
@@ -285,7 +219,7 @@ Ast_Function_Call* Parser::call (Ast_Expression* callee) {
 		output->fn = callee;
 		Ast_Expression* exp = nullptr;
 		while (exp = this->expression()) {
-			output->params.push_back(exp);
+			output->parameters.push_back(exp);
 			if (this->lexer->isNextType(TOKEN_TYPE_COMMA))
 				this->lexer->skip(1);
 		}
@@ -294,25 +228,10 @@ Ast_Function_Call* Parser::call (Ast_Expression* callee) {
 	return output;
 }
 
-Ast_Expression* Parser::variable () {
+Ast_Ident* Parser::ident () {
 	if (this->lexer->isNextType(TOKEN_TYPE_ID)) {
-		string name(this->lexer->nextText);
-		auto output = this->currentScope->get(name);
-		this->lexer->skip(1);
-
-		Token_Type tt = this->lexer->nextType;
-		while (tt == TOKEN_TYPE_DOT) {
-			this->lexer->skip(1);
-			if (tt == TOKEN_TYPE_DOT) {
-				auto attr = AST_NEW(Ast_Attribute, output);
-				if (this->lexer->isNextType(TOKEN_TYPE_ID))
-					attr->name = this->lexer->text();
-				else expected("name", "attribute access");
-				output = attr;
-				tt = this->lexer->nextType;
-			}
-		}
-
+		Ast_Ident* output = AST_NEW(Ast_Ident);
+		output->name = this->lexer->text();
 		return output;
 	} else return nullptr;
 }

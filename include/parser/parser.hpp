@@ -39,13 +39,6 @@ struct Parser : Pipe {
 	Parser (LexerParam param) {
 		this->lexer = new Lexer(param);
 		this->currentScope = AST_NEW(Ast_Block, "<global>");
-		this->currentScope->add("void", Ast_Primitive_Type::_void);
-		this->currentScope->add("i1",   Ast_Primitive_Type::_i1);
-		this->currentScope->add("i8",   Ast_Primitive_Type::_i8);
-		this->currentScope->add("i16",  Ast_Primitive_Type::_i16);
-		this->currentScope->add("i32",  Ast_Primitive_Type::_i32);
-		this->currentScope->add("i64",  Ast_Primitive_Type::_i64);
-		this->currentScope->add("i128", Ast_Primitive_Type::_i128);
 	}
 
 	void expected (const char* expect, const char* after);
@@ -54,19 +47,17 @@ struct Parser : Pipe {
 	Ast_Statement* statement ();
 	Ast_Type_Definition* type ();
 	Ast_Struct_Type* structType (string name);
-	Ast_Statement* _typeBody ();
+	void _typeBody (vector<Ast_Declaration*>* attributes);
 	Ast_Function* function ();
 	Ast_Function_Type* _functionType ();
-	void _functionParameters (vector<Ast_Variable*>* output);
-	Ast_Variable* var_def ();
-	Ast_Variable* _var_def ();
+	void _functionParameters (vector<Ast_Declaration*>* parameters);
 	Ast_Type_Definition* _typeInstance ();
 	Ast_Return* returnStm ();
 	Ast_Expression* expression (short minPrecedence = 1);
 	Ast_Expression* _atom ();
 	Ast_Literal* literal ();
 	Ast_Function_Call* call (Ast_Expression* callee);
-	Ast_Expression* variable ();
+	Ast_Ident* ident ();
 
 	void scopePush (string name);
 	void scopePop ();

@@ -43,17 +43,13 @@ struct LLVMPipe : Pipe {
 
 	Value* codegen (Ast_Statement* stm);
 	Value* codegen (Ast_Block* stms);
-	Value* codegen (Ast_Variable* varDef, bool alloca = false);
+	Value* codegen (Ast_Declaration* varDef, bool alloca = false);
 	Value* codegen (Ast_Return* ret);
 	Value* codegen (Ast_Expression* exp);
 	Value* codegen (AST_Binary* binop);
 	Value* codegen (AST_Unary* unop);
 	Value* codegen (Ast_Literal* con);
 	Value* codegen (Ast_Function_Call* call);
-	Value* codegen(AST_Memory* mem, bool autoDeref = false);
-	Value* codegen (AST_Ref* ref);
-	Value* codegen (Ast_Attribute* attr);
-	Value* codegen (Ast_Deref* deref);
 	Type* codegen (Ast_Type_Definition* ty);
 	Type* codegen (Ast_Pointer_Type* ty);
 	Type* codegen (Ast_Struct_Type* ty);
