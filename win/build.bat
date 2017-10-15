@@ -2,15 +2,11 @@
 
 pushd build
 
-cl /nologo /Od /c /MD /Zi /GR -I"../src" -I"../include" %LLVMCLFlags% ^
-	../src/*.cpp ../src/lexer/*.cpp ../src/parser/*.cpp ../src/parser/pipe/*.cpp ^
-	 ../src/back/llvm/*.cpp
-
-if errorlevel 1 (
-	echo Stoping due to compilation error/s
-	popd
-	exit /B
-)
+set "SOURCES="
+for /R "../src" %%i in (*.cpp) do @call set SOURCES=%%SOURCES%% "%%i"
+cl /nologo /Od /c /MD /Zi /GR /Gm -I"../src" -I"../include" %LLVMCLFlags% ^
+	%SOURCES%
+ set "SOURCES="
 
 link /nologo /ENTRY:mainCRTStartup /OUT:"..\bin\light.exe" /DEBUG %LLVMLibs% ^
  	psapi.lib shell32.lib ole32.lib uuid.lib *.obj
