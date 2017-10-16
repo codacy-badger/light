@@ -51,6 +51,9 @@ struct Lexer {
 	bool isNextType (Token_Type type);
 	void skip (unsigned int count);
 	char* text ();
+	const char* get_name (Token_Type type);
+	void check_skip (Token_Type type);
+
 	bool id ();
 	bool string ();
 	bool number ();

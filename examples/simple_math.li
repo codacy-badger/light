@@ -1,0 +1,11 @@
+NUM : i32 : 12;
+
+println_i32 : (i32) -> void : fn (value: i32) -> void;
+
+main : () -> void : fn () -> void {
+	println_i32(NUM);
+	a : i32 = 42;
+	println_i32(a);
+	b : i32 = a + NUM;
+	println_i32(b);
+}

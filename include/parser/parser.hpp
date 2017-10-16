@@ -23,18 +23,17 @@ struct Parser : Pipe {
 
 	bool block ();
 	Ast_Statement* statement ();
-	Ast_Type_Definition* type ();
 	Ast_Struct_Type* structType (string name);
-	void _typeBody (vector<Ast_Declaration*>* attributes);
+	Ast_Expression* expression (Ast_Ident* initial = NULL, short minPrecedence = 1);
+	Ast_Declaration* declaration ();
+	Ast_Type_Definition* type_definition ();
+	Ast_Type_Instance* type_instance ();
 	Ast_Function* function ();
 	Ast_Function_Type* _functionType ();
 	void _functionParameters (vector<Ast_Declaration*>* parameters);
-	Ast_Type_Definition* _typeInstance ();
-	Ast_Return* returnStm ();
-	Ast_Expression* expression (short minPrecedence = 1);
-	Ast_Expression* _atom ();
-	Ast_Literal* literal ();
 	Ast_Function_Call* call (Ast_Expression* callee);
+	Ast_Literal* literal ();
+	Ast_Expression* _atom ();
 	Ast_Ident* ident ();
 
 	void scopePush (string name);

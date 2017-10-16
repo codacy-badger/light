@@ -6,13 +6,15 @@
 
 #include "lexer/lexer.hpp"
 
+struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
+struct Ast_Type_Instance;
 struct Ast_Type_Definition;
 
 using namespace std;
 
-struct AST {
+struct Ast {
 	const char* filename;
 	long line, col;
 };
@@ -25,7 +27,7 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_EXPRESSION,
 };
 
-struct Ast_Statement : AST {
+struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 };
 
@@ -42,10 +44,14 @@ struct Ast_Block : Ast_Statement {
 	}
 };
 
+const int DECL_FLAG_CONSTANT = 0x1;
+
 struct Ast_Declaration : Ast_Statement {
-	string name;
-	Ast_Type_Definition* type;
+	Ast_Ident* identifier;
+	Ast_Type_Instance* type;
 	Ast_Expression* expression;
+
+	int decl_flags = 0;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 };
@@ -73,65 +79,49 @@ struct Ast_Expression : Ast_Statement {
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
 };
 
-enum Ast_Type_Def_Type {
-	AST_TYPE_DEF_UNDEFINED = 0,
-	AST_TYPE_DEF_STRUCT,
-	AST_TYPE_DEF_POINTER,
-	AST_TYPE_DEF_FUNCTION,
-	AST_TYPE_DEF_PRIMITIVE,
-};
-
 struct Ast_Type_Definition : Ast_Expression {
-	Ast_Type_Def_Type type_def_type = AST_TYPE_DEF_UNDEFINED;
-
 	vector<Ast_Declaration*> attributes;
 
 	Ast_Type_Definition() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
 };
 
-struct Ast_Pointer_Type : Ast_Type_Definition {
-	Ast_Type_Definition* base = NULL;
-
-	Ast_Pointer_Type() { this->type_def_type = AST_TYPE_DEF_POINTER; }
+enum Ast_Type_Inst_Type {
+	AST_TYPE_INST_UNDEFINED = 0,
+	AST_TYPE_INST_STRUCT,
+	AST_TYPE_INST_POINTER,
+	AST_TYPE_INST_FUNCTION,
 };
 
-struct Ast_Function_Type : Ast_Type_Definition {
-	vector<Ast_Declaration*> parameters;
-	Ast_Type_Definition* retType = NULL;
-
-	Ast_Function_Type() { this->type_def_type = AST_TYPE_DEF_FUNCTION; }
+struct Ast_Type_Instance : Ast {
+	Ast_Type_Inst_Type type_inst_type = AST_TYPE_INST_UNDEFINED;
 };
 
-struct Ast_Struct_Type : Ast_Type_Definition {
+struct Ast_Pointer_Type : Ast_Type_Instance {
+	Ast_Type_Instance* base = NULL;
+
+	Ast_Pointer_Type() { this->type_inst_type = AST_TYPE_INST_POINTER; }
+};
+
+struct Ast_Function_Type : Ast_Type_Instance {
+	vector<Ast_Type_Instance*> parameters;
+	Ast_Type_Instance* return_type = NULL;
+
+	Ast_Function_Type() { this->type_inst_type = AST_TYPE_INST_FUNCTION; }
+};
+
+struct Ast_Struct_Type : Ast_Type_Instance {
 	string name;
 
 	Ast_Struct_Type(string name = "") {
-		this->type_def_type = AST_TYPE_DEF_STRUCT;
+		this->type_inst_type = AST_TYPE_INST_STRUCT;
 		this->name = name;
 	}
-};
-
-struct Ast_Primitive_Type : Ast_Type_Definition {
-	string name;
-
-	Ast_Primitive_Type (string name) {
-		this->type_def_type = AST_TYPE_DEF_PRIMITIVE;
-		this->name = name;
-	}
-
-	static Ast_Type_Definition* _void;
-	static Ast_Type_Definition* _i1;
-	static Ast_Type_Definition* _i8;
-	static Ast_Type_Definition* _i16;
-	static Ast_Type_Definition* _i32;
-	static Ast_Type_Definition* _i64;
-	static Ast_Type_Definition* _i128;
 };
 
 struct Ast_Function : Ast_Expression {
 	string name;
 	Ast_Function_Type* type = NULL;
-	Ast_Statement* stm = NULL;
+	Ast_Block* scope = NULL;
 
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 };

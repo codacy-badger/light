@@ -24,7 +24,7 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 			print(static_cast<Ast_Expression*>(stm), tabs);
 			break;
 		}
-		default: cout << "-???-";
+		default: cout << "-???-\n";
 	}
 }
 
@@ -34,7 +34,7 @@ void ASTPrinter::print (Ast_Block* block, int tabs) {
 
 void ASTPrinter::print (Ast_Declaration* decl, int tabs, bool nameOnly) {
 	_tabs(tabs);
-	cout << "!decl!";
+	printf("DECL!\n");
 }
 
 void ASTPrinter::print (Ast_Return* ret, int tabs) {
@@ -75,35 +75,16 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs) {
 			print(static_cast<Ast_Literal*>(exp), tabs);
 			break;
 		}
-		default: "-???-";
+		default: "-???-\n";
 	}
 }
 
-void ASTPrinter::print (Ast_Type_Definition* type_def, int tabs, bool nameOnly) {
-	switch (type_def->type_def_type) {
-		case AST_TYPE_DEF_STRUCT: {
-			print(static_cast<Ast_Struct_Type*>(type_def), tabs, nameOnly);
-			break;
-		}
-		case AST_TYPE_DEF_POINTER: {
-			print(static_cast<Ast_Pointer_Type*>(type_def), tabs, nameOnly);
-			break;
-		}
-		case AST_TYPE_DEF_FUNCTION: {
-			print(static_cast<Ast_Function_Type*>(type_def), tabs, nameOnly);
-			break;
-		}
-		default: cout << "-???-";
-	}
+void ASTPrinter::print (Ast_Type_Instance* type_inst, int tabs, bool nameOnly) {
+	cout << "-???-\n";
 }
 
 void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool nameOnly) {
-	if (!nameOnly) cout << "type ";
-	cout << type->name;
-	if (!nameOnly) {
-		cout << "\n";
-		for (auto const &attr : type->attributes) print(attr, tabs + 1);
-	}
+	cout << "-???-\n";
 }
 
 void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool nameOnly) {
@@ -115,31 +96,31 @@ void ASTPrinter::print (Ast_Function_Type* type, int tabs, bool nameOnly) {
 	cout << "+FnType+" ;
 }
 
-void ASTPrinter::print (Ast_Function* stm, int tabs, bool nameOnly) {
+void ASTPrinter::print (Ast_Function* fn, int tabs, bool nameOnly) {
 	if (!nameOnly) {
 		_tabs(tabs);
 		cout << "fn ";
 	} else cout << "[fn ";
 
-	cout << stm->name;
+	cout << fn->name;
 
 	if (!nameOnly) {
 		cout << " ( ";
-		if (stm->type->parameters.size() > 0) {
-			print(stm->type->parameters[0], tabs, true);
-			for (int i = 1; i < stm->type->parameters.size(); i++) {
+		if (fn->type->parameters.size() > 0) {
+			print(fn->type->parameters[0], tabs, true);
+			for (int i = 1; i < fn->type->parameters.size(); i++) {
 				cout << ", ";
-				print(stm->type->parameters[i], tabs, true);
+				print(fn->type->parameters[i], tabs, true);
 			}
 		}
 		cout << " )";
-		if (stm->type->retType != NULL) {
+		if (fn->type->return_type != NULL) {
 			cout << " -> ";
-			print(stm->type->retType, tabs, true);
+			print(fn->type->return_type, tabs, true);
 		}
 
 		cout << "\n";
-		if (stm->stm != NULL) print(stm->stm, tabs + 1);
+		if (fn->scope != NULL) print(fn->scope, tabs + 1);
 	} else cout << "]";
 }
 

@@ -59,11 +59,3 @@ map<Token_Type, bool> AST_Binary::isLeftAssociate = {
 	{TOKEN_ADD, 		false}, {TOKEN_SUB, false},
 	{TOKEN_MUL, 		false}, {TOKEN_DIV, false}
 };
-
-Ast_Type_Definition* Ast_Primitive_Type::_void = new Ast_Primitive_Type("void");
-Ast_Type_Definition* Ast_Primitive_Type::_i1 =   new Ast_Primitive_Type("i1");
-Ast_Type_Definition* Ast_Primitive_Type::_i8 =   new Ast_Primitive_Type("i8");
-Ast_Type_Definition* Ast_Primitive_Type::_i16 =  new Ast_Primitive_Type("i16");
-Ast_Type_Definition* Ast_Primitive_Type::_i32 =  new Ast_Primitive_Type("i32");
-Ast_Type_Definition* Ast_Primitive_Type::_i64 =  new Ast_Primitive_Type("i64");
-Ast_Type_Definition* Ast_Primitive_Type::_i128 = new Ast_Primitive_Type("i128");

@@ -26,7 +26,7 @@ Lexer::Lexer (Buffer* buffer) {
 bool Lexer::parse_next () {
 	while (this->skip_ignored_and_comments());
 
-	if (this->buffer->hasNext()) {
+	if (!this->buffer->hasNext()) {
 		this->nextText = NULL;
 		this->nextType = TOKEN_EOF;
 		return false;
@@ -76,6 +76,49 @@ char* Lexer::text () {
 	char* text = this->nextText;
 	this->skip(1);
 	return text;
+}
+
+#define CASE_ENUM_TEXT(T, str) case T: return str;
+const char* Lexer::get_name (Token_Type type) {
+	switch (type) {
+		CASE_ENUM_TEXT(TOKEN_UNDEFINED, "-UNDEFINED-")
+		CASE_ENUM_TEXT(TOKEN_EOF, "EOF")
+		CASE_ENUM_TEXT(TOKEN_EQUAL, "=")
+		CASE_ENUM_TEXT(TOKEN_ADD, "+")
+		CASE_ENUM_TEXT(TOKEN_SUB, "-")
+		CASE_ENUM_TEXT(TOKEN_DIV, "/")
+		CASE_ENUM_TEXT(TOKEN_MUL, "*")
+		CASE_ENUM_TEXT(TOKEN_LET, "let")
+		CASE_ENUM_TEXT(TOKEN_AMP, "&")
+		CASE_ENUM_TEXT(TOKEN_ARROW, "->")
+		CASE_ENUM_TEXT(TOKEN_TYPE, "type")
+		CASE_ENUM_TEXT(TOKEN_FUNCTION, "fn")
+		CASE_ENUM_TEXT(TOKEN_STM_END, ";")
+		CASE_ENUM_TEXT(TOKEN_RETURN, "return")
+		CASE_ENUM_TEXT(TOKEN_PAR_OPEN, "(")
+		CASE_ENUM_TEXT(TOKEN_PAR_CLOSE, ")")
+		CASE_ENUM_TEXT(TOKEN_BRAC_OPEN, "{")
+		CASE_ENUM_TEXT(TOKEN_BRAC_CLOSE, "}")
+		CASE_ENUM_TEXT(TOKEN_SQ_BRAC_OPEN, "[")
+		CASE_ENUM_TEXT(TOKEN_SQ_BRAC_CLOSE, "]")
+		CASE_ENUM_TEXT(TOKEN_COLON, ":")
+		CASE_ENUM_TEXT(TOKEN_COMMA, ",")
+		CASE_ENUM_TEXT(TOKEN_DOT, ".")
+		CASE_ENUM_TEXT(TOKEN_ID, "<id>")
+		CASE_ENUM_TEXT(TOKEN_NUMBER, "<number>")
+		CASE_ENUM_TEXT(TOKEN_STRING, "<string>")
+	}
+	return "---";
+}
+
+void Lexer::check_skip (Token_Type type) {
+	if (this->nextType != type) {
+		fprintf(stderr, "[ERROR] Parser: Expected '%s', but got '%s'\n",
+			get_name(type), get_name(this->nextType));
+		fprintf(stderr, "\tat %s:%d,%d\n", this->buffer->source,
+			this->buffer->line, this->buffer->col);
+		exit(EXIT_FAILURE);
+	} else this->skip(1);
 }
 
 bool Lexer::id () {
