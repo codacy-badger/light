@@ -10,6 +10,8 @@ if exist %~dp0..\llvm\Release\lib\LLVMCore.lib (
 	)
 )
 
+git submodule update --init --recursive
+
 cd llvm
 
 cmake -DLLVM_INCLUDE_TOOLS=OFF -DLLVM_BUILD_TOOLS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_BUILD_EXAMPLES=OFF -DLLVM_INCLUDE_TESTS=OFF -DLLVM_BUILD_TESTS=OFF ^
