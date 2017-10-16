@@ -7,7 +7,7 @@ for /R "../src" %%i in (*.cpp) do @call set SOURCES=%%SOURCES%% "%%i"
 cl /nologo /Od /c /MD /Zi /Gm -I"../include" %LLVMCLFlags% %SOURCES%
  set "SOURCES="
 
-link /nologo /ENTRY:mainCRTStartup /OUT:"..\bin\light.exe" /DEBUG %LLVMLibs% ^
+link /nologo /INCREMENTAL /ENTRY:mainCRTStartup /OUT:"..\bin\light.exe" /DEBUG %LLVMLibs% ^
  	psapi.lib shell32.lib ole32.lib uuid.lib *.obj
 
 popd
