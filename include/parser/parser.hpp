@@ -13,33 +13,11 @@
 
 using namespace std;
 
-#define CHECK_TYPE(T, S) if(this->lexer->isNextType(TOKEN_TYPE_##T))	\
-		this->lexer->skip(1);											\
-	else expected("<token>", S)
-
-#define AST_NEW(T, ...) setASTLocation(lexer, new T(__VA_ARGS__))
-template <typename T>
-T* setASTLocation (Lexer* lexer, T* node) {
-	node->filename = lexer->buffer->source;
-	node->line = lexer->buffer->line;
-	node->col = lexer->buffer->col;
-	return node;
-}
-
-template <typename T, typename O>
-T* cast2 (O* obj) {
-	return reinterpret_cast<T*>(obj);
-}
-
 struct Parser : Pipe {
 	Lexer* lexer;
 	Ast_Block* currentScope;
 
-	template <typename LexerParam>
-	Parser (LexerParam param) {
-		this->lexer = new Lexer(param);
-		this->currentScope = AST_NEW(Ast_Block, "<global>");
-	}
+	Parser (const char* param);
 
 	void expected (const char* expect, const char* after);
 

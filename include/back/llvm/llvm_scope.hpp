@@ -26,15 +26,15 @@ using namespace llvm;
 using namespace std;
 
 struct LLVMScope {
-	LLVMScope* parent = nullptr;
-	IRBuilder<>* builder = nullptr;
+	LLVMScope* parent = NULL;
+	IRBuilder<>* builder = NULL;
 
 	map<Ast_Declaration*, AllocaInst*> variables;
 
 	static map<Ast_Type_Definition*, Type*> types;
 	static map<Ast_Function*, Function*> functions;
 
-	LLVMScope (IRBuilder<>* builder, LLVMScope* parent = nullptr);
+	LLVMScope (IRBuilder<>* builder, LLVMScope* parent = NULL);
 
 	void addVariable (Ast_Declaration* var);
 	void addVariable (Ast_Declaration* var, AllocaInst* alloca);

@@ -40,7 +40,7 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs, bool nameOnly) {
 void ASTPrinter::print (Ast_Return* ret, int tabs) {
 	_tabs(tabs);
 	cout << "return ";
-	if (ret->exp == nullptr) cout << "void";
+	if (ret->exp == NULL) cout << "void";
 	else print(ret->exp, tabs);
 	cout << endl;
 }
@@ -133,13 +133,13 @@ void ASTPrinter::print (Ast_Function* stm, int tabs, bool nameOnly) {
 			}
 		}
 		cout << " )";
-		if (stm->type->retType != nullptr) {
+		if (stm->type->retType != NULL) {
 			cout << " -> ";
 			print(stm->type->retType, tabs, true);
 		}
 
 		cout << "\n";
-		if (stm->stm != nullptr) print(stm->stm, tabs + 1);
+		if (stm->stm != NULL) print(stm->stm, tabs + 1);
 	} else cout << "]";
 }
 
@@ -147,7 +147,7 @@ void ASTPrinter::print (AST_Binary* binop, int tabs) {
 	cout << "(";
 	print(binop->lhs, tabs);
 	cout << " ";
-	switch (binop->op) {
+	switch (binop->binary_op) {
 		case AST_BINARY_ASSIGN: 	cout << "="; break;
 		case AST_BINARY_ATTRIBUTE: 	cout << "."; break;
 		case AST_BINARY_ADD: 		cout << "+"; break;
@@ -163,7 +163,7 @@ void ASTPrinter::print (AST_Binary* binop, int tabs) {
 
 void ASTPrinter::print (AST_Unary* unop, int tabs) {
 	cout << "(";
-	switch (unop->op) {
+	switch (unop->unary_op) {
 		case AST_UNARY_NEGATE_NUMBER: 	cout << "-"; break;
 		default: 				cout << "_?_";
 	}

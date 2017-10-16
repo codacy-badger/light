@@ -18,7 +18,7 @@ void LLVMObjWritter::writeObj (Module* module, const char* filepath) {
 	module->setDataLayout(TheTargetMachine->createDataLayout());
 
 	auto filename = module->getModuleIdentifier();
-	if (filepath != nullptr && filepath[0] != '\0')
+	if (filepath != NULL && filepath[0] != '\0')
 		filename = filepath;
 
 	std::error_code EC;

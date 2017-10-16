@@ -22,6 +22,6 @@ using namespace std;
 struct LLVMObjWritter {
 	static bool init;
 
-	static void writeObj (Module* module, const char* filepath = nullptr);
+	static void writeObj (Module* module, const char* filepath = NULL);
 	static void initLLVM ();
 };

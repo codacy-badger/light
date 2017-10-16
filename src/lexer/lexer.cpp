@@ -26,29 +26,35 @@ Lexer::Lexer (Buffer* buffer) {
 bool Lexer::parse_next () {
 	while (this->skip_ignored_and_comments());
 
-    LITERAL_TOKEN("->", TOKEN_TYPE_ARROW);
+	if (this->buffer->hasNext()) {
+		this->nextText = NULL;
+		this->nextType = TOKEN_EOF;
+		return false;
+	}
 
-	LITERAL_TOKEN("=", TOKEN_TYPE_EQUAL);
-	LITERAL_TOKEN(":", TOKEN_TYPE_COLON);
-	LITERAL_TOKEN(";", TOKEN_TYPE_STM_END);
-	LITERAL_TOKEN("+", TOKEN_TYPE_ADD);
-	LITERAL_TOKEN("-", TOKEN_TYPE_SUB);
-	LITERAL_TOKEN("*", TOKEN_TYPE_MUL);
-	LITERAL_TOKEN("/", TOKEN_TYPE_DIV);
+    LITERAL_TOKEN("->", TOKEN_ARROW);
 
-    LITERAL_TOKEN(".", TOKEN_TYPE_DOT);
-    LITERAL_TOKEN(",", TOKEN_TYPE_COMMA);
-    LITERAL_TOKEN("(", TOKEN_TYPE_PAR_OPEN);
-    LITERAL_TOKEN(")", TOKEN_TYPE_PAR_CLOSE);
-    LITERAL_TOKEN("{", TOKEN_TYPE_BRAC_OPEN);
-    LITERAL_TOKEN("}", TOKEN_TYPE_BRAC_CLOSE);
-    LITERAL_TOKEN("[", TOKEN_TYPE_SQ_BRAC_OPEN);
-    LITERAL_TOKEN("]", TOKEN_TYPE_SQ_BRAC_CLOSE);
-	LITERAL_TOKEN("&", TOKEN_TYPE_AMP);
-	LITERAL_TOKEN("let", TOKEN_TYPE_LET);
-    LITERAL_TOKEN("type", TOKEN_TYPE_TYPE);
-    LITERAL_TOKEN("fn", TOKEN_TYPE_FUNCTION);
-    LITERAL_TOKEN("return", TOKEN_TYPE_RETURN);
+	LITERAL_TOKEN("=", TOKEN_EQUAL);
+	LITERAL_TOKEN(":", TOKEN_COLON);
+	LITERAL_TOKEN(";", TOKEN_STM_END);
+	LITERAL_TOKEN("+", TOKEN_ADD);
+	LITERAL_TOKEN("-", TOKEN_SUB);
+	LITERAL_TOKEN("*", TOKEN_MUL);
+	LITERAL_TOKEN("/", TOKEN_DIV);
+
+    LITERAL_TOKEN(".", TOKEN_DOT);
+    LITERAL_TOKEN(",", TOKEN_COMMA);
+    LITERAL_TOKEN("(", TOKEN_PAR_OPEN);
+    LITERAL_TOKEN(")", TOKEN_PAR_CLOSE);
+    LITERAL_TOKEN("{", TOKEN_BRAC_OPEN);
+    LITERAL_TOKEN("}", TOKEN_BRAC_CLOSE);
+    LITERAL_TOKEN("[", TOKEN_SQ_BRAC_OPEN);
+    LITERAL_TOKEN("]", TOKEN_SQ_BRAC_CLOSE);
+	LITERAL_TOKEN("&", TOKEN_AMP);
+	LITERAL_TOKEN("let", TOKEN_LET);
+    LITERAL_TOKEN("type", TOKEN_TYPE);
+    LITERAL_TOKEN("fn", TOKEN_FUNCTION);
+    LITERAL_TOKEN("return", TOKEN_RETURN);
 
 	FUNCTION_TOKEN(number);
 	FUNCTION_TOKEN(string);
@@ -81,7 +87,7 @@ bool Lexer::id () {
 			this->buffer->skip(1);
 	        c = this->buffer->peek(0);
         }
-        this->nextType = TOKEN_TYPE_ID;
+        this->nextType = TOKEN_ID;
 		this->nextText = copyString(_buff);
         return true;
     }
@@ -92,7 +98,7 @@ bool Lexer::string () {
 	char c = this->buffer->peek(0);
     if (c == '"') {
 		this->buffer->skip(1);
-        this->nextType = TOKEN_TYPE_STRING;
+        this->nextType = TOKEN_STRING;
 
 		std::string _buff;
 		c = this->buffer->next();
@@ -141,7 +147,7 @@ bool Lexer::number () {
 	            c = this->buffer->peek(0);
             }
         }
-        this->nextType = TOKEN_TYPE_NUMBER;
+        this->nextType = TOKEN_NUMBER;
 		this->nextText = copyString(_buff);
         return true;
     }
@@ -156,7 +162,7 @@ char* Lexer::copyString (std::string str) {
 
 void Lexer::handleToken (Token_Type type, const char* text) {
 	this->buffer->skip(strlen(text));
-	this->nextText = nullptr;
+	this->nextText = NULL;
 	this->nextType = type;
 }
 

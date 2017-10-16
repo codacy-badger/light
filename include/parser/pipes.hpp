@@ -5,7 +5,7 @@
 #include "parser/ast.hpp"
 
 struct Pipe {
-	Pipe* next = nullptr;
+	Pipe* next = NULL;
 
 	virtual void onDeclaration (Ast_Declaration* decl);
 	virtual void onFinish ();

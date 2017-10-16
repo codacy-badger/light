@@ -30,7 +30,7 @@ void LLVMPipe::onFunction (Ast_Function* fn) {
 		arg.setName(fn->type->parameters[index++]->name);
 	this->scope->addFunction(fn, function);
 
-	if (fn->stm != nullptr) {
+	if (fn->stm != NULL) {
 		BasicBlock* prevBlock = builder.GetInsertBlock();
 		this->functionHasReturned = false;
 		this->currentFunction = function;
@@ -40,12 +40,12 @@ void LLVMPipe::onFunction (Ast_Function* fn) {
 		if (fn->type->retType != Ast_Primitive_Type::_void) {
 			builder.SetInsertPoint(entryBlock);
 			auto type = this->codegen(fn->type->retType);
-			this->currentReturnVal = builder.CreateAlloca(type, nullptr, "retVal");
+			this->currentReturnVal = builder.CreateAlloca(type, NULL, "retVal");
 			builder.SetInsertPoint(retBlock);
 			auto retVal = builder.CreateLoad(this->currentReturnVal);
 			builder.CreateRet(retVal);
 		} else {
-			this->currentReturnVal = nullptr;
+			this->currentReturnVal = NULL;
 			builder.SetInsertPoint(retBlock);
 			builder.CreateRetVoid();
 		}
@@ -70,7 +70,7 @@ void LLVMPipe::onType (Ast_Type_Definition* ty) {
 }
 
 void LLVMPipe::onFinish () {
-	//module->print(outs(), nullptr);
+	//module->print(outs(), NULL);
 	auto start = clock();
 	LLVMObjWritter::writeObj(module);
 	Timer::print("  Write ", start);
@@ -96,21 +96,21 @@ Value* LLVMPipe::codegen (Ast_Statement* stm) {
 		}
 		default: break;
 	}
-	return nullptr;
+	return NULL;
 }
 
 Value* LLVMPipe::codegen (Ast_Block* stms) {
 	for(auto const& stm: stms->list) {
 		this->codegen(stm);
-		if (stm->stm_type == AST_STATEMENT_RETURN) return nullptr;
+		if (stm->stm_type == AST_STATEMENT_RETURN) return NULL;
 	}
-	return nullptr;
+	return NULL;
 }
 
 Value* LLVMPipe::codegen (Ast_Declaration* decl, bool alloca) {
 	if (alloca) {
 		auto type = this->codegen(decl->type);
-		auto alloca = builder.CreateAlloca(type, nullptr, decl->name);
+		auto alloca = builder.CreateAlloca(type, NULL, decl->name);
 		if (decl->expression != NULL) {
 			Value* val = this->codegen(decl->expression);
 			builder.CreateStore(val, alloca);
@@ -122,7 +122,7 @@ Value* LLVMPipe::codegen (Ast_Declaration* decl, bool alloca) {
 
 Value* LLVMPipe::codegen (Ast_Return* ret) {
 	this->functionHasReturned = false;
-	if (ret->exp != nullptr && this->currentReturnVal != nullptr) {
+	if (ret->exp != NULL && this->currentReturnVal != NULL) {
 		Value* retValue = this->codegen(ret->exp);
 		builder.CreateStore(retValue, this->currentReturnVal);
 	}
@@ -133,7 +133,7 @@ Value* LLVMPipe::codegen (Ast_Expression* exp) {
 	switch (exp->exp_type) {
 		case AST_EXPRESSION_TYPE_DEFINITION: {
 			codegen(static_cast<Ast_Type_Definition*>(exp));
-			return nullptr;
+			return NULL;
 		}
 		case AST_EXPRESSION_FUNCTION: {
 			return codegen(static_cast<Ast_Function*>(exp));
@@ -153,12 +153,12 @@ Value* LLVMPipe::codegen (Ast_Expression* exp) {
 		case AST_EXPRESSION_LITERAL: {
 			return codegen(static_cast<Ast_Literal*>(exp));
 		}
-		default: return nullptr;
+		default: return NULL;
 	}
 }
 
 Value* LLVMPipe::codegen (AST_Binary* binop) {
-	switch (binop->op) {
+	switch (binop->binary_op) {
 		case AST_BINARY_ADD:
 			return LLVMCodegenPrimitive::add(&builder,
 				this->codegen(binop->lhs), this->codegen(binop->rhs));
@@ -173,17 +173,17 @@ Value* LLVMPipe::codegen (AST_Binary* binop) {
 				this->codegen(binop->lhs), this->codegen(binop->rhs));
 		default: break;
 	}
-	return nullptr;
+	return NULL;
 }
 
 Value* LLVMPipe::codegen (AST_Unary* unop) {
 	Value* val = this->codegen(unop->exp);
-	switch (unop->op) {
+	switch (unop->unary_op) {
 		case AST_UNARY_NEGATE_NUMBER:
 			return LLVMCodegenPrimitive::neg(&builder, val);
 		default: break;
 	}
-	return nullptr;
+	return NULL;
 }
 
 Value* LLVMPipe::codegen (Ast_Literal* con) {
@@ -194,7 +194,7 @@ Value* LLVMPipe::codegen (Ast_Literal* con) {
 			return builder.CreateGlobalStringPtr(con->string_value);
 		default: break;
 	}
-	return nullptr;
+	return NULL;
 }
 
 Value* LLVMPipe::codegen (Ast_Function_Call* call) {
@@ -204,7 +204,7 @@ Value* LLVMPipe::codegen (Ast_Function_Call* call) {
 	for(auto const& param: call->parameters)
 		parameters.push_back(this->codegen(param));
 	return builder.CreateCall(function, parameters, "fnCall");*/
-	return nullptr;
+	return NULL;
 }
 
 Type* LLVMPipe::codegen (Ast_Type_Definition* ty) {
@@ -213,12 +213,12 @@ Type* LLVMPipe::codegen (Ast_Type_Definition* ty) {
 			return codegen(static_cast<Ast_Struct_Type*>(ty));
 		case AST_TYPE_DEF_POINTER:
 			return codegen(static_cast<Ast_Pointer_Type*>(ty));
-		default: return nullptr;
+		default: return NULL;
 	}
 }
 
 Type* LLVMPipe::codegen (Ast_Pointer_Type* ty) {
-	PointerType* ptrTy = nullptr;
+	PointerType* ptrTy = NULL;
 	Type* baseTy = this->codegen(ty->base);
 	if (PointerType::isValidElementType(baseTy)) {
 		return PointerType::get(baseTy, 0);

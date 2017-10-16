@@ -3,9 +3,6 @@
 #include "parser/ast.hpp"
 
 struct Light_Compiler {
-	Light_Compiler () {}
-	~Light_Compiler () {}
-
 	void report_info(AST* node, char* format, ...);
 	void report_warning(AST* node, char* format, ...);
 	void report_error(AST* node, char* format, ...);

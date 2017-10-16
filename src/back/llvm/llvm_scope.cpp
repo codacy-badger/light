@@ -9,7 +9,7 @@ LLVMScope::LLVMScope (IRBuilder<>* builder, LLVMScope* parent) {
 
 void LLVMScope::addVariable (Ast_Declaration* var) {
 	auto type = this->getType(var->type);
-	auto alloca = builder->CreateAlloca(type, nullptr, var->name);
+	auto alloca = builder->CreateAlloca(type, NULL, var->name);
 	this->addVariable(var, alloca);
 }
 
@@ -35,7 +35,7 @@ void LLVMScope::addParameters (Ast_Function* fn) {
 
 AllocaInst* LLVMScope::getVariable (Ast_Declaration* var) {
 	auto it = variables.find(var);
-	if (it == variables.end()) return nullptr;
+	if (it == variables.end()) return NULL;
 	else return variables[var];
 }
 
@@ -44,7 +44,7 @@ AllocaInst* LLVMScope::getVariable (string name) {
 		if (it->first->name == name) return it->second;
 	}
 	cout << "Variable " << name << " not found\n";
-	return nullptr;
+	return NULL;
 }
 
 void LLVMScope::addType (Ast_Type_Definition* ty, Type* type) {
@@ -61,7 +61,7 @@ void LLVMScope::addType (Ast_Type_Definition* alias, Ast_Type_Definition* origin
 }
 
 Type* LLVMScope::getType (Ast_Type_Definition* ty) {
-	if (ty == nullptr) return Type::getVoidTy(builder->getContext());
+	if (ty == NULL) return Type::getVoidTy(builder->getContext());
 	else if (ty->type_def_type == AST_TYPE_DEF_POINTER) {
 		auto ptrTy = static_cast<Ast_Pointer_Type*>(ty);
 		auto baseTy = this->getType(ptrTy->base);
@@ -70,9 +70,9 @@ Type* LLVMScope::getType (Ast_Type_Definition* ty) {
 		auto it = types.find(ty);
 		if (it != types.end())
 			return types[ty];
-		else if (this->parent != nullptr) {
+		else if (this->parent != NULL) {
 			return this->parent->getType(ty);
-		} else return nullptr;
+		} else return NULL;
 	}
 }
 
@@ -86,9 +86,9 @@ Function* LLVMScope::getFunction (Ast_Function* fn) {
 	auto it = functions.find(fn);
 	if (it != functions.end())
 		return functions[fn];
-	else if (this->parent != nullptr) {
+	else if (this->parent != NULL) {
 		return this->parent->getFunction(fn);
-	} else return nullptr;
+	} else return NULL;
 }
 
 LLVMScope* LLVMScope::push () {
@@ -96,7 +96,7 @@ LLVMScope* LLVMScope::push () {
 }
 
 LLVMScope* LLVMScope::pop () {
-	if (this->parent != nullptr) return this->parent;
+	if (this->parent != NULL) return this->parent;
 	else {
 		cout << "ERROR: pop of global scope!";
 		return this;

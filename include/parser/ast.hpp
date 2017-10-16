@@ -12,6 +12,11 @@ struct Ast_Type_Definition;
 
 using namespace std;
 
+struct AST {
+	const char* filename;
+	long line, col;
+};
+
 enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
 	AST_STATEMENT_BLOCK,
@@ -20,26 +25,20 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_EXPRESSION,
 };
 
-struct AST {
+struct Ast_Statement : AST {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
-
-	const char* filename;
-	long line, col;
 };
-
-struct Ast_Statement : AST { };
 
 struct Ast_Block : Ast_Statement {
 	string name;
 	vector<Ast_Statement*> list;
 
-	Ast_Block* parent = nullptr;
+	Ast_Block* parent = NULL;
 	map<string, Ast_Expression*> symbols;
 
-	Ast_Block (string name, Ast_Block* parent = nullptr) {
+	Ast_Block (Ast_Block* parent = NULL) {
 		this->stm_type = AST_STATEMENT_BLOCK;
 		this->parent = parent;
-		this->name = name;
 	}
 };
 
@@ -52,7 +51,7 @@ struct Ast_Declaration : Ast_Statement {
 };
 
 struct Ast_Return : Ast_Statement {
-	Ast_Expression* exp = nullptr;
+	Ast_Expression* exp = NULL;
 
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
 };
@@ -91,14 +90,14 @@ struct Ast_Type_Definition : Ast_Expression {
 };
 
 struct Ast_Pointer_Type : Ast_Type_Definition {
-	Ast_Type_Definition* base = nullptr;
+	Ast_Type_Definition* base = NULL;
 
 	Ast_Pointer_Type() { this->type_def_type = AST_TYPE_DEF_POINTER; }
 };
 
 struct Ast_Function_Type : Ast_Type_Definition {
 	vector<Ast_Declaration*> parameters;
-	Ast_Type_Definition* retType = nullptr;
+	Ast_Type_Definition* retType = NULL;
 
 	Ast_Function_Type() { this->type_def_type = AST_TYPE_DEF_FUNCTION; }
 };
@@ -131,8 +130,8 @@ struct Ast_Primitive_Type : Ast_Type_Definition {
 
 struct Ast_Function : Ast_Expression {
 	string name;
-	Ast_Function_Type* type = nullptr;
-	Ast_Statement* stm = nullptr;
+	Ast_Function_Type* type = NULL;
+	Ast_Statement* stm = NULL;
 
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 };
@@ -152,9 +151,9 @@ struct AST_Binary : Ast_Expression {
 	static map<Token_Type, bool> isLeftAssociate;
 	static map<Token_Type, short> precedence;
 
-	Ast_Binary_Type op = AST_BINARY_UNINITIALIZED;
-	Ast_Expression* lhs = nullptr;
-	Ast_Expression* rhs = nullptr;
+	Ast_Binary_Type binary_op = AST_BINARY_UNINITIALIZED;
+	Ast_Expression* lhs = NULL;
+	Ast_Expression* rhs = NULL;
 
 	AST_Binary (Token_Type tType) {
 		this->exp_type = AST_EXPRESSION_BINARY;
@@ -177,8 +176,8 @@ enum Ast_Unary_Type {
 };
 
 struct AST_Unary : Ast_Expression {
-	Ast_Unary_Type op = AST_UNARY_UNINITIALIZED;
-	Ast_Expression* exp = nullptr;
+	Ast_Unary_Type unary_op = AST_UNARY_UNINITIALIZED;
+	Ast_Expression* exp = NULL;
 
 	AST_Unary (Token_Type tType) {
 		this->exp_type = AST_EXPRESSION_UNARY;
