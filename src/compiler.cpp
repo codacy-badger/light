@@ -22,7 +22,7 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 }
 
 void Light_Compiler::run () {
-	auto total = clock();
+	auto total = Timer::getTime();
 	for (auto &filename : this->settings->input_files) {
 		cout << filename << "\n";
 
@@ -30,7 +30,7 @@ void Light_Compiler::run () {
 		parser->append(new PrintPipe());
 		//parser->append(new LLVMPipe("_tmp_.obj"));
 
-		clock_t start = clock();
+		auto start = Timer::getTime();
 		parser->block();
 		Timer::print("  Parse ", start);
 		parser->onFinish();
