@@ -5,11 +5,6 @@
 
 #include "compiler.hpp"
 #include "timer.hpp"
-#include "parser/parser.hpp"
-#include "parser/printer.hpp"
-
-#include "parser/pipe/print_pipe.hpp"
-#include "back/llvm/llvm_pipe.hpp"
 
 using namespace llvm;
 using namespace std;
@@ -24,10 +19,6 @@ InputFilenames(cl::Positional, cl::desc("<input files>"), cl::OneOrMore);
 
 void printVersion (raw_ostream& out) {
 	out << "Light Compiler 0.1.0\n";
-}
-
-double clockStop (clock_t start) {
-	return (clock() - start) / static_cast<double>(CLOCKS_PER_SEC);
 }
 
 void link (std::string output) {
@@ -49,23 +40,11 @@ int main (int argc, char** argv) {
 	cl::HideUnrelatedOptions(LightCategory);
 	cl::ParseCommandLineOptions(argc, argv);
 
-	std::cout << std::fixed << std::setprecision(3);
+	Light_Compiler* compiler = new Light_Compiler();
+	for (auto filename : InputFilenames)
+		compiler->settings->input_files.push_back(filename.c_str());
+	compiler->settings->output_file = OutputFilename.c_str();
+	compiler->run();
 
-	auto total = clock();
-	for (auto &filename : InputFilenames) {
-		cout << filename.c_str() << "\n";
-
-		auto parser = new Parser(filename.c_str());
-		parser->append(new PrintPipe());
-		//parser->append(new LLVMPipe("_tmp_.obj"));
-
-		clock_t start = clock();
-		parser->block();
-		Timer::print("  Parse ", start);
-		parser->onFinish();
-		//link(OutputFilename.c_str());
-	}
-	Timer::print("TOTAL   ", total);
-
-	return 0;
+	return EXIT_SUCCESS;
 }

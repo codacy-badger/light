@@ -6,8 +6,36 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-Light_Compiler::Light_Compiler () {
+#include "timer.hpp"
+#include "parser/pipe/print_pipe.hpp"
+
+Ast_Type_Instance* Light_Compiler::type_def_void = new Ast_Struct_Type("void");
+Ast_Type_Instance* Light_Compiler::type_def_i1 = new Ast_Struct_Type("i1");
+Ast_Type_Instance* Light_Compiler::type_def_i32 = new Ast_Struct_Type("i32");
+
+Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
+	if (!settings)
+		this->settings = new Light_Compiler_Settings();
+	else this->settings = settings;
+
 	this->parser = new Parser("");
+}
+
+void Light_Compiler::run () {
+	auto total = clock();
+	for (auto &filename : this->settings->input_files) {
+		cout << filename << "\n";
+
+		auto parser = new Parser(filename);
+		parser->append(new PrintPipe());
+		//parser->append(new LLVMPipe("_tmp_.obj"));
+
+		clock_t start = clock();
+		parser->block();
+		Timer::print("  Parse ", start);
+		parser->onFinish();
+	}
+	Timer::print("TOTAL   ", total);
 }
 
 void print_node_location (FILE* buffer, Ast* node) {
@@ -50,7 +78,3 @@ void Light_Compiler::report_error (Ast* node, char* format, ...) {
 
 	print_node_location(stderr, node);
 }
-
-Ast_Type_Instance* type_def_void = new Ast_Struct_Type("void");
-Ast_Type_Instance* type_def_i1 = new Ast_Struct_Type("i1");
-Ast_Type_Instance* type_def_i32 = new Ast_Struct_Type("i32");

@@ -9,5 +9,5 @@ double Timer::clockStop (clock_t start) {
 }
 
 void Timer::print (const char* pre, clock_t start) {
-	std::cout << pre << Timer::clockStop(start) << "s\n";
+	printf("%s%8.6fs\n", pre, Timer::clockStop(start));
 }

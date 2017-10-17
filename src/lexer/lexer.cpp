@@ -113,12 +113,24 @@ const char* Lexer::get_name (Token_Type type) {
 
 void Lexer::check_skip (Token_Type type) {
 	if (this->nextType != type) {
-		fprintf(stderr, "[ERROR] Parser: Expected '%s', but got '%s'\n",
-			get_name(type), get_name(this->nextType));
-		fprintf(stderr, "\tat %s:%d,%d\n", this->buffer->source,
-			this->buffer->line, this->buffer->col);
-		exit(EXIT_FAILURE);
+		this->report_unexpected(type);
 	} else this->skip(1);
+}
+
+void Lexer::report_unexpected (Token_Type expected) {
+	fprintf(stderr, "[ERROR] Parser: Expected '%s', but got '%s'\n",
+		get_name(expected), get_name(this->nextType));
+	fprintf(stderr, "\tat %s:%d,%d\n", this->buffer->source,
+		this->buffer->line, this->buffer->col);
+	exit(EXIT_FAILURE);
+}
+
+void Lexer::report_unexpected () {
+	fprintf(stderr, "[ERROR] Parser: Unexpected token '%s'\n",
+		get_name(this->nextType));
+	fprintf(stderr, "\tat %s:%d,%d\n", this->buffer->source,
+		this->buffer->line, this->buffer->col);
+	exit(EXIT_FAILURE);
 }
 
 bool Lexer::id () {

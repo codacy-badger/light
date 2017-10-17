@@ -27,10 +27,7 @@ bool Parser::block () {
 
 Ast_Statement* Parser::statement () {
 	switch (this->lexer->nextType) {
-		case TOKEN_EOF: {
-			cout << "EOF!\n";
-			exit(EXIT_FAILURE);
-		}
+		case TOKEN_EOF: this->lexer->report_unexpected();
 		case TOKEN_STM_END: {
 			this->lexer->skip(1);
 			return NULL;
