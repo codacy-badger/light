@@ -1,5 +1,5 @@
-#include <iomanip>
 #include <stdlib.h>
+#include <string.h>
 
 #include "llvm/Support/CommandLine.h"
 
@@ -21,29 +21,23 @@ void printVersion (raw_ostream& out) {
 	out << "Light Compiler 0.1.0\n";
 }
 
-void link (std::string output) {
-	auto linker = clock();
-	std::string linkerCommand = "link /nologo /ENTRY:main ";
-
-	linkerCommand += "/OUT:\"" + output + "\" ";
-
-	linkerCommand += "_tmp_.obj ";
-	linkerCommand += "build\\std_li.lib";
-
-	system(linkerCommand.c_str());
-	system("del _tmp_.obj");
-	Timer::print("  Link  ", linker);
-}
-
 int main (int argc, char** argv) {
 	cl::SetVersionPrinter(printVersion);
 	cl::HideUnrelatedOptions(LightCategory);
 	cl::ParseCommandLineOptions(argc, argv);
 
 	Light_Compiler* compiler = new Light_Compiler();
-	for (auto filename : InputFilenames)
-		compiler->settings->input_files.push_back(filename.c_str());
-	compiler->settings->output_file = OutputFilename.c_str();
+
+	for (auto filename : InputFilenames) {
+		char* _source = (char*) malloc(filename.size() * sizeof(char));
+		strcpy(_source, filename.c_str());
+		compiler->settings->input_files.push_back(_source);
+	}
+
+	char* _output = (char*) malloc(OutputFilename.size() * sizeof(char));
+	strcpy(_output, OutputFilename.c_str());
+	compiler->settings->output_file = _output;
+
 	compiler->run();
 
 	return EXIT_SUCCESS;

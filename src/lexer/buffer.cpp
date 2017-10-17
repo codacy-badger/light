@@ -2,24 +2,21 @@
 
 #include "lexer/buffer.hpp"
 
-Buffer::Buffer (istream* stream, const char* source) {
-	this->stream = stream;
-	this->source = source;
-}
-
 Buffer::Buffer (const char* filename) {
-	this->stream = new ifstream(filename, ifstream::in);
+	this->stream = fopen(filename, "r");
 	this->source = filename;
 }
 
 Buffer::~Buffer () {
-	delete stream;
+	fclose(this->stream);
 }
 
-int Buffer::next () {
-	int output = 0;
-	if (this->pushback_buffer.empty()) output = this->stream->get();
-	else {
+char Buffer::next () {
+	char output = 0;
+	if (this->pushback_buffer.empty()) {
+		auto result = fgets(&output, 2, this->stream);
+		if (!result) output = -1;
+	} else {
 		output = this->pushback_buffer.front();
 		this->pushback_buffer.pop_front();
 	}
@@ -32,16 +29,18 @@ void Buffer::pushback (char c) {
 }
 
 bool Buffer::hasNext () {
-	return !this->pushback_buffer.empty() || !this->stream->eof();
+	return !this->pushback_buffer.empty() || !feof(this->stream);
 }
 
-int Buffer::peek (unsigned int offset) {
+char Buffer::peek (unsigned int offset) {
 	if (this->pushback_buffer.size() < (offset + 1))
 		this->fillPushbackBuffer(offset + 1);
-	return this->pushback_buffer[offset];
+	if (this->pushback_buffer.size() > offset)
+		return this->pushback_buffer[offset];
+	else return -1;
 }
 
-bool Buffer::isNext (int c) {
+bool Buffer::isNext (char c) {
 	return this->peek(0) == c;
 }
 
@@ -82,17 +81,18 @@ void Buffer::skipUntil (const char* stopper) {
 }
 
 void Buffer::printLocation () {
-	cout << "'" << this->source << "' @ "
-		<< this->line << ", " << this->col;
+	printf("%s:%d,%d", this->source, this->line, this->col);
 }
 
 void Buffer::fillPushbackBuffer (unsigned int limit) {
 	for (unsigned int i = this->pushback_buffer.size(); i < limit; i++) {
-		this->pushback_buffer.push_back(this->stream->get());
+		char c;
+		auto result = fgets(&c, 2, this->stream);
+		if (result) this->pushback_buffer.push_back(c);
 	}
 }
 
-void Buffer::handleLineCol (int character) {
+void Buffer::handleLineCol (char character) {
 	if (character == EOF) return;
 	if (character == '\n') {
 		line += 1;

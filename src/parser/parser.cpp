@@ -1,6 +1,8 @@
 #pragma once
 
 #include "parser/parser.hpp"
+
+#include "compiler.hpp"
 #include "parser/printer.hpp"
 
 template <typename T>
@@ -20,9 +22,13 @@ Parser::Parser (const char* filepath) {
 
 bool Parser::block () {
 	Ast_Statement* stm;
-	while (stm = this->statement())
+	while (stm = this->statement()) {
 		this->currentScope->list.push_back(stm);
-	return true;
+		if (stm->stm_type == AST_STATEMENT_DECLARATION)
+			this->toNext(static_cast<Ast_Declaration*>(stm));
+		if (this->lexer->isNextType(TOKEN_EOF)) return true;
+	}
+	return false;
 }
 
 Ast_Statement* Parser::statement () {
@@ -56,12 +62,17 @@ Ast_Statement* Parser::statement () {
 					decl->identifier = ident;
 					this->lexer->skip(1);
 					decl->type = this->type_instance();
+
 					if (this->lexer->isNextType(TOKEN_COLON)) {
 						this->lexer->skip(1);
 						decl->decl_flags |= DECL_FLAG_CONSTANT;
 					} else if (this->lexer->isNextType(TOKEN_EQUAL)) {
 						this->lexer->skip(1);
-					} else cout << "-ERROR-\n";
+					} else if (this->lexer->isNextType(TOKEN_STM_END)) {
+						this->lexer->skip(1);
+						return decl;
+					}
+
 					decl->expression = this->expression();
 					this->lexer->check_skip(TOKEN_STM_END);
 					return decl;
@@ -129,7 +140,7 @@ Ast_Type_Instance* Parser::type_instance () {
 		if (this->lexer->isNextType(TOKEN_ARROW)) {
 			this->lexer->skip(1);
 			ty_inst->return_type = this->type_instance();
-		} else { /* TODO: set return type to void */ }
+		} else ty_inst->return_type = Light_Compiler::type_def_void;
 
 		return ty_inst;
 	} else return NULL;
@@ -149,7 +160,7 @@ void Parser::_functionParameters (vector<Ast_Declaration*>* output) {
 
 Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
 	Ast_Expression* output;
-    if (output = this->_atom()) {
+    if (output = this->_atom(initial)) {
         Token_Type tt = this->lexer->nextType;
 		auto precedence = AST_Binary::getPrecedence(tt);
 		while (precedence >= minPrecedence) {
@@ -171,8 +182,14 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
 	return output;
 }
 
-Ast_Expression* Parser::_atom () {
-	if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
+Ast_Expression* Parser::_atom (Ast_Ident* initial) {
+	if (this->lexer->isNextType(TOKEN_ID) || initial) {
+		auto output = initial ? initial : this->ident();
+		if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
+			auto fnPtr = reinterpret_cast<Ast_Function*>(output);
+			return this->call(fnPtr);
+		} else return output;
+	} else if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 		this->lexer->skip(1);
 		auto result = this->expression();
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
@@ -185,20 +202,28 @@ Ast_Expression* Parser::_atom () {
 			fn->name = this->lexer->text();
 		}
 
+		auto fn_type = AST_NEW(Ast_Function_Type);
 		this->lexer->check_skip(TOKEN_PAR_OPEN);
 		Ast_Declaration* decl;
 		while (decl = this->declaration()) {
-			ASTPrinter::print(decl);
+			fn_type->parameters.push_back(decl->type);
 			decl = this->declaration();
 		}
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
-
 		if (this->lexer->isNextType(TOKEN_ARROW)) {
 			this->lexer->skip(1);
-			ASTPrinter::print(this->type_instance());
-		} else { /* TODO: set return type to void */ }
+			fn_type->return_type = this->type_instance();
+		} else fn_type->return_type = Light_Compiler::type_def_void;
+		fn->type = fn_type;
 
-		//TODO: parse function scope (Ast_Block)
+		if (!this->lexer->isNextType(TOKEN_STM_END)) {
+			this->lexer->check_skip(TOKEN_BRAC_OPEN);
+			this->scopePush("<anon>");
+			this->block();
+			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
+			fn->scope = this->currentScope;
+			this->scopePop();
+		}
 
 		return fn;
 	} else if (this->lexer->isNextType(TOKEN_SUB)) {
@@ -209,12 +234,6 @@ Ast_Expression* Parser::_atom () {
 	} else if (this->lexer->isNextType(TOKEN_ADD)) {
 		this->lexer->skip(1);
 		return this->expression();
-	} else if (this->lexer->isNextType(TOKEN_ID)) {
-		auto output = this->ident();
-		if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
-			auto fnPtr = reinterpret_cast<Ast_Function*>(output);
-			return this->call(fnPtr);
-		} else return output;
 	} else return this->literal();
 }
 

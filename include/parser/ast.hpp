@@ -15,8 +15,8 @@ struct Ast_Type_Definition;
 using namespace std;
 
 struct Ast {
-	const char* filename;
-	long line, col;
+	const char* filename = NULL;
+	long line = 0, col = 0;
 };
 
 enum Ast_Statement_Type {
@@ -47,9 +47,9 @@ struct Ast_Block : Ast_Statement {
 const int DECL_FLAG_CONSTANT = 0x1;
 
 struct Ast_Declaration : Ast_Statement {
-	Ast_Ident* identifier;
-	Ast_Type_Instance* type;
-	Ast_Expression* expression;
+	Ast_Ident* identifier = NULL;
+	Ast_Type_Instance* type = NULL;
+	Ast_Expression* expression = NULL;
 
 	int decl_flags = 0;
 
@@ -110,16 +110,16 @@ struct Ast_Function_Type : Ast_Type_Instance {
 };
 
 struct Ast_Struct_Type : Ast_Type_Instance {
-	string name;
+	const char* name = NULL;
 
-	Ast_Struct_Type(string name = "") {
+	Ast_Struct_Type(const char* name = NULL) {
 		this->type_inst_type = AST_TYPE_INST_STRUCT;
 		this->name = name;
 	}
 };
 
 struct Ast_Function : Ast_Expression {
-	string name;
+	const char* name = NULL;
 	Ast_Function_Type* type = NULL;
 	Ast_Block* scope = NULL;
 
@@ -204,7 +204,7 @@ struct Ast_Literal : Ast_Expression {
 };
 
 struct Ast_Ident : Ast_Expression {
-	string name = "";
+	const char* name = NULL;
 
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };

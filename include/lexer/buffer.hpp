@@ -1,33 +1,28 @@
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <string>
+#include <stdio.h>
 #include <deque>
 
-using namespace std;
-
 struct Buffer {
-	istream* stream;
-	deque<int> pushback_buffer;
+	FILE* stream = NULL;
+	std::deque<char> pushback_buffer;
 
-	const char* source;
+	const char* source = NULL;
 	unsigned int line = 1, col = 1;
 
-	Buffer (istream* stream, const char* source = "<buffer>");
 	Buffer (const char* filename);
 	~Buffer ();
 
-	int next ();
+	char next ();
 	void pushback (char c);
 	bool hasNext ();
-	int peek (unsigned int offset);
-	bool isNext (int c);
+	char peek (unsigned int offset);
+	bool isNext (char c);
 	bool isNext (const char* expected);
 	void skip (unsigned int count);
 	void skipAny (const char* chars);
 	void skipUntil (const char* stopper);
 	void printLocation ();
 	void fillPushbackBuffer (unsigned int limit);
-	void handleLineCol (int character);
+	void handleLineCol (char character);
 };

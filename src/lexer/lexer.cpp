@@ -2,6 +2,8 @@
 
 #include "lexer/lexer.hpp"
 
+#include <assert.h>
+
 #define LEXER_DEBUG false
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
@@ -60,6 +62,11 @@ bool Lexer::parse_next () {
 	FUNCTION_TOKEN(string);
 	FUNCTION_TOKEN(id);
 
+	fprintf(stderr, "Unrecognized token!\n");
+	fprintf(stderr, " -> '%d'\n", this->buffer->peek(0));
+	fprintf(stderr, "\tat %s:%d,%d\n", this->buffer->source,
+		this->buffer->line, this->buffer->col);
+	exit(EXIT_FAILURE);
 	return false;
 }
 

@@ -1,1 +1,9 @@
 NUM : i32 : 12;
+
+val : i32 = 42;
+
+println_i32 : (i32);
+
+main : () : fn () {
+    println_i32(39);
+};

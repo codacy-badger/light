@@ -13,18 +13,30 @@ Ast_Type_Instance* Light_Compiler::type_def_void = new Ast_Struct_Type("void");
 Ast_Type_Instance* Light_Compiler::type_def_i1 = new Ast_Struct_Type("i1");
 Ast_Type_Instance* Light_Compiler::type_def_i32 = new Ast_Struct_Type("i32");
 
+void link (std::string output) {
+	auto linker = Timer::getTime();
+	std::string linkerCommand = "link /nologo /ENTRY:main ";
+
+	linkerCommand += "/OUT:\"" + output + "\" ";
+
+	linkerCommand += "_tmp_.obj ";
+	linkerCommand += "build\\std_li.lib";
+
+	system(linkerCommand.c_str());
+	system("del _tmp_.obj");
+	Timer::print("  Link  ", linker);
+}
+
 Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	if (!settings)
 		this->settings = new Light_Compiler_Settings();
 	else this->settings = settings;
-
-	this->parser = new Parser("");
 }
 
 void Light_Compiler::run () {
 	auto total = Timer::getTime();
-	for (auto &filename : this->settings->input_files) {
-		cout << filename << "\n";
+	for (auto filename : this->settings->input_files) {
+		printf("%s\n", filename);
 
 		auto parser = new Parser(filename);
 		parser->append(new PrintPipe());
