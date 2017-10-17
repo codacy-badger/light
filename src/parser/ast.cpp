@@ -4,6 +4,13 @@
 
 #include <string.h>
 
+void Ast_Block::find_all_declarations (std::vector<Ast_Declaration*>* decls) {
+    for (auto stm : this->list) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION)
+            decls->push_back(static_cast<Ast_Declaration*>(stm));
+    }
+}
+
 void AST_Binary::setOP (Token_Type tType) {
 	this->binary_op = this->typeToOP(tType);
 }

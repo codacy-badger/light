@@ -13,7 +13,7 @@ uint64_t Timer::getTime () {
 	if (PCFreq == 0) {
 	    if(!QueryPerformanceFrequency(&li))
 			fprintf(stderr, "[ERROR] QueryPerformanceFrequency failed!\n");
-		else PCFreq = double(li.QuadPart) / 1000.0;
+		else PCFreq = double(li.QuadPart);
 	}
 
     QueryPerformanceCounter(&li);
@@ -23,7 +23,7 @@ uint64_t Timer::getTime () {
 double Timer::clockStop (uint64_t start) {
 	LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
-    return (double(li.QuadPart - start) / PCFreq) / 1000.0;
+    return double(li.QuadPart - start) / PCFreq;
 }
 
 void Timer::print (const char* pre, uint64_t start) {

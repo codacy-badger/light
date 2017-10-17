@@ -61,7 +61,7 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs, bool nameOnly) {
 void ASTPrinter::print (Ast_Return* ret, int tabs) {
 	printf("return ");
 	print(ret->exp, tabs);
-	printf("\n");
+	printf(";\n");
 }
 
 void ASTPrinter::print (Ast_Expression* exp, int tabs) {
@@ -145,10 +145,10 @@ void ASTPrinter::print (Ast_Function* fn, int tabs, bool nameOnly) {
 		printf("fn ");
 	} else printf("[fn ");
 
-	if (fn->name) printf("%s", fn->name);
+	if (fn->name) printf("%s ", fn->name);
 
 	if (!nameOnly) {
-		printf(" ( ");
+		printf("( ");
 		if (fn->type->parameters.size() > 0) {
 			print(fn->type->parameters[0], tabs, true);
 			for (int i = 1; i < fn->type->parameters.size(); i++) {

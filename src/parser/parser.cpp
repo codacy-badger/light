@@ -6,13 +6,13 @@
 #include "parser/printer.hpp"
 
 template <typename T>
-T* set_ast_location (Lexer* lexer, T* node) {
+T* setup_ast_node (Lexer* lexer, T* node) {
 	node->filename = lexer->buffer->source;
 	node->line = lexer->buffer->line;
 	node->col = lexer->buffer->col;
 	return node;
 }
-#define AST_NEW(T, ...) set_ast_location(lexer, new T(__VA_ARGS__))
+#define AST_NEW(T, ...) setup_ast_node(lexer, new T(__VA_ARGS__))
 
 Parser::Parser (const char* filepath) {
 	this->lexer = new Lexer(filepath);
@@ -74,7 +74,8 @@ Ast_Statement* Parser::statement () {
 					}
 
 					decl->expression = this->expression();
-					this->lexer->check_skip(TOKEN_STM_END);
+					if (this->lexer->isNextType(TOKEN_STM_END))
+						this->lexer->skip(1);
 					return decl;
 				} else {
 					auto exp = this->expression(ident);
@@ -198,15 +199,17 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		this->lexer->skip(1);
 
 		auto fn = AST_NEW(Ast_Function);
-		
+
 		auto fn_type = AST_NEW(Ast_Function_Type);
-		this->lexer->check_skip(TOKEN_PAR_OPEN);
-		Ast_Declaration* decl;
-		while (decl = this->declaration()) {
-			fn_type->parameters.push_back(decl->type);
-			decl = this->declaration();
+		if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
+			this->lexer->skip(1);
+			Ast_Declaration* decl;
+			while (decl = this->declaration()) {
+				fn_type->parameters.push_back(decl->type);
+				decl = this->declaration();
+			}
+			this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		}
-		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		if (this->lexer->isNextType(TOKEN_ARROW)) {
 			this->lexer->skip(1);
 			fn_type->return_type = this->type_instance();

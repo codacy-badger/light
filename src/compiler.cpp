@@ -41,7 +41,7 @@ void Light_Compiler::run () {
 
 		auto parser = new Parser(filename);
 		parser->append(new Symbol_Resolution());
-		//parser->append(new PrintPipe());
+		parser->append(new PrintPipe());
 		//parser->append(new LLVMPipe("_tmp_.obj"));
 
 		auto start = Timer::getTime();

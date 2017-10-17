@@ -9,6 +9,7 @@
 struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
+struct Ast_Declaration;
 struct Ast_Type_Instance;
 struct Ast_Type_Definition;
 
@@ -42,6 +43,8 @@ struct Ast_Block : Ast_Statement {
 		this->stm_type = AST_STATEMENT_BLOCK;
 		this->parent = parent;
 	}
+
+	void find_all_declarations (std::vector<Ast_Declaration*>* decls);
 };
 
 const int DECL_FLAG_CONSTANT = 0x1;

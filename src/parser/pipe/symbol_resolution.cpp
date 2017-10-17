@@ -2,6 +2,8 @@
 
 #include "parser/pipe/symbol_resolution.hpp"
 
+#include <vector>
+
 #include "compiler.hpp"
 
 Symbol_Resolution::Symbol_Resolution () {
@@ -18,7 +20,9 @@ void Symbol_Resolution::onDeclaration (Ast_Declaration* decl) {
             if (it != this->cache.end()) printf("Found! -> %s\n", it->first);
         }*/
 		this->toNext(decl);
-	} else {
-        printf("Declaration type is not specified!\n");
-    }
+	} else printf("Declaration type is not specified!\n");
+}
+
+void Symbol_Resolution::onFinish () {
+    //TODO: if there's any unresolved symbol, report & exit
 }

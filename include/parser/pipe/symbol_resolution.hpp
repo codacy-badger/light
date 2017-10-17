@@ -17,4 +17,5 @@ struct Symbol_Resolution : Pipe {
     Symbol_Resolution ();
 
     void onDeclaration (Ast_Declaration* decl);
+	void onFinish ();
 };
