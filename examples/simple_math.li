@@ -4,6 +4,11 @@ val : i32 = 42;
 
 println_i32 : (i32);
 
+calc : () -> i32;
+
 main : () : fn () {
     println_i32(39);
+    a : i32 : 2;
+    b : i32 = a + val;
+    c : i32 = b - calc();
 };

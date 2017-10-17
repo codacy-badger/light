@@ -2,6 +2,8 @@
 
 #include "parser/ast.hpp"
 
+#include <string.h>
+
 void AST_Binary::setOP (Token_Type tType) {
 	this->binary_op = this->typeToOP(tType);
 }
@@ -59,3 +61,13 @@ map<Token_Type, bool> AST_Binary::isLeftAssociate = {
 	{TOKEN_ADD, 		false}, {TOKEN_SUB, false},
 	{TOKEN_MUL, 		false}, {TOKEN_DIV, false}
 };
+
+bool Ast_Ident::operator ==(const Ast_Ident* other) const {
+	return strcmp(this->name, other->name) == 0;
+}
+
+Ast_Ident* ast_make_ident (const char* name) {
+	auto out = new Ast_Ident();
+	out->name = name;
+	return out;
+}

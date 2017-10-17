@@ -65,6 +65,7 @@ struct Ast_Return : Ast_Statement {
 enum Ast_Expression_Type {
 	AST_EXPRESSION_UNDEFINED = 0,
 	AST_EXPRESSION_TYPE_DEFINITION,
+	AST_EXPRESSION_TYPE_INSTANCE,
 	AST_EXPRESSION_FUNCTION,
 	AST_EXPRESSION_BINARY,
 	AST_EXPRESSION_UNARY,
@@ -92,8 +93,10 @@ enum Ast_Type_Inst_Type {
 	AST_TYPE_INST_FUNCTION,
 };
 
-struct Ast_Type_Instance : Ast {
+struct Ast_Type_Instance : Ast_Expression {
 	Ast_Type_Inst_Type type_inst_type = AST_TYPE_INST_UNDEFINED;
+
+	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
 };
 
 struct Ast_Pointer_Type : Ast_Type_Instance {
@@ -207,4 +210,8 @@ struct Ast_Ident : Ast_Expression {
 	const char* name = NULL;
 
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
+
+	bool operator ==(const Ast_Ident* other) const;
 };
+
+Ast_Ident* ast_make_ident (const char* name);

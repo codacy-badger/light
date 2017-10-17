@@ -6,7 +6,7 @@
 #include <assert.h>
 
 void _tabs (int count) {
-	for (int i = 0; i < count; i++) printf("    ");
+	for (int i = 0; i < count; i++) printf("  ");
 }
 
 void ASTPrinter::print (Ast_Statement* stm, int tabs) {
@@ -29,6 +29,7 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 		case AST_STATEMENT_EXPRESSION: {
 			_tabs(tabs);
 			print(static_cast<Ast_Expression*>(stm), tabs);
+			printf("\n");
 			break;
 		}
 		default: printf("-???-\n");
@@ -39,17 +40,15 @@ void ASTPrinter::print (Ast_Block* block, int tabs) {
 	printf(" {\n");
 	for (auto stm: block->list) {
 		print(stm, tabs + 1);
-		printf("\n");
+		//printf("\n");
 	}
 	printf("}");
 }
 
 void ASTPrinter::print (Ast_Declaration* decl, int tabs, bool nameOnly) {
 	print(decl->identifier, tabs, false);
-	if (decl->type) {
-		printf(" : ");
-		print(decl->type, tabs, false);
-	}
+	printf(" : ");
+	print(decl->type, tabs, false);
 	if (decl->expression) {
 		if (decl->decl_flags & DECL_FLAG_CONSTANT)
 			printf(" : ");
@@ -143,7 +142,6 @@ void ASTPrinter::print (Ast_Function_Type* type, int tabs, bool nameOnly) {
 
 void ASTPrinter::print (Ast_Function* fn, int tabs, bool nameOnly) {
 	if (!nameOnly) {
-		_tabs(tabs);
 		printf("fn ");
 	} else printf("[fn ");
 

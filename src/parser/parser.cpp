@@ -198,10 +198,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		this->lexer->skip(1);
 
 		auto fn = AST_NEW(Ast_Function);
-		if (this->lexer->isNextType(TOKEN_ID)) {
-			fn->name = this->lexer->text();
-		}
-
+		
 		auto fn_type = AST_NEW(Ast_Function_Type);
 		this->lexer->check_skip(TOKEN_PAR_OPEN);
 		Ast_Declaration* decl;

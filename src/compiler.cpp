@@ -7,11 +7,12 @@
 #include <stdarg.h>
 
 #include "timer.hpp"
+#include "parser/pipe/symbol_resolution.hpp"
 #include "parser/pipe/print_pipe.hpp"
 
-Ast_Type_Instance* Light_Compiler::type_def_void = new Ast_Struct_Type("void");
-Ast_Type_Instance* Light_Compiler::type_def_i1 = new Ast_Struct_Type("i1");
-Ast_Type_Instance* Light_Compiler::type_def_i32 = new Ast_Struct_Type("i32");
+Ast_Type_Instance* Light_Compiler::type_def_void 	= new Ast_Struct_Type("void");
+Ast_Type_Instance* Light_Compiler::type_def_i1 		= new Ast_Struct_Type("i1");
+Ast_Type_Instance* Light_Compiler::type_def_i32 	= new Ast_Struct_Type("i32");
 
 void link (std::string output) {
 	auto linker = Timer::getTime();
@@ -39,7 +40,8 @@ void Light_Compiler::run () {
 		printf("%s\n", filename);
 
 		auto parser = new Parser(filename);
-		parser->append(new PrintPipe());
+		parser->append(new Symbol_Resolution());
+		//parser->append(new PrintPipe());
 		//parser->append(new LLVMPipe("_tmp_.obj"));
 
 		auto start = Timer::getTime();

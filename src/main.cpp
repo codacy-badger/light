@@ -9,6 +9,9 @@
 using namespace llvm;
 using namespace std;
 
+#define NAME "Light Compiler"
+#define VERSION "0.1.0"
+
 cl::OptionCategory LightCategory("Compiler Options");
 
 static cl::opt<string>
@@ -18,7 +21,7 @@ static cl::list<string>
 InputFilenames(cl::Positional, cl::desc("<input files>"), cl::OneOrMore);
 
 void printVersion (raw_ostream& out) {
-	out << "Light Compiler 0.1.0\n";
+	out << NAME << " " << VERSION << "\n";
 }
 
 int main (int argc, char** argv) {
