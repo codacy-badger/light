@@ -50,7 +50,16 @@ void ASTPrinter::print (Ast_Block* block, int tabs) {
 	printf("}");
 }
 
+void ASTPrinter::print (Ast_Note* note, int tabs) {
+	printf("#%s", note->name);
+}
+
 void ASTPrinter::print (Ast_Declaration* decl, int tabs, bool nameOnly) {
+	for (auto note : decl->notes) {
+		print(note, tabs);
+		printf("\n");
+	}
+
 	print(decl->identifier, tabs, false);
 	printf(" : ");
 	print(decl->type, tabs, false);

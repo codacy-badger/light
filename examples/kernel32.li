@@ -1,6 +1,4 @@
 import@ "kernel32"
 
-#!global
-
 #sticky
 println_i32 : (i32);
