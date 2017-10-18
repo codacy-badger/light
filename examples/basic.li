@@ -1,4 +1,4 @@
-import! "examples/print.li"
+import! "examples/kernel32.li"
 
 NUM : i32 : 5;
 
