@@ -42,6 +42,7 @@ bool Lexer::parse_next () {
 
     LITERAL_TOKEN("->", TOKEN_ARROW);
 
+	LITERAL_TOKEN("!", TOKEN_EXCLAMATION);
 	LITERAL_TOKEN("=", TOKEN_EQUAL);
 	LITERAL_TOKEN(":", TOKEN_COLON);
 	LITERAL_TOKEN(";", TOKEN_STM_END);
@@ -97,6 +98,7 @@ const char* Lexer::get_name (Token_Type type) {
 	switch (type) {
 		CASE_ENUM_TEXT(TOKEN_UNDEFINED, "-UNDEFINED-")
 		CASE_ENUM_TEXT(TOKEN_EOF, "EOF")
+		CASE_ENUM_TEXT(TOKEN_EXCLAMATION, "!")
 		CASE_ENUM_TEXT(TOKEN_EQUAL, "=")
 		CASE_ENUM_TEXT(TOKEN_ADD, "+")
 		CASE_ENUM_TEXT(TOKEN_SUB, "-")
@@ -132,8 +134,11 @@ void Lexer::check_skip (Token_Type type) {
 	} else this->skip(1);
 }
 
-void Lexer::optional_skip (Token_Type type) {
-	if (this->nextType == type) this->skip(1);
+bool Lexer::optional_skip (Token_Type type) {
+	if (this->nextType == type) {
+		this->skip(1);
+		return true;
+	} else return false;
 }
 
 void Lexer::report_unexpected (Token_Type expected) {

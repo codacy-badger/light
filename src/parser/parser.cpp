@@ -64,10 +64,13 @@ Ast_Statement* Parser::statement () {
 		case TOKEN_IMPORT: {
 			this->lexer->skip(1);
 			auto output = AST_NEW(Ast_Import);
-			if (this->lexer->isNextType(TOKEN_STRING)) {
+
+			if (this->lexer->optional_skip(TOKEN_EXCLAMATION))
+				output->import_flags |= IMPORT_INCLUDE_CONTENT;
+				
+			if (this->lexer->isNextType(TOKEN_STRING))
 				output->filepath = this->lexer->text();
-			}
-			output->import_flags |= IMPORT_INCLUDE_CONTENT;
+
 			this->lexer->optional_skip(TOKEN_STM_END);
 			return output;
 		}

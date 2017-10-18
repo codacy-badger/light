@@ -1,4 +1,4 @@
-import "examples/basic.li"
+import! "examples/basic.li"
 
 val : i32 = 42;
 

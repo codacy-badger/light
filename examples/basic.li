@@ -1,4 +1,4 @@
-import "examples/print.li"
+import! "examples/print.li"
 
 NUM : i32 : 5;
 
