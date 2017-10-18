@@ -57,6 +57,7 @@ bool Lexer::parse_next () {
     LITERAL_TOKEN("type", TOKEN_TYPE);
     LITERAL_TOKEN("fn", TOKEN_FUNCTION);
     LITERAL_TOKEN("return", TOKEN_RETURN);
+    LITERAL_TOKEN("import", TOKEN_IMPORT);
 
 	FUNCTION_TOKEN(number);
 	FUNCTION_TOKEN(string);
@@ -102,6 +103,7 @@ const char* Lexer::get_name (Token_Type type) {
 		CASE_ENUM_TEXT(TOKEN_FUNCTION, "fn")
 		CASE_ENUM_TEXT(TOKEN_STM_END, ";")
 		CASE_ENUM_TEXT(TOKEN_RETURN, "return")
+		CASE_ENUM_TEXT(TOKEN_IMPORT, "import")
 		CASE_ENUM_TEXT(TOKEN_PAR_OPEN, "(")
 		CASE_ENUM_TEXT(TOKEN_PAR_CLOSE, ")")
 		CASE_ENUM_TEXT(TOKEN_BRAC_OPEN, "{")
@@ -122,6 +124,10 @@ void Lexer::check_skip (Token_Type type) {
 	if (this->nextType != type) {
 		this->report_unexpected(type);
 	} else this->skip(1);
+}
+
+void Lexer::optional_skip (Token_Type type) {
+	if (this->nextType == type) this->skip(1);
 }
 
 void Lexer::report_unexpected (Token_Type expected) {

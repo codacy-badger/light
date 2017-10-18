@@ -25,6 +25,7 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_BLOCK,
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
+	AST_STATEMENT_IMPORT,
 	AST_STATEMENT_EXPRESSION,
 };
 
@@ -63,6 +64,16 @@ struct Ast_Return : Ast_Statement {
 	Ast_Expression* exp = NULL;
 
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
+};
+
+const int IMPORT_INCLUDE_CONTENT = 0x1;
+
+struct Ast_Import : Ast_Statement {
+	const char* filepath = NULL;
+
+	int import_flags = 0;
+
+	Ast_Import() { this->stm_type = AST_STATEMENT_IMPORT; }
 };
 
 enum Ast_Expression_Type {

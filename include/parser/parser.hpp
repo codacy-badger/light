@@ -37,5 +37,5 @@ struct Parser : Pipe {
 	Ast_Ident* ident ();
 
 	void scopePush (string name);
-	void scopePop ();
+	Ast_Block* scopePop ();
 };

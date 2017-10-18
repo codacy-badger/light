@@ -1,12 +1,9 @@
-NUM : i32 : 12;
+import "basic.li"
 
+NUM : i32 : 12;
 val : i32 = 42;
 
 println_i32 : (i32);
-
-calc : () -> i32 : fn () -> i32 {
-    return 12;
-}
 
 main : () : fn {
     println_i32(39);

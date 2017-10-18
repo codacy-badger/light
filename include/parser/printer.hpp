@@ -8,6 +8,7 @@ struct ASTPrinter {
 	static void print (Ast_Block* stm, int tabs = 0);
 	static void print (Ast_Function* stm, int tabs = 0, bool nameOnly = false);
 	static void print (Ast_Return* ret, int tabs = 0);
+	static void print (Ast_Import* imp, int tabs = 0);
 	static void print (Ast_Type_Instance* type, int tabs = 0, bool nameOnly = false);
 	static void print (Ast_Struct_Type* type, int tabs = 0, bool nameOnly = false);
 	static void print (Ast_Pointer_Type* type, int tabs = 0, bool nameOnly = false);

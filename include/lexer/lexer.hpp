@@ -24,6 +24,7 @@ enum Token_Type {
 	TOKEN_FUNCTION,
 	TOKEN_STM_END,
 	TOKEN_RETURN,
+	TOKEN_IMPORT,
 	TOKEN_PAR_OPEN,
 	TOKEN_PAR_CLOSE,
 	TOKEN_BRAC_OPEN,
@@ -52,8 +53,9 @@ struct Lexer {
 	void skip (unsigned int count);
 	char* text ();
 	const char* get_name (Token_Type type);
-	
+
 	void check_skip (Token_Type type);
+	void optional_skip (Token_Type type);
 	void report_unexpected (Token_Type expect);
 	void report_unexpected ();
 

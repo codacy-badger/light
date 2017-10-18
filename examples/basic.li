@@ -1,0 +1,8 @@
+
+FIVE : i32 : 5;
+
+println_i32 : (i32);
+
+calc : () -> i32 : fn () -> i32 {
+    return 12;
+}

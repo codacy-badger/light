@@ -26,6 +26,14 @@ bool Parser::block () {
 		this->currentScope->list.push_back(stm);
 		if (stm->stm_type == AST_STATEMENT_DECLARATION)
 			this->toNext(static_cast<Ast_Declaration*>(stm));
+		else if (stm->stm_type == AST_STATEMENT_IMPORT) {
+			auto imp = static_cast<Ast_Import*>(stm);
+			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
+				printf("Now we should load '%s' [INCLUDE] into the current scope\n", imp->filepath);
+			} else {
+				printf("Now we should load '%s' [IMPORT] into the current scope\n", imp->filepath);
+			}
+		}
 		if (this->lexer->isNextType(TOKEN_EOF)) return true;
 	}
 	return false;
@@ -45,14 +53,22 @@ Ast_Statement* Parser::statement () {
 			this->lexer->check_skip(TOKEN_STM_END);
 			return output;
 		}
+		case TOKEN_IMPORT: {
+			this->lexer->skip(1);
+			auto output = AST_NEW(Ast_Import);
+			if (this->lexer->isNextType(TOKEN_STRING)) {
+				output->filepath = this->lexer->text();
+			}
+			output->import_flags |= IMPORT_INCLUDE_CONTENT;
+			this->lexer->optional_skip(TOKEN_STM_END);
+			return output;
+		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip(1);
 			this->scopePush("<anon>");
 			this->block();
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-			auto output = this->currentScope;
-			this->scopePop();
-			return output;
+			return this->scopePop();
 		}
 		case TOKEN_ID: {
 			auto ident = this->ident();
@@ -221,8 +237,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			this->scopePush("<anon>");
 			this->block();
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-			fn->scope = this->currentScope;
-			this->scopePop();
+			fn->scope = this->scopePop();
 		}
 
 		return fn;
@@ -288,7 +303,9 @@ void Parser::scopePush (string name) {
 	this->currentScope->name = name;
 }
 
-void Parser::scopePop () {
+Ast_Block* Parser::scopePop () {
 	assert(this->currentScope->parent);
+	auto tmp = this->currentScope;
 	this->currentScope = this->currentScope->parent;
+	return tmp;
 }

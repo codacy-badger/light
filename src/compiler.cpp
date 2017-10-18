@@ -29,8 +29,7 @@ void link (std::string output) {
 }
 
 Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
-	if (!settings)
-		this->settings = new Light_Compiler_Settings();
+	if (!settings) this->settings = new Light_Compiler_Settings();
 	else this->settings = settings;
 }
 
