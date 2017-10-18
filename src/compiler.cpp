@@ -38,7 +38,7 @@ void Light_Compiler::run () {
 	for (auto filename : this->settings->input_files) {
 		printf("%s\n", filename);
 
-		auto parser = new Parser(filename);
+		auto parser = new Parser(this, filename);
 		parser->append(new Symbol_Resolution());
 		parser->append(new PrintPipe());
 		//parser->append(new LLVMPipe("_tmp_.obj"));

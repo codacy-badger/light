@@ -13,11 +13,15 @@
 
 using namespace std;
 
+struct Light_Compiler;
+
 struct Parser : Pipe {
+	Light_Compiler* compiler;
 	Lexer* lexer;
+
 	Ast_Block* currentScope;
 
-	Parser (const char* param);
+	Parser (Light_Compiler* compiler, const char* param);
 
 	void expected (const char* expect, const char* after);
 

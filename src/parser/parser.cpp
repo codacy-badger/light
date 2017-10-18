@@ -14,7 +14,8 @@ T* setup_ast_node (Lexer* lexer, T* node) {
 }
 #define AST_NEW(T, ...) setup_ast_node(lexer, new T(__VA_ARGS__))
 
-Parser::Parser (const char* filepath) {
+Parser::Parser (Light_Compiler* compiler, const char* filepath) {
+	this->compiler = compiler;
 	this->lexer = new Lexer(filepath);
 	this->currentScope = AST_NEW(Ast_Block);
 	this->currentScope->name = "<global>";

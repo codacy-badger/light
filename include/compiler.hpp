@@ -3,6 +3,7 @@
 #include "parser/parser.hpp"
 
 #include <vector>
+#include <set>
 
 using namespace std;
 
@@ -14,6 +15,8 @@ struct Light_Compiler_Settings {
 struct Light_Compiler {
 	Light_Compiler_Settings* settings = NULL;
 	Parser* parser = NULL;
+
+	set<const char*> native_dependencies;
 
 	Light_Compiler (Light_Compiler_Settings* settings = NULL);
 
