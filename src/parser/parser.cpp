@@ -23,10 +23,8 @@ Parser::Parser (const char* filepath) {
 bool Parser::block () {
 	Ast_Statement* stm;
 	while (stm = this->statement()) {
-		this->currentScope->list.push_back(stm);
-		if (stm->stm_type == AST_STATEMENT_DECLARATION)
-			this->toNext(static_cast<Ast_Declaration*>(stm));
-		else if (stm->stm_type == AST_STATEMENT_IMPORT) {
+
+		if (stm->stm_type == AST_STATEMENT_IMPORT) {
 			auto imp = static_cast<Ast_Import*>(stm);
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
 				// TODO: this should handle errors better: when the file is not
@@ -35,6 +33,10 @@ bool Parser::block () {
 			} else {
 				printf("Now we should load '%s' [IMPORT] into the current scope\n", imp->filepath);
 			}
+		} else {
+			this->currentScope->list.push_back(stm);
+			if (stm->stm_type == AST_STATEMENT_DECLARATION)
+				this->toNext(static_cast<Ast_Declaration*>(stm));
 		}
 
 		if (this->lexer->isNextType(TOKEN_EOF)) {
