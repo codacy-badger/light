@@ -6,6 +6,7 @@
 
 #include "lexer/lexer.hpp"
 
+struct Ast_Note;
 struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
@@ -23,6 +24,7 @@ struct Ast {
 enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
 	AST_STATEMENT_BLOCK,
+	AST_STATEMENT_NOTE,
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
 	AST_STATEMENT_IMPORT,
@@ -31,6 +33,14 @@ enum Ast_Statement_Type {
 
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
+
+	vector<Ast_Note*> notes;
+};
+
+struct Ast_Note : Ast_Statement {
+	const char* name = NULL;
+
+	Ast_Note() { this->stm_type = AST_STATEMENT_NOTE; }
 };
 
 struct Ast_Block : Ast_Statement {

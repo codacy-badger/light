@@ -23,8 +23,8 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 
 bool Parser::block () {
 	Ast_Statement* stm;
+	vector<Ast_Note*> local_notes;
 	while (stm = this->statement()) {
-
 		if (stm->stm_type == AST_STATEMENT_IMPORT) {
 			auto imp = static_cast<Ast_Import*>(stm);
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
@@ -33,12 +33,17 @@ bool Parser::block () {
 					Light_Compiler::report_error(imp, "File not found: '%s'", imp->filepath);
 			} else {
 				if (imp->import_flags & IMPORT_IS_NATIVE)
-					Light_Compiler::report_warning(imp,
-						"Native imports not yet supported! use 'import!'");
+					this->compiler->native_dependencies.insert(imp->filepath);
 				else Light_Compiler::report_warning(imp,
 					"Dynamic imports not yet supported! use 'import!'");
 			}
+		} else if (stm->stm_type == AST_STATEMENT_NOTE) {
+			local_notes.push_back(static_cast<Ast_Note*>(stm));
 		} else {
+			if (local_notes.size() > 0) {
+				stm->notes = local_notes;
+				local_notes.clear();
+			}
 			this->currentScope->list.push_back(stm);
 			if (stm->stm_type == AST_STATEMENT_DECLARATION)
 				this->toNext(static_cast<Ast_Declaration*>(stm));
@@ -80,6 +85,20 @@ Ast_Statement* Parser::statement () {
 
 			this->lexer->optional_skip(TOKEN_STM_END);
 			return output;
+		}
+		case TOKEN_HASH: {
+			this->lexer->skip(1);
+			auto output = AST_NEW(Ast_Note);
+			auto isScope = false;
+			if (this->lexer->isNextType(TOKEN_EXCLAMATION)) {
+				this->lexer->skip(1);
+				this->currentScope->notes.push_back(output);
+				isScope = true;
+			}
+			if (this->lexer->isNextType(TOKEN_ID))
+				output->name = this->lexer->text();
+			if (isScope) return this->statement();
+			else return output;
 		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip(1);
