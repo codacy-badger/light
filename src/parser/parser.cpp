@@ -27,11 +27,11 @@ bool Parser::block () {
 		if (stm->stm_type == AST_STATEMENT_IMPORT) {
 			auto imp = static_cast<Ast_Import*>(stm);
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
-				// TODO: this should handle errors better: when the file is not
-				// found the error should point to the import statement
 				this->lexerPush(imp->filepath);
+				if (!this->lexer->buffer->is_valid())
+					Light_Compiler::report_error(imp, "File not found: '%s'", imp->filepath);
 			} else {
-				printf("Now we should load '%s' [IMPORT] into the current scope\n", imp->filepath);
+				Light_Compiler::report_warning(imp, "Import syntax not yet supported! use 'import!'");
 			}
 		} else {
 			this->currentScope->list.push_back(stm);
@@ -67,7 +67,7 @@ Ast_Statement* Parser::statement () {
 
 			if (this->lexer->optional_skip(TOKEN_EXCLAMATION))
 				output->import_flags |= IMPORT_INCLUDE_CONTENT;
-				
+
 			if (this->lexer->isNextType(TOKEN_STRING))
 				output->filepath = this->lexer->text();
 

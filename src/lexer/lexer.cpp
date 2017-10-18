@@ -20,9 +20,7 @@
 Lexer::Lexer (const char* filename, Lexer* parent) {
 	this->parent = parent;
 	this->buffer = new Buffer(filename);
-	if (!this->buffer->is_valid())
-		Light_Compiler::report_error(this, "File not found: '%s'", filename);
-	this->parse_next();
+	if (this->buffer->is_valid()) this->parse_next();
 }
 
 Lexer::Lexer (Buffer* buffer, Lexer* parent) {
