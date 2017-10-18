@@ -56,7 +56,14 @@ void print_node_location (FILE* buffer, Ast* node) {
 	fprintf(buffer, "%s:%d,%d", node->filename, node->line, node->col);
 }
 
-void Light_Compiler::report_info (Ast* node, char* format, ...) {
+void print_lexer_location (FILE* buffer, Lexer* lexer) {
+	if (lexer) {
+		fprintf(buffer, "%s:%d,%d", lexer->buffer->source,
+			lexer->buffer->line, lexer->buffer->col);
+	}
+}
+
+void Light_Compiler::report_info (Ast* node, const char* format, ...) {
 	fprintf(stderr, "[INFO] ");
 
 	va_list argptr;
@@ -68,7 +75,7 @@ void Light_Compiler::report_info (Ast* node, char* format, ...) {
 	print_node_location(stdout, node);
 }
 
-void Light_Compiler::report_warning (Ast* node, char* format, ...) {
+void Light_Compiler::report_warning (Ast* node, const char* format, ...) {
 	fprintf(stderr, "[WARNING] ");
 
 	va_list argptr;
@@ -80,7 +87,7 @@ void Light_Compiler::report_warning (Ast* node, char* format, ...) {
 	print_node_location(stdout, node);
 }
 
-void Light_Compiler::report_error (Ast* node, char* format, ...) {
+void Light_Compiler::report_error (Ast* node, const char* format, ...) {
 	fprintf(stderr, "[ERROR] ");
 
 	va_list argptr;
@@ -90,4 +97,42 @@ void Light_Compiler::report_error (Ast* node, char* format, ...) {
 	fprintf(stderr, "\n\t");
 
 	print_node_location(stderr, node);
+	exit(EXIT_FAILURE);
+}
+
+void Light_Compiler::report_info (Lexer* lexer, const char* format, ...) {
+	fprintf(stderr, "[INFO] ");
+
+	va_list argptr;
+    va_start(argptr, format);
+    vfprintf(stdout, format, argptr);
+    va_end(argptr);
+	fprintf(stdout, "\n\t");
+
+	print_lexer_location(stdout, lexer->parent);
+}
+
+void Light_Compiler::report_warning (Lexer* lexer, const char* format, ...) {
+	fprintf(stderr, "[WARNING] ");
+
+	va_list argptr;
+    va_start(argptr, format);
+    vfprintf(stdout, format, argptr);
+    va_end(argptr);
+	fprintf(stdout, "\n\t");
+
+	print_lexer_location(stdout, lexer->parent);
+}
+
+void Light_Compiler::report_error (Lexer* lexer, const char* format, ...) {
+	fprintf(stderr, "[ERROR] ");
+
+	va_list argptr;
+    va_start(argptr, format);
+    vfprintf(stderr, format, argptr);
+    va_end(argptr);
+	fprintf(stderr, "\n\t");
+
+	print_lexer_location(stderr, lexer->parent);
+	exit(EXIT_FAILURE);
 }

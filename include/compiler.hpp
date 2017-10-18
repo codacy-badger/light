@@ -19,9 +19,13 @@ struct Light_Compiler {
 
 	void run ();
 
-	static void report_info (Ast* node, char* format, ...);
-	static void report_warning (Ast* node, char* format, ...);
-	static void report_error (Ast* node, char* format, ...);
+	static void report_info (Ast* node, const char* format, ...);
+	static void report_warning (Ast* node, const char* format, ...);
+	static void report_error (Ast* node, const char* format, ...);
+
+	static void report_info (Lexer* lexer, const char* format, ...);
+	static void report_warning (Lexer* lexer, const char* format, ...);
+	static void report_error (Lexer* lexer, const char* format, ...);
 
 	static Ast_Type_Instance* type_def_void;
 	static Ast_Type_Instance* type_def_i1;

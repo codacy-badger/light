@@ -46,8 +46,8 @@ struct Lexer {
 	char* nextText;
 	Token_Type nextType;
 
-	Lexer (const char* filename);
-	Lexer (Buffer* buffer);
+	Lexer (const char* filename, Lexer* parent = NULL);
+	Lexer (Buffer* buffer, Lexer* parent = NULL);
 
 	bool parse_next ();
 	bool isNextType (Token_Type type);

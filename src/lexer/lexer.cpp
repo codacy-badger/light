@@ -4,6 +4,8 @@
 
 #include <assert.h>
 
+#include "compiler.hpp"
+
 #define LEXER_DEBUG false
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
@@ -15,17 +17,16 @@
 	handleToken(type, literal); return true; }
 #define FUNCTION_TOKEN(func) if (func()) return true;
 
-Lexer::Lexer (const char* filename) {
+Lexer::Lexer (const char* filename, Lexer* parent) {
+	this->parent = parent;
 	this->buffer = new Buffer(filename);
-	if (!this->buffer->is_valid()) {
-		//TODO: modify the reporting API from Light_Compiler to use lexer only
-		printf("[ERROR] File not found: '%s'\n", filename);
-		exit(EXIT_FAILURE);
-	}
+	if (!this->buffer->is_valid())
+		Light_Compiler::report_error(this, "File not found: '%s'", filename);
 	this->parse_next();
 }
 
-Lexer::Lexer (Buffer* buffer) {
+Lexer::Lexer (Buffer* buffer, Lexer* parent) {
+	this->parent = parent;
 	this->buffer = buffer;
 	this->parse_next();
 }

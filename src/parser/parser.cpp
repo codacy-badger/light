@@ -29,6 +29,8 @@ bool Parser::block () {
 		else if (stm->stm_type == AST_STATEMENT_IMPORT) {
 			auto imp = static_cast<Ast_Import*>(stm);
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
+				// TODO: this should handle errors better: when the file is not
+				// found the error should point to the import statement
 				this->lexerPush(imp->filepath);
 			} else {
 				printf("Now we should load '%s' [IMPORT] into the current scope\n", imp->filepath);
@@ -303,9 +305,7 @@ Ast_Ident* Parser::ident () {
 
 void Parser::lexerPush (const char* filepath) {
 	assert(this->lexer);
-	auto _tmp = this->lexer;
-	this->lexer = new Lexer(filepath);
-	this->lexer->parent = _tmp;
+	this->lexer = new Lexer(filepath, this->lexer);
 }
 
 Lexer* Parser::lexerPop () {
