@@ -29,12 +29,16 @@ bool Parser::block () {
 		else if (stm->stm_type == AST_STATEMENT_IMPORT) {
 			auto imp = static_cast<Ast_Import*>(stm);
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
-				printf("Now we should load '%s' [INCLUDE] into the current scope\n", imp->filepath);
+				this->lexerPush(imp->filepath);
 			} else {
 				printf("Now we should load '%s' [IMPORT] into the current scope\n", imp->filepath);
 			}
 		}
-		if (this->lexer->isNextType(TOKEN_EOF)) return true;
+
+		if (this->lexer->isNextType(TOKEN_EOF)) {
+			if (this->lexer->parent) this->lexerPop();
+			else return true;
+		}
 	}
 	return false;
 }
@@ -297,6 +301,20 @@ Ast_Ident* Parser::ident () {
 	} else return NULL;
 }
 
+void Parser::lexerPush (const char* filepath) {
+	assert(this->lexer);
+	auto _tmp = this->lexer;
+	this->lexer = new Lexer(filepath);
+	this->lexer->parent = _tmp;
+}
+
+Lexer* Parser::lexerPop () {
+	assert(this->lexer->parent);
+	auto _tmp = this->lexer;
+	this->lexer = this->lexer->parent;
+	return _tmp;
+}
+
 void Parser::scopePush (string name) {
 	assert(this->currentScope);
 	this->currentScope = AST_NEW(Ast_Block, this->currentScope);
@@ -305,7 +323,7 @@ void Parser::scopePush (string name) {
 
 Ast_Block* Parser::scopePop () {
 	assert(this->currentScope->parent);
-	auto tmp = this->currentScope;
+	auto _tmp = this->currentScope;
 	this->currentScope = this->currentScope->parent;
-	return tmp;
+	return _tmp;
 }

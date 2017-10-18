@@ -13,6 +13,7 @@ struct Buffer {
 	Buffer (const char* filename);
 	~Buffer ();
 
+	bool is_valid ();
 	char next ();
 	void pushback (char c);
 	bool hasNext ();

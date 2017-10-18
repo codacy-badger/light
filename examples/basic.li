@@ -1,7 +1,6 @@
+import "examples/print.li"
 
-FIVE : i32 : 5;
-
-println_i32 : (i32);
+NUM : i32 : 5;
 
 calc : () -> i32 : fn () -> i32 {
     return 12;

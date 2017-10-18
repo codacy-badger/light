@@ -41,6 +41,7 @@ enum Token_Type {
 
 struct Lexer {
 	Buffer* buffer;
+	Lexer* parent = NULL;
 
 	char* nextText;
 	Token_Type nextType;

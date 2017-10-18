@@ -11,6 +11,10 @@ Buffer::~Buffer () {
 	fclose(this->stream);
 }
 
+bool Buffer::is_valid () {
+	return this->stream != NULL;
+}
+
 char Buffer::next () {
 	char output = 0;
 	if (this->pushback_buffer.empty()) {

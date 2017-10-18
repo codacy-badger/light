@@ -17,6 +17,11 @@
 
 Lexer::Lexer (const char* filename) {
 	this->buffer = new Buffer(filename);
+	if (!this->buffer->is_valid()) {
+		//TODO: modify the reporting API from Light_Compiler to use lexer only
+		printf("[ERROR] File not found: '%s'\n", filename);
+		exit(EXIT_FAILURE);
+	}
 	this->parse_next();
 }
 
