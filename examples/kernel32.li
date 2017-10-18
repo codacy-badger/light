@@ -1,4 +1,7 @@
 import@ "kernel32"
 
-#sticky
+STD_INPUT_HANDLE  : i32 : -10;
+STD_OUTPUT_HANDLE : i32 : -11;
+STD_ERROR_HANDLE  : i32 : -12;
+
 println_i32 : (i32);

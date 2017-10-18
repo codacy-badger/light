@@ -228,8 +228,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	if (this->lexer->isNextType(TOKEN_ID) || initial) {
 		auto output = initial ? initial : this->ident();
 		if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
-			auto fnPtr = reinterpret_cast<Ast_Function*>(output);
-			return this->call(fnPtr);
+			return this->call(output);
 		} else return output;
 	} else if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 		this->lexer->skip(1);
