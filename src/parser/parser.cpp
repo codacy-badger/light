@@ -31,7 +31,11 @@ bool Parser::block () {
 				if (!this->lexer->buffer->is_valid())
 					Light_Compiler::report_error(imp, "File not found: '%s'", imp->filepath);
 			} else {
-				Light_Compiler::report_warning(imp, "Import syntax not yet supported! use 'import!'");
+				if (imp->import_flags & IMPORT_IS_NATIVE)
+					Light_Compiler::report_warning(imp,
+						"Native imports not yet supported! use 'import!'");
+				else Light_Compiler::report_warning(imp,
+					"Dynamic imports not yet supported! use 'import!'");
 			}
 		} else {
 			this->currentScope->list.push_back(stm);
@@ -67,6 +71,8 @@ Ast_Statement* Parser::statement () {
 
 			if (this->lexer->optional_skip(TOKEN_EXCLAMATION))
 				output->import_flags |= IMPORT_INCLUDE_CONTENT;
+			else if (this->lexer->optional_skip(TOKEN_AT))
+				output->import_flags |= IMPORT_IS_NATIVE;
 
 			if (this->lexer->isNextType(TOKEN_STRING))
 				output->filepath = this->lexer->text();

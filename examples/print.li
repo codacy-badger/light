@@ -1,2 +1,3 @@
+import@ "kernel32"
 
 println_i32 : (i32);

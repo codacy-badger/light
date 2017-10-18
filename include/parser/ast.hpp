@@ -67,6 +67,7 @@ struct Ast_Return : Ast_Statement {
 };
 
 const int IMPORT_INCLUDE_CONTENT = 0x1;
+const int IMPORT_IS_NATIVE = 0x2;
 
 struct Ast_Import : Ast_Statement {
 	const char* filepath = NULL;
