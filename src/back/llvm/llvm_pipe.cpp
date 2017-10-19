@@ -10,7 +10,27 @@ LLVMPipe::LLVMPipe (const char* output) : builder(context) {
 }
 
 void LLVMPipe::onStatement (Ast_Statement* stm) {
-    this->codegen(stm);
+    if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+        auto decl = static_cast<Ast_Declaration*>(stm);
+        switch (decl->type->type_inst_type) {
+            case AST_TYPE_INST_FUNCTION: {
+                if (decl->expression) {
+                    this->codegen(static_cast<Ast_Function*>(decl->expression));
+                } else printf("Function Declaration (no definition)\n");
+                break;
+            }
+            case AST_TYPE_INST_TYPE: {
+                if (decl->expression) {
+                    this->codegen(static_cast<Ast_Struct_Type*>(decl->expression));
+                } else printf("Opaque type!\n");
+                break;
+            }
+            default: {
+                // TODO: handle the rest of the types: either const or global
+                break;
+            }
+        }
+    }
 }
 
 void LLVMPipe::onFinish () {
@@ -48,6 +68,25 @@ Value* LLVMPipe::codegen (Ast_Block* stms) {
 }
 
 Value* LLVMPipe::codegen (Ast_Declaration* decl, bool alloca) {
+    switch (decl->type->type_inst_type) {
+        case AST_TYPE_INST_FUNCTION: {
+            if (decl->expression) {
+                this->codegen(static_cast<Ast_Function*>(decl->expression));
+            } else printf("Function Declaration (no definition)\n");
+            break;
+        }
+        case AST_TYPE_INST_TYPE: {
+            if (decl->expression) {
+                this->codegen(static_cast<Ast_Struct_Type*>(decl->expression));
+            } else printf("Opaque type!\n");
+            break;
+        }
+        default: {
+            // TODO: handle the rest of the types: either const or global
+            printf("Declaration type not yet handled!");
+            break;
+        }
+    }
     return NULL;
 }
 

@@ -29,9 +29,12 @@ void link (std::string output) {
 	Timer::print("  Link  ", linker);
 }
 
+Light_Compiler* global_compiler;
+
 Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	if (!settings) this->settings = new Light_Compiler_Settings();
 	else this->settings = settings;
+	global_compiler = this;
 }
 
 void Light_Compiler::run () {

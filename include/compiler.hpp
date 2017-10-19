@@ -30,3 +30,5 @@ struct Light_Compiler {
 	static Ast_Type_Instance* type_def_i1;
 	static Ast_Type_Instance* type_def_i32;
 };
+
+extern Light_Compiler* global_compiler;

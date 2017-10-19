@@ -114,6 +114,7 @@ struct Ast_Type_Definition : Ast_Expression {
 enum Ast_Type_Inst_Type {
 	AST_TYPE_INST_UNDEFINED = 0,
 	AST_TYPE_INST_STRUCT,
+	AST_TYPE_INST_TYPE,
 	AST_TYPE_INST_POINTER,
 	AST_TYPE_INST_FUNCTION,
 };

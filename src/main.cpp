@@ -29,19 +29,19 @@ int main (int argc, char** argv) {
 	cl::HideUnrelatedOptions(LightCategory);
 	cl::ParseCommandLineOptions(argc, argv);
 
-	Light_Compiler* compiler = new Light_Compiler();
+	global_compiler = new Light_Compiler();
 
 	for (auto filename : InputFilenames) {
 		char* _source = (char*) malloc(filename.size() * sizeof(char));
 		strcpy(_source, filename.c_str());
-		compiler->settings->input_files.push_back(_source);
+		global_compiler->settings->input_files.push_back(_source);
 	}
 
 	char* _output = (char*) malloc(OutputFilename.size() * sizeof(char));
 	strcpy(_output, OutputFilename.c_str());
-	compiler->settings->output_file = _output;
+	global_compiler->settings->output_file = _output;
 
-	compiler->run();
+	global_compiler->run();
 
 	return EXIT_SUCCESS;
 }
