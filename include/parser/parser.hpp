@@ -19,13 +19,11 @@ struct Parser : Pipe {
 	Light_Compiler* compiler;
 	Lexer* lexer;
 
-	Ast_Block* currentScope;
-
 	Parser (Light_Compiler* compiler, const char* param);
 
 	void expected (const char* expect, const char* after);
 
-	bool block ();
+	Ast_Block* block ();
 	Ast_Statement* statement ();
 	Ast_Declaration* declaration ();
 	Ast_Type_Instance* type_instance ();
@@ -42,7 +40,4 @@ struct Parser : Pipe {
 
 	void lexerPush (const char* filepath);
 	Lexer* lexerPop ();
-
-	void scopePush (string name);
-	Ast_Block* scopePop ();
 };

@@ -2,8 +2,8 @@
 
 #include "parser/pipes.hpp"
 
-void Pipe::onDeclaration (Ast_Declaration* decl) {
-	this->toNext(decl);
+void Pipe::onStatement(Ast_Statement* stm) {
+	this->toNext(stm);
 }
 
 void Pipe::onFinish () {

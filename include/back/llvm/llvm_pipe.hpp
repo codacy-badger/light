@@ -23,34 +23,33 @@
 #include "parser/pipes.hpp"
 #include "codegen_primitive.hpp"
 #include "llvm_obj_writter.hpp"
-#include "llvm_scope.hpp"
 
 struct LLVMPipe : Pipe {
 	LLVMContext context;
 	IRBuilder<> builder;
 	Module* module;
-	LLVMScope* scope;
 
 	Function* currentFunction;
 	AllocaInst* currentReturnVal;
 	bool functionHasReturned;
 
-	LLVMPipe (std::string output);
+	LLVMPipe (const char* output);
 
-	void onFunction (Ast_Function* fn);
-	void onType (Ast_Type_Definition* ty);
+	void onStatement(Ast_Statement* stm);
 	void onFinish ();
 
 	Value* codegen (Ast_Statement* stm);
 	Value* codegen (Ast_Block* stms);
-	Value* codegen (Ast_Declaration* varDef, bool alloca = false);
 	Value* codegen (Ast_Return* ret);
+	Type* codegen (Ast_Type_Definition* ty);
+	Value* codegen (Ast_Declaration* varDef, bool alloca = false);
+
 	Value* codegen (Ast_Expression* exp);
-	Value* codegen (AST_Binary* binop);
-	Value* codegen (AST_Unary* unop);
+	Value* codegen (Ast_Function* fn);
+	Type* codegen (Ast_Type_Instance* ty);
+	Value* codegen (Ast_Binary* binop);
+	Value* codegen (Ast_Unary* unop);
+	Value* codegen (Ast_Ident* ident);
 	Value* codegen (Ast_Literal* con);
 	Value* codegen (Ast_Function_Call* call);
-	Type* codegen (Ast_Type_Definition* ty);
-	Type* codegen (Ast_Pointer_Type* ty);
-	Type* codegen (Ast_Struct_Type* ty);
 };

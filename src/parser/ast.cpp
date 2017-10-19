@@ -11,11 +11,11 @@ void Ast_Block::find_all_declarations (std::vector<Ast_Declaration*>* decls) {
     }
 }
 
-void AST_Binary::setOP (Token_Type tType) {
+void Ast_Binary::setOP (Token_Type tType) {
 	this->binary_op = this->typeToOP(tType);
 }
 
-Ast_Binary_Type AST_Binary::typeToOP (Token_Type tType) {
+Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 	switch (tType) {
 		case TOKEN_EQUAL: 	return AST_BINARY_ASSIGN;
 		case TOKEN_DOT: 		return AST_BINARY_ATTRIBUTE;
@@ -30,25 +30,25 @@ Ast_Binary_Type AST_Binary::typeToOP (Token_Type tType) {
 	};
 }
 
-short AST_Binary::getPrecedence (Token_Type opToken) {
-	auto it = AST_Binary::precedence.find(opToken);
-	if (it != AST_Binary::precedence.end())
-		return AST_Binary::precedence[opToken];
+short Ast_Binary::getPrecedence (Token_Type opToken) {
+	auto it = Ast_Binary::precedence.find(opToken);
+	if (it != Ast_Binary::precedence.end())
+		return Ast_Binary::precedence[opToken];
 	else return -1;
 }
 
-bool AST_Binary::getLeftAssociativity (Token_Type opToken) {
-	auto it = AST_Binary::isLeftAssociate.find(opToken);
-	if (it != AST_Binary::isLeftAssociate.end())
-		return AST_Binary::isLeftAssociate[opToken];
+bool Ast_Binary::getLeftAssociativity (Token_Type opToken) {
+	auto it = Ast_Binary::isLeftAssociate.find(opToken);
+	if (it != Ast_Binary::isLeftAssociate.end())
+		return Ast_Binary::isLeftAssociate[opToken];
 	else return false;
 }
 
-void AST_Unary::setOP (Token_Type tType) {
+void Ast_Unary::setOP (Token_Type tType) {
 	this->unary_op = this->typeToOP(tType);
 }
 
-Ast_Unary_Type AST_Unary::typeToOP (Token_Type tType) {
+Ast_Unary_Type Ast_Unary::typeToOP (Token_Type tType) {
 	switch (tType) {
 		case TOKEN_SUB: return AST_UNARY_NEGATE_NUMBER;
 		default: {
@@ -58,12 +58,12 @@ Ast_Unary_Type AST_Unary::typeToOP (Token_Type tType) {
 	};
 }
 
-map<Token_Type, short> AST_Binary::precedence = {
+map<Token_Type, short> Ast_Binary::precedence = {
 	{TOKEN_EQUAL, 	1}, {TOKEN_DOT, 1},
 	{TOKEN_ADD, 		2}, {TOKEN_SUB, 2},
 	{TOKEN_MUL, 		3}, {TOKEN_DIV, 3}
 };
-map<Token_Type, bool> AST_Binary::isLeftAssociate = {
+map<Token_Type, bool> Ast_Binary::isLeftAssociate = {
 	{TOKEN_EQUAL, 	false}, {TOKEN_DOT, false},
 	{TOKEN_ADD, 		false}, {TOKEN_SUB, false},
 	{TOKEN_MUL, 		false}, {TOKEN_DIV, false}

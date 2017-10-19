@@ -3,7 +3,6 @@
 #include "parser/parser.hpp"
 
 #include "compiler.hpp"
-#include "parser/printer.hpp"
 
 template <typename T>
 T* setup_ast_node (Lexer* lexer, T* node) {
@@ -17,11 +16,11 @@ T* setup_ast_node (Lexer* lexer, T* node) {
 Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 	this->compiler = compiler;
 	this->lexer = new Lexer(filepath);
-	this->currentScope = AST_NEW(Ast_Block);
-	this->currentScope->name = "<global>";
 }
 
-bool Parser::block () {
+Ast_Block* Parser::block () {
+	auto block = AST_NEW(Ast_Block);
+
 	Ast_Statement* stm;
 	while (stm = this->statement()) {
 		if (stm->stm_type == AST_STATEMENT_IMPORT) {
@@ -29,26 +28,30 @@ bool Parser::block () {
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
 				this->lexerPush(imp->filepath);
 				if (!this->lexer->buffer->is_valid())
-					Light_Compiler::report_error(imp, "File not found: '%s'", imp->filepath);
+					this->compiler->report_error(imp, "File not found: '%s'", imp->filepath);
+				else {
+					auto include_block = this->block();
+					for (auto stm : include_block->list)
+						block->list.push_back(stm);
+					include_block->list.clear();
+					delete include_block;
+				}
+				this->lexerPop();
+			} else if (imp->import_flags & IMPORT_IS_NATIVE) {
+				this->compiler->native_dependencies.insert(imp->filepath);
 			} else {
-				if (imp->import_flags & IMPORT_IS_NATIVE)
-					this->compiler->native_dependencies.insert(imp->filepath);
-				else Light_Compiler::report_warning(imp,
-					"Dynamic imports not yet supported! use 'import!'");
+				this->compiler->report_warning(imp, "Dynamic imports not yet supported! use 'import!'");
 			}
 		} else {
-			this->currentScope->list.push_back(stm);
+			block->list.push_back(stm);
 			if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 				this->toNext(static_cast<Ast_Declaration*>(stm));
 			}
 		}
 
-		if (this->lexer->isNextType(TOKEN_EOF)) {
-			if (this->lexer->parent) this->lexerPop();
-			else return true;
-		}
+		if (this->lexer->isNextType(TOKEN_EOF)) return block;
 	}
-	return false;
+	return nullptr;
 }
 
 Ast_Statement* Parser::statement () {
@@ -90,10 +93,9 @@ Ast_Statement* Parser::statement () {
 		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip(1);
-			this->scopePush("<anon>");
-			this->block();
+			auto block = this->block();
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-			return this->scopePop();
+			return block;
 		}
 		case TOKEN_ID: {
 			auto ident = this->ident();
@@ -204,21 +206,21 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
 	Ast_Expression* output;
     if (output = this->_atom(initial)) {
         Token_Type tt = this->lexer->nextType;
-		auto precedence = AST_Binary::getPrecedence(tt);
+		auto precedence = Ast_Binary::getPrecedence(tt);
 		while (precedence >= minPrecedence) {
 			this->lexer->skip(1);
 
 			int nextMinPrec = precedence;
-			if (AST_Binary::getLeftAssociativity(tt))
+			if (Ast_Binary::getLeftAssociativity(tt))
 				nextMinPrec += 1;
 
-			AST_Binary* _tmp = AST_NEW(AST_Binary, tt);
+			Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
 			_tmp->rhs = this->expression(NULL, nextMinPrec);
 			_tmp->lhs = output;
 			output = _tmp;
 
 			tt = this->lexer->nextType;
-			precedence = AST_Binary::getPrecedence(tt);
+			precedence = Ast_Binary::getPrecedence(tt);
 		}
     }
 	return output;
@@ -258,16 +260,14 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 		if (!this->lexer->isNextType(TOKEN_STM_END)) {
 			this->lexer->check_skip(TOKEN_BRAC_OPEN);
-			this->scopePush("<anon>");
-			this->block();
+			fn->scope = this->block();
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-			fn->scope = this->scopePop();
 		}
 
 		return fn;
 	} else if (this->lexer->isNextType(TOKEN_SUB)) {
 		this->lexer->skip(1);
-		auto unop = AST_NEW(AST_Unary, TOKEN_SUB);
+		auto unop = AST_NEW(Ast_Unary, TOKEN_SUB);
 		unop->exp = this->_atom();
 		return unop;
 	} else if (this->lexer->isNextType(TOKEN_ADD)) {
@@ -330,18 +330,5 @@ Lexer* Parser::lexerPop () {
 	assert(this->lexer->parent);
 	auto _tmp = this->lexer;
 	this->lexer = this->lexer->parent;
-	return _tmp;
-}
-
-void Parser::scopePush (string name) {
-	assert(this->currentScope);
-	this->currentScope = AST_NEW(Ast_Block, this->currentScope);
-	this->currentScope->name = name;
-}
-
-Ast_Block* Parser::scopePop () {
-	assert(this->currentScope->parent);
-	auto _tmp = this->currentScope;
-	this->currentScope = this->currentScope->parent;
 	return _tmp;
 }

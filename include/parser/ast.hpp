@@ -165,7 +165,7 @@ enum Ast_Binary_Type {
 	AST_BINARY_DIV,
 };
 
-struct AST_Binary : Ast_Expression {
+struct Ast_Binary : Ast_Expression {
 	static map<Token_Type, bool> isLeftAssociate;
 	static map<Token_Type, short> precedence;
 
@@ -173,7 +173,7 @@ struct AST_Binary : Ast_Expression {
 	Ast_Expression* lhs = NULL;
 	Ast_Expression* rhs = NULL;
 
-	AST_Binary (Token_Type tType) {
+	Ast_Binary (Token_Type tType) {
 		this->exp_type = AST_EXPRESSION_BINARY;
 		this->setOP(tType);
 	}
@@ -193,11 +193,11 @@ enum Ast_Unary_Type {
 	AST_UNARY_NEGATE_NUMBER,
 };
 
-struct AST_Unary : Ast_Expression {
+struct Ast_Unary : Ast_Expression {
 	Ast_Unary_Type unary_op = AST_UNARY_UNINITIALIZED;
 	Ast_Expression* exp = NULL;
 
-	AST_Unary (Token_Type tType) {
+	Ast_Unary (Token_Type tType) {
 		this->exp_type = AST_EXPRESSION_UNARY;
 		this->setOP(tType);
 	}

@@ -7,13 +7,13 @@
 struct Pipe {
 	Pipe* next = NULL;
 
-	virtual void onDeclaration (Ast_Declaration* decl);
+	virtual void onStatement (Ast_Statement* stm);
 	virtual void onFinish ();
 
 	void tryFinish();
 
-	void toNext (Ast_Declaration* decl) {
-		if (next) next->onDeclaration(decl);
+	void toNext (Ast_Statement* stm) {
+		if (next) next->onStatement(stm);
 	}
 
 	void append (Pipe* next);

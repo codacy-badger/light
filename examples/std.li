@@ -1,0 +1,3 @@
+import@ "std_li"
+
+println_i32 : (i32);

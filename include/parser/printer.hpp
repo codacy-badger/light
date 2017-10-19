@@ -15,8 +15,8 @@ struct ASTPrinter {
 	static void print (Ast_Pointer_Type* type, int tabs = 0, bool nameOnly = false);
 	static void print (Ast_Function_Type* type, int tabs = 0, bool nameOnly = false);
 	static void print (Ast_Expression* exp, int tabs = 0);
-	static void print (AST_Binary* binop, int tabs = 0);
-	static void print (AST_Unary* unop, int tabs = 0);
+	static void print (Ast_Binary* binop, int tabs = 0);
+	static void print (Ast_Unary* unop, int tabs = 0);
 	static void print (Ast_Literal* cons, int tabs = 0);
 	static void print (Ast_Ident* ident, int tabs, bool nameOnly);
 	static void print (Ast_Function_Call* call, int tabs = 0);

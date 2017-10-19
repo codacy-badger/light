@@ -4,5 +4,5 @@
 #include "parser/printer.hpp"
 
 struct PrintPipe : Pipe {
-	void onDeclaration (Ast_Declaration* decl);
+	void onStatement(Ast_Statement* stm);
 };

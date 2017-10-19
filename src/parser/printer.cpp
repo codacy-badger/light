@@ -93,11 +93,11 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs) {
 			break;
 		}
 		case AST_EXPRESSION_BINARY: {
-			print(static_cast<AST_Binary*>(exp), tabs);
+			print(static_cast<Ast_Binary*>(exp), tabs);
 			break;
 		}
 		case AST_EXPRESSION_UNARY: {
-			print(static_cast<AST_Unary*>(exp), tabs);
+			print(static_cast<Ast_Unary*>(exp), tabs);
 			break;
 		}
 		case AST_EXPRESSION_CALL: {
@@ -184,7 +184,7 @@ void ASTPrinter::print (Ast_Function* fn, int tabs, bool nameOnly) {
 	} else printf("]");
 }
 
-void ASTPrinter::print (AST_Binary* binop, int tabs) {
+void ASTPrinter::print (Ast_Binary* binop, int tabs) {
 	printf("(");
 	print(binop->lhs, tabs);
 	printf(" ");
@@ -203,7 +203,7 @@ void ASTPrinter::print (AST_Binary* binop, int tabs) {
 	printf(")");
 }
 
-void ASTPrinter::print (AST_Unary* unop, int tabs) {
+void ASTPrinter::print (Ast_Unary* unop, int tabs) {
 	printf("(");
 	switch (unop->unary_op) {
 		case AST_UNARY_NEGATE_NUMBER: 	printf("-"); break;
