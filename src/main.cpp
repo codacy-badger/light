@@ -1,8 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
+#include <ctime>
 
 #include "llvm/Support/CommandLine.h"
 
+#include "bytecode/interpreter.hpp"
+#include "back/coff/coff_object.hpp"
 #include "compiler.hpp"
 #include "timer.hpp"
 
@@ -21,11 +24,27 @@ static cl::list<string>
 InputFilenames(cl::Positional, cl::desc("<input files>"), cl::OneOrMore);
 
 void printVersion (raw_ostream& out) {
-	out << NAME << " " << VERSION << "\n";
+	printf("%s %s\n", NAME, VERSION);
 }
 
 int main (int argc, char** argv) {
-	cl::SetVersionPrinter(printVersion);
+
+	Bytecode_Interpreter* interp = new Bytecode_Interpreter();
+
+	uint8_t* instruction = (uint8_t*) malloc(4);
+	instruction[0] = BYTECODE_ALLOCA;
+	instruction[1] = 2;
+	instruction[2] = 0;
+	instruction[3] = BYTECODE_STOP;
+	interp->instructions = instruction;
+
+	interp->start();
+	interp->dump();
+
+	free(instruction);
+	delete interp;
+
+	/*cl::SetVersionPrinter(printVersion);
 	cl::HideUnrelatedOptions(LightCategory);
 	cl::ParseCommandLineOptions(argc, argv);
 
@@ -41,7 +60,7 @@ int main (int argc, char** argv) {
 	strcpy(_output, OutputFilename.c_str());
 	global_compiler->settings->output_file = _output;
 
-	global_compiler->run();
+	global_compiler->run();*/
 
 	return EXIT_SUCCESS;
 }
