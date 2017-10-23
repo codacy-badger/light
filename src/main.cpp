@@ -31,11 +31,23 @@ void printVersion (raw_ostream& out) {
 int main (int argc, char** argv) {
 
 	Bytecode_Interpreter* interp = new Bytecode_Interpreter();
-
 	Byte_Buffer* buffer = new Byte_Buffer();
-	buffer->append_bytes(3, BYTECODE_ALLOCA, 2, 0);
-	buffer->append_bytes(3, BYTECODE_STOREI, 2, 0);
-	buffer->append_2b(62121);
+	// a : i8 = 42;
+	buffer->append_bytes(3, BYTECODE_ALLOCA, 1, 0);
+	buffer->append_bytes(4, BYTECODE_STORE_I, 1, 0, 42);
+	// b : i8 = a + 2;
+	buffer->append_bytes(3, BYTECODE_ALLOCA, 1, 1);
+	buffer->append_bytes(4, BYTECODE_LOAD, 1, 2, 0);
+	buffer->append_bytes(4, BYTECODE_ADD_I, 1, 2, 2);
+	buffer->append_bytes(4, BYTECODE_STORE, 1, 1, 2);
+	// c : i8 = a + b + 7;
+	buffer->append_bytes(3, BYTECODE_ALLOCA, 1, 2);
+	buffer->append_bytes(4, BYTECODE_LOAD, 1, 3, 0);
+	buffer->append_bytes(4, BYTECODE_LOAD, 1, 4, 1);
+	buffer->append_bytes(4, BYTECODE_ADD, 1, 3, 4);
+	buffer->append_bytes(4, BYTECODE_ADD_I, 1, 3, 7);
+	buffer->append_bytes(4, BYTECODE_STORE, 1, 2, 3);
+	// END
 	buffer->append_1b(BYTECODE_STOP);
 	interp->instructions = buffer->buffer;
 

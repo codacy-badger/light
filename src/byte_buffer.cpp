@@ -2,7 +2,21 @@
 
 #include "byte_buffer.hpp"
 
+#include <stdio.h>
 #include <stdlib.h>
+
+void resize_if_needed (Byte_Buffer* bb, int ahead = 0) {
+	while ((bb->size + ahead) >= bb->capacity) {
+		bb->capacity *= 2;
+		auto _tmp = (uint8_t*) realloc(bb->buffer, bb->capacity);
+		if (_tmp) {
+			//printf("[Byte_Buffer] realloc! %lld\n", bb->capacity);
+			bb->buffer = _tmp;
+		} else {
+			printf("[Byte_Buffer] ERROR: could not realloc buffer!\n");
+		}
+	}
+}
 
 Byte_Buffer::Byte_Buffer (size_t initial_capacity) {
 	this->buffer = (uint8_t*) malloc(initial_capacity);
@@ -10,21 +24,23 @@ Byte_Buffer::Byte_Buffer (size_t initial_capacity) {
 	this->size = 0;
 }
 
-void Byte_Buffer::resize (size_t new_size) {
-	if (new_size > this->capacity)
-		realloc(this->buffer, new_size);
+Byte_Buffer::~Byte_Buffer () {
+	free(this->buffer);
 }
 
 void Byte_Buffer::append_1b (uint8_t value) {
+	resize_if_needed(this, 1);
 	this->buffer[this->size++] = value;
 }
 
 void Byte_Buffer::append_2b (uint16_t value) {
+	resize_if_needed(this, 2);
 	this->buffer[this->size++] = value >> 8;
 	this->buffer[this->size++] = value;
 }
 
 void Byte_Buffer::append_4b (uint32_t value) {
+	resize_if_needed(this, 4);
 	this->buffer[this->size++] = value >> 24;
 	this->buffer[this->size++] = value >> 16;
 	this->buffer[this->size++] = value >> 8;
@@ -32,6 +48,7 @@ void Byte_Buffer::append_4b (uint32_t value) {
 }
 
 void Byte_Buffer::append_8b (uint64_t value) {
+	resize_if_needed(this, 8);
 	this->buffer[this->size++] = value >> 56;
 	this->buffer[this->size++] = value >> 48;
 	this->buffer[this->size++] = value >> 40;
@@ -43,6 +60,7 @@ void Byte_Buffer::append_8b (uint64_t value) {
 }
 
 void Byte_Buffer::append_bytes (size_t count, ...) {
+	resize_if_needed(this, count);
 	va_list args;
     va_start(args, count);
 	for (size_t i = 0; i < count; i++)

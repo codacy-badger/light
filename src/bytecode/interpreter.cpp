@@ -33,7 +33,7 @@ void Bytecode_Interpreter::run_next () {
 			this->instruction_pointer += 3 + size;
 			break;
 		}
-		case BYTECODE_MOVE: {
+		case BYTECODE_COPY: {
 			uint8_t size = this->instructions[this->instruction_pointer + 1];
 			uint8_t reg1 = this->instructions[this->instruction_pointer + 2];
 			uint8_t reg2 = this->instructions[this->instruction_pointer + 3];
@@ -54,7 +54,7 @@ void Bytecode_Interpreter::run_next () {
 			this->instruction_pointer += 3;
 			break;
 		}
-		case BYTECODE_STOREI: {
+		case BYTECODE_STORE_I: {
 			uint8_t size = this->instructions[this->instruction_pointer + 1];
 			uint8_t reg1 = this->instructions[this->instruction_pointer + 2];
 			uint8_t* dataPtr = &this->instructions[this->instruction_pointer + 3];
@@ -62,6 +62,52 @@ void Bytecode_Interpreter::run_next () {
 			memcpy(reinterpret_cast<uint8_t*>(this->registers[reg1]._64), dataPtr, size);
 
 			this->instruction_pointer += 3 + size;
+			break;
+		}
+		case BYTECODE_STORE: {
+			uint8_t size = this->instructions[this->instruction_pointer + 1];
+			uint8_t reg1 = this->instructions[this->instruction_pointer + 2];
+			uint8_t reg2 = this->instructions[this->instruction_pointer + 3];
+
+			memcpy(reinterpret_cast<uint8_t*>(this->registers[reg1]._64),
+				&this->registers[reg2]._64, size);
+
+			this->instruction_pointer += 4;
+			break;
+		}
+		case BYTECODE_LOAD: {
+			uint8_t size = this->instructions[this->instruction_pointer + 1];
+			uint8_t reg1 = this->instructions[this->instruction_pointer + 2];
+			uint8_t reg2 = this->instructions[this->instruction_pointer + 3];
+
+			memcpy(&this->registers[reg1]._64, reinterpret_cast<uint8_t*>(this->registers[reg2]._64), size);
+
+			this->instruction_pointer += 4;
+			break;
+		}
+		case BYTECODE_ADD_I: {
+			uint8_t size = this->instructions[this->instruction_pointer + 1];
+			uint8_t reg1 = this->instructions[this->instruction_pointer + 2];
+			uint8_t* dataPtr = &this->instructions[this->instruction_pointer + 3];
+
+			for (size_t i = 0; i < size; i++) {
+				this->registers[reg1]._64 += (*dataPtr + i) << i;
+			}
+
+			this->instruction_pointer += 3 + size;
+			break;
+		}
+		case BYTECODE_ADD: {
+			uint8_t size = this->instructions[this->instruction_pointer + 1];
+			uint8_t reg1 = this->instructions[this->instruction_pointer + 2];
+			uint8_t reg2 = this->instructions[this->instruction_pointer + 3];
+
+			uint8_t* dataPtr = &this->registers[reg2]._8;
+			for (size_t i = 0; i < size; i++) {
+				this->registers[reg1]._64 += (*dataPtr + i) << i;
+			}
+
+			this->instruction_pointer += 4;
 			break;
 		}
 		default: {
@@ -73,7 +119,7 @@ void Bytecode_Interpreter::run_next () {
 }
 
 void Bytecode_Interpreter::dump () {
-	printf("\nLight VM --- DUMP ---\n\n");
+	printf("\n------------ Light VM DUMP ------------\n\n");
 	printf("Instruction PTR %016llx\n\n", this->instruction_pointer);
 	for (short i = 0; i < NUM_OF_REGISTERS; i++) {
 		printf("\t%016llx", this->registers[i]._64);

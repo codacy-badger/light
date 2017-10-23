@@ -9,8 +9,7 @@ struct Byte_Buffer {
 	uint8_t* buffer = NULL;
 
 	Byte_Buffer (size_t initial_capacity = 16);
-
-	void resize (size_t new_size);
+	~Byte_Buffer ();
 
 	void append_1b (uint8_t value);
 
