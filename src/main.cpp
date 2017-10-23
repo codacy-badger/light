@@ -4,6 +4,7 @@
 
 #include "llvm/Support/CommandLine.h"
 
+#include "byte_buffer.hpp"
 #include "bytecode/interpreter.hpp"
 #include "back/coff/coff_object.hpp"
 #include "compiler.hpp"
@@ -31,22 +32,17 @@ int main (int argc, char** argv) {
 
 	Bytecode_Interpreter* interp = new Bytecode_Interpreter();
 
-	uint8_t* instruction = (uint8_t*) malloc(9);
-	instruction[0] = BYTECODE_ALLOCA;
-	instruction[1] = 2;
-	instruction[2] = 0;
-	instruction[3] = BYTECODE_STOREI;
-	instruction[4] = 2;
-	instruction[5] = 0;
-	instruction[6] = 0xf2;
-	instruction[7] = 0xaa;
-	instruction[8] = BYTECODE_STOP;
-	interp->instructions = instruction;
+	Byte_Buffer* buffer = new Byte_Buffer();
+	buffer->append_bytes(3, BYTECODE_ALLOCA, 2, 0);
+	buffer->append_bytes(3, BYTECODE_STOREI, 2, 0);
+	buffer->append_2b(62121);
+	buffer->append_1b(BYTECODE_STOP);
+	interp->instructions = buffer->buffer;
 
 	interp->start();
 	interp->dump();
 
-	free(instruction);
+	delete buffer;
 	delete interp;
 
 	/*cl::SetVersionPrinter(printVersion);

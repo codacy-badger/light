@@ -73,10 +73,16 @@ void Bytecode_Interpreter::run_next () {
 }
 
 void Bytecode_Interpreter::dump () {
+	printf("\nLight VM --- DUMP ---\n\n");
 	printf("Instruction PTR %016llx\n\n", this->instruction_pointer);
-	for (short i = 0; i < NUM_OF_REGISTERS; i++)
-		printf("\tReg%3d %016llx\n", i, this->registers[i]._64);
-	printf("\nStack size %016llx\n\n", this->stack_pointer);
-	for (size_t i = 0; i < this->stack_pointer; i++)
-		printf("\t%4zx %02x\n", i, this->stack[i]);
+	for (short i = 0; i < NUM_OF_REGISTERS; i++) {
+		printf("\t%016llx", this->registers[i]._64);
+		if ((i + 1) % 4 == 0) printf("\n");
+	}
+	printf("\nStack size %016llx\n\n\t", this->stack_pointer);
+	for (size_t i = 0; i < this->stack_pointer; i++) {
+		printf("%02x ", this->stack[i]);
+		if ((i + 1) % 8 == 0) printf("\n\t");
+	}
+	printf("\n");
 }
