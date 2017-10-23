@@ -31,11 +31,16 @@ int main (int argc, char** argv) {
 
 	Bytecode_Interpreter* interp = new Bytecode_Interpreter();
 
-	uint8_t* instruction = (uint8_t*) malloc(4);
+	uint8_t* instruction = (uint8_t*) malloc(9);
 	instruction[0] = BYTECODE_ALLOCA;
 	instruction[1] = 2;
 	instruction[2] = 0;
-	instruction[3] = BYTECODE_STOP;
+	instruction[3] = BYTECODE_STOREI;
+	instruction[4] = 2;
+	instruction[5] = 0;
+	instruction[6] = 0xf2;
+	instruction[7] = 0xaa;
+	instruction[8] = BYTECODE_STOP;
 	interp->instructions = instruction;
 
 	interp->start();
