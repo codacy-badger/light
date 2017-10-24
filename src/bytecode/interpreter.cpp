@@ -77,7 +77,7 @@ void Bytecode_Interpreter::run_next () {
 			this->instruction_index += 3 + size;
 			break;
 		}
-		case BYTECODE_STORE_I: {
+		case BYTECODE_STORE_INT: {
 			uint8_t size = this->instructions[this->instruction_index + 1];
 			uint8_t reg1 = this->instructions[this->instruction_index + 2];
 			uint8_t* dataPtr = &this->instructions[this->instruction_index + 3];
@@ -113,7 +113,7 @@ void Bytecode_Interpreter::run_next () {
 			this->instruction_index += 4;
 			break;
 		}
-		case BYTECODE_ADD_I: {
+		case BYTECODE_ADD_INT: {
 			uint8_t size = this->instructions[this->instruction_index + 1];
 			uint8_t reg1 = this->instructions[this->instruction_index + 2];
 			uint8_t* dataPtr = &this->instructions[this->instruction_index + 3];
@@ -155,7 +155,7 @@ void Bytecode_Interpreter::run_next () {
 }
 
 void Bytecode_Interpreter::dump () {
-	printf("\n------------ Light VM DUMP ------------\n\n");
+	printf("\n------------ Light VM dump ------------\n\n");
 	printf("Instruction: %016llx\n\n", this->instruction_index);
 	for (short i = 0; i < REGISTER_COUNT; i++) {
         for (size_t j = REGISTER_SIZE; j > 0; j--) {

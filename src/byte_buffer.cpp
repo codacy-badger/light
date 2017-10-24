@@ -13,7 +13,7 @@ void resize_if_needed (Byte_Buffer* bb, int ahead = 0) {
 			//printf("[Byte_Buffer] realloc! %lld\n", bb->capacity);
 			bb->buffer = _tmp;
 		} else {
-			printf("[Byte_Buffer] ERROR: could not realloc buffer!\n");
+			printf("[Byte_Buffer] ERROR: realloc failed!\n");
 		}
 	}
 }
@@ -28,18 +28,18 @@ Byte_Buffer::~Byte_Buffer () {
 	free(this->buffer);
 }
 
-void Byte_Buffer::append_1b (uint8_t value) {
+void Byte_Buffer::append_u8 (uint8_t value) {
 	resize_if_needed(this, 1);
 	this->buffer[this->size++] = value;
 }
 
-void Byte_Buffer::append_2b (uint16_t value) {
+void Byte_Buffer::append_u16 (uint16_t value) {
 	resize_if_needed(this, 2);
 	this->buffer[this->size++] = value >> 8;
 	this->buffer[this->size++] = value;
 }
 
-void Byte_Buffer::append_4b (uint32_t value) {
+void Byte_Buffer::append_u32 (uint32_t value) {
 	resize_if_needed(this, 4);
 	this->buffer[this->size++] = value >> 24;
 	this->buffer[this->size++] = value >> 16;
@@ -47,7 +47,7 @@ void Byte_Buffer::append_4b (uint32_t value) {
 	this->buffer[this->size++] = value;
 }
 
-void Byte_Buffer::append_8b (uint64_t value) {
+void Byte_Buffer::append_u64 (uint64_t value) {
 	resize_if_needed(this, 8);
 	this->buffer[this->size++] = value >> 56;
 	this->buffer[this->size++] = value >> 48;
@@ -64,6 +64,6 @@ void Byte_Buffer::append_bytes (size_t count, ...) {
 	va_list args;
     va_start(args, count);
 	for (size_t i = 0; i < count; i++)
-		this->append_1b(va_arg(args, uint8_t));
+		this->append_u8(va_arg(args, uint8_t));
     va_end(args);
 }

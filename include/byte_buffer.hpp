@@ -11,13 +11,13 @@ struct Byte_Buffer {
 	Byte_Buffer (size_t initial_capacity = 16);
 	~Byte_Buffer ();
 
-	void append_1b (uint8_t value);
+	void append_u8 (uint8_t value);
 
-	void append_2b (uint16_t value);
+	void append_u16 (uint16_t value);
 
-	void append_4b (uint32_t value);
+	void append_u32 (uint32_t value);
 
-	void append_8b (uint64_t value);
+	void append_u64 (uint64_t value);
 
 	void append_bytes (size_t count, ...);
 };
