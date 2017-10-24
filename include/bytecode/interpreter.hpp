@@ -2,25 +2,21 @@
 
 #include "bytecode/ops.hpp"
 
-struct Bytecode_Register {
-	union {
-		uint64_t _64;
-		uint32_t _32;
-		uint16_t _16;
-		uint8_t _8;
-	};
-};
+#define REGISTER_SIZE 		8
+#define REGISTER_COUNT   	16
+#define DEFAULT_STACK_SIZE 	256
 
-#define NUM_OF_REGISTERS 16
-#define STACK_SIZE 100
+typedef uint8_t Bytecode_Register[REGISTER_SIZE];
 
 struct Bytecode_Interpreter {
-	Bytecode_Register registers[NUM_OF_REGISTERS];
-	uint8_t stack[STACK_SIZE];
+	Bytecode_Register registers[REGISTER_COUNT];
+	bool flag_carry = false;
 
 	uint8_t* instructions = NULL;
-	uint64_t instruction_pointer = 0;
-	uint64_t stack_pointer = 0;
+	size_t instruction_index = 0;
+
+	uint8_t stack[DEFAULT_STACK_SIZE];
+	size_t stack_index = 0;
 
 	Bytecode_Interpreter ();
 
