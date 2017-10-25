@@ -2,31 +2,16 @@
 #include <string.h>
 #include <ctime>
 
-#include "llvm/Support/CommandLine.h"
-
 #include "byte_buffer.hpp"
 #include "bytecode/interpreter.hpp"
 #include "back/coff/coff_object.hpp"
 #include "compiler.hpp"
 #include "timer.hpp"
 
-using namespace llvm;
 using namespace std;
 
 #define NAME "Light Compiler"
 #define VERSION "0.1.0"
-
-cl::OptionCategory LightCategory("Compiler Options");
-
-static cl::opt<string>
-OutputFilename("o", cl::desc("Specify output file."), cl::value_desc("filename"), cl::cat(LightCategory));
-
-static cl::list<string>
-InputFilenames(cl::Positional, cl::desc("<input files>"), cl::OneOrMore);
-
-void printVersion (raw_ostream& out) {
-	printf("%s %s\n", NAME, VERSION);
-}
 
 int main (int argc, char** argv) {
 	/*Bytecode_Interpreter* interpreter = new Bytecode_Interpreter();
@@ -60,21 +45,10 @@ int main (int argc, char** argv) {
 	delete buffer;
 	delete interpreter;*/
 
-	cl::SetVersionPrinter(printVersion);
-	cl::HideUnrelatedOptions(LightCategory);
-	cl::ParseCommandLineOptions(argc, argv);
-
 	global_compiler = new Light_Compiler();
 
-	for (auto filename : InputFilenames) {
-		char* _source = (char*) malloc(filename.size() * sizeof(char));
-		strcpy(_source, filename.c_str());
-		global_compiler->settings->input_files.push_back(_source);
-	}
-
-	char* _output = (char*) malloc(OutputFilename.size() * sizeof(char));
-	strcpy(_output, OutputFilename.c_str());
-	global_compiler->settings->output_file = _output;
+	global_compiler->settings->input_files.push_back("examples\\simple_math.li");
+	global_compiler->settings->output_file = "bin\\simple_math.obj";
 
 	global_compiler->run();
 
