@@ -101,6 +101,7 @@ enum Ast_Expression_Type {
 
 struct Ast_Expression : Ast_Statement {
 	Ast_Expression_Type exp_type = AST_EXPRESSION_UNDEFINED;
+	Ast_Type_Instance* inferred_type = NULL;
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
 };

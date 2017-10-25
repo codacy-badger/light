@@ -9,7 +9,6 @@
 #include "timer.hpp"
 #include "parser/pipe/symbol_resolution_pipe.hpp"
 #include "parser/pipe/print_pipe.hpp"
-#include "back/llvm/llvm_pipe.hpp"
 
 Ast_Type_Instance* Light_Compiler::type_def_void = new Ast_Struct_Type("void");
 Ast_Type_Instance* Light_Compiler::type_def_i1 	 = new Ast_Struct_Type("i1");
@@ -45,7 +44,6 @@ void Light_Compiler::run () {
 		auto parser = new Parser(this, filename);
 		parser->append(new Symbol_Resolution());
 		parser->append(new PrintPipe());
-		parser->append(new LLVMPipe("_tmp_.obj"));
 
 		auto start = Timer::getTime();
 		parser->block();

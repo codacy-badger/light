@@ -14,8 +14,6 @@ struct cmp_str {
 struct Symbol_Resolution : Pipe {
     std::map<const char*, Ast_Expression*, cmp_str> cache;
 
-    Symbol_Resolution ();
-
     void onStatement(Ast_Statement* stm);
 	void onFinish ();
 };
