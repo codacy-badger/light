@@ -28,11 +28,13 @@ struct Bytecode_Interpreter {
 	void copy (uint8_t size, uint8_t reg1, uint8_t reg2);
 	void stack_alloca (uint8_t size, uint8_t* data);
 	void stack_offset (uint8_t size, uint8_t reg1, uint8_t* data);
-	void store_int (uint8_t size, uint8_t reg1, uint8_t* data);
+	
 	void store (uint8_t size, uint8_t reg1, uint8_t reg2);
+	void store_int (uint8_t size, uint8_t reg1, uint8_t* data);
 	void load (uint8_t size, uint8_t reg1, uint8_t reg2);
-	void add_int (uint8_t size, uint8_t reg1, uint8_t* data);
+
 	void add (uint8_t size, uint8_t reg1, uint8_t reg2);
+	void add_int (uint8_t size, uint8_t reg1, uint8_t* data);
 
 	void dump ();
 };

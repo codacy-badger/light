@@ -119,16 +119,16 @@ void Bytecode_Interpreter::stack_offset (uint8_t size, uint8_t reg1, uint8_t* da
 	}
 }
 
-void Bytecode_Interpreter::store_int (uint8_t size, uint8_t reg1, uint8_t* data) {
-	uint8_t* ptr = NULL;
-	memcpy(&ptr, this->registers[reg1], sizeof(uint8_t*));
-	memcpy(ptr, data, size);
-}
-
 void Bytecode_Interpreter::store (uint8_t size, uint8_t reg1, uint8_t reg2) {
 	uint8_t* ptr = NULL;
 	memcpy(&ptr, this->registers[reg1], sizeof(uint8_t*));
 	memcpy(ptr, this->registers[reg2], size);
+}
+
+void Bytecode_Interpreter::store_int (uint8_t size, uint8_t reg1, uint8_t* data) {
+	uint8_t* ptr = NULL;
+	memcpy(&ptr, this->registers[reg1], sizeof(uint8_t*));
+	memcpy(ptr, data, size);
 }
 
 void Bytecode_Interpreter::load (uint8_t size, uint8_t reg1, uint8_t reg2) {
@@ -137,10 +137,10 @@ void Bytecode_Interpreter::load (uint8_t size, uint8_t reg1, uint8_t reg2) {
 	memcpy(this->registers[reg1], ptr, size);
 }
 
-void Bytecode_Interpreter::add_int (uint8_t size, uint8_t reg1, uint8_t* data) {
+void Bytecode_Interpreter::add (uint8_t size, uint8_t reg1, uint8_t reg2) {
 	uint16_t _tmp = 0;
 	for (size_t i = 0; i < size; i++) {
-		_tmp = this->registers[reg1][i] + *(data + i);
+		_tmp = this->registers[reg1][i] + this->registers[reg2][i];
 		if (this->flag_carry) _tmp += 1;
 		this->flag_carry = (_tmp >> 8) > 0;
 		this->registers[reg1][i] = _tmp;
@@ -148,10 +148,10 @@ void Bytecode_Interpreter::add_int (uint8_t size, uint8_t reg1, uint8_t* data) {
 	if (this->flag_carry) printf("Carry!\n");
 }
 
-void Bytecode_Interpreter::add (uint8_t size, uint8_t reg1, uint8_t reg2) {
+void Bytecode_Interpreter::add_int (uint8_t size, uint8_t reg1, uint8_t* data) {
 	uint16_t _tmp = 0;
 	for (size_t i = 0; i < size; i++) {
-		_tmp = this->registers[reg1][i] + this->registers[reg2][i];
+		_tmp = this->registers[reg1][i] + *(data + i);
 		if (this->flag_carry) _tmp += 1;
 		this->flag_carry = (_tmp >> 8) > 0;
 		this->registers[reg1][i] = _tmp;
