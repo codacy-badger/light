@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define INST_OFFSET(offset) this->instructions[this->instruction_index + (offset)]
+
 Bytecode_Interpreter::Bytecode_Interpreter () {
 	assert(REGISTER_SIZE >= sizeof(uint8_t*));
 	// INFO: this makes debug easier
@@ -14,144 +16,147 @@ Bytecode_Interpreter::Bytecode_Interpreter () {
 }
 
 void Bytecode_Interpreter::start () {
-	while (this->instructions[this->instruction_index] != BYTECODE_STOP) {
-		this->run_next();
+	bool ok = true;
+	while (INST_OFFSET(0) != BYTECODE_STOP) {
+		ok = this->run_next();
+		if (!ok) break;
 	}
-	printf("Execution stop!\n");
+	if (!ok) {
+		printf("ERROR!\n");
+		this->dump();
+	} else printf("Terminated successfully!\n");
 }
 
-void Bytecode_Interpreter::run_next () {
-	switch (this->instructions[this->instruction_index]) {
-		case BYTECODE_NOOP: {
-			this->instruction_index += 1;
-			break;
-		}
+bool Bytecode_Interpreter::run_next () {
+	uint8_t op = INST_OFFSET(0);
+	this->instruction_index++;
+	switch (op) {
+		case BYTECODE_NOOP: break;
 		case BYTECODE_SET: {
-			uint8_t size = this->instructions[this->instruction_index + 1];
-			uint8_t reg = this->instructions[this->instruction_index + 2];
-			uint8_t* dataPtr = &this->instructions[this->instruction_index + 3];
-
-			memcpy(&this->registers[reg], dataPtr, size);
-
-			this->instruction_index += 3 + size;
-			break;
-		}
-		case BYTECODE_COPY: {
-			uint8_t size = this->instructions[this->instruction_index + 1];
-			uint8_t reg1 = this->instructions[this->instruction_index + 2];
-			uint8_t reg2 = this->instructions[this->instruction_index + 3];
-
-			memcpy(this->registers[reg1], this->registers[reg2], size);
-
-			this->instruction_index += 4;
-			break;
-		}
-		case BYTECODE_STACK_ALLOCA: {
-			uint8_t size = this->instructions[this->instruction_index + 1];
-			uint8_t* dataPtr = &this->instructions[this->instruction_index + 2];
-
-			uint64_t _tmp = 0;
-			for (size_t i = 0; i < size; i++) {
-				_tmp = *(dataPtr + i) << (8 * (size - i - 1));
-				this->stack_index += _tmp;
-			}
-
+			uint8_t size = INST_OFFSET(0);
+			this->set(size, INST_OFFSET(1), &INST_OFFSET(2));
 			this->instruction_index += 2 + size;
 			break;
 		}
+		case BYTECODE_COPY: {
+			this->copy(INST_OFFSET(0), INST_OFFSET(1), INST_OFFSET(2));
+			this->instruction_index += 3;
+			break;
+		}
+		case BYTECODE_STACK_ALLOCA: {
+			uint8_t size = INST_OFFSET(0);
+			this->stack_alloca(size, &INST_OFFSET(1));
+			this->instruction_index += 1 + size;
+			break;
+		}
 		case BYTECODE_STACK_OFFSET: {
-			uint8_t size = this->instructions[this->instruction_index + 1];
-			uint8_t reg1 = this->instructions[this->instruction_index + 2];
-			uint8_t* offsetPtr = &this->instructions[this->instruction_index + 3];
-
-			uint8_t** reg_ptr = reinterpret_cast<uint8_t**>(this->registers[reg1]);
-			uint8_t* current_stack_ptr = &this->stack[this->stack_index];
-			*reg_ptr = current_stack_ptr;
-
-			uint64_t _tmp = 0;
-			for (size_t i = 0; i < size; i++) {
-				_tmp = *(offsetPtr + i) << (8 * (size - i - 1));
-				*reg_ptr -= _tmp;
-			}
-
-			this->instruction_index += 3 + size;
+			uint8_t size = INST_OFFSET(0);
+			this->stack_offset(size, INST_OFFSET(1), &INST_OFFSET(2));
+			this->instruction_index += 2 + size;
 			break;
 		}
 		case BYTECODE_STORE_INT: {
-			uint8_t size = this->instructions[this->instruction_index + 1];
-			uint8_t reg1 = this->instructions[this->instruction_index + 2];
-			uint8_t* dataPtr = &this->instructions[this->instruction_index + 3];
-
-			uint8_t* ptr = NULL;
-			memcpy(&ptr, this->registers[reg1], sizeof(uint8_t*));
-			memcpy(ptr, dataPtr, size);
-
-			this->instruction_index += 3 + size;
+			uint8_t size = INST_OFFSET(0);
+			this->store_int(size, INST_OFFSET(1), &INST_OFFSET(2));
+			this->instruction_index += 2 + size;
 			break;
 		}
 		case BYTECODE_STORE: {
-			uint8_t size = this->instructions[this->instruction_index + 1];
-			uint8_t reg1 = this->instructions[this->instruction_index + 2];
-			uint8_t reg2 = this->instructions[this->instruction_index + 3];
-
-			uint8_t* ptr = NULL;
-			memcpy(&ptr, this->registers[reg1], sizeof(uint8_t*));
-			memcpy(ptr, this->registers[reg2], size);
-
-			this->instruction_index += 4;
+			this->store(INST_OFFSET(0), INST_OFFSET(1), INST_OFFSET(2));
+			this->instruction_index += 3;
 			break;
 		}
 		case BYTECODE_LOAD: {
-			uint8_t size = this->instructions[this->instruction_index + 1];
-			uint8_t reg1 = this->instructions[this->instruction_index + 2];
-			uint8_t reg2 = this->instructions[this->instruction_index + 3];
-
-			uint8_t* ptr = NULL;
-			memcpy(&ptr, &this->registers[reg2], sizeof(uint8_t*));
-			memcpy(this->registers[reg1], ptr, size);
-
-			this->instruction_index += 4;
+			this->load(INST_OFFSET(0), INST_OFFSET(1), INST_OFFSET(2));
+			this->instruction_index += 3;
 			break;
 		}
 		case BYTECODE_ADD_INT: {
-			uint8_t size = this->instructions[this->instruction_index + 1];
-			uint8_t reg1 = this->instructions[this->instruction_index + 2];
-			uint8_t* dataPtr = &this->instructions[this->instruction_index + 3];
-
-			uint16_t _tmp = 0;
-		    for (size_t i = 0; i < size; i++) {
-		        _tmp = this->registers[reg1][i] + *(dataPtr + i);
-		        if (this->flag_carry) _tmp += 1;
-		        this->flag_carry = (_tmp >> 8) > 0;
-		        this->registers[reg1][i] = _tmp;
-		    }
-		    if (this->flag_carry) printf("Carry!\n");
-
-			this->instruction_index += 3 + size;
+			uint8_t size = INST_OFFSET(0);
+			this->add_int(size, INST_OFFSET(1), &INST_OFFSET(2));
+			this->instruction_index += 2 + size;
 			break;
 		}
 		case BYTECODE_ADD: {
-			uint8_t size = this->instructions[this->instruction_index + 1];
-			uint8_t reg1 = this->instructions[this->instruction_index + 2];
-			uint8_t reg2 = this->instructions[this->instruction_index + 3];
-
-			uint16_t _tmp = 0;
-		    for (size_t i = 0; i < size; i++) {
-		        _tmp = this->registers[reg1][i] + this->registers[reg2][i];
-		        if (this->flag_carry) _tmp += 1;
-		        this->flag_carry = (_tmp >> 8) > 0;
-		        this->registers[reg1][i] = _tmp;
-		    }
-
-			this->instruction_index += 4;
+			this->add(INST_OFFSET(0), INST_OFFSET(1), INST_OFFSET(2));
+			this->instruction_index += 3;
 			break;
 		}
 		default: {
 			printf("--- UNKNOWN BYTECODE OP ---\n");
 			printf("OP: %d\nAt: %lld", this->instructions[this->instruction_index], this->instruction_index);
-			exit(1);
+			return false;
 		}
 	}
+	return true;
+}
+
+void Bytecode_Interpreter::set (uint8_t size, uint8_t reg1, uint8_t* data) {
+	memcpy(&this->registers[reg1], data, size);
+}
+
+void Bytecode_Interpreter::copy (uint8_t size, uint8_t reg1, uint8_t reg2) {
+	memcpy(this->registers[reg1], this->registers[reg2], size);
+}
+
+void Bytecode_Interpreter::stack_alloca (uint8_t size, uint8_t* data) {
+	uint64_t _tmp = 0;
+	for (size_t i = 0; i < size; i++) {
+		_tmp = *(data + i) << (8 * (size - i - 1));
+		this->stack_index += _tmp;
+	}
+}
+
+void Bytecode_Interpreter::stack_offset (uint8_t size, uint8_t reg1, uint8_t* data) {
+	uint8_t** reg_ptr = reinterpret_cast<uint8_t**>(this->registers[reg1]);
+	uint8_t* current_stack_ptr = &this->stack[this->stack_index];
+	*reg_ptr = current_stack_ptr;
+
+	uint64_t _tmp = 0;
+	for (size_t i = 0; i < size; i++) {
+		_tmp = *(data + i) << (8 * (size - i - 1));
+		*reg_ptr -= _tmp;
+	}
+}
+
+void Bytecode_Interpreter::store_int (uint8_t size, uint8_t reg1, uint8_t* data) {
+	uint8_t* ptr = NULL;
+	memcpy(&ptr, this->registers[reg1], sizeof(uint8_t*));
+	memcpy(ptr, data, size);
+}
+
+void Bytecode_Interpreter::store (uint8_t size, uint8_t reg1, uint8_t reg2) {
+	uint8_t* ptr = NULL;
+	memcpy(&ptr, this->registers[reg1], sizeof(uint8_t*));
+	memcpy(ptr, this->registers[reg2], size);
+}
+
+void Bytecode_Interpreter::load (uint8_t size, uint8_t reg1, uint8_t reg2) {
+	uint8_t* ptr = NULL;
+	memcpy(&ptr, &this->registers[reg2], sizeof(uint8_t*));
+	memcpy(this->registers[reg1], ptr, size);
+}
+
+void Bytecode_Interpreter::add_int (uint8_t size, uint8_t reg1, uint8_t* data) {
+	uint16_t _tmp = 0;
+	for (size_t i = 0; i < size; i++) {
+		_tmp = this->registers[reg1][i] + *(data + i);
+		if (this->flag_carry) _tmp += 1;
+		this->flag_carry = (_tmp >> 8) > 0;
+		this->registers[reg1][i] = _tmp;
+	}
+	if (this->flag_carry) printf("Carry!\n");
+}
+
+void Bytecode_Interpreter::add (uint8_t size, uint8_t reg1, uint8_t reg2) {
+	uint16_t _tmp = 0;
+	for (size_t i = 0; i < size; i++) {
+		_tmp = this->registers[reg1][i] + this->registers[reg2][i];
+		if (this->flag_carry) _tmp += 1;
+		this->flag_carry = (_tmp >> 8) > 0;
+		this->registers[reg1][i] = _tmp;
+	}
+	if (this->flag_carry) printf("Carry!\n");
 }
 
 void Bytecode_Interpreter::dump () {
