@@ -3,7 +3,7 @@
 #include "timer.hpp"
 
 #include <windows.h>
-#include <iostream>
+#include <stdio.h>
 
 double PCFreq = 0;
 

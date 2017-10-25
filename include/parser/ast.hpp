@@ -1,8 +1,6 @@
 #pragma once
 
-#include <map>
 #include <vector>
-#include <string>
 
 #include "lexer/lexer.hpp"
 
@@ -44,11 +42,10 @@ struct Ast_Note : Ast_Statement {
 };
 
 struct Ast_Block : Ast_Statement {
-	string name;
+	const char* name;
 	vector<Ast_Statement*> list;
 
 	Ast_Block* parent = NULL;
-	map<string, Ast_Expression*> symbols;
 
 	Ast_Block (Ast_Block* parent = NULL) {
 		this->stm_type = AST_STATEMENT_BLOCK;
@@ -168,9 +165,6 @@ enum Ast_Binary_Type {
 };
 
 struct Ast_Binary : Ast_Expression {
-	static map<Token_Type, bool> isLeftAssociate;
-	static map<Token_Type, short> precedence;
-
 	Ast_Binary_Type binary_op = AST_BINARY_UNINITIALIZED;
 	Ast_Expression* lhs = NULL;
 	Ast_Expression* rhs = NULL;

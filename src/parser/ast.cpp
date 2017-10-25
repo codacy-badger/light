@@ -18,30 +18,37 @@ void Ast_Binary::setOP (Token_Type tType) {
 Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 	switch (tType) {
 		case TOKEN_EQUAL: 	return AST_BINARY_ASSIGN;
-		case TOKEN_DOT: 		return AST_BINARY_ATTRIBUTE;
-		case TOKEN_ADD: 		return AST_BINARY_ADD;
-		case TOKEN_SUB: 		return AST_BINARY_SUB;
-		case TOKEN_MUL: 		return AST_BINARY_MUL;
-		case TOKEN_DIV: 		return AST_BINARY_DIV;
-		default: {
-			cout << "[ERROR] Binary operator unknown: " << tType << "\n";
-			return AST_BINARY_UNINITIALIZED;
-		}
+		case TOKEN_DOT: 	return AST_BINARY_ATTRIBUTE;
+		case TOKEN_ADD: 	return AST_BINARY_ADD;
+		case TOKEN_SUB: 	return AST_BINARY_SUB;
+		case TOKEN_MUL: 	return AST_BINARY_MUL;
+		case TOKEN_DIV: 	return AST_BINARY_DIV;
+		default: 			return AST_BINARY_UNINITIALIZED;
 	};
 }
 
 short Ast_Binary::getPrecedence (Token_Type opToken) {
-	auto it = Ast_Binary::precedence.find(opToken);
-	if (it != Ast_Binary::precedence.end())
-		return Ast_Binary::precedence[opToken];
-	else return -1;
+	switch (opToken) {
+		case TOKEN_EQUAL: return 1;
+		case TOKEN_DOT:   return 1;
+		case TOKEN_ADD:   return 2;
+		case TOKEN_SUB:   return 2;
+		case TOKEN_MUL:   return 3;
+		case TOKEN_DIV:   return 3;
+		default: 		  return 0;
+	}
 }
 
 bool Ast_Binary::getLeftAssociativity (Token_Type opToken) {
-	auto it = Ast_Binary::isLeftAssociate.find(opToken);
-	if (it != Ast_Binary::isLeftAssociate.end())
-		return Ast_Binary::isLeftAssociate[opToken];
-	else return false;
+	switch (opToken) {
+		case TOKEN_EQUAL: return false;
+		case TOKEN_DOT:   return false;
+		case TOKEN_ADD:   return false;
+		case TOKEN_SUB:   return false;
+		case TOKEN_MUL:   return false;
+		case TOKEN_DIV:   return false;
+		default: 		  return false;
+	}
 }
 
 void Ast_Unary::setOP (Token_Type tType) {
@@ -51,23 +58,9 @@ void Ast_Unary::setOP (Token_Type tType) {
 Ast_Unary_Type Ast_Unary::typeToOP (Token_Type tType) {
 	switch (tType) {
 		case TOKEN_SUB: return AST_UNARY_NEGATE_NUMBER;
-		default: {
-			cout << "[ERROR] Unary operator unknown: " << tType << "\n";
-			return AST_UNARY_UNINITIALIZED;
-		}
+		default: 		return AST_UNARY_UNINITIALIZED;
 	};
 }
-
-map<Token_Type, short> Ast_Binary::precedence = {
-	{TOKEN_EQUAL, 	1}, {TOKEN_DOT, 1},
-	{TOKEN_ADD, 		2}, {TOKEN_SUB, 2},
-	{TOKEN_MUL, 		3}, {TOKEN_DIV, 3}
-};
-map<Token_Type, bool> Ast_Binary::isLeftAssociate = {
-	{TOKEN_EQUAL, 	false}, {TOKEN_DOT, false},
-	{TOKEN_ADD, 		false}, {TOKEN_SUB, false},
-	{TOKEN_MUL, 		false}, {TOKEN_DIV, false}
-};
 
 bool Ast_Ident::operator ==(const Ast_Ident* other) const {
 	return strcmp(this->name, other->name) == 0;
