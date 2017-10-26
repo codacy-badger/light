@@ -1,6 +1,6 @@
 //import! "examples/basic.li"
 
-NUM : i32 : 12;
+NUM : i32 : VAL + 10;
 
 main : () : fn {
     b : i32 = NUM;
@@ -8,3 +8,5 @@ main : () : fn {
 }
 
 a : i32 : NUM + 4;
+
+VAL : i32 : 2;
