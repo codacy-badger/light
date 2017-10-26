@@ -10,6 +10,8 @@
 #include "parser/pipe/symbol_resolution_pipe.hpp"
 #include "parser/pipe/print_pipe.hpp"
 
+Light_Compiler* Light_Compiler::instance = NULL;
+
 Ast_Type_Instance* Light_Compiler::type_def_void = new Ast_Struct_Type("void");
 Ast_Type_Instance* Light_Compiler::type_def_i1 	 = new Ast_Struct_Type("i1");
 Ast_Type_Instance* Light_Compiler::type_def_i32  = new Ast_Struct_Type("i32");
@@ -28,12 +30,10 @@ void link (std::string output) {
 	Timer::print("  Link  ", linker);
 }
 
-Light_Compiler* global_compiler;
-
 Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	if (!settings) this->settings = new Light_Compiler_Settings();
 	else this->settings = settings;
-	global_compiler = this;
+	Light_Compiler::instance = this;
 }
 
 void Light_Compiler::run () {

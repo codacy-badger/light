@@ -18,6 +18,12 @@ struct Light_Compiler {
 
 	set<const char*> native_dependencies;
 
+	static Ast_Type_Instance* type_def_void;
+	static Ast_Type_Instance* type_def_i1;
+	static Ast_Type_Instance* type_def_i32;
+
+	static Light_Compiler* instance;
+
 	Light_Compiler (Light_Compiler_Settings* settings = NULL);
 
 	void run ();
@@ -25,10 +31,4 @@ struct Light_Compiler {
 	void report_info (Ast* node, const char* format, ...);
 	void report_warning (Ast* node, const char* format, ...);
 	void report_error (Ast* node, const char* format, ...);
-
-	static Ast_Type_Instance* type_def_void;
-	static Ast_Type_Instance* type_def_i1;
-	static Ast_Type_Instance* type_def_i32;
 };
-
-extern Light_Compiler* global_compiler;

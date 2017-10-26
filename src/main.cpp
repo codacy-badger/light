@@ -45,12 +45,12 @@ int main (int argc, char** argv) {
 	delete buffer;
 	delete interpreter;*/
 
-	global_compiler = new Light_Compiler();
+	Light_Compiler* compiler = new Light_Compiler();
 
-	global_compiler->settings->input_files.push_back("examples\\simple_math.li");
-	global_compiler->settings->output_file = "bin\\simple_math.obj";
+	compiler->settings->input_files.push_back("examples\\simple_math.li");
+	compiler->settings->output_file = "bin\\simple_math.obj";
 
-	global_compiler->run();
+	compiler->run();
 
 	return EXIT_SUCCESS;
 }
