@@ -41,10 +41,12 @@ Ast_Block* Parser::block () {
 			this->toNext(stm);
 		}
 
-		if (this->lexer->isNextType(TOKEN_EOF)) return this->current_block;
+		if (this->lexer->isNextType(TOKEN_EOF)) break;
 	}
 
-	return NULL;
+	auto _block = this->current_block;
+	this->current_block = this->current_block->parent;
+	return _block;
 }
 
 Ast_Statement* Parser::statement () {
