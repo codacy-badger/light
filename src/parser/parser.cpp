@@ -27,7 +27,7 @@ Ast_Block* Parser::block () {
 		if (stm->stm_type == AST_STATEMENT_IMPORT) {
 			auto imp = static_cast<Ast_Import*>(stm);
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
-				this->lexer = this->lexer->push(imp->filepath);
+				this->lexer->push(imp->filepath);
 				if (this->lexer->buffer->is_valid()) {
 					auto include_block = this->block();
 					this->current_block->list.insert(this->current_block->list.end(),
@@ -35,7 +35,7 @@ Ast_Block* Parser::block () {
 					delete include_block;
 				} else this->compiler->report_error(imp,
 					"Can't open import file: '%s'", imp->filepath);
-				this->lexer = this->lexer->pop();
+				this->lexer->pop();
 			}
 		} else {
 			this->current_block->list.push_back(stm);

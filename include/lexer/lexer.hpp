@@ -1,9 +1,9 @@
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "lexer/buffer.hpp"
+
+#include <string>
+#include <deque>
 
 enum Token_Type {
 	TOKEN_UNDEFINED = 0,
@@ -41,8 +41,10 @@ enum Token_Type {
 };
 
 struct Lexer {
-	Buffer* buffer;
 	Lexer* parent = NULL;
+	
+	std::deque<Buffer*> buffer_stack;
+	Buffer* buffer;
 
 	char* nextText;
 	Token_Type nextType;
@@ -68,6 +70,6 @@ struct Lexer {
 	void handleToken (Token_Type type, const char* text);
 	bool skip_ignored_and_comments ();
 
-	Lexer* push (const char* filepath);
-	Lexer* pop ();
+	void push (const char* filepath);
+	void pop ();
 };
