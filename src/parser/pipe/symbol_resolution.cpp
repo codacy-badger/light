@@ -1,10 +1,6 @@
 #pragma once
 
-#include "parser/pipe/symbol_resolution_pipe.hpp"
-
-#include <vector>
-
-#include "compiler.hpp"
+#include "parser/pipe/symbol_resolution.hpp"
 
 void Symbol_Resolution::on_block_begin(Ast_Block* block) {
 }

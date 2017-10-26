@@ -3,6 +3,7 @@
 #include "parser/pipes.hpp"
 
 #include <string.h>
+#include <vector>
 #include <map>
 
 using namespace std;
@@ -14,7 +15,7 @@ struct cmp_str {
 };
 
 struct Symbol_Resolution : Pipe {
-    map<const char*, Ast_Expression*, cmp_str> cache;
+    map<const char*, vector<Ast_Statement*>, cmp_str> cache;
 
     void on_block_begin(Ast_Block* block);
     void on_statement(Ast_Statement* stm);
