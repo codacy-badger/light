@@ -16,8 +16,6 @@ struct Light_Compiler {
 	Light_Compiler_Settings* settings = NULL;
 	Parser* parser = NULL;
 
-	set<const char*> native_dependencies;
-
 	static Ast_Type_Instance* type_def_void;
 	static Ast_Type_Instance* type_def_i1;
 	static Ast_Type_Instance* type_def_i32;

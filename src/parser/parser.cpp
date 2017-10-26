@@ -27,26 +27,18 @@ Ast_Block* Parser::block () {
 			auto imp = static_cast<Ast_Import*>(stm);
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
 				this->lexer = this->lexer->push(imp->filepath);
-				if (!this->lexer->buffer->is_valid())
-					this->compiler->report_error(imp, "File not found: '%s'", imp->filepath);
-				else {
+				if (this->lexer->buffer->is_valid()) {
 					auto include_block = this->block();
-					for (auto stm : include_block->list)
-						block->list.push_back(stm);
-					include_block->list.clear();
+					block->list.insert(block->list.end(),
+						include_block->list.begin(), include_block->list.end());
 					delete include_block;
-				}
+				} else this->compiler->report_error(imp,
+					"Can't open import file: '%s'", imp->filepath);
 				this->lexer = this->lexer->pop();
-			} else if (imp->import_flags & IMPORT_IS_NATIVE) {
-				this->compiler->native_dependencies.insert(imp->filepath);
-			} else {
-				this->compiler->report_warning(imp, "Dynamic imports not yet supported! use 'import!'");
 			}
 		} else {
 			block->list.push_back(stm);
-			if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-				this->toNext(static_cast<Ast_Declaration*>(stm));
-			}
+			this->toNext(stm);
 		}
 
 		if (this->lexer->isNextType(TOKEN_EOF)) return block;
