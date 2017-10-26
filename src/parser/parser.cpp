@@ -177,10 +177,6 @@ Ast_Type_Definition* Parser::type_definition () {
 	return NULL;
 }
 
-Ast_Named_Type* Parser::struct_type (string name) {
-	return NULL;
-}
-
 Ast_Type_Instance* Parser::type_instance () {
 	if (this->lexer->isNextType(TOKEN_ID)) {
 		auto ty_inst = AST_NEW(Ast_Named_Type);

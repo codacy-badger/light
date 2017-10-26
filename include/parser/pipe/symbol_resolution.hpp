@@ -24,7 +24,10 @@ struct Symbol_Resolution : Pipe {
 
     bool check_symbols (Ast_Expression* stm, set<const char*, cmp_str>* sym);
     bool check_symbols (Ast_Function* stm, set<const char*, cmp_str>* sym);
+
     bool check_symbols (Ast_Type_Instance* ty_inst, set<const char*, cmp_str>* sym);
+    bool check_symbols (Ast_Pointer_Type* ptr_type, set<const char*, cmp_str>* sym);
+    bool check_symbols (Ast_Function_Type* fn_type, set<const char*, cmp_str>* sym);
 
     void on_block_begin(Ast_Block* block);
     void on_statement(Ast_Statement* stm);

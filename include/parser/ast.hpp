@@ -115,8 +115,7 @@ struct Ast_Type_Definition : Ast_Expression {
 
 enum Ast_Type_Inst_Type {
 	AST_TYPE_INST_UNDEFINED = 0,
-	AST_TYPE_INST_STRUCT,
-	AST_TYPE_INST_TYPE,
+	AST_TYPE_INST_NAMED,
 	AST_TYPE_INST_POINTER,
 	AST_TYPE_INST_FUNCTION,
 };
@@ -129,9 +128,10 @@ struct Ast_Type_Instance : Ast_Expression {
 
 struct Ast_Named_Type : Ast_Type_Instance {
 	const char* name = NULL;
+	Ast_Type_Definition* definition = NULL;
 
 	Ast_Named_Type(const char* name = NULL) {
-		this->type_inst_type = AST_TYPE_INST_STRUCT;
+		this->type_inst_type = AST_TYPE_INST_NAMED;
 		this->name = name;
 	}
 };

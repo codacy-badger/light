@@ -118,7 +118,7 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs) {
 void ASTPrinter::print (Ast_Type_Instance* type_inst, int tabs, bool nameOnly) {
 	switch (type_inst->type_inst_type) {
 		case AST_TYPE_INST_UNDEFINED: printf("!UNDEFINED!");
-		case AST_TYPE_INST_STRUCT: {
+		case AST_TYPE_INST_NAMED: {
 			print(static_cast<Ast_Named_Type*>(type_inst), tabs);
 			break;
 		}

@@ -70,6 +70,30 @@ bool Symbol_Resolution::check_symbols (Ast_Function* fn, set<const char*, cmp_st
 }
 
 bool Symbol_Resolution::check_symbols (Ast_Type_Instance* ty_inst, set<const char*, cmp_str>* sym) {
-    printf("Checking type instance...\n");
-    return true;
+    switch (ty_inst->type_inst_type) {
+        case AST_TYPE_INST_NAMED: {
+            auto named_type = static_cast<Ast_Named_Type*>(ty_inst);
+            if (!named_type->definition) {
+                sym->insert(named_type->name);
+            }
+            return false;
+        }
+        case AST_TYPE_INST_POINTER:
+            return check_symbols(static_cast<Ast_Pointer_Type*>(ty_inst), sym);
+        case AST_TYPE_INST_FUNCTION:
+            return check_symbols(static_cast<Ast_Function_Type*>(ty_inst), sym);
+        default: return false;
+    }
+}
+
+bool Symbol_Resolution::check_symbols (Ast_Pointer_Type* ptr_type, set<const char*, cmp_str>* sym) {
+    return check_symbols(ptr_type->base, sym);
+}
+
+bool Symbol_Resolution::check_symbols (Ast_Function_Type* fn_type, set<const char*, cmp_str>* sym) {
+    bool result = true;
+    result &= check_symbols(fn_type->return_type, sym);
+    for (auto param_type : fn_type->parameters)
+        result &= check_symbols(param_type, sym);
+    return result;
 }
