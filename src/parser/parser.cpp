@@ -195,9 +195,10 @@ Ast_Type_Instance* Parser::type_instance () {
 			this->lexer->skip(1);
 			ty_inst->return_type = this->type_instance();
 		} else {
-			// FIXME: hack to make it work, the primitive types should be
-			// inmediately found in the global scope
-			ty_inst->return_type = AST_NEW(Ast_Named_Type, "void");
+			// FIXME: void type should be more accessible
+			auto _void = AST_NEW(Ast_Named_Type, "void");
+			_void->definition = this->current_block->find_type_definition("void");
+			ty_inst->return_type = _void;
 		}
 
 		return ty_inst;
@@ -270,9 +271,10 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			this->lexer->skip(1);
 			fn_type->return_type = this->type_instance();
 		} else {
-			// FIXME: hack to make it work, the primitive types should be
-			// inmediately found in the global scope
-			fn_type->return_type = AST_NEW(Ast_Named_Type, "void");
+			// FIXME: void type should be more accessible
+			auto _void = AST_NEW(Ast_Named_Type, "void");
+			_void->definition = this->current_block->find_type_definition("void");
+			fn_type->return_type = _void;
 		}
 		fn->type = fn_type;
 
