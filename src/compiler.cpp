@@ -14,7 +14,6 @@
 Light_Compiler* Light_Compiler::instance = NULL;
 
 Ast_Type_Definition* Light_Compiler::type_def_void = new Ast_Type_Definition("void");
-Ast_Type_Definition* Light_Compiler::type_def_i1   = new Ast_Type_Definition("i1");
 Ast_Type_Definition* Light_Compiler::type_def_i32  = new Ast_Type_Definition("i32");
 
 void link (std::string output) {

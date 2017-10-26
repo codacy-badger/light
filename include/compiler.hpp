@@ -16,7 +16,6 @@ struct Light_Compiler {
 	Parser* parser = NULL;
 
 	static Ast_Type_Definition* type_def_void;
-	static Ast_Type_Definition* type_def_i1;
 	static Ast_Type_Definition* type_def_i32;
 
 	static Light_Compiler* instance;

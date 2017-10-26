@@ -10,7 +10,7 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
     if (!check_symbols(stm, &unresolved_symbols)) {
         printf("Found unresolved symbols:\n");
         for (auto symbol : unresolved_symbols) {
-            printf("+ %s\n", symbol);
+            printf(" - %s\n", symbol);
         }
     } else this->to_next(stm);
 }

@@ -10,6 +10,7 @@ struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
 struct Ast_Type_Instance;
+struct Ast_Type_Definition;
 
 using namespace std;
 
@@ -51,8 +52,9 @@ struct Ast_Block : Ast_Statement {
 		this->parent = parent;
 	}
 
-	void find_all_declarations (std::vector<Ast_Declaration*>* decls);
+	void find_declarations (std::vector<Ast_Declaration*>* decls, bool recurse = true);
 	Ast_Declaration* find_declaration (const char* name, bool recurse = true);
+	Ast_Type_Definition* find_type_definition (const char* name, bool recurse = true);
 };
 
 const int DECL_FLAG_CONSTANT = 0x1;

@@ -21,7 +21,6 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 Ast_Block* Parser::top_level_block () {
 	auto _block = AST_NEW(Ast_Block, this->current_block);
 	_block->list.push_back(ast_make_declaration(Light_Compiler::type_def_void));
-	_block->list.push_back(ast_make_declaration(Light_Compiler::type_def_i1));
 	_block->list.push_back(ast_make_declaration(Light_Compiler::type_def_i32));
 	this->block(_block);
 	return _block;
@@ -181,6 +180,13 @@ Ast_Type_Instance* Parser::type_instance () {
 	if (this->lexer->isNextType(TOKEN_ID)) {
 		auto ty_inst = AST_NEW(Ast_Named_Type);
 		ty_inst->name = this->lexer->text();
+
+		auto ty_def = this->current_block->find_type_definition(ty_inst->name);
+		if (ty_def) {
+			printf(" + symbol resolved: %s\n", ty_inst->name);
+			ty_inst->definition = ty_def;
+		}
+
 		return ty_inst;
 	} else if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 		auto ty_inst = AST_NEW(Ast_Function_Type);

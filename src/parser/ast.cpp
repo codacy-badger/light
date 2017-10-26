@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-void Ast_Block::find_all_declarations (std::vector<Ast_Declaration*>* decls) {
+void Ast_Block::find_declarations (std::vector<Ast_Declaration*>* decls, bool recurse) {
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION)
             decls->push_back(static_cast<Ast_Declaration*>(stm));
@@ -20,6 +20,13 @@ Ast_Declaration* Ast_Block::find_declaration (const char* name, bool recurse) {
     }
     if (recurse && this->parent)
         return this->parent->find_declaration(name, recurse);
+    else return NULL;
+}
+
+Ast_Type_Definition* Ast_Block::find_type_definition (const char* name, bool recurse) {
+    auto decl = this->find_declaration(name, recurse);
+    if (decl && decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION)
+        return static_cast<Ast_Type_Definition*>(decl->expression);
     else return NULL;
 }
 
