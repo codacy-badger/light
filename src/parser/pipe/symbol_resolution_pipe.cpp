@@ -6,10 +6,18 @@
 
 #include "compiler.hpp"
 
-void Symbol_Resolution::onStatement(Ast_Statement* stm) {
-    this->toNext(stm);
+void Symbol_Resolution::on_block_begin() {
+
 }
 
-void Symbol_Resolution::onFinish () {
-    this->tryFinish();
+void Symbol_Resolution::on_statement(Ast_Statement* stm) {
+    this->to_next(stm);
+}
+
+void Symbol_Resolution::on_block_end(Ast_Block* block) {
+
+}
+
+void Symbol_Resolution::on_finish () {
+    this->try_finish();
 }

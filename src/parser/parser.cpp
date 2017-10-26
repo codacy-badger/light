@@ -20,6 +20,7 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 
 Ast_Block* Parser::block () {
 	this->current_block = AST_NEW(Ast_Block, this->current_block);
+	this->on_block_begin();
 
 	Ast_Statement* stm;
 	while (stm = this->statement()) {
@@ -39,12 +40,12 @@ Ast_Block* Parser::block () {
 		} else {
 			this->current_block->list.push_back(stm);
 			if (this->current_block->parent == NULL) {
-				this->toNext(stm);
+				this->to_next(stm);
 			} else {
 				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 					auto decl = static_cast<Ast_Declaration*>(stm);
 					if (decl->decl_flags & DECL_FLAG_CONSTANT)
-						this->toNext(stm);
+						this->to_next(stm);
 				}
 			}
 		}
@@ -52,6 +53,7 @@ Ast_Block* Parser::block () {
 		if (this->lexer->isNextType(TOKEN_EOF)) break;
 	}
 
+	this->on_block_end(this->current_block);
 	auto _block = this->current_block;
 	this->current_block = this->current_block->parent;
 	return _block;

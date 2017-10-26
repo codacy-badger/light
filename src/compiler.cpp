@@ -48,7 +48,7 @@ void Light_Compiler::run () {
 		auto start = Timer::getTime();
 		parser->block();
 		Timer::print("  Parse ", start);
-		parser->onFinish();
+		parser->on_finish();
 	}
 	Timer::print("TOTAL   ", total);
 }

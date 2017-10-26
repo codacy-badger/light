@@ -2,16 +2,20 @@
 
 #include "parser/pipes.hpp"
 
-void Pipe::onStatement(Ast_Statement* stm) {
-	this->toNext(stm);
+void Pipe::on_block_begin () {
+	this->try_block_begin();
 }
 
-void Pipe::onFinish () {
-	this->tryFinish();
+void Pipe::on_statement(Ast_Statement* stm) {
+	this->to_next(stm);
 }
 
-void Pipe::tryFinish() {
-	if (next) next->onFinish();
+void Pipe::on_block_end (Ast_Block* block) {
+	this->try_block_end(block);
+}
+
+void Pipe::on_finish () {
+	this->try_finish();
 }
 
 void Pipe::append (Pipe* next) {
