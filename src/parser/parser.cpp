@@ -38,7 +38,15 @@ Ast_Block* Parser::block () {
 			}
 		} else {
 			this->current_block->list.push_back(stm);
-			this->toNext(stm);
+			if (this->current_block->parent == NULL) {
+				this->toNext(stm);
+			} else {
+				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+					auto decl = static_cast<Ast_Declaration*>(stm);
+					if (decl->decl_flags & DECL_FLAG_CONSTANT)
+						this->toNext(stm);
+				}
+			}
 		}
 
 		if (this->lexer->isNextType(TOKEN_EOF)) break;
