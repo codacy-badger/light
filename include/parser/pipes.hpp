@@ -5,10 +5,21 @@
 struct Pipe {
 	Pipe* next = NULL;
 
-	virtual void on_block_begin (Ast_Block* block);
-	virtual void on_statement (Ast_Statement* stm);
-	virtual void on_block_end (Ast_Block* block);
-	virtual void on_finish ();
+	virtual void on_block_begin (Ast_Block* block) {
+		this->try_block_begin(block);
+	}
+
+	virtual void on_statement (Ast_Statement* stm) {
+		this->to_next(stm);
+	}
+
+	virtual void on_block_end (Ast_Block* block) {
+		this->try_block_end(block);
+	}
+
+	virtual void on_finish () {
+		this->try_finish();
+	}
 
 	void try_block_begin(Ast_Block* block) {
 		if (next) next->on_block_begin(block);

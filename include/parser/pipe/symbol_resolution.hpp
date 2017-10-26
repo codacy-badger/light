@@ -3,7 +3,7 @@
 #include "parser/pipes.hpp"
 
 #include <string.h>
-#include <vector>
+#include <set>
 #include <map>
 #include <set>
 
@@ -16,7 +16,11 @@ struct cmp_str {
 };
 
 struct Symbol_Resolution : Pipe {
-    map<const char*, vector<Ast_Statement*>, cmp_str> cache;
+    map<const char*, set<Ast_Statement*>, cmp_str> unresolved_symbols;
+    map<const char*, set<Ast_Type_Definition**>, cmp_str> unresolved_type_defn_references;
+    map<const char*, set<Ast_Declaration**>, cmp_str> unresolved_decl_references;
+
+    void on_statement(Ast_Statement* stm);
 
     bool check_symbols (Ast_Statement* stm, set<const char*, cmp_str>* sym);
     bool check_symbols (Ast_Declaration* stm, set<const char*, cmp_str>* sym);
@@ -30,9 +34,4 @@ struct Symbol_Resolution : Pipe {
     bool check_symbols (Ast_Type_Instance* ty_inst, set<const char*, cmp_str>* sym);
     bool check_symbols (Ast_Pointer_Type* ptr_type, set<const char*, cmp_str>* sym);
     bool check_symbols (Ast_Function_Type* fn_type, set<const char*, cmp_str>* sym);
-
-    void on_block_begin(Ast_Block* block);
-    void on_statement(Ast_Statement* stm);
-    void on_block_end(Ast_Block* block);
-	void on_finish ();
 };
