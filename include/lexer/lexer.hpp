@@ -67,4 +67,7 @@ struct Lexer {
 	char* copyString (std::string str);
 	void handleToken (Token_Type type, const char* text);
 	bool skip_ignored_and_comments ();
+
+	Lexer* push (const char* filepath);
+	Lexer* pop ();
 };

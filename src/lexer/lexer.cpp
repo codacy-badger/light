@@ -262,3 +262,13 @@ bool Lexer::skip_ignored_and_comments () {
     }
 	return false;
 }
+
+Lexer* Lexer::push (const char* filepath) {
+	this->parent = new Lexer(filepath, this);
+	return this->parent;
+}
+
+Lexer* Lexer::pop () {
+	assert(this->parent);
+	return this->parent;
+}

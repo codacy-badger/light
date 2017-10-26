@@ -36,7 +36,4 @@ struct Parser : Pipe {
 	Ast_Function_Call* call (Ast_Expression* callee);
 	Ast_Literal* literal ();
 	Ast_Ident* ident ();
-
-	void lexerPush (const char* filepath);
-	Lexer* lexerPop ();
 };

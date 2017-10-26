@@ -26,7 +26,7 @@ Ast_Block* Parser::block () {
 		if (stm->stm_type == AST_STATEMENT_IMPORT) {
 			auto imp = static_cast<Ast_Import*>(stm);
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
-				this->lexerPush(imp->filepath);
+				this->lexer = this->lexer->push(imp->filepath);
 				if (!this->lexer->buffer->is_valid())
 					this->compiler->report_error(imp, "File not found: '%s'", imp->filepath);
 				else {
@@ -36,7 +36,7 @@ Ast_Block* Parser::block () {
 					include_block->list.clear();
 					delete include_block;
 				}
-				this->lexerPop();
+				this->lexer = this->lexer->pop();
 			} else if (imp->import_flags & IMPORT_IS_NATIVE) {
 				this->compiler->native_dependencies.insert(imp->filepath);
 			} else {
@@ -319,16 +319,4 @@ Ast_Ident* Parser::ident () {
 		output->name = this->lexer->text();
 		return output;
 	} else return NULL;
-}
-
-void Parser::lexerPush (const char* filepath) {
-	assert(this->lexer);
-	this->lexer = new Lexer(filepath, this->lexer);
-}
-
-Lexer* Parser::lexerPop () {
-	assert(this->lexer->parent);
-	auto _tmp = this->lexer;
-	this->lexer = this->lexer->parent;
-	return _tmp;
 }
