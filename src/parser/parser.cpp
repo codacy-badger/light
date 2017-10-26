@@ -181,11 +181,7 @@ Ast_Type_Instance* Parser::type_instance () {
 		auto ty_inst = AST_NEW(Ast_Named_Type);
 		ty_inst->name = this->lexer->text();
 
-		auto ty_def = this->current_block->find_type_definition(ty_inst->name);
-		if (ty_def) {
-			printf(" + symbol resolved: %s\n", ty_inst->name);
-			ty_inst->definition = ty_def;
-		}
+		ty_inst->definition = this->current_block->find_type_definition(ty_inst->name);
 
 		return ty_inst;
 	} else if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {

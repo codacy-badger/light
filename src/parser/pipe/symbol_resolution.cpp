@@ -75,8 +75,8 @@ bool Symbol_Resolution::check_symbols (Ast_Type_Instance* ty_inst, set<const cha
             auto named_type = static_cast<Ast_Named_Type*>(ty_inst);
             if (!named_type->definition) {
                 sym->insert(named_type->name);
-            }
-            return false;
+                return false;
+            } else return true;
         }
         case AST_TYPE_INST_POINTER:
             return check_symbols(static_cast<Ast_Pointer_Type*>(ty_inst), sym);
