@@ -11,6 +11,18 @@ void Ast_Block::find_all_declarations (std::vector<Ast_Declaration*>* decls) {
     }
 }
 
+Ast_Declaration* Ast_Block::find_declaration (const char* name, bool recurse) {
+    for (auto stm : this->list) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            if (strcmp(decl->identifier->name, name) == 0) return decl;
+        }
+    }
+    if (recurse && this->parent)
+        return this->parent->find_declaration(name, recurse);
+    else return NULL;
+}
+
 void Ast_Binary::setOP (Token_Type tType) {
 	this->binary_op = this->typeToOP(tType);
 }

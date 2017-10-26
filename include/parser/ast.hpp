@@ -53,6 +53,7 @@ struct Ast_Block : Ast_Statement {
 	}
 
 	void find_all_declarations (std::vector<Ast_Declaration*>* decls);
+	Ast_Declaration* find_declaration (const char* name, bool recurse = true);
 };
 
 const int DECL_FLAG_CONSTANT = 0x1;
