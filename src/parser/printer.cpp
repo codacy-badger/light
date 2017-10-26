@@ -60,8 +60,7 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs, bool nameOnly) {
 		printf("\n");
 	}
 
-	print(decl->identifier, tabs, false);
-	printf(" : ");
+	printf("%s : ", decl->name);
 	print(decl->type, tabs, false);
 	if (decl->expression) {
 		if (decl->decl_flags & DECL_FLAG_CONSTANT)
@@ -120,7 +119,7 @@ void ASTPrinter::print (Ast_Type_Instance* type_inst, int tabs, bool nameOnly) {
 	switch (type_inst->type_inst_type) {
 		case AST_TYPE_INST_UNDEFINED: printf("!UNDEFINED!");
 		case AST_TYPE_INST_STRUCT: {
-			print(static_cast<Ast_Struct_Type*>(type_inst), tabs);
+			print(static_cast<Ast_Named_Type*>(type_inst), tabs);
 			break;
 		}
 		case AST_TYPE_INST_POINTER: {
@@ -135,7 +134,7 @@ void ASTPrinter::print (Ast_Type_Instance* type_inst, int tabs, bool nameOnly) {
 	}
 }
 
-void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool nameOnly) {
+void ASTPrinter::print (Ast_Named_Type* type, int tabs, bool nameOnly) {
 	printf("%s", type->name);
 }
 

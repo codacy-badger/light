@@ -13,9 +13,9 @@
 
 Light_Compiler* Light_Compiler::instance = NULL;
 
-Ast_Type_Instance* Light_Compiler::type_def_void = new Ast_Struct_Type("void");
-Ast_Type_Instance* Light_Compiler::type_def_i1 	 = new Ast_Struct_Type("i1");
-Ast_Type_Instance* Light_Compiler::type_def_i32  = new Ast_Struct_Type("i32");
+Ast_Type_Definition* Light_Compiler::type_def_void = new Ast_Type_Definition("void");
+Ast_Type_Definition* Light_Compiler::type_def_i1   = new Ast_Type_Definition("i1");
+Ast_Type_Definition* Light_Compiler::type_def_i32  = new Ast_Type_Definition("i32");
 
 void link (std::string output) {
 	auto linker = Timer::getTime();
@@ -34,6 +34,7 @@ void link (std::string output) {
 Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	if (!settings) this->settings = new Light_Compiler_Settings();
 	else this->settings = settings;
+	assert(Light_Compiler::instance == NULL);
 	Light_Compiler::instance = this;
 }
 

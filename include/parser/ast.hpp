@@ -10,7 +10,6 @@ struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
 struct Ast_Type_Instance;
-struct Ast_Type_Definition;
 
 using namespace std;
 
@@ -59,7 +58,7 @@ struct Ast_Block : Ast_Statement {
 const int DECL_FLAG_CONSTANT = 0x1;
 
 struct Ast_Declaration : Ast_Statement {
-	Ast_Ident* identifier = NULL;
+	const char* name = NULL;
 	Ast_Type_Instance* type = NULL;
 	Ast_Expression* expression = NULL;
 
@@ -105,9 +104,13 @@ struct Ast_Expression : Ast_Statement {
 };
 
 struct Ast_Type_Definition : Ast_Expression {
+	const char* name;
 	vector<Ast_Declaration*> attributes;
 
-	Ast_Type_Definition() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
+	Ast_Type_Definition(const char* name = NULL) {
+		this->exp_type = AST_EXPRESSION_TYPE_DEFINITION;
+		this->name = name;
+	}
 };
 
 enum Ast_Type_Inst_Type {
@@ -124,6 +127,15 @@ struct Ast_Type_Instance : Ast_Expression {
 	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
 };
 
+struct Ast_Named_Type : Ast_Type_Instance {
+	const char* name = NULL;
+
+	Ast_Named_Type(const char* name = NULL) {
+		this->type_inst_type = AST_TYPE_INST_STRUCT;
+		this->name = name;
+	}
+};
+
 struct Ast_Pointer_Type : Ast_Type_Instance {
 	Ast_Type_Instance* base = NULL;
 
@@ -135,15 +147,6 @@ struct Ast_Function_Type : Ast_Type_Instance {
 	Ast_Type_Instance* return_type = NULL;
 
 	Ast_Function_Type() { this->type_inst_type = AST_TYPE_INST_FUNCTION; }
-};
-
-struct Ast_Struct_Type : Ast_Type_Instance {
-	const char* name = NULL;
-
-	Ast_Struct_Type(const char* name = NULL) {
-		this->type_inst_type = AST_TYPE_INST_STRUCT;
-		this->name = name;
-	}
 };
 
 struct Ast_Function : Ast_Expression {
@@ -237,3 +240,4 @@ struct Ast_Ident : Ast_Expression {
 };
 
 Ast_Ident* ast_make_ident (const char* name);
+Ast_Declaration* ast_make_declaration (Ast_Type_Definition* ty_def);

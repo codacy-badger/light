@@ -8,7 +8,7 @@ void Symbol_Resolution::on_block_begin(Ast_Block* block) {
 void Symbol_Resolution::on_statement(Ast_Statement* stm) {
     set<const char*, cmp_str> unresolved_symbols;
     if (!check_symbols(stm, &unresolved_symbols)) {
-        printf("Found symbols inresolved!\n");
+        printf("Found unresolved symbols:\n");
         for (auto symbol : unresolved_symbols) {
             printf("+ %s\n", symbol);
         }

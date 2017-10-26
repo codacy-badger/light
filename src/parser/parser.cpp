@@ -20,7 +20,9 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 
 Ast_Block* Parser::top_level_block () {
 	auto _block = AST_NEW(Ast_Block, this->current_block);
-	// TODO: add intrinsic types here
+	_block->list.push_back(ast_make_declaration(Light_Compiler::type_def_void));
+	_block->list.push_back(ast_make_declaration(Light_Compiler::type_def_i1));
+	_block->list.push_back(ast_make_declaration(Light_Compiler::type_def_i32));
 	this->block(_block);
 	return _block;
 }
@@ -114,7 +116,7 @@ Ast_Statement* Parser::statement () {
 			if (ident) {
 				if (this->lexer->isNextType(TOKEN_COLON)) {
 					auto decl = AST_NEW(Ast_Declaration);
-					decl->identifier = ident;
+					decl->name = ident->name;
 					this->lexer->skip(1);
 					decl->type = this->type_instance();
 
@@ -150,7 +152,7 @@ Ast_Statement* Parser::statement () {
 Ast_Declaration* Parser::declaration () {
 	if (this->lexer->isNextType(TOKEN_ID)) {
 		auto decl = AST_NEW(Ast_Declaration);
-		decl->identifier = this->ident();
+		decl->name = this->ident()->name;
 
 		if (this->lexer->isNextType(TOKEN_COLON)) {
 			this->lexer->skip(1);
@@ -175,13 +177,13 @@ Ast_Type_Definition* Parser::type_definition () {
 	return NULL;
 }
 
-Ast_Struct_Type* Parser::struct_type (string name) {
+Ast_Named_Type* Parser::struct_type (string name) {
 	return NULL;
 }
 
 Ast_Type_Instance* Parser::type_instance () {
 	if (this->lexer->isNextType(TOKEN_ID)) {
-		auto ty_inst = AST_NEW(Ast_Struct_Type);
+		auto ty_inst = AST_NEW(Ast_Named_Type);
 		ty_inst->name = this->lexer->text();
 		return ty_inst;
 	} else if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
@@ -196,7 +198,11 @@ Ast_Type_Instance* Parser::type_instance () {
 		if (this->lexer->isNextType(TOKEN_ARROW)) {
 			this->lexer->skip(1);
 			ty_inst->return_type = this->type_instance();
-		} else ty_inst->return_type = Light_Compiler::type_def_void;
+		} else {
+			// FIXME: hack to make it work, the primitive types should be
+			// inmediately found in the global scope
+			ty_inst->return_type = AST_NEW(Ast_Named_Type, "void");
+		}
 
 		return ty_inst;
 	} else return NULL;
@@ -267,7 +273,11 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		if (this->lexer->isNextType(TOKEN_ARROW)) {
 			this->lexer->skip(1);
 			fn_type->return_type = this->type_instance();
-		} else fn_type->return_type = Light_Compiler::type_def_void;
+		} else {
+			// FIXME: hack to make it work, the primitive types should be
+			// inmediately found in the global scope
+			fn_type->return_type = AST_NEW(Ast_Named_Type, "void");
+		}
 		fn->type = fn_type;
 
 		if (!this->lexer->isNextType(TOKEN_STM_END)) {

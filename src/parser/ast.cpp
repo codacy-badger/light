@@ -15,7 +15,7 @@ Ast_Declaration* Ast_Block::find_declaration (const char* name, bool recurse) {
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            if (strcmp(decl->identifier->name, name) == 0) return decl;
+            if (strcmp(decl->name, name) == 0) return decl;
         }
     }
     if (recurse && this->parent)
@@ -82,4 +82,11 @@ Ast_Ident* ast_make_ident (const char* name) {
 	auto out = new Ast_Ident();
 	out->name = name;
 	return out;
+}
+
+Ast_Declaration* ast_make_declaration (Ast_Type_Definition* ty_def) {
+    auto decl = new Ast_Declaration();
+    decl->name = ty_def->name;
+    decl->expression = ty_def;
+    return decl;
 }
