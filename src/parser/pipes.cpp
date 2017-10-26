@@ -2,8 +2,8 @@
 
 #include "parser/pipes.hpp"
 
-void Pipe::on_block_begin () {
-	this->try_block_begin();
+void Pipe::on_block_begin (Ast_Block* block) {
+	this->try_block_begin(block);
 }
 
 void Pipe::on_statement(Ast_Statement* stm) {

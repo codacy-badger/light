@@ -20,7 +20,7 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 
 Ast_Block* Parser::block () {
 	this->current_block = AST_NEW(Ast_Block, this->current_block);
-	this->on_block_begin();
+	this->on_block_begin(this->current_block);
 
 	Ast_Statement* stm;
 	while (stm = this->statement()) {

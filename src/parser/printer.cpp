@@ -34,7 +34,7 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 		case AST_STATEMENT_EXPRESSION: {
 			_tabs(tabs);
 			print(static_cast<Ast_Expression*>(stm), tabs);
-			printf("\n");
+			printf(";\n");
 			break;
 		}
 		default: printf("-???-\n");

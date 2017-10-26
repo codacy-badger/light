@@ -5,13 +5,13 @@
 struct Pipe {
 	Pipe* next = NULL;
 
-	virtual void on_block_begin ();
+	virtual void on_block_begin (Ast_Block* block);
 	virtual void on_statement (Ast_Statement* stm);
 	virtual void on_block_end (Ast_Block* block);
 	virtual void on_finish ();
 
-	void try_block_begin() {
-		if (next) next->on_block_begin();
+	void try_block_begin(Ast_Block* block) {
+		if (next) next->on_block_begin(block);
 	}
 
 	void to_next (Ast_Statement* stm) {

@@ -5,6 +5,8 @@
 #include <string.h>
 #include <map>
 
+using namespace std;
+
 struct cmp_str {
     bool operator()(const char *a, const char *b) const {
         return strcmp(a, b) < 0;
@@ -12,9 +14,9 @@ struct cmp_str {
 };
 
 struct Symbol_Resolution : Pipe {
-    std::map<const char*, Ast_Expression*, cmp_str> cache;
+    map<const char*, Ast_Expression*, cmp_str> cache;
 
-    void on_block_begin();
+    void on_block_begin(Ast_Block* block);
     void on_statement(Ast_Statement* stm);
     void on_block_end(Ast_Block* block);
 	void on_finish ();
