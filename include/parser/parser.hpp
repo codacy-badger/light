@@ -27,7 +27,7 @@ struct Parser : Pipe {
 	Ast_Statement* statement ();
 	Ast_Declaration* declaration ();
 	Ast_Type_Instance* type_instance ();
-	Ast_Struct_Type* structType (string name);
+	Ast_Struct_Type* struct_type (string name);
 	Ast_Expression* expression (Ast_Ident* initial = NULL, short minPrecedence = 1);
 	Ast_Expression* _atom (Ast_Ident* initial = NULL);
 	Ast_Type_Definition* type_definition ();

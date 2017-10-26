@@ -1,10 +1,10 @@
-import! "examples/basic.li"
+//import! "examples/basic.li"
 
-val : i32 = 42;
+NUM : i32 : 12;
 
 main : () : fn {
-    println_i32(39);
-    a : i32 : 2;
-    b : i32 = a + val;
-    c : i32 = b - calc();
+    b : i32 = NUM;
+    c : i32 = a;
 }
+
+a : i32 : 2;

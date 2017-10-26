@@ -168,7 +168,7 @@ Ast_Type_Definition* Parser::type_definition () {
 	return NULL;
 }
 
-Ast_Struct_Type* Parser::structType (string name) {
+Ast_Struct_Type* Parser::struct_type (string name) {
 	return NULL;
 }
 
