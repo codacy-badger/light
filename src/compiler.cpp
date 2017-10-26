@@ -48,7 +48,7 @@ void Light_Compiler::run () {
 		parser->append(new PrintPipe());
 
 		auto start = Timer::getTime();
-		parser->block();
+		parser->top_level_block();
 		Timer::print("  Parse ", start);
 		parser->on_finish();
 	}

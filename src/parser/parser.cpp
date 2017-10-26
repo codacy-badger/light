@@ -18,8 +18,15 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 	this->lexer = new Lexer(filepath);
 }
 
-Ast_Block* Parser::block () {
-	this->current_block = AST_NEW(Ast_Block, this->current_block);
+Ast_Block* Parser::top_level_block () {
+	auto _block = AST_NEW(Ast_Block, this->current_block);
+	// TODO: add intrinsic types here
+	this->block(_block);
+	return _block;
+}
+
+void Parser::block (Ast_Block* insert_block) {
+	this->current_block = insert_block;
 	this->on_block_begin(this->current_block);
 
 	Ast_Statement* stm;
@@ -29,7 +36,8 @@ Ast_Block* Parser::block () {
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
 				this->lexer->push(imp->filepath);
 				if (this->lexer->buffer->is_valid()) {
-					auto include_block = this->block();
+					auto include_block = AST_NEW(Ast_Block, this->current_block);
+					this->block(include_block);
 					this->current_block->list.insert(this->current_block->list.end(),
 						include_block->list.begin(), include_block->list.end());
 					delete include_block;
@@ -54,9 +62,7 @@ Ast_Block* Parser::block () {
 	}
 
 	this->on_block_end(this->current_block);
-	auto _block = this->current_block;
 	this->current_block = this->current_block->parent;
-	return _block;
 }
 
 Ast_Statement* Parser::statement () {
@@ -98,9 +104,10 @@ Ast_Statement* Parser::statement () {
 		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip(1);
-			auto block = this->block();
+			auto _block = AST_NEW(Ast_Block, this->current_block);
+			this->block(_block);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-			return block;
+			return _block;
 		}
 		case TOKEN_ID: {
 			auto ident = this->ident();
@@ -265,7 +272,8 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 		if (!this->lexer->isNextType(TOKEN_STM_END)) {
 			this->lexer->check_skip(TOKEN_BRAC_OPEN);
-			fn->scope = this->block();
+			fn->scope = AST_NEW(Ast_Block, this->current_block);
+			this->block(fn->scope);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 		}
 
