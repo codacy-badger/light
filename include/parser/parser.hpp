@@ -15,8 +15,9 @@ using namespace std;
 struct Light_Compiler;
 
 struct Parser : Pipe {
-	Light_Compiler* compiler;
-	Lexer* lexer;
+	Light_Compiler* compiler = NULL;
+	Lexer* lexer = NULL;
+	Ast_Block* current_block = NULL;
 
 	Parser (Light_Compiler* compiler, const char* param);
 

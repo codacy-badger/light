@@ -19,7 +19,7 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 }
 
 Ast_Block* Parser::block () {
-	auto block = AST_NEW(Ast_Block);
+	this->current_block = AST_NEW(Ast_Block, this->current_block);
 
 	Ast_Statement* stm;
 	while (stm = this->statement()) {
@@ -29,7 +29,7 @@ Ast_Block* Parser::block () {
 				this->lexer = this->lexer->push(imp->filepath);
 				if (this->lexer->buffer->is_valid()) {
 					auto include_block = this->block();
-					block->list.insert(block->list.end(),
+					this->current_block->list.insert(this->current_block->list.end(),
 						include_block->list.begin(), include_block->list.end());
 					delete include_block;
 				} else this->compiler->report_error(imp,
@@ -37,13 +37,14 @@ Ast_Block* Parser::block () {
 				this->lexer = this->lexer->pop();
 			}
 		} else {
-			block->list.push_back(stm);
+			this->current_block->list.push_back(stm);
 			this->toNext(stm);
 		}
 
-		if (this->lexer->isNextType(TOKEN_EOF)) return block;
+		if (this->lexer->isNextType(TOKEN_EOF)) return this->current_block;
 	}
-	return nullptr;
+
+	return NULL;
 }
 
 Ast_Statement* Parser::statement () {
