@@ -336,6 +336,7 @@ Ast_Ident* Parser::ident () {
 	if (this->lexer->isNextType(TOKEN_ID)) {
 		Ast_Ident* output = AST_NEW(Ast_Ident);
 		output->name = this->lexer->text();
+		output->declaration = this->current_block->find_declaration(output->name);
 		return output;
 	} else return NULL;
 }

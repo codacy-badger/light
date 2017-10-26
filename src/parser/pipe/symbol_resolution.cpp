@@ -58,8 +58,11 @@ bool Symbol_Resolution::check_symbols (Ast_Expression* exp, set<const char*, cmp
             return check_symbols(static_cast<Ast_Unary*>(exp), sym);
         case AST_EXPRESSION_IDENT: {
             auto ident = static_cast<Ast_Ident*>(exp);
-            sym->insert(ident->name);
-            return false;
+            if (ident->declaration) return true;
+            else {
+                sym->insert(ident->name);
+                return false;
+            }
         }
         case AST_EXPRESSION_LITERAL: return true;
         default: return false;

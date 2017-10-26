@@ -235,6 +235,7 @@ struct Ast_Literal : Ast_Expression {
 
 struct Ast_Ident : Ast_Expression {
 	const char* name = NULL;
+	Ast_Declaration* declaration = NULL;
 
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 
