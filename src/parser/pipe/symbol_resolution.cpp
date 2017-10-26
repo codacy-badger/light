@@ -52,6 +52,10 @@ bool Symbol_Resolution::check_symbols (Ast_Expression* exp, set<const char*, cmp
             return check_symbols(static_cast<Ast_Function*>(exp), sym);
         case AST_EXPRESSION_TYPE_INSTANCE:
             return check_symbols(static_cast<Ast_Type_Instance*>(exp), sym);
+        case AST_EXPRESSION_BINARY:
+            return check_symbols(static_cast<Ast_Binary*>(exp), sym);
+        case AST_EXPRESSION_UNARY:
+            return check_symbols(static_cast<Ast_Unary*>(exp), sym);
         case AST_EXPRESSION_IDENT: {
             auto ident = static_cast<Ast_Ident*>(exp);
             sym->insert(ident->name);
@@ -60,6 +64,17 @@ bool Symbol_Resolution::check_symbols (Ast_Expression* exp, set<const char*, cmp
         case AST_EXPRESSION_LITERAL: return true;
         default: return false;
     }
+}
+
+bool Symbol_Resolution::check_symbols (Ast_Binary* binary, set<const char*, cmp_str>* sym) {
+    bool result = true;
+    result &= check_symbols(binary->rhs, sym);
+    result &= check_symbols(binary->lhs, sym);
+    return result;
+}
+
+bool Symbol_Resolution::check_symbols (Ast_Unary* unary, set<const char*, cmp_str>* sym) {
+    return check_symbols(unary->exp, sym);
 }
 
 bool Symbol_Resolution::check_symbols (Ast_Function* fn, set<const char*, cmp_str>* sym) {

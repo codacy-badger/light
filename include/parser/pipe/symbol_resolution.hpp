@@ -23,6 +23,8 @@ struct Symbol_Resolution : Pipe {
     bool check_symbols (Ast_Block* stm, set<const char*, cmp_str>* sym);
 
     bool check_symbols (Ast_Expression* stm, set<const char*, cmp_str>* sym);
+    bool check_symbols (Ast_Binary* binary, set<const char*, cmp_str>* sym);
+    bool check_symbols (Ast_Unary* unary, set<const char*, cmp_str>* sym);
     bool check_symbols (Ast_Function* stm, set<const char*, cmp_str>* sym);
 
     bool check_symbols (Ast_Type_Instance* ty_inst, set<const char*, cmp_str>* sym);

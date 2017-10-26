@@ -112,32 +112,30 @@ Ast_Statement* Parser::statement () {
 		}
 		case TOKEN_ID: {
 			auto ident = this->ident();
-			if (ident) {
+			if (this->lexer->isNextType(TOKEN_COLON)) {
+				auto decl = AST_NEW(Ast_Declaration);
+				decl->name = ident->name;
+				this->lexer->skip(1);
+				decl->type = this->type_instance();
+
 				if (this->lexer->isNextType(TOKEN_COLON)) {
-					auto decl = AST_NEW(Ast_Declaration);
-					decl->name = ident->name;
 					this->lexer->skip(1);
-					decl->type = this->type_instance();
-
-					if (this->lexer->isNextType(TOKEN_COLON)) {
-						this->lexer->skip(1);
-						decl->decl_flags |= DECL_FLAG_CONSTANT;
-					} else if (this->lexer->isNextType(TOKEN_EQUAL)) {
-						this->lexer->skip(1);
-					} else if (this->lexer->isNextType(TOKEN_STM_END)) {
-						this->lexer->skip(1);
-						return decl;
-					}
-
-					decl->expression = this->expression();
-					if (this->lexer->isNextType(TOKEN_STM_END))
-						this->lexer->skip(1);
+					decl->decl_flags |= DECL_FLAG_CONSTANT;
+				} else if (this->lexer->isNextType(TOKEN_EQUAL)) {
+					this->lexer->skip(1);
+				} else if (this->lexer->isNextType(TOKEN_STM_END)) {
+					this->lexer->skip(1);
 					return decl;
-				} else {
-					auto exp = this->expression(ident);
-					if (exp) this->lexer->check_skip(TOKEN_STM_END);
-					return exp;
 				}
+
+				decl->expression = this->expression();
+				if (this->lexer->isNextType(TOKEN_STM_END))
+					this->lexer->skip(1);
+				return decl;
+			} else {
+				auto exp = this->expression(ident);
+				if (exp) this->lexer->check_skip(TOKEN_STM_END);
+				return exp;
 			}
 		}
 		default: {
