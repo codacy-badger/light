@@ -3,6 +3,7 @@
 #include "parser/pipes.hpp"
 
 #include <string.h>
+#include <deque>
 #include <set>
 #include <map>
 #include <set>
@@ -20,7 +21,9 @@ struct Symbol_Resolution : Pipe {
     map<const char*, set<Ast_Type_Definition**>, cmp_str> unresolved_type_defn_references;
     map<const char*, set<Ast_Declaration**>, cmp_str> unresolved_decl_references;
 
-    void on_statement(Ast_Statement* stm);
+    void on_statement (Ast_Statement* stm);
+
+    bool is_unresolved (const char* name);
 
     bool check_symbols (Ast_Statement* stm, set<const char*, cmp_str>* sym);
     bool check_symbols (Ast_Declaration* stm, set<const char*, cmp_str>* sym);

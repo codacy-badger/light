@@ -8,7 +8,31 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
         for (auto symbol : unresolved_symbols) {
 			this->unresolved_symbols[symbol].insert(stm);
         }
-    } else this->to_next(stm);
+    } else {
+        this->to_next(stm);
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+    		auto it3 = this->unresolved_symbols.find(decl->name);
+    		if (it3 != this->unresolved_symbols.end()) {
+				auto dependencies_to_resolve = this->unresolved_symbols[decl->name];
+				this->unresolved_symbols.erase(decl->name);
+    			for (auto stm : dependencies_to_resolve)
+    				this->on_statement(stm);
+    		}
+        }
+    }
+}
+
+bool Symbol_Resolution::is_unresolved (const char* name) {
+    for (auto entry : this->unresolved_symbols) {
+        for (auto stm : entry.second) {
+            if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+                auto decl = static_cast<Ast_Declaration*>(stm);
+                if (strcmp(decl->name, name) == 0) return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool Symbol_Resolution::check_symbols (Ast_Statement* stm, set<const char*, cmp_str>* sym) {
@@ -31,8 +55,7 @@ bool Symbol_Resolution::check_symbols (Ast_Declaration* decl, set<const char*, c
 		if (it1 != this->unresolved_type_defn_references.end()) {
 			for (auto ref : this->unresolved_type_defn_references[decl->name]) {
 				if (decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-					auto type_defn = static_cast<Ast_Type_Definition*>(decl->expression);
-					*ref = type_defn;
+					*ref = static_cast<Ast_Type_Definition*>(decl->expression);
 				}
 			}
 			this->unresolved_type_defn_references.erase(decl->name);
@@ -44,14 +67,6 @@ bool Symbol_Resolution::check_symbols (Ast_Declaration* decl, set<const char*, c
 				*ref = decl;
 			}
 			this->unresolved_decl_references.erase(decl->name);
-		}
-
-		auto it3 = this->unresolved_symbols.find(decl->name);
-		if (it3 != this->unresolved_symbols.end()) {
-			for (auto stm : this->unresolved_symbols[decl->name]) {
-				this->on_statement(stm);
-			}
-			this->unresolved_symbols.erase(decl->name);
 		}
 	}
 
@@ -79,6 +94,9 @@ bool Symbol_Resolution::check_symbols (Ast_Expression* exp, set<const char*, cmp
             auto ident = static_cast<Ast_Ident*>(exp);
             if (!ident->declaration) {
 				this->unresolved_decl_references[ident->name].insert(&ident->declaration);
+                sym->insert(ident->name);
+                return false;
+            } else if (this->is_unresolved(ident->name)) {
                 sym->insert(ident->name);
                 return false;
             } else return true;
