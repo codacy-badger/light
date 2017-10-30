@@ -224,6 +224,7 @@ enum Ast_Literal_Type {
 
 struct Ast_Literal : Ast_Expression {
 	Ast_Literal_Type literal_type = AST_LITERAL_UNINITIALIZED;
+	
 	union {
 		int64_t integer_value;
 		double decimal_value;
