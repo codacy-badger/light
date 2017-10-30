@@ -135,7 +135,7 @@ void ASTPrinter::print (Ast_Type_Instance* type_inst, int tabs, bool nameOnly) {
 }
 
 void ASTPrinter::print (Ast_Named_Type* type, int tabs, bool nameOnly) {
-	printf("%s", type->name);
+	print(type->identifier, tabs, nameOnly);
 }
 
 void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool nameOnly) {

@@ -72,22 +72,12 @@ void Symbol_Resolution::check_symbols (Ast_Declaration* decl, set<const char*, c
     if (decl->expression)   check_symbols(decl->expression, sym);
 
 	if (sym->size() == 0) {
-		auto it1 = this->unresolved_type_defn_references.find(decl->name);
-		if (it1 != this->unresolved_type_defn_references.end()) {
-			for (auto ref : this->unresolved_type_defn_references[decl->name]) {
-				if (decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-					*ref = static_cast<Ast_Type_Definition*>(decl->expression);
-				}
-			}
-			this->unresolved_type_defn_references.erase(decl->name);
-		}
-
-		auto it2 = this->unresolved_decl_references.find(decl->name);
-		if (it2 != this->unresolved_decl_references.end()) {
-			for (auto ref : this->unresolved_decl_references[decl->name]) {
+		auto it2 = this->unresolved_references.find(decl->name);
+		if (it2 != this->unresolved_references.end()) {
+			for (auto ref : this->unresolved_references[decl->name]) {
 				*ref = decl;
 			}
-			this->unresolved_decl_references.erase(decl->name);
+			this->unresolved_references.erase(decl->name);
 		}
 	}
 }
@@ -115,17 +105,20 @@ void Symbol_Resolution::check_symbols (Ast_Expression* exp, set<const char*, cmp
             check_symbols(static_cast<Ast_Unary*>(exp), sym);
 			break;
         case AST_EXPRESSION_IDENT: {
-            auto ident = static_cast<Ast_Ident*>(exp);
-            if (!ident->declaration) {
-				this->unresolved_decl_references[ident->name].insert(&ident->declaration);
-                sym->insert(ident->name);
-            } else if (this->is_unresolved(ident->name)) {
-                sym->insert(ident->name);
-            }
+            check_symbols(static_cast<Ast_Ident*>(exp), sym);
 			break;
         }
         case AST_EXPRESSION_LITERAL: break;
         default: break;
+    }
+}
+
+void Symbol_Resolution::check_symbols (Ast_Ident* ident, set<const char*, cmp_str>* sym) {
+    if (!ident->declaration) {
+        this->unresolved_references[ident->name].insert(&ident->declaration);
+        sym->insert(ident->name);
+    } else if (this->is_unresolved(ident->name)) {
+        sym->insert(ident->name);
     }
 }
 
@@ -147,10 +140,7 @@ void Symbol_Resolution::check_symbols (Ast_Type_Instance* ty_inst, set<const cha
     switch (ty_inst->type_inst_type) {
         case AST_TYPE_INST_NAMED: {
             auto named_type = static_cast<Ast_Named_Type*>(ty_inst);
-            if (!named_type->definition) {
-				this->unresolved_type_defn_references[named_type->name].insert(&named_type->definition);
-                sym->insert(named_type->name);
-            }
+            check_symbols(named_type->identifier, sym);
 			break;
         }
         case AST_TYPE_INST_POINTER:

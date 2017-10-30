@@ -37,5 +37,5 @@ struct Parser : Pipe {
 	void _functionParameters (vector<Ast_Declaration*>* parameters);
 	Ast_Function_Call* call (Ast_Expression* callee);
 	Ast_Literal* literal ();
-	Ast_Ident* ident ();
+	Ast_Ident* ident (const char* name = NULL);
 };

@@ -177,10 +177,7 @@ Ast_Type_Definition* Parser::type_definition () {
 Ast_Type_Instance* Parser::type_instance () {
 	if (this->lexer->isNextType(TOKEN_ID)) {
 		auto ty_inst = AST_NEW(Ast_Named_Type);
-		ty_inst->name = this->lexer->text();
-
-		ty_inst->definition = this->current_block->find_type_definition(ty_inst->name);
-
+		ty_inst->identifier = this->ident();
 		return ty_inst;
 	} else if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 		auto ty_inst = AST_NEW(Ast_Function_Type);
@@ -196,8 +193,8 @@ Ast_Type_Instance* Parser::type_instance () {
 			ty_inst->return_type = this->type_instance();
 		} else {
 			// FIXME: void type should be more accessible
-			auto _void = AST_NEW(Ast_Named_Type, "void");
-			_void->definition = this->current_block->find_type_definition("void");
+			auto _void = AST_NEW(Ast_Named_Type);
+			_void->identifier = this->ident("void");
 			ty_inst->return_type = _void;
 		}
 
@@ -272,8 +269,8 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			fn_type->return_type = this->type_instance();
 		} else {
 			// FIXME: void type should be more accessible
-			auto _void = AST_NEW(Ast_Named_Type, "void");
-			_void->definition = this->current_block->find_type_definition("void");
+			auto _void = AST_NEW(Ast_Named_Type);
+			_void->identifier = this->ident("void");
 			fn_type->return_type = _void;
 		}
 		fn->type = fn_type;
@@ -334,8 +331,13 @@ Ast_Function_Call* Parser::call (Ast_Expression* callee) {
 	return output;
 }
 
-Ast_Ident* Parser::ident () {
-	if (this->lexer->isNextType(TOKEN_ID)) {
+Ast_Ident* Parser::ident (const char* name) {
+	if (name) {
+		Ast_Ident* output = AST_NEW(Ast_Ident);
+		output->name = name;
+		output->declaration = this->current_block->find_declaration(name);
+		return output;
+	} else if (this->lexer->isNextType(TOKEN_ID)) {
 		Ast_Ident* output = AST_NEW(Ast_Ident);
 		output->name = this->lexer->text();
 		output->declaration = this->current_block->find_declaration(output->name);

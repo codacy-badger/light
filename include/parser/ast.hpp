@@ -129,13 +129,9 @@ struct Ast_Type_Instance : Ast_Expression {
 };
 
 struct Ast_Named_Type : Ast_Type_Instance {
-	const char* name = NULL;
-	Ast_Type_Definition* definition = NULL;
+	Ast_Ident* identifier = NULL;
 
-	Ast_Named_Type(const char* name = NULL) {
-		this->type_inst_type = AST_TYPE_INST_NAMED;
-		this->name = name;
-	}
+	Ast_Named_Type() { this->type_inst_type = AST_TYPE_INST_NAMED; }
 };
 
 struct Ast_Pointer_Type : Ast_Type_Instance {
@@ -224,7 +220,7 @@ enum Ast_Literal_Type {
 
 struct Ast_Literal : Ast_Expression {
 	Ast_Literal_Type literal_type = AST_LITERAL_UNINITIALIZED;
-	
+
 	union {
 		int64_t integer_value;
 		double decimal_value;

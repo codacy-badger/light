@@ -22,9 +22,7 @@ struct Ast_Statement_Dependency {
 
 struct Symbol_Resolution : Pipe {
     map<const char*, set<Ast_Statement_Dependency*>, cmp_str> unresolved_symbols;
-
-    map<const char*, set<Ast_Type_Definition**>, cmp_str> unresolved_type_defn_references;
-    map<const char*, set<Ast_Declaration**>, cmp_str> unresolved_decl_references;
+    map<const char*, set<Ast_Declaration**>, cmp_str> unresolved_references;
 
     void on_statement (Ast_Statement* stm);
     void on_finish ();
@@ -37,6 +35,7 @@ struct Symbol_Resolution : Pipe {
     void check_symbols (Ast_Return* ret, set<const char*, cmp_str>* sym);
 
     void check_symbols (Ast_Expression* stm, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Ident* ident, set<const char*, cmp_str>* sym);
     void check_symbols (Ast_Binary* binary, set<const char*, cmp_str>* sym);
     void check_symbols (Ast_Unary* unary, set<const char*, cmp_str>* sym);
     void check_symbols (Ast_Function* stm, set<const char*, cmp_str>* sym);
