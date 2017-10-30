@@ -1,6 +1,6 @@
 import! "examples/std.li"
 
-NUM : i32 : 5;
+NUM2 : i32 : 5;
 
 calc : () -> i32 : fn () -> i32 {
     return 12;

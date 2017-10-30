@@ -1,4 +1,4 @@
-//import! "examples/basic.li"
+import! "examples/basic.li"
 
 NUM : i32 : VAL + 10;
 

@@ -42,7 +42,7 @@ enum Token_Type {
 
 struct Lexer {
 	Lexer* parent = NULL;
-	
+
 	std::deque<Buffer*> buffer_stack;
 	Buffer* buffer;
 
@@ -70,6 +70,6 @@ struct Lexer {
 	void handleToken (Token_Type type, const char* text);
 	bool skip_ignored_and_comments ();
 
-	void push (const char* filepath);
-	void pop ();
+	Lexer* push (const char* filepath);
+	Lexer* pop ();
 };

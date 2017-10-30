@@ -2,6 +2,8 @@
 
 #include "parser/pipe/symbol_resolution.hpp"
 
+#include "compiler.hpp"
+
 void Symbol_Resolution::on_statement(Ast_Statement* stm) {
     set<const char*, cmp_str> unresolved_symbols;
     if (!check_symbols(stm, &unresolved_symbols)) {
@@ -29,6 +31,12 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
     		}
         }
     }
+}
+
+void Symbol_Resolution::on_finish () {
+    if (this->unresolved_symbols.size() > 0) {
+        Light_Compiler::instance->report_error(NULL, "There are unresolved symbols!");
+    } else this->try_finish();
 }
 
 bool Symbol_Resolution::is_unresolved (const char* name) {

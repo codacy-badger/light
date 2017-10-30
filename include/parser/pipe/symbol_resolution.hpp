@@ -27,6 +27,7 @@ struct Symbol_Resolution : Pipe {
     map<const char*, set<Ast_Declaration**>, cmp_str> unresolved_decl_references;
 
     void on_statement (Ast_Statement* stm);
+    void on_finish ();
 
     bool is_unresolved (const char* name);
 

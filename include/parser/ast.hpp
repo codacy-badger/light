@@ -42,7 +42,7 @@ struct Ast_Note : Ast_Statement {
 };
 
 struct Ast_Block : Ast_Statement {
-	const char* name;
+	const char* name = NULL;
 	vector<Ast_Statement*> list;
 
 	Ast_Block* parent = NULL;
