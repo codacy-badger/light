@@ -8,7 +8,6 @@ cl /nologo /Od /c /MD /Zi /Gm /EHsc -I"../include" %SOURCES%
 set "SOURCES="
 
 link /nologo /INCREMENTAL /ENTRY:mainCRTStartup ^
-    /OUT:"..\bin\light.exe" /DEBUG %LLVMLibs% ^
- 	psapi.lib shell32.lib ole32.lib uuid.lib *.obj
+    /OUT:"..\bin\light.exe" /DEBUG *.obj
 
 popd

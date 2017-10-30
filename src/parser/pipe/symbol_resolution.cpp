@@ -5,8 +5,11 @@
 void Symbol_Resolution::on_statement(Ast_Statement* stm) {
     set<const char*, cmp_str> unresolved_symbols;
     if (!check_symbols(stm, &unresolved_symbols)) {
+        auto stm_deps = new Ast_Statement_Dependency();
+        stm_deps->unresolved_symbols = unresolved_symbols;
+        stm_deps->stm = stm;
         for (auto symbol : unresolved_symbols) {
-			this->unresolved_symbols[symbol].insert(stm);
+            this->unresolved_symbols[symbol].insert(stm_deps);
         }
     } else {
         this->to_next(stm);
@@ -14,10 +17,15 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
             auto decl = static_cast<Ast_Declaration*>(stm);
     		auto it3 = this->unresolved_symbols.find(decl->name);
     		if (it3 != this->unresolved_symbols.end()) {
-				auto dependencies_to_resolve = this->unresolved_symbols[decl->name];
+                auto deps = it3->second;
 				this->unresolved_symbols.erase(decl->name);
-    			for (auto stm : dependencies_to_resolve)
-    				this->on_statement(stm);
+    			for (auto stm_deps : deps) {
+                    stm_deps->unresolved_symbols.erase(decl->name);
+                    if (stm_deps->unresolved_symbols.size() == 0) {
+                        this->on_statement(stm_deps->stm);
+                        delete stm_deps;
+                    }
+                }
     		}
         }
     }
@@ -25,9 +33,9 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
 
 bool Symbol_Resolution::is_unresolved (const char* name) {
     for (auto entry : this->unresolved_symbols) {
-        for (auto stm : entry.second) {
-            if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-                auto decl = static_cast<Ast_Declaration*>(stm);
+        for (auto stm_deps : entry.second) {
+            if (stm_deps->stm->stm_type == AST_STATEMENT_DECLARATION) {
+                auto decl = static_cast<Ast_Declaration*>(stm_deps->stm);
                 if (strcmp(decl->name, name) == 0) return true;
             }
         }

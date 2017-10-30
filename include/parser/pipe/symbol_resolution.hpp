@@ -6,7 +6,6 @@
 #include <deque>
 #include <set>
 #include <map>
-#include <set>
 
 using namespace std;
 
@@ -16,8 +15,14 @@ struct cmp_str {
     }
 };
 
+struct Ast_Statement_Dependency {
+    set<const char*, cmp_str> unresolved_symbols;
+    Ast_Statement* stm = NULL;
+};
+
 struct Symbol_Resolution : Pipe {
-    map<const char*, set<Ast_Statement*>, cmp_str> unresolved_symbols;
+    map<const char*, set<Ast_Statement_Dependency*>, cmp_str> unresolved_symbols;
+
     map<const char*, set<Ast_Type_Definition**>, cmp_str> unresolved_type_defn_references;
     map<const char*, set<Ast_Declaration**>, cmp_str> unresolved_decl_references;
 
