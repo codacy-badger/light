@@ -56,8 +56,9 @@ void Light_Compiler::run () {
 }
 
 void print_node_location (FILE* buffer, Ast* node) {
-	assert(node);
-	fprintf(buffer, "@ %s:%d,%d", node->filename, node->line, node->col);
+	if (node)
+		fprintf(buffer, "@ %s:%d,%d", node->filename, node->line, node->col);
+	else fprintf(buffer, "@ (null):?,?");
 }
 
 void Light_Compiler::report_info (Ast* node, const char* format, ...) {
