@@ -8,7 +8,7 @@
 
 #include "timer.hpp"
 #include "parser/pipe/symbol_resolution.hpp"
-#include "parser/pipe/type_inference.hpp"
+#include "parser/pipe/Type_Checking.hpp"
 #include "parser/pipe/print_pipe.hpp"
 
 Light_Compiler* Light_Compiler::instance = NULL;
@@ -44,7 +44,7 @@ void Light_Compiler::run () {
 
 		auto parser = new Parser(this, filename);
 		parser->append(new Symbol_Resolution());
-		parser->append(new Type_Inference());
+		parser->append(new Type_Checking());
 		parser->append(new PrintPipe());
 
 		auto start = Timer::getTime();

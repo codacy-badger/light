@@ -2,6 +2,6 @@ import! "examples/std.li"
 
 NUM2 : i32 : 5;
 
-calc : () -> i32 : fn () -> i32 {
+calc :: fn -> i32 {
     return 12;
 }

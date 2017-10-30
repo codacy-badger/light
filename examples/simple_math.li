@@ -1,12 +1,12 @@
 import! "examples/basic.li"
 
-work : () -> i32 : fn () -> i32 {
+work :: fn -> i32 {
     return VAL;
 }
 
 NUM : i32 : VAL + 10;
 
-main : () : fn {
+main :: fn {
     b : i32 = NUM;
     c : i32 = a;
 }
