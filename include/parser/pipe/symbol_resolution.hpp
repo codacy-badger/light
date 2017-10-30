@@ -31,16 +31,16 @@ struct Symbol_Resolution : Pipe {
 
     bool is_unresolved (const char* name);
 
-    bool check_symbols (Ast_Statement* stm, set<const char*, cmp_str>* sym);
-    bool check_symbols (Ast_Declaration* stm, set<const char*, cmp_str>* sym);
-    bool check_symbols (Ast_Block* stm, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Statement* stm, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Declaration* stm, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Block* stm, set<const char*, cmp_str>* sym);
 
-    bool check_symbols (Ast_Expression* stm, set<const char*, cmp_str>* sym);
-    bool check_symbols (Ast_Binary* binary, set<const char*, cmp_str>* sym);
-    bool check_symbols (Ast_Unary* unary, set<const char*, cmp_str>* sym);
-    bool check_symbols (Ast_Function* stm, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Expression* stm, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Binary* binary, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Unary* unary, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Function* stm, set<const char*, cmp_str>* sym);
 
-    bool check_symbols (Ast_Type_Instance* ty_inst, set<const char*, cmp_str>* sym);
-    bool check_symbols (Ast_Pointer_Type* ptr_type, set<const char*, cmp_str>* sym);
-    bool check_symbols (Ast_Function_Type* fn_type, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Type_Instance* ty_inst, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Pointer_Type* ptr_type, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Function_Type* fn_type, set<const char*, cmp_str>* sym);
 };
