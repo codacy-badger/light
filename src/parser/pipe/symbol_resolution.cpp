@@ -60,6 +60,9 @@ void Symbol_Resolution::check_symbols (Ast_Statement* stm, set<const char*, cmp_
         case AST_STATEMENT_BLOCK:
             check_symbols(static_cast<Ast_Block*>(stm), sym);
 			break;
+        case AST_STATEMENT_RETURN:
+            check_symbols(static_cast<Ast_Return*>(stm), sym);
+			break;
         default: break;
     }
 }
@@ -90,8 +93,11 @@ void Symbol_Resolution::check_symbols (Ast_Declaration* decl, set<const char*, c
 }
 
 void Symbol_Resolution::check_symbols (Ast_Block* block, set<const char*, cmp_str>* sym) {
-    for (auto stm : block->list)
-        check_symbols(stm, sym);
+    for (auto stm : block->list) check_symbols(stm, sym);
+}
+
+void Symbol_Resolution::check_symbols (Ast_Return* ret, set<const char*, cmp_str>* sym) {
+    if (ret->exp) check_symbols(ret->exp, sym);
 }
 
 void Symbol_Resolution::check_symbols (Ast_Expression* exp, set<const char*, cmp_str>* sym) {

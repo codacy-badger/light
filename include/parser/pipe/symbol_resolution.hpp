@@ -34,6 +34,7 @@ struct Symbol_Resolution : Pipe {
     void check_symbols (Ast_Statement* stm, set<const char*, cmp_str>* sym);
     void check_symbols (Ast_Declaration* stm, set<const char*, cmp_str>* sym);
     void check_symbols (Ast_Block* stm, set<const char*, cmp_str>* sym);
+    void check_symbols (Ast_Return* ret, set<const char*, cmp_str>* sym);
 
     void check_symbols (Ast_Expression* stm, set<const char*, cmp_str>* sym);
     void check_symbols (Ast_Binary* binary, set<const char*, cmp_str>* sym);
