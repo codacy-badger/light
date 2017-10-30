@@ -29,13 +29,18 @@ void Type_Checking::check_type (Ast_Block* block) {
 }
 
 void Type_Checking::check_type (Ast_Declaration* decl) {
-    if (decl->expression) check_type(decl->expression);
-    if (!decl->type) {
-        if (decl->expression) {
-            if (decl->expression->inferred_type) {
-                decl->type = decl->expression->inferred_type;
-            } else Light_Compiler::instance->report_error(decl, "Cannot infer type...");
-        } else Light_Compiler::instance->report_error(decl, "Cannot infer type without an expression!");
+    if (decl->expression) {
+        check_type(decl->expression);
+
+        if (!decl->type) {
+            decl->type = decl->expression->inferred_type;
+        } else {
+            if (decl->type != decl->expression->inferred_type) {
+                //Light_Compiler::instance->report_error(decl, "Type mismatch, wanted '%s' but got '%s'", "---", "---");
+            }
+        }
+    } else if (!decl->type) {
+        Light_Compiler::instance->report_error(decl, "Cannot infer type without an expression!");
     }
 }
 
