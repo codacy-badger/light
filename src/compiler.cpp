@@ -13,8 +13,8 @@
 
 Light_Compiler* Light_Compiler::instance = NULL;
 
-Ast_Type_Definition* Light_Compiler::type_def_void = new Ast_Type_Definition("void");
-Ast_Type_Definition* Light_Compiler::type_def_i32  = new Ast_Type_Definition("i32");
+Ast_Type_Definition* Light_Compiler::type_def_void = new Ast_Type_Definition();
+Ast_Type_Definition* Light_Compiler::type_def_i32  = new Ast_Type_Definition();
 
 void link (std::string output) {
 	auto linker = Timer::getTime();

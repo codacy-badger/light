@@ -61,7 +61,7 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs, bool nameOnly) {
 	}
 
 	printf("%s : ", decl->name);
-	print(decl->type, tabs, false);
+	print(decl->type, tabs);
 	if (decl->expression) {
 		if (decl->decl_flags & DECL_FLAG_CONSTANT)
 			printf(" : ");
@@ -115,27 +115,8 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs) {
 	}
 }
 
-void ASTPrinter::print (Ast_Type_Instance* type_inst, int tabs, bool nameOnly) {
-	switch (type_inst->type_inst_type) {
-		case AST_TYPE_INST_UNDEFINED: printf("!UNDEFINED!");
-		case AST_TYPE_INST_NAMED: {
-			print(static_cast<Ast_Named_Type*>(type_inst), tabs);
-			break;
-		}
-		case AST_TYPE_INST_POINTER: {
-			print(static_cast<Ast_Pointer_Type*>(type_inst), tabs);
-			break;
-		}
-		case AST_TYPE_INST_FUNCTION: {
-			print(static_cast<Ast_Function_Type*>(type_inst), tabs);
-			break;
-		}
-		default: printf("!UNKNOWN_TYPE!");
-	}
-}
-
-void ASTPrinter::print (Ast_Named_Type* type, int tabs, bool nameOnly) {
-	print(type->identifier, tabs, nameOnly);
+void ASTPrinter::print (Ast_Type_Definition* tydef, int tabs, bool nameOnly) {
+	printf("Ast_Type_Definition");
 }
 
 void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool nameOnly) {
@@ -145,16 +126,16 @@ void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool nameOnly) {
 
 void ASTPrinter::print (Ast_Function_Type* type, int tabs, bool nameOnly) {
 	printf("( ");
-	if (type->parameters.size() > 0) {
-		print(type->parameters[0], tabs, true);
-		for (size_t i = 1; i < type->parameters.size(); i++) {
+	if (type->parameter_types.size() > 0) {
+		print(type->parameter_types[0], tabs);
+		for (size_t i = 1; i < type->parameter_types.size(); i++) {
 			printf(", ");
-			print(type->parameters[i], tabs, true);
+			print(type->parameter_types[i], tabs);
 		}
 
 	}
 	printf(" ) -> ");
-	print(type->return_type, tabs, true);
+	print(type->return_type, tabs);
 }
 
 void ASTPrinter::print (Ast_Function* fn, int tabs, bool nameOnly) {
@@ -166,17 +147,17 @@ void ASTPrinter::print (Ast_Function* fn, int tabs, bool nameOnly) {
 
 	if (!nameOnly) {
 		printf("( ");
-		if (fn->type->parameters.size() > 0) {
-			print(fn->type->parameters[0], tabs, true);
-			for (int i = 1; i < fn->type->parameters.size(); i++) {
+		if (fn->type->parameter_types.size() > 0) {
+			print(fn->type->parameter_types[0], tabs);
+			for (int i = 1; i < fn->type->parameter_types.size(); i++) {
 				printf(", ");
-				print(fn->type->parameters[i], tabs, true);
+				print(fn->type->parameter_types[i], tabs);
 			}
 		}
 		printf(" )");
 		if (fn->type->return_type != NULL) {
 			printf(" -> ");
-			print(fn->type->return_type, tabs, true);
+			print(fn->type->return_type, tabs);
 		}
 
 		if (fn->scope != NULL) print(fn->scope, tabs + 1);

@@ -20,8 +20,8 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 
 Ast_Block* Parser::top_level_block () {
 	auto _block = AST_NEW(Ast_Block, this->current_block);
-	_block->list.push_back(ast_make_declaration(Light_Compiler::type_def_void));
-	_block->list.push_back(ast_make_declaration(Light_Compiler::type_def_i32));
+	_block->list.push_back(ast_make_declaration("void", Light_Compiler::type_def_void));
+	_block->list.push_back(ast_make_declaration("i32", Light_Compiler::type_def_i32));
 	this->block(_block);
 	return _block;
 }
@@ -116,7 +116,7 @@ Ast_Statement* Parser::statement () {
 				auto decl = AST_NEW(Ast_Declaration);
 				decl->name = ident->name;
 				this->lexer->skip(1);
-				decl->type = this->type_instance();
+				decl->type = this->expression();
 
 				if (this->lexer->isNextType(TOKEN_COLON)) {
 					this->lexer->skip(1);
@@ -153,7 +153,7 @@ Ast_Declaration* Parser::declaration () {
 
 		if (this->lexer->isNextType(TOKEN_COLON)) {
 			this->lexer->skip(1);
-			decl->type = this->type_instance();
+			decl->type = this->expression();
 		}
 
 		if (this->lexer->isNextType(TOKEN_COLON)) {
@@ -167,38 +167,6 @@ Ast_Declaration* Parser::declaration () {
 			decl->expression = this->expression();
 
 		return decl;
-	} else return NULL;
-}
-
-Ast_Type_Definition* Parser::type_definition () {
-	return NULL;
-}
-
-Ast_Type_Instance* Parser::type_instance () {
-	if (this->lexer->isNextType(TOKEN_ID)) {
-		auto ty_inst = AST_NEW(Ast_Named_Type);
-		ty_inst->identifier = this->ident();
-		return ty_inst;
-	} else if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
-		auto ty_inst = AST_NEW(Ast_Function_Type);
-		this->lexer->skip(1);
-
-		Ast_Type_Instance* _tmp;
-		while (_tmp = this->type_instance())
-			ty_inst->parameters.push_back(_tmp);
-		this->lexer->check_skip(TOKEN_PAR_CLOSE);
-
-		if (this->lexer->isNextType(TOKEN_ARROW)) {
-			this->lexer->skip(1);
-			ty_inst->return_type = this->type_instance();
-		} else {
-			// FIXME: void type should be more accessible
-			auto _void = AST_NEW(Ast_Named_Type);
-			_void->identifier = this->ident("void");
-			ty_inst->return_type = _void;
-		}
-
-		return ty_inst;
 	} else return NULL;
 }
 
@@ -259,19 +227,16 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			this->lexer->skip(1);
 			Ast_Declaration* decl;
 			while (decl = this->declaration()) {
-				fn_type->parameters.push_back(decl->type);
+				fn_type->parameter_types.push_back(decl->type);
 				decl = this->declaration();
 			}
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		}
 		if (this->lexer->isNextType(TOKEN_ARROW)) {
 			this->lexer->skip(1);
-			fn_type->return_type = this->type_instance();
+			fn_type->return_type = this->expression();
 		} else {
-			// FIXME: void type should be more accessible
-			auto _void = AST_NEW(Ast_Named_Type);
-			_void->identifier = this->ident("void");
-			fn_type->return_type = _void;
+			fn_type->return_type = this->ident("void");
 		}
 		fn->type = fn_type;
 

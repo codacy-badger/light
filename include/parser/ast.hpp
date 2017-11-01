@@ -9,7 +9,6 @@ struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
-struct Ast_Type_Instance;
 struct Ast_Type_Definition;
 
 using namespace std;
@@ -61,7 +60,7 @@ const int DECL_FLAG_CONSTANT = 0x1;
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
-	Ast_Type_Instance* type = NULL;
+	Ast_Expression* type = NULL;
 	Ast_Expression* expression = NULL;
 
 	int decl_flags = 0;
@@ -89,7 +88,6 @@ struct Ast_Import : Ast_Statement {
 enum Ast_Expression_Type {
 	AST_EXPRESSION_UNDEFINED = 0,
 	AST_EXPRESSION_TYPE_DEFINITION,
-	AST_EXPRESSION_TYPE_INSTANCE,
 	AST_EXPRESSION_FUNCTION,
 	AST_EXPRESSION_BINARY,
 	AST_EXPRESSION_UNARY,
@@ -100,51 +98,41 @@ enum Ast_Expression_Type {
 
 struct Ast_Expression : Ast_Statement {
 	Ast_Expression_Type exp_type = AST_EXPRESSION_UNDEFINED;
-	Ast_Type_Instance* inferred_type = NULL;
+	Ast_Type_Definition* inferred_type = NULL;
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
 };
 
+enum Ast_Type_Definition_Type {
+	AST_TYPEDEF_UNDEFINED = 0,
+	AST_TYPEDEF_FUNCTION,
+	AST_TYPEDEF_STRUCT,
+	AST_TYPEDEF_POINTER,
+};
+
 struct Ast_Type_Definition : Ast_Expression {
-	const char* name;
+	Ast_Type_Definition_Type typedef_type = AST_TYPEDEF_UNDEFINED;
+
+	Ast_Type_Definition() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
+};
+
+struct Ast_Function_Type : Ast_Type_Definition {
+	vector<Ast_Expression*> parameter_types;
+	Ast_Expression* return_type = NULL;
+
+	Ast_Function_Type() { this->typedef_type = AST_TYPEDEF_FUNCTION; }
+};
+
+struct Ast_Struct_Type : Ast_Type_Definition {
 	vector<Ast_Declaration*> attributes;
 
-	Ast_Type_Definition(const char* name = NULL) {
-		this->exp_type = AST_EXPRESSION_TYPE_DEFINITION;
-		this->name = name;
-	}
+	Ast_Struct_Type() { this->typedef_type = AST_TYPEDEF_STRUCT; }
 };
 
-enum Ast_Type_Inst_Type {
-	AST_TYPE_INST_UNDEFINED = 0,
-	AST_TYPE_INST_NAMED,
-	AST_TYPE_INST_POINTER,
-	AST_TYPE_INST_FUNCTION,
-};
+struct Ast_Pointer_Type : Ast_Type_Definition {
+	Ast_Type_Definition* base = NULL;
 
-struct Ast_Type_Instance : Ast_Expression {
-	Ast_Type_Inst_Type type_inst_type = AST_TYPE_INST_UNDEFINED;
-
-	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
-};
-
-struct Ast_Named_Type : Ast_Type_Instance {
-	Ast_Ident* identifier = NULL;
-
-	Ast_Named_Type() { this->type_inst_type = AST_TYPE_INST_NAMED; }
-};
-
-struct Ast_Pointer_Type : Ast_Type_Instance {
-	Ast_Type_Instance* base = NULL;
-
-	Ast_Pointer_Type() { this->type_inst_type = AST_TYPE_INST_POINTER; }
-};
-
-struct Ast_Function_Type : Ast_Type_Instance {
-	vector<Ast_Type_Instance*> parameters;
-	Ast_Type_Instance* return_type = NULL;
-
-	Ast_Function_Type() { this->type_inst_type = AST_TYPE_INST_FUNCTION; }
+	Ast_Pointer_Type() { this->typedef_type = AST_TYPEDEF_POINTER; }
 };
 
 struct Ast_Function : Ast_Expression {
@@ -240,4 +228,4 @@ struct Ast_Ident : Ast_Expression {
 };
 
 Ast_Ident* ast_make_ident (const char* name);
-Ast_Declaration* ast_make_declaration (Ast_Type_Definition* ty_def);
+Ast_Declaration* ast_make_declaration (const char* name, Ast_Type_Definition* ty_def);

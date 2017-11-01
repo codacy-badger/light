@@ -82,6 +82,24 @@ void Symbol_Resolution::check_symbols (Ast_Declaration* decl, set<const char*, c
 	}
 }
 
+void Symbol_Resolution::check_symbols (Ast_Type_Definition* tydef, set<const char*, cmp_str>* sym) {
+	switch (tydef->typedef_type) {
+        case AST_TYPEDEF_STRUCT: {
+            auto struct_type = static_cast<Ast_Struct_Type*>(tydef);
+			break;
+        }
+        case AST_TYPEDEF_POINTER: {
+            check_symbols(static_cast<Ast_Pointer_Type*>(tydef), sym);
+			break;
+		}
+        case AST_TYPEDEF_FUNCTION: {
+            check_symbols(static_cast<Ast_Function_Type*>(tydef), sym);
+			break;
+		}
+        default: break;
+    }
+}
+
 void Symbol_Resolution::check_symbols (Ast_Block* block, set<const char*, cmp_str>* sym) {
     for (auto stm : block->list) check_symbols(stm, sym);
 }
@@ -94,9 +112,6 @@ void Symbol_Resolution::check_symbols (Ast_Expression* exp, set<const char*, cmp
     switch (exp->exp_type) {
         case AST_EXPRESSION_FUNCTION:
             check_symbols(static_cast<Ast_Function*>(exp), sym);
-			break;
-        case AST_EXPRESSION_TYPE_INSTANCE:
-            check_symbols(static_cast<Ast_Type_Instance*>(exp), sym);
 			break;
         case AST_EXPRESSION_BINARY:
             check_symbols(static_cast<Ast_Binary*>(exp), sym);
@@ -136,29 +151,12 @@ void Symbol_Resolution::check_symbols (Ast_Function* fn, set<const char*, cmp_st
     check_symbols(fn->scope, sym);
 }
 
-void Symbol_Resolution::check_symbols (Ast_Type_Instance* ty_inst, set<const char*, cmp_str>* sym) {
-    switch (ty_inst->type_inst_type) {
-        case AST_TYPE_INST_NAMED: {
-            auto named_type = static_cast<Ast_Named_Type*>(ty_inst);
-            check_symbols(named_type->identifier, sym);
-			break;
-        }
-        case AST_TYPE_INST_POINTER:
-            check_symbols(static_cast<Ast_Pointer_Type*>(ty_inst), sym);
-			break;
-        case AST_TYPE_INST_FUNCTION:
-            check_symbols(static_cast<Ast_Function_Type*>(ty_inst), sym);
-			break;
-        default: break;
-    }
-}
-
 void Symbol_Resolution::check_symbols (Ast_Pointer_Type* ptr_type, set<const char*, cmp_str>* sym) {
     check_symbols(ptr_type->base, sym);
 }
 
 void Symbol_Resolution::check_symbols (Ast_Function_Type* fn_type, set<const char*, cmp_str>* sym) {
     check_symbols(fn_type->return_type, sym);
-    for (auto param_type : fn_type->parameters)
+    for (auto param_type : fn_type->parameter_types)
         check_symbols(param_type, sym);
 }
