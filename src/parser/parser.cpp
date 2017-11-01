@@ -115,8 +115,11 @@ Ast_Statement* Parser::statement () {
 			if (this->lexer->isNextType(TOKEN_COLON)) {
 				auto decl = AST_NEW(Ast_Declaration);
 				decl->name = ident->name;
-				this->lexer->skip(1);
-				decl->type = this->expression();
+
+				if (this->lexer->isNextType(TOKEN_COLON)) {
+					this->lexer->skip(1);
+					decl->type = this->_atom();
+				}
 
 				if (this->lexer->isNextType(TOKEN_COLON)) {
 					this->lexer->skip(1);
@@ -153,7 +156,7 @@ Ast_Declaration* Parser::declaration () {
 
 		if (this->lexer->isNextType(TOKEN_COLON)) {
 			this->lexer->skip(1);
-			decl->type = this->expression();
+			decl->type = this->_atom();
 		}
 
 		if (this->lexer->isNextType(TOKEN_COLON)) {

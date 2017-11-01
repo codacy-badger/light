@@ -15,6 +15,7 @@ struct Light_Compiler {
 	Light_Compiler_Settings* settings = NULL;
 	Parser* parser = NULL;
 
+	static Ast_Type_Definition* type_def_type;
 	static Ast_Type_Definition* type_def_void;
 	static Ast_Type_Definition* type_def_i32;
 
