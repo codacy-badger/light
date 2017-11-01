@@ -61,7 +61,9 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs, bool nameOnly) {
 	}
 
 	printf("%s : ", decl->name);
-	print(decl->type, tabs);
+	if (decl->type) print(decl->type, tabs);
+	else printf("(null)");
+
 	if (decl->expression) {
 		if (decl->decl_flags & DECL_FLAG_CONSTANT)
 			printf(" : ");
@@ -116,12 +118,21 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs) {
 }
 
 void ASTPrinter::print (Ast_Type_Definition* tydef, int tabs, bool nameOnly) {
-	printf("Ast_Type_Definition");
-}
-
-void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool nameOnly) {
-	printf("*");
-	print(type->base, tabs, nameOnly);
+	switch (tydef->typedef_type) {
+		case AST_TYPEDEF_FUNCTION: {
+			print(static_cast<Ast_Function_Type*>(tydef), tabs);
+			break;
+		}
+		case AST_TYPEDEF_STRUCT: {
+			print(static_cast<Ast_Struct_Type*>(tydef), tabs);
+			break;
+		}
+		case AST_TYPEDEF_POINTER: {
+			print(static_cast<Ast_Pointer_Type*>(tydef), tabs);
+			break;
+		}
+		default: printf("-???-\n");
+	}
 }
 
 void ASTPrinter::print (Ast_Function_Type* type, int tabs, bool nameOnly) {
@@ -136,6 +147,15 @@ void ASTPrinter::print (Ast_Function_Type* type, int tabs, bool nameOnly) {
 	}
 	printf(" ) -> ");
 	print(type->return_type, tabs);
+}
+
+void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool nameOnly) {
+	printf("Ast_Struct_Type");
+}
+
+void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool nameOnly) {
+	printf("*");
+	print(type->base, tabs, nameOnly);
 }
 
 void ASTPrinter::print (Ast_Function* fn, int tabs, bool nameOnly) {

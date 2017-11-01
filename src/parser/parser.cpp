@@ -220,8 +220,6 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->lexer->isNextType(TOKEN_FUNCTION)) {
 		this->lexer->skip(1);
 
-		auto fn = AST_NEW(Ast_Function);
-
 		auto fn_type = AST_NEW(Ast_Function_Type);
 		if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 			this->lexer->skip(1);
@@ -235,19 +233,18 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		if (this->lexer->isNextType(TOKEN_ARROW)) {
 			this->lexer->skip(1);
 			fn_type->return_type = this->expression();
-		} else {
-			fn_type->return_type = this->ident("void");
-		}
-		fn->type = fn_type;
+		} else fn_type->return_type = this->ident("void");
 
 		if (!this->lexer->isNextType(TOKEN_STM_END)) {
 			this->lexer->check_skip(TOKEN_BRAC_OPEN);
+			auto fn = AST_NEW(Ast_Function);
+			fn->type = fn_type;
 			fn->scope = AST_NEW(Ast_Block, this->current_block);
 			this->block(fn->scope);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-		}
+			return fn;
+		} else return fn_type;
 
-		return fn;
 	} else if (this->lexer->isNextType(TOKEN_SUB)) {
 		this->lexer->skip(1);
 		auto unop = AST_NEW(Ast_Unary, TOKEN_SUB);
