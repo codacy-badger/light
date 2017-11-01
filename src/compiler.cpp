@@ -13,10 +13,6 @@
 
 Light_Compiler* Light_Compiler::instance = NULL;
 
-Ast_Type_Definition* Light_Compiler::type_def_type = new Ast_Type_Definition();
-Ast_Type_Definition* Light_Compiler::type_def_void = new Ast_Type_Definition();
-Ast_Type_Definition* Light_Compiler::type_def_i32  = new Ast_Type_Definition();
-
 void link (std::string output) {
 	auto linker = Timer::getTime();
 	std::string linkerCommand = "link /nologo /ENTRY:main ";
@@ -36,6 +32,20 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	else this->settings = settings;
 	assert(Light_Compiler::instance == NULL);
 	Light_Compiler::instance = this;
+
+	this->type_def_type = new Ast_Type_Definition();
+	this->type_def_type->inferred_type = this->type_def_type;
+	this->type_def_type->typedef_type = AST_TYPEDEF_TYPE;
+
+	this->type_def_void = new Ast_Struct_Type();
+	this->type_def_void->inferred_type = this->type_def_type;
+	this->type_def_void->typedef_type = AST_TYPEDEF_STRUCT;
+	this->type_def_void->name = "void";
+
+	this->type_def_i32 = new Ast_Struct_Type();
+	this->type_def_i32->inferred_type = this->type_def_type;
+	this->type_def_i32->typedef_type = AST_TYPEDEF_STRUCT;
+	this->type_def_i32->name = "i32";
 }
 
 void Light_Compiler::run () {

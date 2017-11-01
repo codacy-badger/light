@@ -91,9 +91,10 @@ Ast_Ident* ast_make_ident (const char* name) {
 	return out;
 }
 
-Ast_Declaration* ast_make_declaration (const char* name, Ast_Type_Definition* ty_def) {
+Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const) {
     auto decl = new Ast_Declaration();
-    decl->expression = ty_def;
+	if (is_const) decl->decl_flags |= DECL_FLAG_CONSTANT;
+    decl->expression = exp;
     decl->name = name;
     return decl;
 }

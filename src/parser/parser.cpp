@@ -20,8 +20,15 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 
 Ast_Block* Parser::top_level_block () {
 	auto _block = AST_NEW(Ast_Block, this->current_block);
-	_block->list.push_back(ast_make_declaration("void", Light_Compiler::type_def_void));
-	_block->list.push_back(ast_make_declaration("i32", Light_Compiler::type_def_i32));
+
+	auto void_decl = ast_make_declaration("void", Light_Compiler::instance->type_def_void);
+	_block->list.push_back(void_decl);
+	this->to_next(void_decl);
+
+	auto i32_decl = ast_make_declaration("i32", Light_Compiler::instance->type_def_i32);
+	_block->list.push_back(i32_decl);
+	this->to_next(i32_decl);
+
 	this->block(_block);
 	return _block;
 }

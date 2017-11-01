@@ -105,6 +105,7 @@ struct Ast_Expression : Ast_Statement {
 
 enum Ast_Type_Definition_Type {
 	AST_TYPEDEF_UNDEFINED = 0,
+	AST_TYPEDEF_TYPE,
 	AST_TYPEDEF_FUNCTION,
 	AST_TYPEDEF_STRUCT,
 	AST_TYPEDEF_POINTER,
@@ -124,6 +125,7 @@ struct Ast_Function_Type : Ast_Type_Definition {
 };
 
 struct Ast_Struct_Type : Ast_Type_Definition {
+	const char* name = NULL;
 	vector<Ast_Declaration*> attributes;
 
 	Ast_Struct_Type() { this->typedef_type = AST_TYPEDEF_STRUCT; }
@@ -228,4 +230,4 @@ struct Ast_Ident : Ast_Expression {
 };
 
 Ast_Ident* ast_make_ident (const char* name);
-Ast_Declaration* ast_make_declaration (const char* name, Ast_Type_Definition* ty_def);
+Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const = true);

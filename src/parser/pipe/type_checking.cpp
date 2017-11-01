@@ -51,6 +51,9 @@ void Type_Checking::check_type (Ast_Return* ret) {
 
 void Type_Checking::check_type (Ast_Expression* exp) {
     switch (exp->exp_type) {
+		case AST_EXPRESSION_TYPE_DEFINITION:
+            check_type(static_cast<Ast_Type_Definition*>(exp));
+            break;
         case AST_EXPRESSION_FUNCTION:
             check_type(static_cast<Ast_Function*>(exp));
             break;
@@ -59,6 +62,33 @@ void Type_Checking::check_type (Ast_Expression* exp) {
             break;
         default: break;
     }
+}
+
+void Type_Checking::check_type (Ast_Type_Definition* tydef) {
+    switch (tydef->typedef_type) {
+		case AST_TYPEDEF_FUNCTION:
+            check_type(static_cast<Ast_Function_Type*>(tydef));
+            break;
+        case AST_TYPEDEF_STRUCT:
+            check_type(static_cast<Ast_Struct_Type*>(tydef));
+            break;
+        case AST_TYPEDEF_POINTER:
+            check_type(static_cast<Ast_Pointer_Type*>(tydef));
+            break;
+        default: break;
+    }
+}
+
+void Type_Checking::check_type (Ast_Function_Type* ty) {
+    ty->inferred_type = Light_Compiler::instance->type_def_type;
+}
+
+void Type_Checking::check_type (Ast_Struct_Type* ty) {
+    ty->inferred_type = Light_Compiler::instance->type_def_type;
+}
+
+void Type_Checking::check_type (Ast_Pointer_Type* ty) {
+    ty->inferred_type = Light_Compiler::instance->type_def_type;
 }
 
 void Type_Checking::check_type (Ast_Function* func) {
@@ -70,8 +100,7 @@ void Type_Checking::check_type (Ast_Literal* lit) {
     if (!lit->inferred_type) {
         switch (lit->literal_type) {
             case AST_LITERAL_INTEGER: {
-                printf("Trying to infer literal type!\n");
-                //TODO: fix usage of type instances
+				lit->inferred_type = Light_Compiler::instance->type_def_i32;
                 break;
             }
             default: break;
