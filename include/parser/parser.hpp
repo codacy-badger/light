@@ -26,7 +26,7 @@ struct Parser : Pipe {
 	Ast_Block* top_level_block ();
 	void block (Ast_Block* insert_block);
 	Ast_Statement* statement ();
-	Ast_Declaration* declaration ();
+	Ast_Declaration* declaration (Ast_Ident* ident = NULL);
 	Ast_Expression* expression (Ast_Ident* initial = NULL, short minPrecedence = 1);
 	Ast_Expression* _atom (Ast_Ident* initial = NULL);
 	Ast_Type_Definition* type_definition ();

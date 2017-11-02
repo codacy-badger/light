@@ -120,28 +120,7 @@ Ast_Statement* Parser::statement () {
 		case TOKEN_ID: {
 			auto ident = this->ident();
 			if (this->lexer->isNextType(TOKEN_COLON)) {
-				auto decl = AST_NEW(Ast_Declaration);
-				decl->name = ident->name;
-
-				if (this->lexer->isNextType(TOKEN_COLON)) {
-					this->lexer->skip(1);
-					decl->type = this->_atom();
-				}
-
-				if (this->lexer->isNextType(TOKEN_COLON)) {
-					this->lexer->skip(1);
-					decl->decl_flags |= DECL_FLAG_CONSTANT;
-				} else if (this->lexer->isNextType(TOKEN_EQUAL)) {
-					this->lexer->skip(1);
-				} else if (this->lexer->isNextType(TOKEN_STM_END)) {
-					this->lexer->skip(1);
-					return decl;
-				}
-
-				decl->expression = this->expression();
-				if (this->lexer->isNextType(TOKEN_STM_END))
-					this->lexer->skip(1);
-				return decl;
+				return this->declaration(ident);
 			} else {
 				auto exp = this->expression(ident);
 				if (exp) this->lexer->check_skip(TOKEN_STM_END);
@@ -156,28 +135,34 @@ Ast_Statement* Parser::statement () {
 	}
 }
 
-Ast_Declaration* Parser::declaration () {
-	if (this->lexer->isNextType(TOKEN_ID)) {
-		auto decl = AST_NEW(Ast_Declaration);
-		decl->name = this->ident()->name;
+Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
+	if (!ident) {
+		if (this->lexer->isNextType(TOKEN_ID))
+			ident = this->ident();
+		else return NULL;
+	}
 
-		if (this->lexer->isNextType(TOKEN_COLON)) {
-			this->lexer->skip(1);
-			decl->type = this->_atom();
-		}
+	auto decl = AST_NEW(Ast_Declaration);
+	decl->name = ident->name;
+	delete ident;
 
-		if (this->lexer->isNextType(TOKEN_COLON)) {
-			this->lexer->skip(1);
-			decl->decl_flags |= DECL_FLAG_CONSTANT;
-		} else if (this->lexer->isNextType(TOKEN_EQUAL)) {
-			this->lexer->skip(1);
-		}
+	if (this->lexer->isNextType(TOKEN_COLON)) {
+		this->lexer->skip(1);
+		decl->type = this->_atom();
+	}
 
-		if (!this->lexer->isNextType(TOKEN_STM_END))
-			decl->expression = this->expression();
+	if (this->lexer->isNextType(TOKEN_COLON)) {
+		this->lexer->skip(1);
+		decl->decl_flags |= DECL_FLAG_CONSTANT;
+	} else if (this->lexer->isNextType(TOKEN_EQUAL)) {
+		this->lexer->skip(1);
+	}
 
-		return decl;
-	} else return NULL;
+	decl->expression = this->expression();
+	if (this->lexer->isNextType(TOKEN_STM_END))
+		this->lexer->skip(1);
+
+	return decl;
 }
 
 Ast_Function* Parser::function () {
@@ -245,8 +230,8 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			fn_type->return_type = this->expression();
 		} else fn_type->return_type = this->ident("void");
 
-		if (!this->lexer->isNextType(TOKEN_STM_END)) {
-			this->lexer->check_skip(TOKEN_BRAC_OPEN);
+		if (this->lexer->isNextType(TOKEN_BRAC_OPEN)) {
+			this->lexer->skip(1);
 			auto fn = AST_NEW(Ast_Function);
 			fn->type = fn_type;
 			fn->scope = AST_NEW(Ast_Block, this->current_block);
