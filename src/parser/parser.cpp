@@ -165,14 +165,6 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	return decl;
 }
 
-Ast_Function* Parser::function () {
-	return NULL;
-}
-
-Ast_Function_Type* Parser::_functionType () {
-	return NULL;
-}
-
 void Parser::_functionParameters (vector<Ast_Declaration*>* output) {
 	return;
 }
@@ -201,6 +193,37 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
 	return output;
 }
 
+Ast_Function* Parser::function (Ast_Function_Type* fn_type) {
+	if (this->lexer->isNextType(TOKEN_BRAC_OPEN)) {
+		this->lexer->skip(1);
+		auto fn = AST_NEW(Ast_Function);
+		fn->type = fn_type;
+		fn->scope = AST_NEW(Ast_Block, this->current_block);
+		this->block(fn->scope);
+		this->lexer->check_skip(TOKEN_BRAC_CLOSE);
+		return fn;
+	} else return NULL;
+}
+
+Ast_Function_Type* Parser::function_type () {
+	auto fn_type = AST_NEW(Ast_Function_Type);
+	if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
+		this->lexer->skip(1);
+		Ast_Declaration* decl;
+		while (decl = this->declaration()) {
+			fn_type->parameter_types.push_back(decl->type);
+			decl = this->declaration();
+		}
+		this->lexer->check_skip(TOKEN_PAR_CLOSE);
+	}
+	if (this->lexer->isNextType(TOKEN_ARROW)) {
+		this->lexer->skip(1);
+		fn_type->return_type = this->expression();
+	} else fn_type->return_type = this->ident("void");
+
+	return fn_type;
+}
+
 Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	if (this->lexer->isNextType(TOKEN_ID) || initial) {
 		auto output = initial ? initial : this->ident();
@@ -215,29 +238,9 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->lexer->isNextType(TOKEN_FUNCTION)) {
 		this->lexer->skip(1);
 
-		auto fn_type = AST_NEW(Ast_Function_Type);
-		if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
-			this->lexer->skip(1);
-			Ast_Declaration* decl;
-			while (decl = this->declaration()) {
-				fn_type->parameter_types.push_back(decl->type);
-				decl = this->declaration();
-			}
-			this->lexer->check_skip(TOKEN_PAR_CLOSE);
-		}
-		if (this->lexer->isNextType(TOKEN_ARROW)) {
-			this->lexer->skip(1);
-			fn_type->return_type = this->expression();
-		} else fn_type->return_type = this->ident("void");
-
+		auto fn_type = this->function_type();
 		if (this->lexer->isNextType(TOKEN_BRAC_OPEN)) {
-			this->lexer->skip(1);
-			auto fn = AST_NEW(Ast_Function);
-			fn->type = fn_type;
-			fn->scope = AST_NEW(Ast_Block, this->current_block);
-			this->block(fn->scope);
-			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-			return fn;
+			return this->function(fn_type);
 		} else return fn_type;
 
 	} else if (this->lexer->isNextType(TOKEN_SUB)) {

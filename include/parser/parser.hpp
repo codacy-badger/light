@@ -30,8 +30,8 @@ struct Parser : Pipe {
 	Ast_Expression* expression (Ast_Ident* initial = NULL, short minPrecedence = 1);
 	Ast_Expression* _atom (Ast_Ident* initial = NULL);
 	Ast_Type_Definition* type_definition ();
-	Ast_Function* function ();
-	Ast_Function_Type* _functionType ();
+	Ast_Function* function (Ast_Function_Type* fn_type);
+	Ast_Function_Type* function_type ();
 	void _functionParameters (vector<Ast_Declaration*>* parameters);
 	Ast_Function_Call* call (Ast_Expression* callee);
 	Ast_Literal* literal ();
