@@ -4,7 +4,6 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include <stdarg.h>
 
 #include "timer.hpp"
 #include "parser/pipe/symbol_resolution.hpp"
@@ -60,7 +59,7 @@ void Light_Compiler::run () {
 
 		auto start = Timer::getTime();
 		parser->top_level_block();
-		Timer::print("  Parse ", start);
+		Timer::print("\n  Parse ", start);
 		parser->on_finish();
 	}
 	Timer::print("TOTAL   ", total);
@@ -72,8 +71,8 @@ void print_node_location (FILE* buffer, Ast* node) {
 	else fprintf(buffer, "@ (null):?,?");
 }
 
-void Light_Compiler::report_info (Ast* node, const char* format, ...) {
-	fprintf(stderr, "[INFO] ");
+void Light_Compiler::info (Ast* node, const char* format, ...) {
+	fprintf(stdout, "\n[INFO] ");
 
 	va_list argptr;
     va_start(argptr, format);
@@ -85,8 +84,8 @@ void Light_Compiler::report_info (Ast* node, const char* format, ...) {
 	fprintf(stdout, "\n");
 }
 
-void Light_Compiler::report_warning (Ast* node, const char* format, ...) {
-	fprintf(stderr, "[WARNING] ");
+void Light_Compiler::warning (Ast* node, const char* format, ...) {
+	fprintf(stdout, "\n[WARNING] ");
 
 	va_list argptr;
     va_start(argptr, format);
@@ -98,16 +97,33 @@ void Light_Compiler::report_warning (Ast* node, const char* format, ...) {
 	fprintf(stdout, "\n");
 }
 
-void Light_Compiler::report_error (Ast* node, const char* format, ...) {
-	fprintf(stderr, "[ERROR] ");
-
+void Light_Compiler::error (Ast* node, const char* format, ...) {
 	va_list argptr;
     va_start(argptr, format);
+    v_error(node, format, argptr);
+    va_end(argptr);
+}
+
+void Light_Compiler::v_error (Ast* node, const char* format, va_list argptr) {
+	fprintf(stderr, "\n[ERROR] ");
+
     vfprintf(stderr, format, argptr);
-    va_end(argptr);
 	fprintf(stderr, "\n\t");
 
 	print_node_location(stderr, node);
 	fprintf(stderr, "\n");
-	exit(EXIT_FAILURE);
+	has_errors = true;
+}
+
+void Light_Compiler::error_stop (Ast* node, const char* format, ...) {
+	va_list argptr;
+    va_start(argptr, format);
+	this->v_error(node, format, argptr);
+    va_end(argptr);
+	this->stop();
+}
+
+void Light_Compiler::stop () {
+	fprintf(stdout, "\nStopping compilation\n");
+	exit(1);
 }

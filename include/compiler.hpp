@@ -2,6 +2,7 @@
 
 #include "parser/parser.hpp"
 
+#include <stdarg.h>
 #include <vector>
 
 using namespace std;
@@ -13,6 +14,7 @@ struct Light_Compiler_Settings {
 
 struct Light_Compiler {
 	Light_Compiler_Settings* settings = NULL;
+	bool has_errors = false;
 	Parser* parser = NULL;
 
 	Ast_Type_Definition* type_def_type;
@@ -25,7 +27,11 @@ struct Light_Compiler {
 
 	void run ();
 
-	void report_info (Ast* node, const char* format, ...);
-	void report_warning (Ast* node, const char* format, ...);
-	void report_error (Ast* node, const char* format, ...);
+	void info (Ast* node, const char* format, ...);
+	void warning (Ast* node, const char* format, ...);
+	void error (Ast* node, const char* format, ...);
+	void v_error (Ast* node, const char* format, va_list argptr);
+	void error_stop (Ast* node, const char* format, ...);
+
+	void stop ();
 };

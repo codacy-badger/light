@@ -36,7 +36,7 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
 
 void Symbol_Resolution::on_finish () {
     if (this->unresolved_symbols.size() > 0) {
-        Light_Compiler::instance->report_error(NULL, "There are unresolved symbols!");
+        Light_Compiler::instance->error(NULL, "There are unresolved symbols!");
     } else this->try_finish();
 }
 

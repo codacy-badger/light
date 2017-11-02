@@ -36,11 +36,11 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
             decl->type = decl->expression->inferred_type;
         } else {
             if (decl->type != decl->expression->inferred_type) {
-                //Light_Compiler::instance->report_error(decl, "Type mismatch, wanted '%s' but got '%s'", "---", "---");
+                //Light_Compiler::instance->error_stop(decl, "Type mismatch, wanted '%s' but got '%s'", "---", "---");
             }
         }
     } else if (!decl->type) {
-        Light_Compiler::instance->report_error(decl, "Cannot infer type without an expression!");
+        Light_Compiler::instance->error_stop(decl, "Cannot infer type without an expression!");
     }
 }
 
@@ -56,6 +56,12 @@ void Type_Checking::check_type (Ast_Expression* exp) {
             break;
         case AST_EXPRESSION_FUNCTION:
             check_type(static_cast<Ast_Function*>(exp));
+            break;
+        case AST_EXPRESSION_BINARY:
+            check_type(static_cast<Ast_Binary*>(exp));
+            break;
+        case AST_EXPRESSION_UNARY:
+            check_type(static_cast<Ast_Unary*>(exp));
             break;
         case AST_EXPRESSION_LITERAL:
             check_type(static_cast<Ast_Literal*>(exp));
@@ -93,6 +99,25 @@ void Type_Checking::check_type (Ast_Pointer_Type* ty) {
 
 void Type_Checking::check_type (Ast_Function* func) {
     func->inferred_type = func->type;
+}
+
+void Type_Checking::check_type (Ast_Binary* binop) {
+	check_type(binop->lhs);
+	check_type(binop->rhs);
+	if (binop->lhs->inferred_type == binop->rhs->inferred_type) {
+		binop->inferred_type = binop->lhs->inferred_type;
+	} else {
+		//Light_Compiler::instance->error_stop(binop, "Type mismatch on binary expression");
+	}
+}
+
+void Type_Checking::check_type (Ast_Unary* unop) {
+	check_type(unop->exp);
+	unop->inferred_type = unop->exp->inferred_type;
+}
+
+void Type_Checking::check_type (Ast_Ident* ident) {
+
 }
 
 void Type_Checking::check_type (Ast_Literal* lit) {

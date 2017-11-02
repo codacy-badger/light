@@ -1,10 +1,10 @@
-//import! "examples/basic.li"
+import! "examples/basic.li"
 
 work :: fn -> i32 {
     VAL
 }
 
-NUM : i32 : VAL + 10;
+NUM :: VAL + 10;
 
 WIN_CALL :: fn (val: i32) -> i32;
 

@@ -49,7 +49,7 @@ void Parser::block (Ast_Block* insert_block) {
 					this->current_block->list.insert(this->current_block->list.end(),
 						include_block->list.begin(), include_block->list.end());
 					delete include_block;
-				} else this->compiler->report_error(imp,
+				} else this->compiler->error(imp,
 					"Can't open import file: '%s'", imp->filepath);
 				this->lexer = this->lexer->pop();
 			}

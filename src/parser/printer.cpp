@@ -61,7 +61,9 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
 	}
 
 	printf("%s : ", decl->name);
-	print(decl->type, tabs);
+
+	if (decl->type) print(decl->type, tabs);
+	else printf("(null)");
 
 	if (decl->decl_flags & DECL_FLAG_CONSTANT)
 		printf(" : ");
