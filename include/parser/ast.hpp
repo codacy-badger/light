@@ -128,7 +128,10 @@ struct Ast_Struct_Type : Ast_Type_Definition {
 	const char* name = NULL;
 	vector<Ast_Declaration*> attributes;
 
-	Ast_Struct_Type() { this->typedef_type = AST_TYPEDEF_STRUCT; }
+	Ast_Struct_Type(const char* name = NULL) {
+		this->typedef_type = AST_TYPEDEF_STRUCT;
+		this->name = name;
+	}
 };
 
 struct Ast_Pointer_Type : Ast_Type_Definition {

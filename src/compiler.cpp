@@ -36,15 +36,8 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	this->type_def_type->inferred_type = this->type_def_type;
 	this->type_def_type->typedef_type = AST_TYPEDEF_TYPE;
 
-	this->type_def_void = new Ast_Struct_Type();
-	this->type_def_void->inferred_type = this->type_def_type;
-	this->type_def_void->typedef_type = AST_TYPEDEF_STRUCT;
-	this->type_def_void->name = "void";
-
-	this->type_def_i32 = new Ast_Struct_Type();
-	this->type_def_i32->inferred_type = this->type_def_type;
-	this->type_def_i32->typedef_type = AST_TYPEDEF_STRUCT;
-	this->type_def_i32->name = "i32";
+	this->type_def_void = new Ast_Struct_Type("void");
+	this->type_def_i32 = new Ast_Struct_Type("i32");
 }
 
 void Light_Compiler::run () {
