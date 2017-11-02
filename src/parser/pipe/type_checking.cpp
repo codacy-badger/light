@@ -35,9 +35,7 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 		check_type(decl->type);
 		if (decl->type->exp_type == AST_EXPRESSION_IDENT) {
 			auto ident = static_cast<Ast_Ident*>(decl->type);
-			if (ident->declaration->decl_flags & DECL_FLAG_CONSTANT) {
-				decl->type = ident->declaration->expression;
-			}
+			decl->type = ident->declaration->expression;
 		}
 	}
 
@@ -45,6 +43,10 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 		Light_Compiler::instance->error_stop(decl, "Cannot infer type without an expression!");
 	} else if (!decl->type) {
 		decl->type = decl->expression->inferred_type;
+	}
+
+	if (decl->type->inferred_type != Light_Compiler::instance->type_def_type) {
+		Light_Compiler::instance->error_stop(decl->type, "Expression is not a type!");
 	}
 }
 

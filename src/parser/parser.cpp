@@ -223,6 +223,8 @@ Ast_Function* Parser::function (Ast_Function_Type* fn_type) {
 
 Ast_Function_Type* Parser::function_type () {
 	auto fn_type = AST_NEW(Ast_Function_Type);
+	fn_type->inferred_type = Light_Compiler::instance->type_def_type;
+
 	if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 		this->lexer->skip(1);
 		Ast_Declaration* decl;
