@@ -29,19 +29,23 @@ void Type_Checking::check_type (Ast_Block* block) {
 }
 
 void Type_Checking::check_type (Ast_Declaration* decl) {
-    if (decl->expression) {
-        check_type(decl->expression);
+	if (decl->expression) check_type(decl->expression);
 
-        if (!decl->type) {
-            decl->type = decl->expression->inferred_type;
-        } else {
-            if (decl->type != decl->expression->inferred_type) {
-                //Light_Compiler::instance->error_stop(decl, "Type mismatch, wanted '%s' but got '%s'", "---", "---");
-            }
-        }
-    } else if (!decl->type) {
-        Light_Compiler::instance->error_stop(decl, "Cannot infer type without an expression!");
-    }
+	if (decl->type) {
+		check_type(decl->type);
+		if (decl->type->exp_type == AST_EXPRESSION_IDENT) {
+			auto ident = static_cast<Ast_Ident*>(decl->type);
+			if (ident->declaration->decl_flags & DECL_FLAG_CONSTANT) {
+				decl->type = ident->declaration->expression;
+			}
+		}
+	}
+
+	if (!decl->type && !decl->expression) {
+		Light_Compiler::instance->error_stop(decl, "Cannot infer type without an expression!");
+	} else if (!decl->type) {
+		decl->type = decl->expression->inferred_type;
+	}
 }
 
 void Type_Checking::check_type (Ast_Return* ret) {
@@ -62,6 +66,9 @@ void Type_Checking::check_type (Ast_Expression* exp) {
             break;
         case AST_EXPRESSION_UNARY:
             check_type(static_cast<Ast_Unary*>(exp));
+            break;
+        case AST_EXPRESSION_IDENT:
+            check_type(static_cast<Ast_Ident*>(exp));
             break;
         case AST_EXPRESSION_LITERAL:
             check_type(static_cast<Ast_Literal*>(exp));
@@ -117,7 +124,13 @@ void Type_Checking::check_type (Ast_Unary* unop) {
 }
 
 void Type_Checking::check_type (Ast_Ident* ident) {
-
+	if (ident->declaration) {
+		if (ident->declaration->decl_flags & DECL_FLAG_CONSTANT) {
+			ident->inferred_type = static_cast<Ast_Type_Definition*>(ident->declaration->type);
+		}
+	} else {
+		Light_Compiler::instance->error_stop(ident, "Symbol not found...");
+	}
 }
 
 void Type_Checking::check_type (Ast_Literal* lit) {
