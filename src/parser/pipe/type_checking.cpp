@@ -125,9 +125,7 @@ void Type_Checking::check_type (Ast_Unary* unop) {
 
 void Type_Checking::check_type (Ast_Ident* ident) {
 	if (ident->declaration) {
-		if (ident->declaration->decl_flags & DECL_FLAG_CONSTANT) {
-			ident->inferred_type = static_cast<Ast_Type_Definition*>(ident->declaration->type);
-		}
+		ident->inferred_type = static_cast<Ast_Type_Definition*>(ident->declaration->type);
 	} else {
 		Light_Compiler::instance->error_stop(ident, "Symbol not found...");
 	}

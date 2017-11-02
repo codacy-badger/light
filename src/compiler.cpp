@@ -124,6 +124,6 @@ void Light_Compiler::error_stop (Ast* node, const char* format, ...) {
 }
 
 void Light_Compiler::stop () {
-	fprintf(stdout, "\nStopping compilation\n");
+	fprintf(stdout, "\nStopping compilation...\n");
 	exit(1);
 }

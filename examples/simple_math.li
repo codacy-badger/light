@@ -6,7 +6,7 @@ work :: fn -> i32 {
 
 NUM :: VAL + 10;
 
-WIN_CALL :: fn (val: i32) -> i32;
+WIN_CALL : type : fn (val: i32) -> i32;
 
 main :: fn {
     b : i32 = NUM;
