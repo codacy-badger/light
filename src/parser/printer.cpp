@@ -42,7 +42,7 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 }
 
 void ASTPrinter::print (Ast_Block* block, int tabs) {
-	printf(" {\n");
+	printf("{\n");
 	for (auto stm: block->list) {
 		print(stm, tabs + 1);
 		//printf("\n");
@@ -63,12 +63,12 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
 	printf("%s : ", decl->name);
 	print(decl->type, tabs);
 
-	if (decl->expression) {
-		if (decl->decl_flags & DECL_FLAG_CONSTANT)
-			printf(" : ");
-		else printf(" = ");
-		print(decl->expression, tabs);
-	}
+	if (decl->decl_flags & DECL_FLAG_CONSTANT)
+		printf(" : ");
+	else printf(" = ");
+
+	if (decl->expression) print(decl->expression, tabs);
+
 	printf(";\n");
 }
 
@@ -163,9 +163,8 @@ void ASTPrinter::print (Ast_Pointer_Type* type, int tabs) {
 }
 
 void ASTPrinter::print (Ast_Function* fn, int tabs) {
-	if (fn->name) printf("%s ", fn->name);
-	print(fn->type, tabs);
-	if (fn->scope != NULL) print(fn->scope, tabs + 1);
+	if (fn->name) printf("%s", fn->name);
+	print(fn->scope, tabs + 1);
 }
 
 void ASTPrinter::print (Ast_Binary* binop, int tabs) {

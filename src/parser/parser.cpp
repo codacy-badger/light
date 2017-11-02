@@ -165,10 +165,6 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	return decl;
 }
 
-void Parser::_functionParameters (vector<Ast_Declaration*>* output) {
-	return;
-}
-
 Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
 	Ast_Expression* output;
     if (output = this->_atom(initial)) {
@@ -278,14 +274,17 @@ Ast_Function_Call* Parser::call (Ast_Expression* callee) {
 	Ast_Function_Call* output = NULL;
 	if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 		this->lexer->skip(1);
+
 		output = AST_NEW(Ast_Function_Call);
 		output->fn = callee;
+
 		Ast_Expression* exp = NULL;
 		while (exp = this->expression()) {
 			output->parameters.push_back(exp);
 			if (this->lexer->isNextType(TOKEN_COMMA))
 				this->lexer->skip(1);
 		}
+
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 	}
 	return output;

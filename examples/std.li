@@ -1,4 +1,4 @@
 import@ "std_li"
 
-println : fn () :;
-println_i32 : fn (number: i32) :;
+println : fn () : ;
+println_i32 : fn (number: i32) : ;
