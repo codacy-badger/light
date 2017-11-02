@@ -1,18 +1,18 @@
 import! "examples/basic.li"
 
 work :: fn -> i32 {
-    return VAL;
+    return VAL
 }
 
 NUM : i32 : VAL + 10;
 
-WIN_CALL :: fn (val: i32) -> i32;
+WIN_CALL :: fn (val: i32) -> i32
 
 main :: fn {
-    b : i32 = NUM;
-    c : i32 = a;
+    b : i32 = NUM
+    c : i32 = a
 }
 
-a :: 50;
+a :: 50
 
-VAL : i32 : 2;
+VAL : i32 : 2

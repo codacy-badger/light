@@ -84,7 +84,7 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip(1);
 			auto output = AST_NEW(Ast_Return);
 			output->exp = this->expression();
-			this->lexer->check_skip(TOKEN_STM_END);
+			this->lexer->optional_skip(TOKEN_STM_END);
 			return output;
 		}
 		case TOKEN_IMPORT: {
