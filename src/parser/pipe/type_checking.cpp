@@ -114,7 +114,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 	if (binop->lhs->inferred_type == binop->rhs->inferred_type) {
 		binop->inferred_type = binop->lhs->inferred_type;
 	} else {
-		//Light_Compiler::instance->error_stop(binop, "Type mismatch on binary expression");
+		Light_Compiler::instance->error_stop(binop, "Type mismatch on binary expression");
 	}
 }
 
