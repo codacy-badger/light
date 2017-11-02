@@ -123,14 +123,30 @@ Ast_Statement* Parser::statement () {
 				return this->declaration(ident);
 			} else {
 				auto exp = this->expression(ident);
-				if (exp) this->lexer->check_skip(TOKEN_STM_END);
-				return exp;
+				if (exp) {
+					if (this->lexer->isNextType(TOKEN_STM_END)) {
+						this->lexer->skip(1);
+						return exp;
+					} else {
+						auto output = AST_NEW(Ast_Return);
+						output->exp = exp;
+						return output;
+					}
+				} else return NULL;
 			}
 		}
 		default: {
 			auto exp = this->expression();
-			if (exp) this->lexer->check_skip(TOKEN_STM_END);
-			return exp;
+			if (exp) {
+				if (this->lexer->isNextType(TOKEN_STM_END)) {
+					this->lexer->skip(1);
+					return exp;
+				} else {
+					auto output = AST_NEW(Ast_Return);
+					output->exp = exp;
+					return output;
+				}
+			} else return NULL;
 		}
 	}
 }
