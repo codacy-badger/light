@@ -14,7 +14,7 @@ NUM :: VAL + 10;
 WIN_CALL : type : fn (val: i32) -> i32;
 
 main :: fn {
-    b : i32 = NUM;
+    b : **i32;
     c : i32 = a;
 
 	Vec3 :: struct {
@@ -28,4 +28,4 @@ a :: 50;
 
 VAL : i32 : 2;
 
-vec2_zero : Vec2 ;
+vec2_zero : *Vec2 ;

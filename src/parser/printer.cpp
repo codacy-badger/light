@@ -154,23 +154,23 @@ void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool name_only) {
 	}
 }
 
-void ASTPrinter::print (Ast_Function_Type* type, int tabs) {
+void ASTPrinter::print (Ast_Function_Type* type, int tabs, bool name_only) {
 	printf("fn ( ");
 	if (type->parameter_types.size() > 0) {
-		print(type->parameter_types[0], tabs);
+		print(type->parameter_types[0], tabs, true);
 		for (size_t i = 1; i < type->parameter_types.size(); i++) {
 			printf(", ");
-			print(type->parameter_types[i], tabs);
+			print(type->parameter_types[i], tabs, true);
 		}
 
 	}
-	printf(" ) -> ");
-	print(type->return_type, tabs);
+	printf(") -> ");
+	print(type->return_type, tabs, true);
 }
 
-void ASTPrinter::print (Ast_Pointer_Type* type, int tabs) {
+void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool name_only) {
 	printf("*");
-	print(type->base, tabs);
+	print(type->base, tabs, true);
 }
 
 void ASTPrinter::print (Ast_Function* fn, int tabs, bool name_only) {

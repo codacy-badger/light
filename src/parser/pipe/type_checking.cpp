@@ -137,6 +137,12 @@ void Type_Checking::check_type (Ast_Struct_Type* ty) {
 
 void Type_Checking::check_type (Ast_Pointer_Type* ty) {
     ty->inferred_type = Light_Compiler::instance->type_def_type;
+	check_type(ty->base);
+	if (ty->base->exp_type == AST_EXPRESSION_IDENT) {
+		auto ident = static_cast<Ast_Ident*>(ty->base);
+		delete ty->base;
+		ty->base = ident->declaration->expression;
+	}
 }
 
 void Type_Checking::check_type (Ast_Function* func) {

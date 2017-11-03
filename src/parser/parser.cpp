@@ -269,6 +269,11 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		auto result = this->expression();
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		return result;
+	} else if (this->lexer->isNextType(TOKEN_MUL)) {
+		this->lexer->skip(1);
+		auto ptr = AST_NEW(Ast_Pointer_Type);
+		ptr->base = this->_atom();
+		return ptr;
 	} else if (this->lexer->isNextType(TOKEN_FUNCTION)) {
 		this->lexer->skip(1);
 

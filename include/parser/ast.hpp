@@ -144,7 +144,7 @@ struct Ast_Struct_Type : Ast_Type_Definition {
 };
 
 struct Ast_Pointer_Type : Ast_Type_Definition {
-	Ast_Type_Definition* base = NULL;
+	Ast_Expression* base = NULL;
 
 	Ast_Pointer_Type() { this->typedef_type = AST_TYPEDEF_POINTER; }
 };
