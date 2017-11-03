@@ -166,7 +166,7 @@ void ASTPrinter::print (Ast_Pointer_Type* type, int tabs) {
 }
 
 void ASTPrinter::print (Ast_Function* fn, int tabs) {
-	if (fn->name) printf("%s", fn->name);
+	if (fn->name) printf("%s ", fn->name);
 	print(fn->scope, tabs + 1);
 }
 
