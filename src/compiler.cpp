@@ -10,6 +10,8 @@
 #include "parser/pipe/Type_Checking.hpp"
 #include "parser/pipe/print_pipe.hpp"
 
+#include "parser/pipe/bytecode_sizer.hpp"
+
 Light_Compiler* Light_Compiler::instance = NULL;
 
 void link (std::string output) {
@@ -37,7 +39,9 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	this->type_def_type->typedef_type = AST_TYPEDEF_TYPE;
 
 	this->type_def_void = new Ast_Struct_Type("void");
+	this->type_def_void->byte_size = 0;
 	this->type_def_i32 = new Ast_Struct_Type("i32");
+	this->type_def_i32->byte_size = 4;
 }
 
 void Light_Compiler::run () {
@@ -48,6 +52,7 @@ void Light_Compiler::run () {
 		auto parser = new Parser(this, filename);
 		parser->append(new Symbol_Resolution());
 		parser->append(new Type_Checking());
+		parser->append(new Bytecode_Sizer());
 		parser->append(new PrintPipe());
 
 		auto start = Timer::getTime();

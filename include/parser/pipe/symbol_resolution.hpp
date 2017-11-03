@@ -41,6 +41,7 @@ struct Symbol_Resolution : Pipe {
     void check_symbols (Ast_Function* stm, set<const char*, cmp_str>* sym);
 
     void check_symbols (Ast_Type_Definition* tydef, set<const char*, cmp_str>* sym);
+	void check_symbols (Ast_Struct_Type* _struct, set<const char*, cmp_str>* sym);
     void check_symbols (Ast_Pointer_Type* ptr_type, set<const char*, cmp_str>* sym);
     void check_symbols (Ast_Function_Type* fn_type, set<const char*, cmp_str>* sym);
 };

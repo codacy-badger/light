@@ -10,6 +10,7 @@ struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
 struct Ast_Type_Definition;
+struct Ast_Struct_Type;
 
 using namespace std;
 
@@ -58,14 +59,18 @@ struct Ast_Block : Ast_Statement {
 	Ast_Function* find_function (bool recurse = true);
 };
 
-const int DECL_FLAG_CONSTANT = 0x1;
+const uint16_t DECL_FLAG_CONSTANT = 0x1;
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
 	Ast_Expression* type = NULL;
 	Ast_Expression* expression = NULL;
 
-	int decl_flags = 0;
+	uint16_t decl_flags = 0;
+
+	Ast_Struct_Type* _struct = NULL;
+	uint16_t struct_index = 0;
+	uint16_t struct_byte_offset = 0;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 };
@@ -77,13 +82,13 @@ struct Ast_Return : Ast_Statement {
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
 };
 
-const int IMPORT_INCLUDE_CONTENT = 0x1;
-const int IMPORT_IS_NATIVE = 0x2;
+const uint16_t IMPORT_INCLUDE_CONTENT = 0x1;
+const uint16_t IMPORT_IS_NATIVE = 0x2;
 
 struct Ast_Import : Ast_Statement {
 	const char* filepath = NULL;
 
-	int import_flags = 0;
+	uint16_t import_flags = 0;
 
 	Ast_Import() { this->stm_type = AST_STATEMENT_IMPORT; }
 };
@@ -130,6 +135,7 @@ struct Ast_Function_Type : Ast_Type_Definition {
 struct Ast_Struct_Type : Ast_Type_Definition {
 	const char* name = NULL;
 	vector<Ast_Declaration*> attributes;
+	uint16_t byte_size = 0;
 
 	Ast_Struct_Type(const char* name = NULL) {
 		this->typedef_type = AST_TYPEDEF_STRUCT;

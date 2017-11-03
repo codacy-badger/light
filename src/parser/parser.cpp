@@ -293,6 +293,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			for (auto stm : _block->list) {
 				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 					auto decl = static_cast<Ast_Declaration*>(stm);
+					decl->_struct = _struct;
 					_struct->attributes.push_back(decl);
 				} else {
 					Light_Compiler::instance->error_stop(stm, "Only declarations can go inside a struct!");
@@ -301,7 +302,6 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			delete _block;
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 		}
-
 
 		return _struct;
 	} else if (this->lexer->isNextType(TOKEN_SUB)) {

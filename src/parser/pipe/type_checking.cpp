@@ -130,6 +130,9 @@ void Type_Checking::check_type (Ast_Function_Type* ty) {
 
 void Type_Checking::check_type (Ast_Struct_Type* ty) {
     ty->inferred_type = Light_Compiler::instance->type_def_type;
+	for (auto decl : ty->attributes) {
+		check_type(decl);
+	}
 }
 
 void Type_Checking::check_type (Ast_Pointer_Type* ty) {

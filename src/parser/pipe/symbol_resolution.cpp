@@ -85,7 +85,7 @@ void Symbol_Resolution::check_symbols (Ast_Declaration* decl, set<const char*, c
 void Symbol_Resolution::check_symbols (Ast_Type_Definition* tydef, set<const char*, cmp_str>* sym) {
 	switch (tydef->typedef_type) {
         case AST_TYPEDEF_STRUCT: {
-            auto struct_type = static_cast<Ast_Struct_Type*>(tydef);
+			check_symbols(static_cast<Ast_Struct_Type*>(tydef), sym);
 			break;
         }
         case AST_TYPEDEF_POINTER: {
@@ -149,6 +149,12 @@ void Symbol_Resolution::check_symbols (Ast_Unary* unary, set<const char*, cmp_st
 void Symbol_Resolution::check_symbols (Ast_Function* fn, set<const char*, cmp_str>* sym) {
     check_symbols(fn->type, sym);
     check_symbols(fn->scope, sym);
+}
+
+void Symbol_Resolution::check_symbols (Ast_Struct_Type* _struct, set<const char*, cmp_str>* sym) {
+    for (auto decl : _struct->attributes) {
+		check_symbols(decl, sym);
+	}
 }
 
 void Symbol_Resolution::check_symbols (Ast_Pointer_Type* ptr_type, set<const char*, cmp_str>* sym) {
