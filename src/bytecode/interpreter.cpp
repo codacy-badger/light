@@ -10,7 +10,7 @@
 #define INST_OFFSET(offset) this->instructions[this->instruction_index + (offset)]
 
 Bytecode_Interpreter::Bytecode_Interpreter () {
-	assert(REGISTER_SIZE >= sizeof(uint8_t*));
+	assert(REGISTER_SIZE >= sizeof(void*));
 	// INFO: this makes debug easier
 	memset(&this->registers, 0, REGISTER_COUNT * sizeof(Bytecode_Register));
 }
@@ -24,7 +24,7 @@ void Bytecode_Interpreter::start () {
 	if (!ok) {
 		printf("ERROR!\n");
 		this->dump();
-	} else printf("Terminated successfully!\n");
+	} else printf("Bytecode interpreter terminated!\n");
 }
 
 bool Bytecode_Interpreter::run_next () {
@@ -174,5 +174,5 @@ void Bytecode_Interpreter::dump () {
 		printf("%02X ", this->stack[i]);
 		if ((i + 1) % 32 == 0) printf("\n\t");
 	}
-	printf("\n");
+	printf("\n\n");
 }

@@ -6,33 +6,28 @@
 #include <assert.h>
 
 void _tabs (int count) {
-	for (int i = 0; i < count; i++) printf("  ");
+	for (int i = 0; i < count; i++) printf("    ");
 }
 
 void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 	switch (stm->stm_type) {
 		case AST_STATEMENT_BLOCK: {
-			_tabs(tabs);
 			print(static_cast<Ast_Block*>(stm), tabs);
 			break;
 		}
 		case AST_STATEMENT_IMPORT: {
-			_tabs(tabs);
 			print(static_cast<Ast_Import*>(stm), tabs);
 			break;
 		}
 		case AST_STATEMENT_DECLARATION: {
-			_tabs(tabs);
 			print(static_cast<Ast_Declaration*>(stm), tabs);
 			break;
 		}
 		case AST_STATEMENT_RETURN: {
-			_tabs(tabs);
 			print(static_cast<Ast_Return*>(stm), tabs);
 			break;
 		}
 		case AST_STATEMENT_EXPRESSION: {
-			_tabs(tabs);
 			print(static_cast<Ast_Expression*>(stm), tabs);
 			printf(";\n");
 			break;
@@ -42,19 +37,21 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 }
 
 void ASTPrinter::print (Ast_Block* block, int tabs) {
+	_tabs(tabs);
 	printf("{\n");
 	for (auto stm: block->list) {
 		print(stm, tabs + 1);
-		//printf("\n");
 	}
 	printf("}");
 }
 
 void ASTPrinter::print (Ast_Note* note, int tabs) {
+	_tabs(tabs);
 	printf("#%s", note->name);
 }
 
 void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
+	_tabs(tabs);
 	for (auto note : decl->notes) {
 		print(note, tabs);
 		printf("\n");
@@ -62,12 +59,12 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
 
 	printf("%s : ", decl->name);
 
-	if (decl->type) print(decl->type, tabs);
+	if (decl->type) print(decl->type, tabs, true);
 	else printf("(null)");
 
 	if (decl->decl_flags & DECL_FLAG_CONSTANT)
-		printf(" : ");
-	else printf(" = ");
+		printf(": ");
+	else printf("= ");
 
 	if (decl->expression) print(decl->expression, tabs);
 	else printf("??");
@@ -76,23 +73,25 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
 }
 
 void ASTPrinter::print (Ast_Return* ret, int tabs) {
+	_tabs(tabs);
 	printf("return ");
 	if (ret->exp) print(ret->exp, tabs);
 	printf(";\n");
 }
 
 void ASTPrinter::print (Ast_Import* imp, int tabs) {
+	_tabs(tabs);
 	printf("import %s;", imp->filepath);
 }
 
-void ASTPrinter::print (Ast_Expression* exp, int tabs) {
+void ASTPrinter::print (Ast_Expression* exp, int tabs, bool name_only) {
 	switch (exp->exp_type) {
 		case AST_EXPRESSION_TYPE_DEFINITION: {
-			print(static_cast<Ast_Type_Definition*>(exp), tabs);
+			print(static_cast<Ast_Type_Definition*>(exp), tabs, name_only);
 			break;
 		}
 		case AST_EXPRESSION_FUNCTION: {
-			print(static_cast<Ast_Function*>(exp), tabs);
+			print(static_cast<Ast_Function*>(exp), tabs, name_only);
 			break;
 		}
 		case AST_EXPRESSION_BINARY: {
@@ -119,10 +118,10 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs) {
 	}
 }
 
-void ASTPrinter::print (Ast_Type_Definition* tydef, int tabs) {
+void ASTPrinter::print (Ast_Type_Definition* tydef, int tabs, bool name_only) {
 	switch (tydef->typedef_type) {
 		case AST_TYPEDEF_TYPE: {
-			printf("type");
+			printf("type ");
 			break;
 		}
 		case AST_TYPEDEF_FUNCTION: {
@@ -130,7 +129,7 @@ void ASTPrinter::print (Ast_Type_Definition* tydef, int tabs) {
 			break;
 		}
 		case AST_TYPEDEF_STRUCT: {
-			print(static_cast<Ast_Struct_Type*>(tydef), tabs);
+			print(static_cast<Ast_Struct_Type*>(tydef), tabs, name_only);
 			break;
 		}
 		case AST_TYPEDEF_POINTER: {
@@ -138,6 +137,20 @@ void ASTPrinter::print (Ast_Type_Definition* tydef, int tabs) {
 			break;
 		}
 		default: printf("(-TYPE?-)");
+	}
+}
+
+void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool name_only) {
+	if (type->name) printf("[%s] ", type->name);
+	if (!name_only) {
+		if (type->attributes.size() > 0) {
+			printf("{\n");
+			for (auto attr : type->attributes) {
+				print(attr, tabs + 1);
+			}
+			_tabs(tabs);
+			printf("}");
+		}
 	}
 }
 
@@ -155,18 +168,14 @@ void ASTPrinter::print (Ast_Function_Type* type, int tabs) {
 	print(type->return_type, tabs);
 }
 
-void ASTPrinter::print (Ast_Struct_Type* type, int tabs) {
-	if (type->name) printf("[%s]", type->name);
-}
-
 void ASTPrinter::print (Ast_Pointer_Type* type, int tabs) {
 	printf("*");
 	print(type->base, tabs);
 }
 
-void ASTPrinter::print (Ast_Function* fn, int tabs) {
+void ASTPrinter::print (Ast_Function* fn, int tabs, bool name_only) {
 	if (fn->name) printf("%s ", fn->name);
-	print(fn->scope, tabs + 1);
+	if (!name_only) print(fn->scope, tabs);
 }
 
 void ASTPrinter::print (Ast_Binary* binop, int tabs) {

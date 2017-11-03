@@ -21,10 +21,6 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 Ast_Block* Parser::top_level_block () {
 	auto _block = AST_NEW(Ast_Block, this->current_block);
 
-	auto type_decl = ast_make_declaration("type", Light_Compiler::instance->type_def_type);
-	_block->list.push_back(type_decl);
-	this->to_next(type_decl);
-
 	auto void_decl = ast_make_declaration("void", Light_Compiler::instance->type_def_void);
 	_block->list.push_back(void_decl);
 	this->to_next(void_decl);

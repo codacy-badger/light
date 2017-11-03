@@ -14,7 +14,7 @@ using namespace std;
 #define VERSION "0.1.0"
 
 int main (int argc, char** argv) {
-	/*Bytecode_Interpreter* interpreter = new Bytecode_Interpreter();
+	Bytecode_Interpreter* interpreter = new Bytecode_Interpreter();
 	Byte_Buffer* buffer = new Byte_Buffer();
 	buffer->append_bytes(3, BYTECODE_STACK_ALLOCA, 1, 3);
 	// a : i8 = 42;
@@ -43,7 +43,7 @@ int main (int argc, char** argv) {
 	interpreter->dump();
 
 	delete buffer;
-	delete interpreter;*/
+	delete interpreter;
 
 	Light_Compiler* compiler = new Light_Compiler();
 
