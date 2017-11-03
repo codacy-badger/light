@@ -35,6 +35,7 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 		check_type(decl->type);
 		if (decl->type->exp_type == AST_EXPRESSION_IDENT) {
 			auto ident = static_cast<Ast_Ident*>(decl->type);
+			delete decl->type;
 			decl->type = ident->declaration->expression;
 		}
 	}
@@ -51,8 +52,21 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 }
 
 void Type_Checking::check_type (Ast_Return* ret) {
-    check_type(ret->exp);
-    // TODO: check if return type matches function's return type
+	if (ret->exp) check_type(ret->exp);
+
+	auto fn = ret->block->find_function();
+	if (!fn) {
+		Light_Compiler::instance->error_stop(ret, "Return statement must be inside a function!");
+	} else if (ret->exp) {
+		if (fn->type->return_type == Light_Compiler::instance->type_def_void)
+			Light_Compiler::instance->error_stop(ret, "Return statment has expression, but function returns void!");
+		else if (ret->exp->inferred_type != fn->type->return_type) {
+			Light_Compiler::instance->error_stop(ret, "Type mismatch, return expression is '---', but function expects '---'!");
+		}
+	} else {
+		if (fn->type->return_type != Light_Compiler::instance->type_def_void)
+			Light_Compiler::instance->error_stop(ret, "Return statment has no expression, but function returns '---'!");
+	}
 }
 
 void Type_Checking::check_type (Ast_Expression* exp) {
@@ -96,6 +110,22 @@ void Type_Checking::check_type (Ast_Type_Definition* tydef) {
 
 void Type_Checking::check_type (Ast_Function_Type* ty) {
     ty->inferred_type = Light_Compiler::instance->type_def_type;
+
+	check_type(ty->return_type);
+	if (ty->return_type->exp_type == AST_EXPRESSION_IDENT) {
+		auto ident = static_cast<Ast_Ident*>(ty->return_type);
+		delete ty->return_type;
+		ty->return_type = ident->declaration->expression;
+	}
+
+	for (int i = 0; i < ty->parameter_types.size(); i++) {
+		check_type(ty->parameter_types[i]);
+		if (ty->parameter_types[i]->exp_type == AST_EXPRESSION_IDENT) {
+			auto ident = static_cast<Ast_Ident*>(ty->parameter_types[i]);
+			delete ty->parameter_types[i];
+			ty->parameter_types[i] = ident->declaration->expression;
+		}
+	}
 }
 
 void Type_Checking::check_type (Ast_Struct_Type* ty) {
@@ -108,6 +138,8 @@ void Type_Checking::check_type (Ast_Pointer_Type* ty) {
 
 void Type_Checking::check_type (Ast_Function* func) {
     func->inferred_type = func->type;
+	check_type(func->type);
+	check_type(func->scope);
 }
 
 void Type_Checking::check_type (Ast_Binary* binop) {

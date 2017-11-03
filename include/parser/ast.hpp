@@ -45,6 +45,7 @@ struct Ast_Block : Ast_Statement {
 	vector<Ast_Statement*> list;
 
 	Ast_Block* parent = NULL;
+	Ast_Function* scope_of = NULL;
 
 	Ast_Block (Ast_Block* parent = NULL) {
 		this->stm_type = AST_STATEMENT_BLOCK;
@@ -54,6 +55,7 @@ struct Ast_Block : Ast_Statement {
 	void find_declarations (std::vector<Ast_Declaration*>* decls, bool recurse = true);
 	Ast_Declaration* find_declaration (const char* name, bool recurse = true);
 	Ast_Type_Definition* find_type_definition (const char* name, bool recurse = true);
+	Ast_Function* find_function (bool recurse = true);
 };
 
 const int DECL_FLAG_CONSTANT = 0x1;
@@ -70,6 +72,7 @@ struct Ast_Declaration : Ast_Statement {
 
 struct Ast_Return : Ast_Statement {
 	Ast_Expression* exp = NULL;
+	Ast_Block* block = NULL;
 
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
 };

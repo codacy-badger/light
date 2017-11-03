@@ -88,6 +88,7 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip(1);
 			auto output = AST_NEW(Ast_Return);
 			output->exp = this->expression();
+			output->block = this->current_block;
 			this->lexer->optional_skip(TOKEN_STM_END);
 			return output;
 		}
@@ -229,6 +230,7 @@ Ast_Function* Parser::function (Ast_Function_Type* fn_type) {
 		auto fn = AST_NEW(Ast_Function);
 		fn->type = fn_type;
 		fn->scope = AST_NEW(Ast_Block, this->current_block);
+		fn->scope->scope_of = fn;
 		this->block(fn->scope);
 		this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 		return fn;

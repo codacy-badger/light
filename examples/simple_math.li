@@ -6,7 +6,7 @@ Vec2 :: struct {
 }
 
 work :: fn -> i32 {
-    VAL
+    return NUM;
 }
 
 NUM :: VAL + 10;

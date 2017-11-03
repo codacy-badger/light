@@ -30,6 +30,14 @@ Ast_Type_Definition* Ast_Block::find_type_definition (const char* name, bool rec
     else return NULL;
 }
 
+Ast_Function* Ast_Block::find_function (bool recurse) {
+	if (this->scope_of) {
+		return this->scope_of;
+	} else if (recurse && this->parent) {
+		return this->parent->find_function(recurse);
+	} else return NULL;
+}
+
 void Ast_Binary::setOP (Token_Type tType) {
 	this->binary_op = this->typeToOP(tType);
 }

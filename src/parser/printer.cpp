@@ -156,8 +156,7 @@ void ASTPrinter::print (Ast_Function_Type* type, int tabs) {
 }
 
 void ASTPrinter::print (Ast_Struct_Type* type, int tabs) {
-	printf("struct");
-	if (type->name) printf(" %s", type->name);
+	if (type->name) printf("[%s]", type->name);
 }
 
 void ASTPrinter::print (Ast_Pointer_Type* type, int tabs) {
