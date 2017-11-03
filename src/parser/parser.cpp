@@ -179,6 +179,20 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	}
 
 	decl->expression = this->expression();
+
+	if (decl->expression && decl->decl_flags & DECL_FLAG_CONSTANT) {
+		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
+			auto fn = static_cast<Ast_Function*>(decl->expression);
+			if (!fn->name) fn->name = decl->name;
+		} else if (decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
+			auto defn_ty = static_cast<Ast_Type_Definition*>(decl->expression);
+			if (defn_ty->typedef_type == AST_TYPEDEF_STRUCT) {
+				auto _struct = static_cast<Ast_Struct_Type*>(defn_ty);
+				if (!_struct->name) _struct->name = decl->name;
+			}
+		}
+	}
+
 	if (this->lexer->isNextType(TOKEN_STM_END))
 		this->lexer->skip(1);
 
@@ -261,6 +275,33 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			return this->function(fn_type);
 		} else return fn_type;
 
+	} else if (this->lexer->isNextType(TOKEN_STRUCT)) {
+		this->lexer->skip(1);
+
+		auto _struct = AST_NEW(Ast_Struct_Type);
+
+		if (this->lexer->isNextType(TOKEN_ID))
+			_struct->name = this->lexer->text();
+
+		if (this->lexer->isNextType(TOKEN_BRAC_OPEN)) {
+			this->lexer->skip(1);
+
+			auto _block = AST_NEW(Ast_Block, this->current_block);
+			this->block(_block);
+			for (auto stm : _block->list) {
+				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+					auto decl = static_cast<Ast_Declaration*>(stm);
+					_struct->attributes.push_back(decl);
+				} else {
+					Light_Compiler::instance->error_stop(stm, "Only declarations can go inside a struct!");
+				}
+			}
+			delete _block;
+			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
+		}
+
+
+		return _struct;
 	} else if (this->lexer->isNextType(TOKEN_SUB)) {
 		this->lexer->skip(1);
 		auto unop = AST_NEW(Ast_Unary, TOKEN_SUB);

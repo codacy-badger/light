@@ -1,5 +1,10 @@
 import! "examples/basic.li"
 
+Vec2 :: struct {
+	x : i32;
+	y : i32;
+}
+
 work :: fn -> i32 {
     VAL
 }
@@ -11,8 +16,16 @@ WIN_CALL : type : fn (val: i32) -> i32;
 main :: fn {
     b : i32 = NUM;
     c : i32 = a;
+
+	Vec3 :: struct {
+		x: i32;
+		y: i32;
+		z: i32;
+	}
 }
 
 a :: 50;
 
 VAL : i32 : 2;
+
+vec2_zero : Vec2 ;

@@ -70,6 +70,7 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
 	else printf(" = ");
 
 	if (decl->expression) print(decl->expression, tabs);
+	else printf("??");
 
 	printf(";\n");
 }
