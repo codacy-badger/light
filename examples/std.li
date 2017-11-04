@@ -1,4 +1,6 @@
-import@ "std_li"
 
+#foreign
 println : fn () : ;
+
+#foreign
 println_i32 : fn (number: i32) : ;

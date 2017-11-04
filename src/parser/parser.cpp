@@ -78,19 +78,19 @@ void Parser::block (Ast_Block* insert_block) {
 }
 
 Ast_Statement* Parser::statement () {
+	static vector<Ast_Note*> notes;
 	switch (this->lexer->nextType) {
 		case TOKEN_EOF: this->lexer->report_unexpected();
 		case TOKEN_STM_END: {
 			this->lexer->skip(1);
 			return NULL;
 		}
-		case TOKEN_RETURN: {
+		case TOKEN_HASH: {
 			this->lexer->skip(1);
-			auto output = AST_NEW(Ast_Return);
-			output->exp = this->expression();
-			output->block = this->current_block;
-			this->lexer->optional_skip(TOKEN_STM_END);
-			return output;
+			auto note = AST_NEW(Ast_Note);
+			note->name = this->lexer->text();
+			notes.push_back(note);
+			return this->statement();
 		}
 		case TOKEN_IMPORT: {
 			this->lexer->skip(1);
@@ -107,14 +107,6 @@ Ast_Statement* Parser::statement () {
 			this->lexer->optional_skip(TOKEN_STM_END);
 			return output;
 		}
-		case TOKEN_HASH: {
-			this->lexer->skip(1);
-			auto note = AST_NEW(Ast_Note);
-			note->name = this->lexer->text();
-			auto next_stm = this->statement();
-			next_stm->notes.push_back(note);
-			return next_stm;
-		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip(1);
 			auto _block = AST_NEW(Ast_Block, this->current_block);
@@ -122,10 +114,21 @@ Ast_Statement* Parser::statement () {
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 			return _block;
 		}
+		case TOKEN_RETURN: {
+			this->lexer->skip(1);
+			auto output = AST_NEW(Ast_Return);
+			output->exp = this->expression();
+			output->block = this->current_block;
+			this->lexer->optional_skip(TOKEN_STM_END);
+			return output;
+		}
 		case TOKEN_ID: {
 			auto ident = this->ident();
 			if (this->lexer->isNextType(TOKEN_COLON)) {
-				return this->declaration(ident);
+				auto decl = this->declaration(ident);
+				decl->notes = notes;
+				notes.clear();
+				return decl;
 			} else {
 				auto exp = this->expression(ident);
 				if (exp) {
