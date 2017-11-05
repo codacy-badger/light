@@ -89,6 +89,14 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip(1);
 			auto note = AST_NEW(Ast_Note);
 			note->name = this->lexer->text();
+
+			if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
+				this->lexer->skip(1);
+				
+				note->arguments = this->comma_separated_arguments();
+				this->lexer->check_skip(TOKEN_PAR_CLOSE);
+			}
+
 			notes.push_back(note);
 			return this->statement();
 		}
@@ -225,6 +233,20 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
 		}
     }
 	return output;
+}
+
+Ast_Comma_Separated_Arguments* Parser::comma_separated_arguments (Ast_Expression* exp) {
+	if (!exp) {
+		exp = this->expression();
+		if (!exp) return NULL;
+	}
+
+	auto arguments = AST_NEW(Ast_Comma_Separated_Arguments);
+	while (exp != NULL) {
+		arguments->args.push_back(exp);
+		exp = this->expression();
+	}
+	return arguments;
 }
 
 Ast_Function* Parser::function (Ast_Function_Type* fn_type) {

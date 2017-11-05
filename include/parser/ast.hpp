@@ -11,6 +11,7 @@ struct Ast_Expression;
 struct Ast_Declaration;
 struct Ast_Type_Definition;
 struct Ast_Struct_Type;
+struct Ast_Comma_Separated_Arguments;
 
 using namespace std;
 
@@ -37,6 +38,7 @@ struct Ast_Statement : Ast {
 
 struct Ast_Note : Ast_Statement {
 	const char* name = NULL;
+	Ast_Comma_Separated_Arguments* arguments = NULL;
 
 	Ast_Note() { this->stm_type = AST_STATEMENT_NOTE; }
 };
@@ -95,6 +97,7 @@ struct Ast_Import : Ast_Statement {
 
 enum Ast_Expression_Type {
 	AST_EXPRESSION_UNDEFINED = 0,
+	AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS,
 	AST_EXPRESSION_TYPE_DEFINITION,
 	AST_EXPRESSION_FUNCTION,
 	AST_EXPRESSION_BINARY,
@@ -109,6 +112,12 @@ struct Ast_Expression : Ast_Statement {
 	Ast_Type_Definition* inferred_type = NULL;
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
+};
+
+struct Ast_Comma_Separated_Arguments : Ast_Expression {
+	vector<Ast_Expression*> args;
+
+	Ast_Comma_Separated_Arguments() { this->exp_type = AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS; }
 };
 
 enum Ast_Type_Definition_Type {

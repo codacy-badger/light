@@ -174,8 +174,9 @@ void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool name_only) {
 }
 
 void ASTPrinter::print (Ast_Function* fn, int tabs, bool name_only) {
-	if (fn->name) printf("%s ", fn->name);
-	if (fn->foreign_module_name) printf("(%s) ", fn->foreign_module_name);
+	if (fn->foreign_module_name) {
+		printf("#[%s] ", fn->foreign_module_name);
+	} else if (fn->name) printf("%s ", fn->name);
 	if (!name_only && fn->scope) {
 		print(fn->scope, tabs);
 	}

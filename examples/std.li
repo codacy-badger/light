@@ -1,6 +1,6 @@
 
-#foreign
+#foreign("kernel32")
 println : fn () : ;
 
-#foreign
+#foreign("std_li")
 println_i32 : fn (number: i32) : ;

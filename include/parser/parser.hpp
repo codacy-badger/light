@@ -28,6 +28,7 @@ struct Parser : Pipe {
 	Ast_Statement* statement ();
 	Ast_Declaration* declaration (Ast_Ident* ident = NULL);
 	Ast_Expression* expression (Ast_Ident* initial = NULL, short minPrecedence = 1);
+	Ast_Comma_Separated_Arguments* comma_separated_arguments (Ast_Expression* exp = NULL);
 	Ast_Expression* _atom (Ast_Ident* initial = NULL);
 	Ast_Type_Definition* type_definition ();
 	Ast_Function* function (Ast_Function_Type* fn_type);

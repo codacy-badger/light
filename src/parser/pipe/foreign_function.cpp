@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "compiler.hpp"
+
 Ast_Note* remove_foreign_note (Ast_Declaration* decl) {
 	if (decl->notes.size() > 0) {
 		auto it = decl->notes.begin();
@@ -31,8 +33,18 @@ void Foreign_Function::on_statement(Ast_Statement* stm) {
 						fn->name = decl->name;
 						fn->type = fn_type;
 
-						fn->foreign_module_name = note->name;
-						delete note;
+						if (!note->arguments || note->arguments->args.size() != 1) {
+							Light_Compiler::instance->error_stop(note, "foreign notes must have 1 (string) parameter!");
+						}
+
+						auto exp = note->arguments->args[0];
+						if (exp->exp_type == AST_EXPRESSION_LITERAL) {
+							auto lit = static_cast<Ast_Literal*>(exp);
+							if (lit->literal_type == AST_LITERAL_STRING) {
+								fn->foreign_module_name = lit->string_value;
+								delete note;
+							} else Light_Compiler::instance->error_stop(note, "foreign note parameter is not a string!");
+						} else Light_Compiler::instance->error_stop(note, "foreign notes parameter is not a literal!");
 
 						decl->expression = fn;
 					}
