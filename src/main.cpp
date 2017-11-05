@@ -16,6 +16,7 @@ using namespace std;
 int main (int argc, char** argv) {
 	Bytecode_Interpreter* interpreter = new Bytecode_Interpreter();
 	Byte_Buffer* buffer = new Byte_Buffer();
+
 	buffer->append_bytes(3, BYTECODE_STACK_ALLOCA, 1, 3);
 	// a : i8 = 42;
 	buffer->append_bytes(4, BYTECODE_STACK_OFFSET, 1, 0, 3);
@@ -37,9 +38,8 @@ int main (int argc, char** argv) {
 	buffer->append_bytes(4, BYTECODE_STORE, 1, 7, 1);
 	// END
 	buffer->append_u8(BYTECODE_STOP);
-	interpreter->instructions = buffer->buffer;
 
-	interpreter->start();
+	interpreter->run(buffer->data);
 	interpreter->dump();
 
 	delete buffer;

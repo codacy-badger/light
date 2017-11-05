@@ -6,7 +6,7 @@
 struct Byte_Buffer {
 	size_t size = 0;
 	size_t capacity = 0;
-	uint8_t* buffer = NULL;
+	uint8_t* data = NULL;
 
 	Byte_Buffer (size_t initial_capacity = 16);
 	~Byte_Buffer ();

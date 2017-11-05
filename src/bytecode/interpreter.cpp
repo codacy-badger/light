@@ -7,88 +7,78 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define INST_OFFSET(offset) this->instructions[this->instruction_index + (offset)]
+#define INST_OFFSET(offset) buffer[offset]
 
 Bytecode_Interpreter::Bytecode_Interpreter () {
 	assert(REGISTER_SIZE >= sizeof(void*));
-	// INFO: this makes debug easier
+	// INFO: not necessary, but makes debug easier
 	memset(&this->registers, 0, REGISTER_COUNT * sizeof(Bytecode_Register));
 }
 
-void Bytecode_Interpreter::start () {
-	bool ok = true;
-	while (INST_OFFSET(0) != BYTECODE_STOP) {
-		ok = this->run_next();
-		if (!ok) break;
+void Bytecode_Interpreter::run (uint8_t* buffer) {
+	uint8_t incr = 0;
+	while (!this->stop_running) {
+		buffer += this->run_next(buffer);
 	}
-	if (!ok) {
-		printf("ERROR!\n");
-		this->dump();
-	} else printf("Bytecode interpreter terminated!\n");
+	printf("Bytecode interpreter completed!\n");
 }
 
-bool Bytecode_Interpreter::run_next () {
-	uint8_t op = INST_OFFSET(0);
-	this->instruction_index++;
+uint8_t Bytecode_Interpreter::run_next (uint8_t* buffer) {
+	uint8_t op = *(buffer++);
 	switch (op) {
-		case BYTECODE_NOOP: break;
+		case BYTECODE_NOOP: return 0;
+		case BYTECODE_STOP: {
+			this->stop_running = true;
+			return 0;
+		}
 		case BYTECODE_SET: {
 			uint8_t size = INST_OFFSET(0);
 			this->set(size, INST_OFFSET(1), &INST_OFFSET(2));
-			this->instruction_index += 2 + size;
-			break;
+			return 3 + size;
 		}
 		case BYTECODE_COPY: {
 			this->copy(INST_OFFSET(0), INST_OFFSET(1), INST_OFFSET(2));
-			this->instruction_index += 3;
-			break;
+			return 4;
 		}
 		case BYTECODE_STACK_ALLOCA: {
 			uint8_t size = INST_OFFSET(0);
 			this->stack_alloca(size, &INST_OFFSET(1));
-			this->instruction_index += 1 + size;
-			break;
+			return 2 + size;
 		}
 		case BYTECODE_STACK_OFFSET: {
 			uint8_t size = INST_OFFSET(0);
 			this->stack_offset(size, INST_OFFSET(1), &INST_OFFSET(2));
-			this->instruction_index += 2 + size;
-			break;
+			return 3 + size;
 		}
 		case BYTECODE_STORE_INT: {
 			uint8_t size = INST_OFFSET(0);
 			this->store_int(size, INST_OFFSET(1), &INST_OFFSET(2));
-			this->instruction_index += 2 + size;
-			break;
+			return 3 + size;
 		}
 		case BYTECODE_STORE: {
 			this->store(INST_OFFSET(0), INST_OFFSET(1), INST_OFFSET(2));
-			this->instruction_index += 3;
-			break;
+			return 4;
 		}
 		case BYTECODE_LOAD: {
 			this->load(INST_OFFSET(0), INST_OFFSET(1), INST_OFFSET(2));
-			this->instruction_index += 3;
-			break;
+			return 4;
 		}
 		case BYTECODE_ADD_INT: {
 			uint8_t size = INST_OFFSET(0);
 			this->add_int(size, INST_OFFSET(1), &INST_OFFSET(2));
-			this->instruction_index += 2 + size;
-			break;
+			return 3 + size;
 		}
 		case BYTECODE_ADD: {
 			this->add(INST_OFFSET(0), INST_OFFSET(1), INST_OFFSET(2));
-			this->instruction_index += 3;
-			break;
+			return 4;
 		}
 		default: {
 			printf("--- UNKNOWN BYTECODE OP ---\n");
-			printf("OP: %d\nAt: %lld", this->instructions[this->instruction_index], this->instruction_index);
-			return false;
+			printf("OP: %d (%02X)\n", (*buffer), (*buffer));
+			this->stop_running = true;
+			return 0;
 		}
 	}
-	return true;
 }
 
 void Bytecode_Interpreter::set (uint8_t size, uint8_t reg1, uint8_t* data) {
@@ -161,7 +151,6 @@ void Bytecode_Interpreter::add_int (uint8_t size, uint8_t reg1, uint8_t* data) {
 
 void Bytecode_Interpreter::dump () {
 	printf("\n------------ Light VM dump ------------\n\n");
-	printf("Instruction: %016llx\n\n", this->instruction_index);
 	for (short i = 0; i < REGISTER_COUNT; i++) {
         for (size_t j = REGISTER_SIZE; j > 0; j--) {
             printf("%02X", this->registers[i][j - 1]);
@@ -169,7 +158,7 @@ void Bytecode_Interpreter::dump () {
 		if ((i + 1) % 4 == 0) printf("\n");
 		else printf("  ");
 	}
-	printf("\nStack [%lld / %d]\n\n\t", this->stack_index, DEFAULT_STACK_SIZE);
+	printf("\nStack [%lld / %d]\n\n\t", this->stack_index, STACK_SIZE);
 	for (size_t i = 0; i < this->stack_index; i++) {
 		printf("%02X ", this->stack[i]);
 		if ((i + 1) % 32 == 0) printf("\n\t");
