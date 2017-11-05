@@ -154,6 +154,8 @@ struct Ast_Function : Ast_Expression {
 	Ast_Function_Type* type = NULL;
 	Ast_Block* scope = NULL;
 
+	const char* foreign_module_name = NULL;
+
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 };
 

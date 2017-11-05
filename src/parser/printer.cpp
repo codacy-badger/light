@@ -175,7 +175,10 @@ void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool name_only) {
 
 void ASTPrinter::print (Ast_Function* fn, int tabs, bool name_only) {
 	if (fn->name) printf("%s ", fn->name);
-	if (!name_only) print(fn->scope, tabs);
+	if (fn->foreign_module_name) printf("(%s) ", fn->foreign_module_name);
+	if (!name_only && fn->scope) {
+		print(fn->scope, tabs);
+	}
 }
 
 void ASTPrinter::print (Ast_Binary* binop, int tabs) {
