@@ -12,7 +12,15 @@ struct Light_Compiler_Settings {
 	const char* output_file;
 };
 
+enum Byte_Order {
+	BYTEORDER_UNDEFINED = 0,
+	BYTEORDER_BIG_ENDIAN,
+	BYTEORDER_LITTLE_ENDIAN,
+};
+
 struct Light_Compiler {
+	Byte_Order byte_order = BYTEORDER_UNDEFINED;
+
 	Light_Compiler_Settings* settings = NULL;
 	bool has_errors = false;
 	Parser* parser = NULL;

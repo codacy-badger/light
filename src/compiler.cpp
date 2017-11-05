@@ -35,6 +35,11 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	assert(Light_Compiler::instance == NULL);
 	Light_Compiler::instance = this;
 
+	int16_t i = 1;
+	if (((int8_t *) &i)[0] == 1) {
+		this->byte_order = BYTEORDER_LITTLE_ENDIAN;
+	} else this->byte_order = BYTEORDER_BIG_ENDIAN;
+
 	this->type_def_type = new Ast_Type_Definition();
 	this->type_def_type->inferred_type = this->type_def_type;
 	this->type_def_type->typedef_type = AST_TYPEDEF_TYPE;
