@@ -1,38 +1,33 @@
 #pragma once
 
-#include "bytecode/ops.hpp"
+#include "bytecode/instructions.hpp"
 
-#define REGISTER_SIZE 	8
-#define REGISTER_COUNT  16
-#define STACK_SIZE 		256
+#include <deque>
 
-typedef uint8_t Bytecode_Register[REGISTER_SIZE];
+#define INTERP_REGISTER_SIZE  8
+#define INTERP_REGISTER_COUNT 16
+#define INTERP_STACK_SIZE 	  256
+
+#define INTERP_STACK_REGISTER INTERP_REGISTER_COUNT - 1
+
+typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
 struct Bytecode_Interpreter {
 	bool stop_running = false;
 
-	Bytecode_Register registers[REGISTER_COUNT];
-	bool flag_carry = false;
+	Bytecode_Register registers[INTERP_REGISTER_COUNT];
+	std::deque<uint8_t*> stack_ptrs;
 
-	uint8_t stack[STACK_SIZE];
-	size_t stack_index = 0;
+	bool flag_carry = false;
 
 	Bytecode_Interpreter ();
 
-	void run (uint8_t* buffer);
-	uint8_t run_next (uint8_t* buffer);
+	void run (Instruction* inst);
 
-	void set (uint8_t size, uint8_t reg1, uint8_t* data);
-	void copy (uint8_t size, uint8_t reg1, uint8_t reg2);
-	void stack_alloca (uint8_t size, uint8_t* data);
-	void stack_offset (uint8_t size, uint8_t reg1, uint8_t* data);
+	void move_const (Inst_Copy_Const* inst);
+	void move_reg (Inst_Copy_Reg* inst);
 
-	void store (uint8_t size, uint8_t reg1, uint8_t reg2);
-	void store_int (uint8_t size, uint8_t reg1, uint8_t* data);
-	void load (uint8_t size, uint8_t reg1, uint8_t reg2);
-
-	void add (uint8_t size, uint8_t reg1, uint8_t reg2);
-	void add_int (uint8_t size, uint8_t reg1, uint8_t* data);
+	void stack_alloca (Inst_Stack_Alloca* inst);
 
 	void dump ();
 };

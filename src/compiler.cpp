@@ -60,7 +60,7 @@ void Light_Compiler::run () {
 		parser->append(new Type_Checking());
 		parser->append(new Foreign_Function());
 		parser->append(new Bytecode_Sizer());
-		parser->append(new PrintPipe());
+		//parser->append(new PrintPipe());
 
 		auto start = Timer::getTime();
 		parser->top_level_block();
