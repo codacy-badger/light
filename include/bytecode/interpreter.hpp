@@ -24,10 +24,13 @@ struct Bytecode_Interpreter {
 
 	void run (Instruction* inst);
 
-	void move_const (Inst_Copy_Const* inst);
-	void move_reg (Inst_Copy_Reg* inst);
+	void copy_const (Inst_Copy_Const* inst);
+	void copy_reg (Inst_Copy_Reg* inst);
 
 	void stack_alloca (Inst_Stack_Alloca* inst);
+
+	void add_i32 (Inst_Add_I32* inst);
+	void add_reg (Inst_Add_Reg* inst);
 
 	void dump ();
 };

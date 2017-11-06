@@ -13,6 +13,9 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_COPY_REG,
 
 	BYTECODE_STACK_ALLOCA,
+
+	BYTECODE_ADD_I32,
+	BYTECODE_ADD_REG,
 };
 
 struct Instruction {
@@ -59,5 +62,32 @@ struct Inst_Stack_Alloca : Instruction {
 		this->bytecode = BYTECODE_STACK_ALLOCA;
 		this->reg = reg;
 		this->size = size;
+	}
+};
+
+struct Inst_Add_I32 : Instruction {
+	uint8_t reg = 0;
+	uint8_t* data = NULL;
+
+	Inst_Add_I32 (uint8_t reg, uint32_t value) {
+		this->bytecode = BYTECODE_ADD_I32;
+		this->reg = reg;
+
+		this->data = (uint8_t*) malloc(4);
+		*(this->data + 0) = (value & 0x000000FF) >> 0;
+		*(this->data + 1) = (value & 0x0000FF00) >> 8;
+		*(this->data + 2) = (value & 0x00FF0000) >> 16;
+		*(this->data + 3) = (value & 0xFF000000) >> 24;
+	}
+};
+
+struct Inst_Add_Reg : Instruction {
+	uint8_t reg1 = 0;
+	uint8_t reg2 = 0;
+
+	Inst_Add_Reg (uint8_t reg1, uint8_t reg2) {
+		this->bytecode = BYTECODE_ADD_REG;
+		this->reg1 = reg1;
+		this->reg2 = reg2;
 	}
 };

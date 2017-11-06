@@ -19,6 +19,9 @@ int main (int argc, char** argv) {
 	interpreter->run(new Inst_Copy_Const(2, (uint16_t)0xF0AF));
 	interpreter->run(new Inst_Copy_Reg(1, 2));
 	interpreter->run(new Inst_Stack_Alloca(0, 4));
+	interpreter->run(new Inst_Add_I32(2, 1));
+	interpreter->run(new Inst_Copy_Reg(3, 2));
+	interpreter->run(new Inst_Add_Reg(2, 3));
 
 	interpreter->dump();
 	delete interpreter;
