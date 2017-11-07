@@ -4,6 +4,10 @@
 
 #include <string.h>
 
+bool Ast_Block::is_global () {
+	return !this->parent;
+}
+
 void Ast_Block::find_declarations (std::vector<Ast_Declaration*>* decls, bool recurse) {
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION)

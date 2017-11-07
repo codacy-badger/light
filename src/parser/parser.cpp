@@ -175,8 +175,15 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	}
 
 	auto decl = AST_NEW(Ast_Declaration);
+	decl->scope = this->current_block;
 	decl->name = ident->name;
 	delete ident;
+
+	auto _decl = this->current_block->find_declaration(decl->name);
+	if (_decl) {
+		Light_Compiler::instance->error(decl, "'%s' is already declared in this scope!", decl->name);
+		Light_Compiler::instance->error_stop(_decl, "Here is the initial declaration");
+	}
 
 	if (this->lexer->isNextType(TOKEN_COLON)) {
 		this->lexer->skip(1);

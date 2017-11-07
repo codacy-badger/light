@@ -1,5 +1,7 @@
 import! "examples/basic.li"
 
+global_value := 12;
+
 Vec2 :: struct {
 	x : i32;
 	y : i32;

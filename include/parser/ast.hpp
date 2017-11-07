@@ -13,6 +13,8 @@ struct Ast_Type_Definition;
 struct Ast_Struct_Type;
 struct Ast_Comma_Separated_Arguments;
 
+struct Instruction;
+
 using namespace std;
 
 struct Ast {
@@ -55,6 +57,7 @@ struct Ast_Block : Ast_Statement {
 		this->parent = parent;
 	}
 
+	bool is_global();
 	void find_declarations (std::vector<Ast_Declaration*>* decls, bool recurse = true);
 	Ast_Declaration* find_declaration (const char* name, bool recurse = true);
 	Ast_Type_Definition* find_type_definition (const char* name, bool recurse = true);
@@ -70,6 +73,12 @@ struct Ast_Declaration : Ast_Statement {
 
 	uint16_t decl_flags = 0;
 
+	Ast_Block* scope = NULL;
+
+	// For bytecode
+	size_t data_offset = 0;
+
+	// If struct property
 	Ast_Struct_Type* _struct = NULL;
 	uint16_t struct_index = 0;
 	uint16_t struct_byte_offset = 0;
@@ -164,6 +173,8 @@ struct Ast_Function : Ast_Expression {
 	Ast_Block* scope = NULL;
 
 	const char* foreign_module_name = NULL;
+
+	vector<Instruction*> bytecode;
 
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 };

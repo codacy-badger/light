@@ -46,6 +46,10 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 		decl->type = decl->expression->inferred_type;
 	}
 
+	if (decl->expression && (decl->decl_flags & DECL_FLAG_CONSTANT)) {
+		// TODO: ensure expression is constant
+	}
+
 	if (decl->type->inferred_type != Light_Compiler::instance->type_def_type) {
 		Light_Compiler::instance->error_stop(decl->type, "Expression is not a type!");
 	}
