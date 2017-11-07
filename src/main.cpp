@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <ctime>
 
 #include "byte_buffer.hpp"
 #include "bytecode/interpreter.hpp"
@@ -32,6 +31,7 @@ int main (int argc, char** argv) {
 	compiler->settings->output_file = "bin\\simple_math.obj";
 
 	compiler->run();
+	delete compiler;
 
-	return EXIT_SUCCESS;
+	return 0;
 }

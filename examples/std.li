@@ -1,6 +1,7 @@
 
 #foreign("kernel32")
-println : fn () : ;
+GetStdHandle : fn (code: i32) -> *void : ;
 
-#foreign("std_li")
-println_i32 : fn (number: i32) : ;
+/*#foreign("kernel32")
+WriteFile: fn (handle: *void, buffer: *void, bytes_to_write: i32,
+               written_bytes: *i32, overlapped: *void) -> i32 : ;*/

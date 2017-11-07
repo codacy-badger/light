@@ -92,7 +92,7 @@ Ast_Statement* Parser::statement () {
 
 			if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 				this->lexer->skip(1);
-				
+
 				note->arguments = this->comma_separated_arguments();
 				this->lexer->check_skip(TOKEN_PAR_CLOSE);
 			}
@@ -271,7 +271,7 @@ Ast_Function_Type* Parser::function_type () {
 		Ast_Declaration* decl;
 		while (decl = this->declaration()) {
 			fn_type->parameter_types.push_back(decl->type);
-			decl = this->declaration();
+			this->lexer->optional_skip(TOKEN_COMMA);
 		}
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 	}

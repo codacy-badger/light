@@ -84,8 +84,8 @@ struct Ast_Return : Ast_Statement {
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
 };
 
-const uint16_t IMPORT_INCLUDE_CONTENT = 0x1;
-const uint16_t IMPORT_IS_NATIVE = 0x2;
+const uint16_t IMPORT_INCLUDE_CONTENT 	= 0x1;
+const uint16_t IMPORT_IS_NATIVE 		= 0x2;
 
 struct Ast_Import : Ast_Statement {
 	const char* filepath = NULL;
