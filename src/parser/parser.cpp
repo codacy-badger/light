@@ -363,8 +363,8 @@ Ast_Literal* Parser::literal () {
 		}
 		case TOKEN_NUMBER: {
 			output = AST_NEW(Ast_Literal);
-			output->literal_type = AST_LITERAL_INTEGER;
-			output->integer_value = atoi(this->lexer->text());
+			output->literal_type = AST_LITERAL_I64;
+			output->i64_value = atoi(this->lexer->text());
 			break;
 		}
 		default: break;

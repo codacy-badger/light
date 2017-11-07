@@ -182,7 +182,7 @@ void Type_Checking::check_type (Ast_Literal* lit) {
     //TODO: smarter inference: use the smallest possible type
     if (!lit->inferred_type) {
         switch (lit->literal_type) {
-            case AST_LITERAL_INTEGER: {
+            case AST_LITERAL_I64: {
 				lit->inferred_type = Light_Compiler::instance->type_def_i32;
                 break;
             }

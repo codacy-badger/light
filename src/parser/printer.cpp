@@ -204,7 +204,7 @@ void ASTPrinter::print (Ast_Binary* binop, int tabs) {
 void ASTPrinter::print (Ast_Unary* unop, int tabs) {
 	printf("(");
 	switch (unop->unary_op) {
-		case AST_UNARY_NEGATE_NUMBER: 	printf("-"); break;
+		case AST_UNARY_NEGATE_MATH: 	printf("-"); break;
 		default:						assert(false);
 	}
 	printf(" ");
@@ -232,8 +232,10 @@ void ASTPrinter::print (Ast_Ident* ident, int tabs) {
 
 void ASTPrinter::print (Ast_Literal* cons, int tabs) {
 	switch (cons->literal_type) {
-		case AST_LITERAL_INTEGER:	printf("%lld", cons->integer_value); break;
-		case AST_LITERAL_DECIMAL:	printf("%f", cons->decimal_value);  break;
+		case AST_LITERAL_I64:		printf("%lld", cons->i64_value); break;
+		case AST_LITERAL_U64:		printf("%lld", cons->u64_value); break;
+		case AST_LITERAL_F32:		printf("%f", cons->f32_value); break;
+		case AST_LITERAL_F64:		printf("%lf", cons->f64_value); break;
 		case AST_LITERAL_STRING: 	printf("\"%s\"", cons->string_value); break;
 		default: 					assert(false);
 	}

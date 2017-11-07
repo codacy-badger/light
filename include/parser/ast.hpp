@@ -211,8 +211,8 @@ enum Ast_Unary_Type {
 	AST_UNARY_UNINITIALIZED,
 	AST_UNARY_DEREFERENCE,
 	AST_UNARY_REFERENCE,
-	AST_UNARY_NEGATE_EXPRESSION,
-	AST_UNARY_NEGATE_NUMBER,
+	AST_UNARY_NEGATE_LOGIC,
+	AST_UNARY_NEGATE_MATH,
 };
 
 struct Ast_Unary : Ast_Expression {
@@ -237,8 +237,10 @@ struct Ast_Function_Call : Ast_Expression {
 
 enum Ast_Literal_Type {
 	AST_LITERAL_UNINITIALIZED,
-	AST_LITERAL_INTEGER,
-	AST_LITERAL_DECIMAL,
+	AST_LITERAL_I64,
+	AST_LITERAL_U64,
+	AST_LITERAL_F32,
+	AST_LITERAL_F64,
 	AST_LITERAL_STRING,
 };
 
@@ -246,9 +248,11 @@ struct Ast_Literal : Ast_Expression {
 	Ast_Literal_Type literal_type = AST_LITERAL_UNINITIALIZED;
 
 	union {
-		int64_t integer_value;
-		double decimal_value;
-		char* string_value;
+		int64_t  	i64_value;
+		uint64_t  	u64_value;
+		float 		f32_value;
+		double 		f64_value;
+		char* 		string_value;
 	};
 
 	Ast_Literal () { this->exp_type = AST_EXPRESSION_LITERAL; }
