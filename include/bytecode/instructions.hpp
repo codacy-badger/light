@@ -1,8 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-
-#include "compiler.hpp"
+#include <malloc.h>
 
 struct Bytecode_Interpreter;
 

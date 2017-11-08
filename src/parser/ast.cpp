@@ -27,6 +27,10 @@ Ast_Declaration* Ast_Block::find_declaration (const char* name, bool recurse) {
     else return NULL;
 }
 
+bool Ast_Declaration::is_global () {
+	return this->scope->is_global();
+}
+
 Ast_Type_Definition* Ast_Block::find_type_definition (const char* name, bool recurse) {
     auto decl = this->find_declaration(name, recurse);
     if (decl && decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION)

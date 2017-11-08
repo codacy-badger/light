@@ -232,11 +232,10 @@ void ASTPrinter::print (Ast_Ident* ident, int tabs) {
 
 void ASTPrinter::print (Ast_Literal* cons, int tabs) {
 	switch (cons->literal_type) {
-		case AST_LITERAL_I64:		printf("%lld", cons->i64_value); break;
-		case AST_LITERAL_U64:		printf("%lld", cons->u64_value); break;
-		case AST_LITERAL_F32:		printf("%f", cons->f32_value); break;
-		case AST_LITERAL_F64:		printf("%lf", cons->f64_value); break;
-		case AST_LITERAL_STRING: 	printf("\"%s\"", cons->string_value); break;
-		default: 					assert(false);
+		case AST_LITERAL_SIGNED_INT:	printf("%lld", cons->int_value); break;
+		case AST_LITERAL_UNSIGNED_INT:	printf("%lld", cons->uint_value); break;
+		case AST_LITERAL_DECIMAL:		printf("%lf", cons->decimal_value); break;
+		case AST_LITERAL_STRING: 		printf("\"%s\"", cons->string_value); break;
+		default: 						assert(false);
 	}
 }

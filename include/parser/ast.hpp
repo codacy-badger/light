@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include "lexer/lexer.hpp"
-
 struct Ast_Note;
 struct Ast_Ident;
 struct Ast_Function;
@@ -84,6 +82,8 @@ struct Ast_Declaration : Ast_Statement {
 	uint16_t struct_byte_offset = 0;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
+
+	bool is_global();
 };
 
 struct Ast_Return : Ast_Statement {
@@ -139,6 +139,7 @@ enum Ast_Type_Definition_Type {
 
 struct Ast_Type_Definition : Ast_Expression {
 	Ast_Type_Definition_Type typedef_type = AST_TYPEDEF_UNDEFINED;
+	size_t byte_size = 0;
 
 	Ast_Type_Definition() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
 };
@@ -153,7 +154,6 @@ struct Ast_Function_Type : Ast_Type_Definition {
 struct Ast_Struct_Type : Ast_Type_Definition {
 	const char* name = NULL;
 	vector<Ast_Declaration*> attributes;
-	uint16_t byte_size = 0;
 
 	Ast_Struct_Type(const char* name = NULL) {
 		this->typedef_type = AST_TYPEDEF_STRUCT;
@@ -237,10 +237,9 @@ struct Ast_Function_Call : Ast_Expression {
 
 enum Ast_Literal_Type {
 	AST_LITERAL_UNINITIALIZED,
-	AST_LITERAL_I64,
-	AST_LITERAL_U64,
-	AST_LITERAL_F32,
-	AST_LITERAL_F64,
+	AST_LITERAL_SIGNED_INT,
+	AST_LITERAL_UNSIGNED_INT,
+	AST_LITERAL_DECIMAL,
 	AST_LITERAL_STRING,
 };
 
@@ -248,10 +247,9 @@ struct Ast_Literal : Ast_Expression {
 	Ast_Literal_Type literal_type = AST_LITERAL_UNINITIALIZED;
 
 	union {
-		int64_t  	i64_value;
-		uint64_t  	u64_value;
-		float 		f32_value;
-		double 		f64_value;
+		int64_t  	int_value;
+		uint64_t  	uint_value;
+		double 		decimal_value;
 		char* 		string_value;
 	};
 

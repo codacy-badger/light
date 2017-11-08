@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bytecode/interpreter.hpp"
 #include "parser/parser.hpp"
 
 #include <stdarg.h>
@@ -19,11 +20,12 @@ enum Byte_Order {
 };
 
 struct Light_Compiler {
-	Byte_Order byte_order = BYTEORDER_UNDEFINED;
-
 	Light_Compiler_Settings* settings = NULL;
-	bool has_errors = false;
+	Bytecode_Interpreter* interp = NULL;
 	Parser* parser = NULL;
+
+	Byte_Order byte_order = BYTEORDER_UNDEFINED;
+	bool has_errors = false;
 
 	Ast_Type_Definition* type_def_type;
 	Ast_Struct_Type* type_def_void;
