@@ -33,6 +33,14 @@ Ast_Block* Parser::top_level_block () {
 	_block->list.push_back(i32_decl);
 	this->to_next(i32_decl);
 
+	auto null_lit = new Ast_Literal();
+	null_lit->literal_type = AST_LITERAL_SIGNED_INT;
+	null_lit->int_value = 0;
+	auto null_decl = ast_make_declaration("null", null_lit);
+	null_decl->scope = _block;
+	_block->list.push_back(null_decl);
+	this->to_next(null_decl);
+
 	this->block(_block);
 	return _block;
 }

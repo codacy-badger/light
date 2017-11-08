@@ -8,7 +8,8 @@ Vec2 :: struct {
 }
 
 work :: fn -> i32 {
-    return NUM;
+	result := NUM - global_value;
+    return result;
 }
 
 NUM :: VAL + 10;
@@ -32,4 +33,4 @@ a :: 50;
 
 VAL : i32 : 2;
 
-vec2_zero : *Vec2 ;
+vec2_zero : *Vec2 = null;

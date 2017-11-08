@@ -26,6 +26,7 @@ void Bytecode_Generator::gen (Ast_Block* block, vector<Instruction*>* bytecode, 
 void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytecode, size_t reg) {
     if (decl->decl_flags & DECL_FLAG_CONSTANT) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
+			this->stack_offset = 0;
 			this->gen(static_cast<Ast_Function*>(decl->expression));
 		} else {
 			if (decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
@@ -62,6 +63,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 		}
     } else {
 		printf("Ast_Declaration '%s'\n", decl->name);
+		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 		if (decl->scope->is_global()) {
 			// TODO: reserve space in the global storage
 			// auto offset = Light_Compiler::instance->interp->global->reserve(decl->type->byte_size);
@@ -69,19 +71,19 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 
 			if (decl->expression) {
 				auto _reg = this->gen(decl->expression);
-				// BYTECODE_GLOBAL_PLUS_OFFSET
-				// BYTECODE_STORE_THROUGH_REGISTER
+				printf("\tBYTECODE_GLOBAL_OFFSET %zd, %lld\n", _reg + 1, decl->data_offset);
+				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, _reg, ty_decl->byte_size);
 			}
 		} else {
-			auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 			printf("\tBYTECODE_STACK_ALLOCATE %zd\n", ty_decl->byte_size);
-			// TODO: reserve space in the stack
-			// TODO: store ptr to stack in declaration
-
+			decl->data_offset = this->stack_offset;
+			this->stack_offset += ty_decl->byte_size;
+			printf("\t; Stack size after alloca %zd\n", this->stack_offset);
 			if (decl->expression) {
 				auto _reg = this->gen(decl->expression);
-				// TODO: store result in ptr
-			}
+				printf("\tBYTECODE_STACK_OFFSET %zd, %lld\n", _reg + 1, decl->data_offset);
+				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, _reg, ty_decl->byte_size);
+			} else printf("\t; No value to store\n");
 		}
 	}
 }

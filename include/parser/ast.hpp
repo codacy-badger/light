@@ -1,14 +1,15 @@
 #pragma once
 
+#include "lexer/lexer.hpp"
+
 #include <vector>
 
-struct Ast_Note;
 struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
-struct Ast_Type_Definition;
 struct Ast_Struct_Type;
+struct Ast_Type_Definition;
 struct Ast_Comma_Separated_Arguments;
 
 struct Instruction;
@@ -23,24 +24,21 @@ struct Ast {
 enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
 	AST_STATEMENT_BLOCK,
-	AST_STATEMENT_NOTE,
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
 	AST_STATEMENT_IMPORT,
 	AST_STATEMENT_EXPRESSION,
 };
 
+struct Ast_Note : Ast {
+	const char* name = NULL;
+	Ast_Comma_Separated_Arguments* arguments = NULL;
+};
+
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 
 	vector<Ast_Note*> notes;
-};
-
-struct Ast_Note : Ast_Statement {
-	const char* name = NULL;
-	Ast_Comma_Separated_Arguments* arguments = NULL;
-
-	Ast_Note() { this->stm_type = AST_STATEMENT_NOTE; }
 };
 
 struct Ast_Block : Ast_Statement {
@@ -144,11 +142,15 @@ struct Ast_Type_Definition : Ast_Expression {
 	Ast_Type_Definition() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
 };
 
+typedef void (*dummy)();
 struct Ast_Function_Type : Ast_Type_Definition {
 	vector<Ast_Expression*> parameter_types;
 	Ast_Expression* return_type = NULL;
 
-	Ast_Function_Type() { this->typedef_type = AST_TYPEDEF_FUNCTION; }
+	Ast_Function_Type() {
+		this->typedef_type = AST_TYPEDEF_FUNCTION;
+		this->byte_size = sizeof(dummy);
+	}
 };
 
 struct Ast_Struct_Type : Ast_Type_Definition {
@@ -164,7 +166,10 @@ struct Ast_Struct_Type : Ast_Type_Definition {
 struct Ast_Pointer_Type : Ast_Type_Definition {
 	Ast_Expression* base = NULL;
 
-	Ast_Pointer_Type() { this->typedef_type = AST_TYPEDEF_POINTER; }
+	Ast_Pointer_Type() {
+		this->typedef_type = AST_TYPEDEF_POINTER;
+		this->byte_size = sizeof(void*);
+	}
 };
 
 struct Ast_Function : Ast_Expression {
