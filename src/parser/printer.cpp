@@ -204,7 +204,7 @@ void ASTPrinter::print (Ast_Binary* binop, int tabs) {
 void ASTPrinter::print (Ast_Unary* unop, int tabs) {
 	printf("(");
 	switch (unop->unary_op) {
-		case AST_UNARY_NEGATE_MATH: 	printf("-"); break;
+		case AST_UNARY_NEGATE: 	printf("-"); break;
 		default:						assert(false);
 	}
 	printf(" ");

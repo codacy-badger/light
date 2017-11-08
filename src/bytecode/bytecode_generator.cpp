@@ -72,11 +72,11 @@ size_t Bytecode_Generator::gen (Ast_Expression* exp, vector<Instruction*>* bytec
 size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode, size_t reg) {
 	switch (lit->literal_type) {
 		case AST_LITERAL_I64: {
-			printf("BYTECODE_COPY_CONST %lld, 8, 0x%llX\n", reg, lit->i64_value);
+			printf("\tBYTECODE_COPY_CONST %lld, 8, 0x%llX\n", reg, lit->i64_value);
 			return reg;
 		}
 		case AST_LITERAL_U64: {
-			printf("BYTECODE_COPY_CONST %lld, 8, 0x%llX\n", reg, lit->u64_value);
+			printf("\tBYTECODE_COPY_CONST %lld, 8, 0x%llX\n", reg, lit->u64_value);
 			return reg;
 		}
 		default: {
@@ -89,12 +89,14 @@ size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode
 size_t Bytecode_Generator::gen (Ast_Unary* unop, vector<Instruction*>* bytecode, size_t reg) {
 	size_t next_reg = this->gen(unop->exp);
 	switch (unop->unary_op) {
-		case AST_UNARY_NEGATE_MATH: {
-			printf("BYTECODE_NEGATE_MATH %lld\n", next_reg);
+		case AST_UNARY_NEGATE: {
+			printf("\tBYTECODE_COPY_REG %lld, %lld\n", next_reg + 1, next_reg);
+			printf("\tBYTECODE_XOR %lld, %lld\n", next_reg, next_reg);
+			printf("\tBYTECODE_SUB %lld, %lld\n", next_reg, next_reg + 1);
 			return reg;
 		}
-		case AST_UNARY_NEGATE_LOGIC: {
-			printf("BYTECODE_NEGATE_LOGIC %lld\n", next_reg);
+		case AST_UNARY_NOT: {
+			printf("\tBYTECODE_NOT %lld\n", next_reg);
 			return reg;
 		}
 		default: return reg;
