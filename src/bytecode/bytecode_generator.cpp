@@ -28,38 +28,6 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 			this->stack_offset = 0;
 			this->gen(static_cast<Ast_Function*>(decl->expression));
-		} else {
-			if (decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-				return;
-			} else if (decl->expression->exp_type == AST_EXPRESSION_LITERAL) {
-				size_t const_offset = 0;
-				//auto interp = Light_Compiler::instance->interp;
-				auto lit = static_cast<Ast_Literal*>(decl->expression);
-				switch (lit->literal_type) {
-					case AST_LITERAL_SIGNED_INT: {
-						// TODO: switch over inferred_type to store exact size
-						//const_offset = interp->constant->store(lit->int_value);
-						break;
-					}
-					case AST_LITERAL_UNSIGNED_INT: {
-						// TODO: switch over inferred_type to store exact size
-						//const_offset = interp->constant->store(lit->uint_value);
-						break;
-					}
-					case AST_LITERAL_DECIMAL: {
-						// TODO: switch over inferred_type to store exact size
-						//const_offset = interp->constant->store(lit->decimal_value);
-						break;
-					}
-					case AST_LITERAL_STRING: {
-						//const_offset = interp->constant->store(lit->string_value);
-						break;
-					}
-				}
-				decl->data_offset = const_offset;
-			} else {
-				//Light_Compiler::instance->error_stop(decl, "Only literal values supported on constant declarations!");
-			}
 		}
     } else {
 		printf("Ast_Declaration '%s'\n", decl->name);
