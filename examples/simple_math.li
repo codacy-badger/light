@@ -17,6 +17,8 @@ NUM :: VAL + 10;
 WIN_CALL : type : fn (val: i32) -> i32;
 
 main :: fn {
+	CONST :: 19;
+	
     b : **i32;
     c : i32 = a;
 

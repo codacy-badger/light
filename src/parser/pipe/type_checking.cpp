@@ -31,14 +31,7 @@ void Type_Checking::check_type (Ast_Block* block) {
 void Type_Checking::check_type (Ast_Declaration* decl) {
 	if (decl->expression) check_type(decl->expression);
 
-	if (decl->type) {
-		check_type(decl->type);
-		if (decl->type->exp_type == AST_EXPRESSION_IDENT) {
-			auto ident = static_cast<Ast_Ident*>(decl->type);
-			delete decl->type;
-			decl->type = ident->declaration->expression;
-		}
-	}
+	if (decl->type) check_type(decl->type);
 
 	if (!decl->type && !decl->expression) {
 		Light_Compiler::instance->error_stop(decl, "Cannot infer type without an expression!");
@@ -174,7 +167,7 @@ void Type_Checking::check_type (Ast_Ident* ident) {
 	if (ident->declaration) {
 		ident->inferred_type = static_cast<Ast_Type_Definition*>(ident->declaration->type);
 	} else {
-		Light_Compiler::instance->error_stop(ident, "Symbol not found...");
+		Light_Compiler::instance->error_stop(ident, "Ident has no declaration!");
 	}
 }
 
