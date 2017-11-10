@@ -19,7 +19,14 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
 
 void Symbol_Resolution::on_finish () {
     if (this->unresolved_symbols.size() > 0) {
-        Light_Compiler::instance->error(NULL, "There are unresolved symbols!");
+		for (auto unresolved : this->unresolved_symbols) {
+			for (auto dep : unresolved.second) {
+				for (auto ident : dep->unresolved_symbols) {
+			        Light_Compiler::instance->error((*ident), "Unresolved symbol: '%s'", (*ident)->name);
+				}
+				Light_Compiler::instance->stop();
+			}
+        }
     } else this->try_finish();
 }
 
