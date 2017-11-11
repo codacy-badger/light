@@ -29,7 +29,7 @@ struct Bytecode_Interpreter {
 
 	void stack_alloca (Inst_Stack_Alloca* inst);
 
-	void add_i32 (Inst_Add_I32* inst);
+	void add_s32 (Inst_Add_I32* inst);
 	void add_reg (Inst_Add_Reg* inst);
 
 	void dump ();

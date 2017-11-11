@@ -1,7 +1,7 @@
 import! "examples/std.li"
 
-NUM2 : i32 : 5;
+NUM2 : s32 : 5;
 
-calc :: fn -> i32 {
+calc :: fn -> s32 {
     return 12;
 }

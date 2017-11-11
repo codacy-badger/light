@@ -176,7 +176,7 @@ void Type_Checking::check_type (Ast_Literal* lit) {
     if (!lit->inferred_type) {
         switch (lit->literal_type) {
             case AST_LITERAL_SIGNED_INT: {
-				lit->inferred_type = Light_Compiler::instance->type_def_i32;
+				lit->inferred_type = Light_Compiler::instance->type_def_s32;
                 break;
             }
             default: break;

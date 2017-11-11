@@ -29,9 +29,9 @@ Ast_Block* Parser::top_level_block () {
 	_block->list.push_back(void_decl);
 	this->to_next(void_decl);
 
-	auto i32_decl = ast_make_declaration("i32", Light_Compiler::instance->type_def_i32);
-	_block->list.push_back(i32_decl);
-	this->to_next(i32_decl);
+	auto s32_decl = ast_make_declaration("s32", Light_Compiler::instance->type_def_s32);
+	_block->list.push_back(s32_decl);
+	this->to_next(s32_decl);
 
 	auto null_lit = new Ast_Literal();
 	null_lit->literal_type = AST_LITERAL_SIGNED_INT;

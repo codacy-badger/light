@@ -3,36 +3,36 @@ import! "examples/basic.li"
 global_value := -12;
 
 Vec2 :: struct {
-	x : i32;
-	y : i32;
+	x : s32;
+	y : s32;
 }
 
-work :: fn -> i32 {
+work :: fn -> s32 {
 	result := NUM - global_value;
     return result;
 }
 
 NUM :: VAL + 10;
 
-WIN_CALL : type : fn (val: i32) -> i32;
+WIN_CALL : type : fn (val: s32) -> s32;
 
 main :: fn {
 	CONST :: 19;
 
-    b : **i32;
-    c : i32 = a;
+    b : **s32;
+    c : s32 = a;
 
 	d := c + 2;
 
 	Vec3 :: struct {
-		x: i32;
-		y: i32;
-		z: i32;
+		x: s32;
+		y: s32;
+		z: s32;
 	}
 }
 
 a :: 50;
 
-VAL : i32 : 2;
+VAL : s32 : 2;
 
 vec2_zero : *Vec2 = null;

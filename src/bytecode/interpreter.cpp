@@ -35,7 +35,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			return;
 		}
 		case BYTECODE_ADD_I32: {
-			this->add_i32(static_cast<Inst_Add_I32*>(inst));
+			this->add_s32(static_cast<Inst_Add_I32*>(inst));
 			return;
 		}
 		case BYTECODE_ADD_REG: {
@@ -68,7 +68,7 @@ void Bytecode_Interpreter::stack_alloca (Inst_Stack_Alloca* inst) {
 	this->stack_ptrs.push_back(this->stack_ptrs.back() + inst->size);
 }
 
-void Bytecode_Interpreter::add_i32 (Inst_Add_I32* inst) {
+void Bytecode_Interpreter::add_s32 (Inst_Add_I32* inst) {
 	// TODO: set overflow & underflow flags
 	_tmp  = (*(inst->data + 0) << (8 * 0));
 	_tmp += (*(inst->data + 1) << (8 * 1));

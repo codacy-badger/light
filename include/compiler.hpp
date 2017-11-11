@@ -29,7 +29,7 @@ struct Light_Compiler {
 
 	Ast_Type_Definition* type_def_type;
 	Ast_Struct_Type* type_def_void;
-	Ast_Struct_Type* type_def_i32;
+	Ast_Struct_Type* type_def_s32;
 
 	static Light_Compiler* instance;
 

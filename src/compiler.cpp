@@ -47,8 +47,8 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 
 	this->type_def_void = new Ast_Struct_Type("void");
 	this->type_def_void->byte_size = 0;
-	this->type_def_i32 = new Ast_Struct_Type("i32");
-	this->type_def_i32->byte_size = 4;
+	this->type_def_s32 = new Ast_Struct_Type("s32");
+	this->type_def_s32->byte_size = 4;
 }
 
 void Light_Compiler::run () {
