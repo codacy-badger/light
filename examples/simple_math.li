@@ -33,6 +33,6 @@ main :: fn {
 
 a :: 50;
 
-VAL : s32 : 2;
+VAL : s32 : -2;
 
 vec2_zero : *Vec2 = null;

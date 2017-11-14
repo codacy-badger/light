@@ -7,6 +7,7 @@
 
 #include "timer.hpp"
 #include "parser/pipe/symbol_resolution.hpp"
+#include "parser/pipe/constant_folding.hpp"
 #include "parser/pipe/type_checking.hpp"
 #include "parser/pipe/foreign_function.hpp"
 #include "parser/pipe/print_pipe.hpp"
@@ -58,6 +59,7 @@ void Light_Compiler::run () {
 
 		auto parser = new Parser(this, filename);
 		parser->append(new Symbol_Resolution());
+		parser->append(new Constant_Folding());
 		parser->append(new Type_Checking());
 		parser->append(new Foreign_Function());
 		parser->append(new Bytecode_Sizer());
