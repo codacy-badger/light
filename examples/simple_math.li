@@ -20,7 +20,7 @@ main :: fn {
 	CONST :: 19;
 
     b : **s32;
-    c : s32 = a;
+    c : s32 = a -CONST;
 
 	d := c + 2;
 

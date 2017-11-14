@@ -155,7 +155,8 @@ void Constant_Folding::fold (Ast_Unary** unary) {
 	}
 }
 
-void Constant_Folding::fold (Ast_Function** stm) {
+void Constant_Folding::fold (Ast_Function** fn) {
+	this->fold((*fn)->scope);
 }
 
 void Constant_Folding::fold (Ast_Type_Definition** tydef) {
