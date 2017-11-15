@@ -3,8 +3,9 @@
 #include "parser/pipes.hpp"
 
 struct Bytecode_Generator : Pipe {
+	size_t global_offset = 0;
 	size_t stack_offset = 0;
-	
+
 	void on_statement(Ast_Statement* stm);
 
     void gen (Ast_Statement* stm, vector<Instruction*>* bytecode = NULL, size_t reg = 0);

@@ -33,14 +33,14 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 		printf("Ast_Declaration '%s'\n", decl->name);
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 		if (decl->scope->is_global()) {
-			// TODO: reserve space in the global storage
-			// auto offset = Light_Compiler::inst->interp->global->reserve(decl->type->byte_size);
-			// decl->data_offset = offset;
+            auto ty_defn = static_cast<Ast_Type_Definition*>(decl->type);
+			decl->data_offset = this->global_offset;
+            this->global_offset += ty_defn->byte_size;
 
 			if (decl->expression) {
 				auto _reg = this->gen(decl->expression);
 				printf("\tBYTECODE_GLOBAL_OFFSET %zd, %lld\n", _reg + 1, decl->data_offset);
-				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, _reg, ty_decl->byte_size);
+				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, ty_decl->byte_size, _reg);
 			}
 		} else {
 			printf("\tBYTECODE_STACK_ALLOCATE %zd\n", ty_decl->byte_size);
@@ -50,7 +50,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 			if (decl->expression) {
 				auto _reg = this->gen(decl->expression);
 				printf("\tBYTECODE_STACK_OFFSET %zd, %lld\n", _reg + 1, decl->data_offset);
-				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, _reg, ty_decl->byte_size);
+				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, ty_decl->byte_size, _reg);
 			} else printf("\t; No value to store\n");
 		}
 	}

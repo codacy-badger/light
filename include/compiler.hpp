@@ -21,8 +21,7 @@ enum Byte_Order {
 
 struct Light_Compiler {
 	Light_Compiler_Settings* settings = NULL;
-	Bytecode_Interpreter* interp = NULL;
-	Parser* parser = NULL;
+	Bytecode_Interpreter* interp = new Bytecode_Interpreter();
 
 	Byte_Order byte_order = BYTEORDER_UNDEFINED;
 	bool has_errors = false;

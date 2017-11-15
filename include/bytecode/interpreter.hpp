@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bytecode/instructions.hpp"
+#include "bytecode/globals.hpp"
 
 #include <deque>
 
@@ -13,6 +14,7 @@
 typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
 struct Bytecode_Interpreter {
+	Bytecode_Globals* globals = new Bytecode_Globals();
 	bool stop_running = false;
 
 	Bytecode_Register registers[INTERP_REGISTER_COUNT];
