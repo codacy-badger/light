@@ -8,7 +8,7 @@ void copy_location_info (Instruction* intruction, Ast* node) {
 }
 
 void Bytecode_Generator::on_statement (Ast_Statement* stm) {
-    this->gen(stm);
+    this->gen(stm, NULL, 0);
     this->to_next(stm);
 }
 
@@ -41,7 +41,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
     if (decl->decl_flags & DECL_FLAG_CONSTANT) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 			this->stack_offset = 0;
-			this->gen(static_cast<Ast_Function*>(decl->expression));
+			this->gen(static_cast<Ast_Function*>(decl->expression), bytecode, reg);
 		}
     } else {
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
@@ -51,9 +51,9 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
             this->global_offset += ty_defn->byte_size;
 
 			if (decl->expression) {
-				auto _reg = this->gen(decl->expression);
+				auto _reg = this->gen(decl->expression, bytecode, reg);
 				printf("\tBYTECODE_GLOBAL_OFFSET %zd, %lld\n", _reg + 1, decl->data_offset);
-				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, ty_decl->byte_size, _reg);
+				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, _reg, ty_decl->byte_size);
 			}
 		} else {
 			printf("\tBYTECODE_STACK_ALLOCATE %zd\n", ty_decl->byte_size);
@@ -61,9 +61,9 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 			this->stack_offset += ty_decl->byte_size;
 			printf("\t; Stack size after alloca %zd\n", this->stack_offset);
 			if (decl->expression) {
-				auto _reg = this->gen(decl->expression);
+				auto _reg = this->gen(decl->expression, bytecode, reg);
 				printf("\tBYTECODE_STACK_OFFSET %zd, %lld\n", _reg + 1, decl->data_offset);
-				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, ty_decl->byte_size, _reg);
+				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, _reg, ty_decl->byte_size);
 			} else printf("\t; No value to store\n");
 		}
 	}
@@ -110,7 +110,7 @@ size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode
 }
 
 size_t Bytecode_Generator::gen (Ast_Unary* unop, vector<Instruction*>* bytecode, size_t reg) {
-	size_t next_reg = this->gen(unop->exp);
+	size_t next_reg = this->gen(unop->exp, bytecode, reg);
 	switch (unop->unary_op) {
 		case AST_UNARY_NEGATE: {
 			printf("\tBYTECODE_NEG %zd\n", next_reg);
@@ -161,7 +161,7 @@ size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode
 }
 
 size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode, size_t reg) {
-	if (fn->scope) this->gen(fn->scope, &fn->bytecode);
+	if (fn->scope) this->gen(fn->scope, &fn->bytecode, 0);
 
 	return reg;
 }

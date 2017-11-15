@@ -1,4 +1,4 @@
-import! "examples/std.li"
+import! "examples/winapi.li"
 
 NUM2 : s32 : 5;
 

@@ -1,0 +1,6 @@
+
+#foreign("kernel32")
+GetStdHandle : fn (code: s32) -> *void :;
+
+#foreign("kernel32")
+WriteFile : fn (handle: *void, buffer: *void, bytes_to_write: s32, written_bytes: *s32, overlapped: *void) -> s32 :;
