@@ -65,7 +65,6 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 
 			decl->data_offset = this->stack_offset;
 			this->stack_offset += ty_decl->byte_size;
-			printf("\t; Stack size after alloca %zd\n", this->stack_offset);
 			if (decl->expression) {
 				auto _reg = this->gen(decl->expression, bytecode, reg);
 				printf("\tBYTECODE_STACK_OFFSET %zd, %lld\n", _reg + 1, decl->data_offset);
@@ -185,7 +184,6 @@ size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode
 		}
 		return reg;
 	} else {
-		printf("\t; Load ident '%s' from [stack] @ %zd\n", ident->name, ident->declaration->data_offset);
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
 			printf("\tBYTECODE_STACK_OFFSET %zd, %zd\n", reg + 1, ident->declaration->data_offset);
             auto inst1 = new Inst_Stack_Offset(reg + 1, ident->declaration->data_offset);
