@@ -191,8 +191,8 @@ size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode
             auto inst1 = new Inst_Stack_Offset(reg + 1, ident->declaration->data_offset);
             copy_location_info(inst1, ident);
             bytecode->push_back(inst1);
-			printf("\tBYTECODE_DEREFERENCE %zd, %zd, %zd\n", reg, reg + 1, ident->inferred_type->byte_size);
-            auto inst2 = new Inst_Dereference(reg, reg + 1, ident->inferred_type->byte_size);
+			printf("\tBYTECODE_LOAD %zd, %zd, %zd\n", reg, reg + 1, ident->inferred_type->byte_size);
+            auto inst2 = new Inst_Load(reg, reg + 1, ident->inferred_type->byte_size);
             copy_location_info(inst2, ident);
             bytecode->push_back(inst2);
 		} else {

@@ -18,7 +18,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_STACK_ALLOCATE,
 	BYTECODE_STACK_OFFSET,
 
-	BYTECODE_DEREFERENCE,
+	BYTECODE_LOAD,
 	BYTECODE_STORE,
 
 	BYTECODE_NOT,
@@ -95,13 +95,13 @@ struct Inst_Stack_Offset : Instruction {
 	}
 };
 
-struct Inst_Dereference : Instruction {
+struct Inst_Load : Instruction {
 	uint8_t dest = 0;
 	uint8_t src = 0;
 	uint8_t size = 0;
 
-	Inst_Dereference (uint8_t dest, uint8_t src, uint8_t size) {
-		this->bytecode = BYTECODE_DEREFERENCE;
+	Inst_Load (uint8_t dest, uint8_t src, uint8_t size) {
+		this->bytecode = BYTECODE_LOAD;
 		this->dest = dest;
 		this->src = src;
 		this->size = size;

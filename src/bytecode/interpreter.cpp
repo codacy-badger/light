@@ -57,9 +57,9 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(this->registers[stoff->reg], &value, INTERP_REGISTER_SIZE);
 			return;
 		}
-		case BYTECODE_DEREFERENCE: {
-			auto deref = static_cast<Inst_Dereference*>(inst);
-			printf("BYTECODE_DEREFERENCE\n");
+		case BYTECODE_LOAD: {
+			auto deref = static_cast<Inst_Load*>(inst);
+			printf("BYTECODE_LOAD\n");
 			size_t reg_value = NULL;
 			memcpy(&reg_value, this->registers[deref->src], INTERP_REGISTER_SIZE);
 			auto mem_ptr = reinterpret_cast<void*>(reg_value);
