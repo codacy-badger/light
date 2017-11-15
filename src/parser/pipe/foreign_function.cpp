@@ -34,7 +34,7 @@ void Foreign_Function::on_statement(Ast_Statement* stm) {
 						fn->type = fn_type;
 
 						if (!note->arguments || note->arguments->args.size() != 1) {
-							Light_Compiler::instance->error_stop(note, "foreign notes must have 1 (string) parameter!");
+							Light_Compiler::inst->error_stop(note, "foreign notes must have 1 (string) parameter!");
 						}
 
 						auto exp = note->arguments->args[0];
@@ -43,8 +43,8 @@ void Foreign_Function::on_statement(Ast_Statement* stm) {
 							if (lit->literal_type == AST_LITERAL_STRING) {
 								fn->foreign_module_name = lit->string_value;
 								delete note;
-							} else Light_Compiler::instance->error_stop(note, "foreign note parameter is not a string!");
-						} else Light_Compiler::instance->error_stop(note, "foreign notes parameter is not a literal!");
+							} else Light_Compiler::inst->error_stop(note, "foreign note parameter is not a string!");
+						} else Light_Compiler::inst->error_stop(note, "foreign notes parameter is not a literal!");
 
 						decl->expression = fn;
 					}

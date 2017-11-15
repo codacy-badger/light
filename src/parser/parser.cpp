@@ -21,15 +21,15 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 Ast_Block* Parser::top_level_block () {
 	auto _block = AST_NEW(Ast_Block, this->current_block);
 
-	auto type_decl = ast_make_declaration("type", Light_Compiler::instance->type_def_type);
+	auto type_decl = ast_make_declaration("type", Light_Compiler::inst->type_def_type);
 	_block->list.push_back(type_decl);
 	this->to_next(type_decl);
 
-	auto void_decl = ast_make_declaration("void", Light_Compiler::instance->type_def_void);
+	auto void_decl = ast_make_declaration("void", Light_Compiler::inst->type_def_void);
 	_block->list.push_back(void_decl);
 	this->to_next(void_decl);
 
-	auto s32_decl = ast_make_declaration("s32", Light_Compiler::instance->type_def_s32);
+	auto s32_decl = ast_make_declaration("s32", Light_Compiler::inst->type_def_s32);
 	_block->list.push_back(s32_decl);
 	this->to_next(s32_decl);
 
@@ -189,8 +189,8 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 
 	auto _decl = this->current_block->find_declaration(decl->name);
 	if (_decl) {
-		Light_Compiler::instance->error(decl, "'%s' is already declared in this scope!", decl->name);
-		Light_Compiler::instance->error_stop(_decl, "Here is the initial declaration");
+		Light_Compiler::inst->error(decl, "'%s' is already declared in this scope!", decl->name);
+		Light_Compiler::inst->error_stop(_decl, "Here is the initial declaration");
 	}
 
 	if (this->lexer->isNextType(TOKEN_COLON)) {
@@ -279,7 +279,7 @@ Ast_Function* Parser::function (Ast_Function_Type* fn_type) {
 
 Ast_Function_Type* Parser::function_type () {
 	auto fn_type = AST_NEW(Ast_Function_Type);
-	fn_type->inferred_type = Light_Compiler::instance->type_def_type;
+	fn_type->inferred_type = Light_Compiler::inst->type_def_type;
 
 	if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 		this->lexer->skip(1);
@@ -341,7 +341,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 					decl->_struct = _struct;
 					_struct->attributes.push_back(decl);
 				} else {
-					Light_Compiler::instance->error_stop(stm, "Only declarations can go inside a struct!");
+					Light_Compiler::inst->error_stop(stm, "Only declarations can go inside a struct!");
 				}
 			}
 			delete _block;

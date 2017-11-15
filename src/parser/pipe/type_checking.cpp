@@ -34,7 +34,7 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 	if (decl->type) check_type(decl->type);
 
 	if (!decl->type && !decl->expression) {
-		Light_Compiler::instance->error_stop(decl, "Cannot infer type without an expression!");
+		Light_Compiler::inst->error_stop(decl, "Cannot infer type without an expression!");
 	} else if (!decl->type) {
 		decl->type = decl->expression->inferred_type;
 	}
@@ -43,8 +43,8 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 		// TODO: ensure expression is constant
 	}
 
-	if (decl->type->inferred_type != Light_Compiler::instance->type_def_type) {
-		Light_Compiler::instance->error_stop(decl->type, "Expression is not a type!");
+	if (decl->type->inferred_type != Light_Compiler::inst->type_def_type) {
+		Light_Compiler::inst->error_stop(decl->type, "Expression is not a type!");
 	}
 }
 
@@ -53,16 +53,16 @@ void Type_Checking::check_type (Ast_Return* ret) {
 
 	auto fn = ret->block->find_function();
 	if (!fn) {
-		Light_Compiler::instance->error_stop(ret, "Return statement must be inside a function!");
+		Light_Compiler::inst->error_stop(ret, "Return statement must be inside a function!");
 	} else if (ret->exp) {
-		if (fn->type->return_type == Light_Compiler::instance->type_def_void)
-			Light_Compiler::instance->error_stop(ret, "Return statment has expression, but function returns void!");
+		if (fn->type->return_type == Light_Compiler::inst->type_def_void)
+			Light_Compiler::inst->error_stop(ret, "Return statment has expression, but function returns void!");
 		else if (ret->exp->inferred_type != fn->type->return_type) {
-			Light_Compiler::instance->error_stop(ret, "Type mismatch, return expression is '---', but function expects '---'!");
+			Light_Compiler::inst->error_stop(ret, "Type mismatch, return expression is '---', but function expects '---'!");
 		}
 	} else {
-		if (fn->type->return_type != Light_Compiler::instance->type_def_void)
-			Light_Compiler::instance->error_stop(ret, "Return statment has no expression, but function returns '---'!");
+		if (fn->type->return_type != Light_Compiler::inst->type_def_void)
+			Light_Compiler::inst->error_stop(ret, "Return statment has no expression, but function returns '---'!");
 	}
 }
 
@@ -106,7 +106,7 @@ void Type_Checking::check_type (Ast_Type_Definition* tydef) {
 }
 
 void Type_Checking::check_type (Ast_Function_Type* ty) {
-    ty->inferred_type = Light_Compiler::instance->type_def_type;
+    ty->inferred_type = Light_Compiler::inst->type_def_type;
 
 	check_type(ty->return_type);
 	if (ty->return_type->exp_type == AST_EXPRESSION_IDENT) {
@@ -126,14 +126,14 @@ void Type_Checking::check_type (Ast_Function_Type* ty) {
 }
 
 void Type_Checking::check_type (Ast_Struct_Type* ty) {
-    ty->inferred_type = Light_Compiler::instance->type_def_type;
+    ty->inferred_type = Light_Compiler::inst->type_def_type;
 	for (auto decl : ty->attributes) {
 		check_type(decl);
 	}
 }
 
 void Type_Checking::check_type (Ast_Pointer_Type* ty) {
-    ty->inferred_type = Light_Compiler::instance->type_def_type;
+    ty->inferred_type = Light_Compiler::inst->type_def_type;
 	check_type(ty->base);
 	if (ty->base->exp_type == AST_EXPRESSION_IDENT) {
 		auto ident = static_cast<Ast_Ident*>(ty->base);
@@ -154,7 +154,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 	if (binop->lhs->inferred_type == binop->rhs->inferred_type) {
 		binop->inferred_type = binop->lhs->inferred_type;
 	} else {
-		Light_Compiler::instance->error_stop(binop, "Type mismatch on binary expression");
+		Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression");
 	}
 }
 
@@ -167,7 +167,7 @@ void Type_Checking::check_type (Ast_Ident* ident) {
 	if (ident->declaration) {
 		ident->inferred_type = static_cast<Ast_Type_Definition*>(ident->declaration->type);
 	} else {
-		Light_Compiler::instance->error_stop(ident, "Ident has no declaration!");
+		Light_Compiler::inst->error_stop(ident, "Ident has no declaration!");
 	}
 }
 
@@ -176,7 +176,7 @@ void Type_Checking::check_type (Ast_Literal* lit) {
     if (!lit->inferred_type) {
         switch (lit->literal_type) {
             case AST_LITERAL_SIGNED_INT: {
-				lit->inferred_type = Light_Compiler::instance->type_def_s32;
+				lit->inferred_type = Light_Compiler::inst->type_def_s32;
                 break;
             }
             default: break;

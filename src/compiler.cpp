@@ -15,7 +15,7 @@
 #include "parser/pipe/bytecode_sizer.hpp"
 #include "bytecode/bytecode_generator.hpp"
 
-Light_Compiler* Light_Compiler::instance = NULL;
+Light_Compiler* Light_Compiler::inst = NULL;
 
 void link (std::string output) {
 	auto linker = Timer::getTime();
@@ -34,8 +34,8 @@ void link (std::string output) {
 Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	if (!settings) this->settings = new Light_Compiler_Settings();
 	else this->settings = settings;
-	assert(Light_Compiler::instance == NULL);
-	Light_Compiler::instance = this;
+	assert(Light_Compiler::inst == NULL);
+	Light_Compiler::inst = this;
 
 	int16_t i = 1;
 	if (((int8_t *) &i)[0] == 1) {

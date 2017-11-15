@@ -31,7 +31,7 @@ struct Light_Compiler {
 	Ast_Struct_Type* type_def_void;
 	Ast_Struct_Type* type_def_s32;
 
-	static Light_Compiler* instance;
+	static Light_Compiler* inst;
 
 	Light_Compiler (Light_Compiler_Settings* settings = NULL);
 

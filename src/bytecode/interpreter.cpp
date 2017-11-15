@@ -43,7 +43,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			return;
 		}
 		default: {
-			Light_Compiler::instance->error_stop(NULL,
+			Light_Compiler::inst->error_stop(NULL,
 				"Instruction not yet supported: %d", inst->bytecode);
 		}
 	}

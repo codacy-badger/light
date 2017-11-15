@@ -22,9 +22,9 @@ void Symbol_Resolution::on_finish () {
 		for (auto unresolved : this->unresolved_symbols) {
 			for (auto dep : unresolved.second) {
 				for (auto ident : dep->unresolved_symbols) {
-			        Light_Compiler::instance->error((*ident), "Unresolved symbol: '%s'", (*ident)->name);
+			        Light_Compiler::inst->error((*ident), "Unresolved symbol: '%s'", (*ident)->name);
 				}
-				Light_Compiler::instance->stop();
+				Light_Compiler::inst->stop();
 			}
         }
     } else this->try_finish();

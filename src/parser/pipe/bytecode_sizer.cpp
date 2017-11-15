@@ -34,7 +34,7 @@ void compute_struct_size (Ast_Struct_Type* _struct) {
 void Bytecode_Sizer::on_statement(Ast_Statement* stm) {
 	if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 		auto decl = static_cast<Ast_Declaration*>(stm);
-		if (decl->type == Light_Compiler::instance->type_def_type) {
+		if (decl->type == Light_Compiler::inst->type_def_type) {
 			auto defn_ty = static_cast<Ast_Type_Definition*>(decl->expression);
 			if (defn_ty->typedef_type == AST_TYPEDEF_STRUCT) {
 				compute_struct_size(static_cast<Ast_Struct_Type*>(defn_ty));

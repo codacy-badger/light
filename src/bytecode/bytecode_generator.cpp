@@ -34,7 +34,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 		if (decl->scope->is_global()) {
 			// TODO: reserve space in the global storage
-			// auto offset = Light_Compiler::instance->interp->global->reserve(decl->type->byte_size);
+			// auto offset = Light_Compiler::inst->interp->global->reserve(decl->type->byte_size);
 			// decl->data_offset = offset;
 
 			if (decl->expression) {
@@ -82,7 +82,7 @@ size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode
 			return reg;
 		}
 		default: {
-			Light_Compiler::instance->error_stop(lit, "Literal type to bytecode conversion not supported!");
+			Light_Compiler::inst->error_stop(lit, "Literal type to bytecode conversion not supported!");
 			return reg;
 		}
 	}

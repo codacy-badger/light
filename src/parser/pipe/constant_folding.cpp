@@ -112,7 +112,7 @@ void Constant_Folding::fold (Ast_Binary** binary) {
 				break;
 			}
 			case AST_LITERAL_STRING: {
-				Light_Compiler::instance->error_stop(*binary, "String literal folding not supported yet!");
+				Light_Compiler::inst->error_stop(*binary, "String literal folding not supported yet!");
 				break;
 			}
 		}
@@ -144,7 +144,7 @@ void Constant_Folding::fold (Ast_Unary** unary) {
 				break;
 			}
 			case AST_LITERAL_STRING: {
-				Light_Compiler::instance->error_stop(*unary, "String literal folding not supported yet!");
+				Light_Compiler::inst->error_stop(*unary, "String literal folding not supported yet!");
 				break;
 			}
 		}
