@@ -87,6 +87,7 @@ size_t Bytecode_Generator::gen (Ast_Expression* exp, vector<Instruction*>* bytec
         case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp), bytecode, reg);
         case AST_EXPRESSION_IDENT: return this->gen(static_cast<Ast_Ident*>(exp), bytecode, reg);
         case AST_EXPRESSION_FUNCTION: return this->gen(static_cast<Ast_Function*>(exp), bytecode, reg);
+        case AST_EXPRESSION_CALL: return this->gen(static_cast<Ast_Function_Call*>(exp), bytecode, reg);
         default: return reg;
     }
 }
@@ -178,9 +179,9 @@ size_t Bytecode_Generator::gen (Ast_Unary* unop, vector<Instruction*>* bytecode,
 size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode, size_t reg) {
 	if (ident->declaration->is_global()) {
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			printf("\tBYTECODE_LOAD_GLOBAL (%s) %zd, %zd, %zd\n", ident->name, reg, ident->declaration->data_offset, ident->inferred_type->byte_size);
+			printf("\tBYTECODE_LOAD_GLOBAL %zd, %zd, %zd (%s)\n", reg, ident->declaration->data_offset, ident->inferred_type->byte_size, ident->name);
 		} else {
-			printf("\tBYTECODE_LOAD_GLOBAL_POINTER (%s) %zd, %zd\n", ident->name, reg, ident->declaration->data_offset);
+			printf("\tBYTECODE_LOAD_GLOBAL_POINTER %zd, %zd (%s)\n", reg, ident->declaration->data_offset, ident->name);
 		}
 		return reg;
 	} else {
@@ -202,6 +203,16 @@ size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode
 
 size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode, size_t reg) {
 	if (fn->scope) this->gen(fn->scope, &fn->bytecode, 0);
+	return reg;
+}
 
+size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* bytecode, size_t reg) {
+	auto func = static_cast<Ast_Function*>(call->fn);
+	printf("\tBYTECODE_CALL_PREPARE %zd, %d\n", func->type->parameter_decls.size(), BYTECODE_CC_CDECL);
+	for (int i = 0; i < func->type->parameter_decls.size(); i++) {
+		auto decl = func->type->parameter_decls[i];
+		printf("\tBYTECODE_CALL_PARAM %d, %zd (%s)\n", i, reg, decl->name);
+	}
+	printf("\tBYTECODE_CALL %zd (%s)\n", reg, func->name);
 	return reg;
 }

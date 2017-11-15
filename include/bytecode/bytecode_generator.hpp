@@ -19,4 +19,5 @@ struct Bytecode_Generator : Pipe {
 	size_t gen (Ast_Binary* binop, vector<Instruction*>* bytecode, size_t reg);
 	size_t gen (Ast_Ident* ident, vector<Instruction*>* bytecode, size_t reg);
     size_t gen (Ast_Function* fn, vector<Instruction*>* bytecode, size_t reg);
+	size_t gen (Ast_Function_Call* call, vector<Instruction*>* bytecode, size_t reg);
 };

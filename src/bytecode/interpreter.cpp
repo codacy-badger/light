@@ -124,6 +124,11 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(this->registers[add->reg1], &a, INTERP_REGISTER_SIZE);
 			return;
 		}
+		case BYTECODE_CALL: {
+			auto call = static_cast<Inst_Call*>(inst);
+			if (DEBUG) printf("BYTECODE_CALL\n");
+			return;
+		}
 		default: {
 			Light_Compiler::inst->error_stop(NULL,
 				"Instruction not yet supported: %d", inst->bytecode);
@@ -132,7 +137,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 }
 
 void Bytecode_Interpreter::dump () {
-	printf("\n------------ Light VM dump ------------\n\n");
+	printf("\n                ----------- Light VM dump ------------\n\n");
 	for (short i = 0; i < INTERP_REGISTER_COUNT; i++) {
         for (size_t j = 0; j < INTERP_REGISTER_SIZE; j++) {
             printf("%02X", this->registers[i][j]);

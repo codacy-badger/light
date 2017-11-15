@@ -28,6 +28,8 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_SUB,
 	BYTECODE_MUL,
 	BYTECODE_DIV,
+
+	BYTECODE_CALL,
 };
 
 struct Instruction {
@@ -162,5 +164,23 @@ struct Inst_Div : Instruction {
 		this->bytecode = BYTECODE_DIV;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
+	}
+};
+
+const uint8_t BYTECODE_CC_UNDEFINED = 0x0;
+const uint8_t BYTECODE_CC_CDECL = 0x1;
+const uint8_t BYTECODE_CC_STDCALL = 0x2;
+const uint8_t BYTECODE_CC_FASTCALL = 0x3;
+
+struct Inst_Call : Instruction {
+	uint8_t reg = 0;
+	uint8_t calling_convention = BYTECODE_CC_UNDEFINED;
+	uint8_t param_count = 0;
+	uint8_t* data = NULL;
+
+	Inst_Call (uint8_t reg, Inst_Call_Convention calling_convention) {
+		this->bytecode = BYTECODE_CALL;
+		this->calling_convention = calling_convention;
+		this->reg = reg;
 	}
 };
