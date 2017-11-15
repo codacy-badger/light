@@ -295,7 +295,7 @@ Ast_Function_Type* Parser::function_type () {
 		this->lexer->skip(1);
 		Ast_Declaration* decl;
 		while (decl = this->declaration()) {
-			fn_type->parameter_types.push_back(decl->type);
+			fn_type->parameter_decls.push_back(decl);
 			this->lexer->optional_skip(TOKEN_COMMA);
 		}
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);

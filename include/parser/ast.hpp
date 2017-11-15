@@ -146,7 +146,7 @@ struct Ast_Type_Definition : Ast_Expression {
 };
 
 struct Ast_Function_Type : Ast_Type_Definition {
-	vector<Ast_Expression*> parameter_types;
+	vector<Ast_Declaration*> parameter_decls;
 	Ast_Expression* return_type = NULL;
 
 	Ast_Function_Type() {

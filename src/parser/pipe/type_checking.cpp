@@ -123,13 +123,13 @@ void Type_Checking::check_type (Ast_Function_Type* ty) {
 		ty->return_type = ident->declaration->expression;
 	}
 
-	for (int i = 0; i < ty->parameter_types.size(); i++) {
-		check_type(ty->parameter_types[i]);
-		if (ty->parameter_types[i]->exp_type == AST_EXPRESSION_IDENT) {
-			auto ident = static_cast<Ast_Ident*>(ty->parameter_types[i]);
-			delete ty->parameter_types[i];
-			ty->parameter_types[i] = ident->declaration->expression;
-		}
+	for (int i = 0; i < ty->parameter_decls.size(); i++) {
+		check_type(ty->parameter_decls[i]);
+		/*if (ty->parameter_decls[i]->exp_type == AST_EXPRESSION_IDENT) {
+			auto ident = static_cast<Ast_Ident*>(ty->parameter_decls[i]);
+			delete ty->parameter_decls[i];
+			ty->parameter_decls[i] = ident->declaration->expression;
+		}*/
 	}
 }
 

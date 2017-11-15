@@ -71,6 +71,10 @@ void Constant_Folding::fold (Ast_Expression** exp) {
 			this->fold(reinterpret_cast<Ast_Function**>(exp));
 			return;
 		}
+		case AST_EXPRESSION_CALL: {
+			this->fold(reinterpret_cast<Ast_Function_Call**>(exp));
+			return;
+		}
 		case AST_EXPRESSION_TYPE_DEFINITION: {
 			this->fold(reinterpret_cast<Ast_Type_Definition**>(exp));
 			return;
@@ -159,6 +163,12 @@ void Constant_Folding::fold (Ast_Function** fn) {
 	this->fold((*fn)->scope);
 }
 
+void Constant_Folding::fold (Ast_Function_Call** call) {
+	for (int i = 0; i < (*call)->parameters.size(); i++) {
+		this->fold(&(*call)->parameters[i]);
+	}
+}
+
 void Constant_Folding::fold (Ast_Type_Definition** tydef) {
 	switch ((*tydef)->typedef_type) {
 		case AST_TYPEDEF_FUNCTION: {
@@ -180,7 +190,7 @@ void Constant_Folding::fold (Ast_Struct_Type** _struct) {
 }
 
 void Constant_Folding::fold (Ast_Function_Type** fn_type) {
-	for (auto exp : (*fn_type)->parameter_types) {
+	for (auto exp : (*fn_type)->parameter_decls) {
 		this->fold(exp);
 	}
 }

@@ -185,8 +185,8 @@ void Symbol_Resolution::check_symbols (Ast_Pointer_Type** ptr_type, vector<Ast_I
 
 void Symbol_Resolution::check_symbols (Ast_Function_Type** fn_type, vector<Ast_Ident**>* sym) {
     check_symbols(&(*fn_type)->return_type, sym);
-	for (int i = 0; i < (*fn_type)->parameter_types.size(); i++) {
-		check_symbols(&(*fn_type)->parameter_types[i], sym);
+	for (int i = 0; i < (*fn_type)->parameter_decls.size(); i++) {
+		check_symbols((*fn_type)->parameter_decls[i], sym);
 	}
 }
 

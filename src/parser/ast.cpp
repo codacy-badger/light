@@ -9,6 +9,11 @@ bool Ast_Block::is_global () {
 }
 
 void Ast_Block::find_declarations (std::vector<Ast_Declaration*>* decls, bool recurse) {
+	if (this->scope_of) {
+		for (auto decl : this->scope_of->type->parameter_decls) {
+			decls->push_back(decl);
+		}
+	}
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION)
             decls->push_back(static_cast<Ast_Declaration*>(stm));
@@ -16,6 +21,11 @@ void Ast_Block::find_declarations (std::vector<Ast_Declaration*>* decls, bool re
 }
 
 Ast_Declaration* Ast_Block::find_declaration (const char* name, bool recurse) {
+	if (this->scope_of) {
+		for (auto decl : this->scope_of->type->parameter_decls) {
+			if (strcmp(decl->name, name) == 0) return decl;
+		}
+	}
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);

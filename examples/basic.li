@@ -1,7 +1,0 @@
-import! "examples/winapi.li"
-
-NUM2 : s32 : 5;
-
-calc :: fn -> s32 {
-    return 12;
-}

@@ -20,7 +20,9 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 			break;
 		}
 		case AST_STATEMENT_DECLARATION: {
+			_tabs(tabs);
 			print(static_cast<Ast_Declaration*>(stm), tabs);
+			printf(";\n");
 			break;
 		}
 		case AST_STATEMENT_RETURN: {
@@ -28,6 +30,7 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 			break;
 		}
 		case AST_STATEMENT_EXPRESSION: {
+			_tabs(tabs);
 			print(static_cast<Ast_Expression*>(stm), tabs);
 			printf(";\n");
 			break;
@@ -51,16 +54,14 @@ void ASTPrinter::print (Ast_Note* note, int tabs) {
 }
 
 void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
-	_tabs(tabs);
 	for (auto note : decl->notes) {
 		print(note, tabs);
-		printf("\n");
+		printf(", ");
 	}
 
 	printf("%s : ", decl->name);
 
 	if (decl->type) print(decl->type, tabs, true);
-	else printf("(null)");
 
 	if (decl->decl_flags & DECL_FLAG_CONSTANT)
 		printf(": ");
@@ -68,8 +69,6 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
 
 	if (decl->expression) print(decl->expression, tabs);
 	else printf("??");
-
-	printf(";\n");
 }
 
 void ASTPrinter::print (Ast_Return* ret, int tabs) {
@@ -156,11 +155,11 @@ void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool name_only) {
 
 void ASTPrinter::print (Ast_Function_Type* type, int tabs, bool name_only) {
 	printf("fn ( ");
-	if (type->parameter_types.size() > 0) {
-		print(type->parameter_types[0], tabs, true);
-		for (size_t i = 1; i < type->parameter_types.size(); i++) {
+	if (type->parameter_decls.size() > 0) {
+		print(type->parameter_decls[0], tabs);
+		for (size_t i = 1; i < type->parameter_decls.size(); i++) {
 			printf(", ");
-			print(type->parameter_types[i], tabs, true);
+			print(type->parameter_decls[i], tabs);
 		}
 
 	}
