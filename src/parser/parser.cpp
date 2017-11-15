@@ -85,8 +85,23 @@ void Parser::block (Ast_Block* insert_block) {
 	this->current_block = this->current_block->parent;
 }
 
+Ast_Note* Parser::note () {
+	if (this->lexer->isNextType(TOKEN_HASH)) {
+		this->lexer->skip(1);
+
+		auto note = AST_NEW(Ast_Note);
+		note->name = this->lexer->text();
+		if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
+			this->lexer->skip(1);
+			// TODO: note params should also be type checked & inferred
+			note->arguments = this->comma_separated_arguments();
+			this->lexer->check_skip(TOKEN_PAR_CLOSE);
+		}
+		return note;
+	} else return NULL;
+}
+
 Ast_Statement* Parser::statement () {
-	static vector<Ast_Note*> notes;
 	switch (this->lexer->nextType) {
 		case TOKEN_EOF: this->lexer->report_unexpected();
 		case TOKEN_STM_END: {
@@ -94,19 +109,16 @@ Ast_Statement* Parser::statement () {
 			return NULL;
 		}
 		case TOKEN_HASH: {
-			this->lexer->skip(1);
-			auto note = AST_NEW(Ast_Note);
-			note->name = this->lexer->text();
-
-			if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
-				this->lexer->skip(1);
-
-				note->arguments = this->comma_separated_arguments();
-				this->lexer->check_skip(TOKEN_PAR_CLOSE);
+			vector<Ast_Note*> notes;
+			auto note = this->note();
+			while (note != NULL) {
+				notes.push_back(note);
+				note = this->note();
 			}
 
-			notes.push_back(note);
-			return this->statement();
+			auto stm = this->statement();
+			stm->notes = notes;
+			return stm;
 		}
 		case TOKEN_IMPORT: {
 			this->lexer->skip(1);
@@ -142,8 +154,6 @@ Ast_Statement* Parser::statement () {
 			auto ident = this->ident();
 			if (this->lexer->isNextType(TOKEN_COLON)) {
 				auto decl = this->declaration(ident);
-				decl->notes = notes;
-				notes.clear();
 				return decl;
 			} else {
 				auto exp = this->expression(ident);
@@ -299,7 +309,18 @@ Ast_Function_Type* Parser::function_type () {
 }
 
 Ast_Expression* Parser::_atom (Ast_Ident* initial) {
-	if (this->lexer->isNextType(TOKEN_ID) || initial) {
+	if (this->lexer->isNextType(TOKEN_HASH)) {
+		vector<Ast_Note*> notes;
+		auto note = this->note();
+		while (note != NULL) {
+			notes.push_back(note);
+			note = this->note();
+		}
+
+		auto exp = this->expression();
+		exp->notes = notes;
+		return exp;
+	} else if (this->lexer->isNextType(TOKEN_ID) || initial) {
 		auto output = initial ? initial : this->ident();
 		if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
 			return this->call(output);

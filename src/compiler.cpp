@@ -12,8 +12,9 @@
 #include "parser/pipe/foreign_function.hpp"
 #include "parser/pipe/print_pipe.hpp"
 
-#include "parser/pipe/bytecode_sizer.hpp"
+#include "parser/pipe/struct_sizer.hpp"
 #include "bytecode/bytecode_generator.hpp"
+#include "bytecode/bytecode_runner.hpp"
 
 Light_Compiler* Light_Compiler::inst = NULL;
 
@@ -62,8 +63,9 @@ void Light_Compiler::run () {
 		parser->append(new Constant_Folding());
 		parser->append(new Type_Checking());
 		parser->append(new Foreign_Function());
-		parser->append(new Bytecode_Sizer());
+		parser->append(new Struct_Sizer());
 		parser->append(new Bytecode_Generator());
+		parser->append(new Bytecode_Runner());
 		parser->append(new PrintPipe());
 
 		auto start = Timer::getTime();

@@ -16,6 +16,7 @@ NUM :: VAL + 10;
 
 WIN_CALL : type : fn (val: s32) -> s32;
 
+#run
 main :: fn {
 	CONST :: 19;
 

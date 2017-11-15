@@ -12,7 +12,7 @@ Ast_Note* remove_foreign_note (Ast_Declaration* decl) {
 			if (strcmp((*it)->name, "foreign") == 0) {
 				decl->notes.erase(it);
 				return (*it);
-			}
+			} else it++;
 		}
 	}
 	return NULL;

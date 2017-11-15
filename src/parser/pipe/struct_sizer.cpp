@@ -1,4 +1,4 @@
-#include "parser/pipe/bytecode_sizer.hpp"
+#include "parser/pipe/struct_sizer.hpp"
 
 #include "compiler.hpp"
 
@@ -8,9 +8,6 @@ uint16_t get_type_size (Ast_Type_Definition* defn_ty) {
 			auto _struct = static_cast<Ast_Struct_Type*>(defn_ty);
 			return _struct->byte_size;
 		}
-		case AST_TYPEDEF_FUNCTION:
-		case AST_TYPEDEF_POINTER:
-			return sizeof(void*);
 		default: return 0;
 	}
 }
@@ -31,7 +28,7 @@ void compute_struct_size (Ast_Struct_Type* _struct) {
 	}
 }
 
-void Bytecode_Sizer::on_statement(Ast_Statement* stm) {
+void Struct_Sizer::on_statement(Ast_Statement* stm) {
 	if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 		auto decl = static_cast<Ast_Declaration*>(stm);
 		if (decl->type == Light_Compiler::inst->type_def_type) {
