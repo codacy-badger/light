@@ -26,7 +26,7 @@ main :: fn {
 
 	Vec3 :: struct {
 		x: s32;
-		y: s32;
+		y: s32 = CONST + 1;
 		z: s32;
 	}
 }

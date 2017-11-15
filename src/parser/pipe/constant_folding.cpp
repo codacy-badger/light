@@ -61,8 +61,7 @@ void Constant_Folding::fold (Ast_Return* ret) {
 }
 
 void Constant_Folding::fold (Ast_Declaration* decl) {
-	// TODO: check if apply constant folding on type expression is necessary
-	//if (decl->type) this->fold(&decl->type);
+	if (decl->type) this->fold(&decl->type);
 	if (decl->expression) this->fold(&decl->expression);
 }
 
@@ -156,17 +155,32 @@ void Constant_Folding::fold (Ast_Unary** unary) {
 }
 
 void Constant_Folding::fold (Ast_Function** fn) {
+	this->fold((*fn)->type);
 	this->fold((*fn)->scope);
 }
 
 void Constant_Folding::fold (Ast_Type_Definition** tydef) {
+	switch ((*tydef)->typedef_type) {
+		case AST_TYPEDEF_FUNCTION: {
+			this->fold(reinterpret_cast<Ast_Function_Type**>(tydef));
+			break;
+		}
+		case AST_TYPEDEF_STRUCT: {
+			this->fold(reinterpret_cast<Ast_Struct_Type**>(tydef));
+			break;
+		}
+		default: break;
+	}
 }
 
 void Constant_Folding::fold (Ast_Struct_Type** _struct) {
-}
-
-void Constant_Folding::fold (Ast_Pointer_Type** ptr_type) {
+	for (auto decl : (*_struct)->attributes) {
+		this->fold(decl);
+	}
 }
 
 void Constant_Folding::fold (Ast_Function_Type** fn_type) {
+	for (auto exp : (*fn_type)->parameter_types) {
+		this->fold(exp);
+	}
 }
