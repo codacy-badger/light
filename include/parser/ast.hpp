@@ -60,14 +60,14 @@ struct Ast_Block : Ast_Statement {
 	Ast_Function* find_function (bool recurse = true);
 };
 
-const uint16_t DECL_FLAG_CONSTANT = 0x1;
+const uint8_t DECL_FLAG_CONSTANT = 0x1;
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
 	Ast_Expression* type = NULL;
 	Ast_Expression* expression = NULL;
 
-	uint16_t decl_flags = 0;
+	uint8_t decl_flags = 0;
 
 	Ast_Block* scope = NULL;
 
