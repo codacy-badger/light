@@ -2,6 +2,11 @@
 
 #include "compiler.hpp"
 
+void copy_location_info (Instruction* intruction, Ast* node) {
+    intruction->filename = node->filename;
+    intruction->line = node->line;
+}
+
 void Bytecode_Generator::on_statement (Ast_Statement* stm) {
     this->gen(stm);
     this->to_next(stm);
@@ -10,17 +15,26 @@ void Bytecode_Generator::on_statement (Ast_Statement* stm) {
 void Bytecode_Generator::gen (Ast_Statement* stm, vector<Instruction*>* bytecode, size_t reg) {
     switch (stm->stm_type) {
         case AST_STATEMENT_DECLARATION: {
-            this->gen(static_cast<Ast_Declaration*>(stm));
+            this->gen(static_cast<Ast_Declaration*>(stm), bytecode, reg);
             break;
         }
+		case AST_STATEMENT_RETURN: {
+			this->gen(static_cast<Ast_Return*>(stm), bytecode, reg);
+			break;
+		}
         default: return;
     }
 }
 
 void Bytecode_Generator::gen (Ast_Block* block, vector<Instruction*>* bytecode, size_t reg) {
     for (auto stm : block->list) {
-		this->gen(stm, bytecode);
+		this->gen(stm, bytecode, reg);
 	};
+}
+
+void Bytecode_Generator::gen (Ast_Return* ret, vector<Instruction*>* bytecode, size_t reg) {
+    auto ret_reg = this->gen(ret->exp, bytecode, reg);
+    printf("\tBYTECODE_RETURN %zd\n", ret_reg);
 }
 
 void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytecode, size_t reg) {
@@ -30,7 +44,6 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 			this->gen(static_cast<Ast_Function*>(decl->expression));
 		}
     } else {
-		printf("Ast_Declaration '%s'\n", decl->name);
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 		if (decl->scope->is_global()) {
             auto ty_defn = static_cast<Ast_Type_Definition*>(decl->type);
@@ -68,16 +81,24 @@ size_t Bytecode_Generator::gen (Ast_Expression* exp, vector<Instruction*>* bytec
 }
 
 size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode, size_t reg) {
+	// TODO: handle initialization of global variables
+	if (!bytecode) return reg;
 	switch (lit->literal_type) {
 		case AST_LITERAL_SIGNED_INT: {
+            // TODO: handle different number sizes
 			printf("\tBYTECODE_SET_INTEGER %zd, 8, %lld\n", reg, lit->int_value);
+            auto inst = new Inst_Set_Integer(reg, lit->int_value);
+            copy_location_info(inst, lit);
+            bytecode->push_back(inst);
 			return reg;
 		}
 		case AST_LITERAL_UNSIGNED_INT: {
+            // TODO: handle different number sizes
 			printf("\tBYTECODE_SET_INTEGER %zd, 8, %lld\n", reg, lit->uint_value);
 			return reg;
 		}
 		case AST_LITERAL_DECIMAL: {
+            // TODO: handle different number sizes
 			printf("\tBYTECODE_SET_DECIMAL %zd, 8, 0x%llf\n", reg, lit->decimal_value);
 			return reg;
 		}
@@ -140,9 +161,7 @@ size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode
 }
 
 size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode, size_t reg) {
-	if (fn->scope) {
-		this->gen(fn->scope, &fn->bytecode);
-	}
+	if (fn->scope) this->gen(fn->scope, &fn->bytecode);
 
 	return reg;
 }

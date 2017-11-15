@@ -2,90 +2,84 @@
 
 #include <stdint.h>
 #include <malloc.h>
+#include <string.h>
 
 struct Bytecode_Interpreter;
 
 enum Inst_Bytecode : uint8_t {
 	BYTECODE_NOOP,
 
-	BYTECODE_COPY_CONST,
-	BYTECODE_COPY_REG,
+	BYTECODE_COPY,
 
-	BYTECODE_STACK_ALLOCA,
+	BYTECODE_SET_INTEGER,
+	BYTECODE_SET_DECIMAL,
 
-	BYTECODE_ADD_I32,
-	BYTECODE_ADD_REG,
+	BYTECODE_GLOBAL_OFFSET,
+	BYTECODE_STACK_OFFSET,
+
+	BYTECODE_DEREFERENCE,
+	BYTECODE_STORE,
+
+	BYTECODE_NOT,
+	BYTECODE_NEG,
+
+	BYTECODE_ADD,
+	BYTECODE_SUB,
+	BYTECODE_MUL,
+	BYTECODE_DIV,
 };
 
 struct Instruction {
 	uint8_t bytecode = BYTECODE_NOOP;
+	const char* filename = NULL;
+	size_t line = 0;
 };
 
-struct Inst_Noop : Instruction {
-	Inst_Noop () { this->bytecode = BYTECODE_NOOP; }
-};
-
-struct Inst_Copy_Const : Instruction {
+struct Inst_Set_Integer : Instruction {
 	uint8_t reg = 0;
 	uint8_t size = 0;
 	uint8_t* data = NULL;
 
-	Inst_Copy_Const (uint8_t reg, uint8_t value);
-	Inst_Copy_Const (uint8_t reg, uint16_t value);
-	Inst_Copy_Const (uint8_t reg, uint32_t value);
-	Inst_Copy_Const (uint8_t reg, uint64_t value);
-	Inst_Copy_Const (uint8_t reg, uint8_t size, uint8_t* data) {
-		this->bytecode = BYTECODE_COPY_CONST;
+	template<typename N>
+	Inst_Set_Integer (uint8_t reg, N value)
+		: Inst_Set_Integer(reg, sizeof(N), reinterpret_cast<uint8_t*>(&value)) {}
+	Inst_Set_Integer (uint8_t reg, uint8_t size, uint8_t* data) {
+		this->bytecode = BYTECODE_SET_INTEGER;
 		this->reg = reg;
 		this->size = size;
-		this->data = data;
+		this->data = (uint8_t*) malloc(size);
+		memcpy(this->data, data, size);
 	}
 };
 
-struct Inst_Copy_Reg : Instruction {
+struct Inst_Copy : Instruction {
 	uint8_t reg1 = 0;
 	uint8_t reg2 = 0;
 
-	Inst_Copy_Reg (uint8_t reg1, uint8_t reg2) {
-		this->bytecode = BYTECODE_COPY_REG;
+	Inst_Copy (uint8_t reg1, uint8_t reg2) {
+		this->bytecode = BYTECODE_COPY;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
 	}
 };
 
-struct Inst_Stack_Alloca : Instruction {
+struct Inst_Stack_Offset : Instruction {
 	uint8_t reg = 0;
 	uint8_t size = 0;
 
-	Inst_Stack_Alloca (uint8_t reg, uint8_t size) {
-		this->bytecode = BYTECODE_STACK_ALLOCA;
+	Inst_Stack_Offset (uint8_t reg, uint8_t size) {
+		this->bytecode = BYTECODE_STACK_OFFSET;
 		this->reg = reg;
 		this->size = size;
 	}
 };
 
-struct Inst_Add_I32 : Instruction {
-	uint8_t reg = 0;
-	uint8_t* data = NULL;
-
-	Inst_Add_I32 (uint8_t reg, uint32_t value) {
-		this->bytecode = BYTECODE_ADD_I32;
-		this->reg = reg;
-
-		this->data = (uint8_t*) malloc(4);
-		*(this->data + 0) = (value & 0x000000FF) >> 0;
-		*(this->data + 1) = (value & 0x0000FF00) >> 8;
-		*(this->data + 2) = (value & 0x00FF0000) >> 16;
-		*(this->data + 3) = (value & 0xFF000000) >> 24;
-	}
-};
-
-struct Inst_Add_Reg : Instruction {
+struct Inst_Add : Instruction {
 	uint8_t reg1 = 0;
 	uint8_t reg2 = 0;
 
-	Inst_Add_Reg (uint8_t reg1, uint8_t reg2) {
-		this->bytecode = BYTECODE_ADD_REG;
+	Inst_Add (uint8_t reg1, uint8_t reg2) {
+		this->bytecode = BYTECODE_ADD;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
 	}

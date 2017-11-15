@@ -10,6 +10,7 @@ struct Bytecode_Generator : Pipe {
 
     void gen (Ast_Statement* stm, vector<Instruction*>* bytecode = NULL, size_t reg = 0);
 	void gen (Ast_Block* block, vector<Instruction*>* bytecode = NULL, size_t reg = 0);
+	void gen (Ast_Return* ret, vector<Instruction*>* bytecode = NULL, size_t reg = 0);
     void gen (Ast_Declaration* decl, vector<Instruction*>* bytecode = NULL, size_t reg = 0);
 
     size_t gen (Ast_Expression* exp, vector<Instruction*>* bytecode = NULL, size_t reg = 0);
