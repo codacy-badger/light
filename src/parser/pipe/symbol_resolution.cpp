@@ -41,8 +41,9 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
             this->unresolved_symbols.erase(it);
             for (auto stm_deps : deps) {
                 auto it2 = stm_deps->unresolved_symbols.begin();
-                Ast_Ident** ident = (*it2);
+                Ast_Ident** ident = NULL;
                 while (it2 != stm_deps->unresolved_symbols.end()) {
+					ident = (*it2);
                     if (strcmp((*ident)->name, decl->name) == 0) {
                         it2 = stm_deps->unresolved_symbols.erase(it2);
 
@@ -59,7 +60,6 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
                         }
 					} else {
 						it2++;
-						ident = (*it2);
 					}
                 }
                 if (stm_deps->unresolved_symbols.size() == 0) {
@@ -119,6 +119,9 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
 			break;
 		case AST_EXPRESSION_TYPE_DEFINITION:
 			check_symbols(reinterpret_cast<Ast_Type_Definition**>(exp), sym);
+			break;
+		case AST_EXPRESSION_CALL:
+			check_symbols(reinterpret_cast<Ast_Function_Call**>(exp), sym);
 			break;
         case AST_EXPRESSION_BINARY:
             check_symbols(reinterpret_cast<Ast_Binary**>(exp), sym);
@@ -184,6 +187,13 @@ void Symbol_Resolution::check_symbols (Ast_Function_Type** fn_type, vector<Ast_I
     check_symbols(&(*fn_type)->return_type, sym);
 	for (int i = 0; i < (*fn_type)->parameter_types.size(); i++) {
 		check_symbols(&(*fn_type)->parameter_types[i], sym);
+	}
+}
+
+void Symbol_Resolution::check_symbols (Ast_Function_Call** call, vector<Ast_Ident**>* sym) {
+    check_symbols(&(*call)->fn, sym);
+	for (int i = 0; i < (*call)->parameters.size(); i++) {
+		check_symbols(&(*call)->parameters[i], sym);
 	}
 }
 

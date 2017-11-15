@@ -29,7 +29,12 @@ void Type_Checking::check_type (Ast_Block* block) {
 }
 
 void Type_Checking::check_type (Ast_Declaration* decl) {
-	if (decl->expression) check_type(decl->expression);
+	if (decl->expression) {
+		check_type(decl->expression);
+		if (!decl->expression->inferred_type)
+			Light_Compiler::inst->error_stop(decl->expression,
+				"Expression type could not be inferred!");
+	}
 
 	if (decl->type) check_type(decl->type);
 
@@ -73,6 +78,9 @@ void Type_Checking::check_type (Ast_Expression* exp) {
             break;
         case AST_EXPRESSION_FUNCTION:
             check_type(static_cast<Ast_Function*>(exp));
+            break;
+        case AST_EXPRESSION_CALL:
+            check_type(static_cast<Ast_Function_Call*>(exp));
             break;
         case AST_EXPRESSION_BINARY:
             check_type(static_cast<Ast_Binary*>(exp));
@@ -146,6 +154,18 @@ void Type_Checking::check_type (Ast_Function* func) {
     func->inferred_type = func->type;
 	check_type(func->type);
 	check_type(func->scope);
+}
+
+void Type_Checking::check_type (Ast_Function_Call* call) {
+    if (call->fn->exp_type != AST_EXPRESSION_FUNCTION)
+		Light_Compiler::inst->error_stop(call, "Function calls can only be performed in functions types!");
+
+	auto func = static_cast<Ast_Function*>(call->fn);
+	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
+	call->inferred_type = ret_ty;
+
+	for (auto exp : call->parameters)
+		check_type(exp);
 }
 
 void Type_Checking::check_type (Ast_Binary* binop) {

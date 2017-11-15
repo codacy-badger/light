@@ -26,7 +26,6 @@ void Bytecode_Runner::on_statement (Ast_Statement* stm) {
 
             auto run_note = remove_run_note(decl);
             if (run_note) {
-                printf(" !! About to run bytecode !!\n");
                 for (auto inst : fn->bytecode) {
                     Light_Compiler::inst->interp->run(inst);
                 }

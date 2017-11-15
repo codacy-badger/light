@@ -17,6 +17,7 @@ struct Type_Checking : Pipe {
 	void check_type (Ast_Pointer_Type* ty);
 
     void check_type (Ast_Function* func);
+	void check_type (Ast_Function_Call* call);
 	void check_type (Ast_Binary* binop);
 	void check_type (Ast_Unary* unop);
     void check_type (Ast_Ident* ident);
