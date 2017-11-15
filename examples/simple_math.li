@@ -18,18 +18,8 @@ WIN_CALL : type : fn (val: s32) -> s32;
 
 #run
 main :: fn {
-	CONST :: 19;
-
-    b : **s32;
-    c : s32 = a -CONST;
-
-	d := c + 2;
-
-	Vec3 :: struct {
-		x: s32;
-		y: s32 = CONST + 1;
-		z: s32;
-	}
+    c : s32 = a - NUM;
+	d := c - 2;
 }
 
 a :: 50;

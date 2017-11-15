@@ -69,7 +69,13 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 			if (decl->expression) {
 				auto _reg = this->gen(decl->expression, bytecode, reg);
 				printf("\tBYTECODE_STACK_OFFSET %zd, %lld\n", _reg + 1, decl->data_offset);
+                auto inst1 = new Inst_Stack_Offset(_reg + 1, decl->data_offset);
+                copy_location_info(inst1, decl);
+                bytecode->push_back(inst1);
 				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, _reg, ty_decl->byte_size);
+                auto inst2 = new Inst_Store(_reg + 1, _reg, ty_decl->byte_size);
+                copy_location_info(inst2, decl);
+                bytecode->push_back(inst2);
 			} else printf("\t; No value to store\n");
 		}
 	}
@@ -119,6 +125,42 @@ size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode
 	}
 }
 
+size_t Bytecode_Generator::gen (Ast_Binary* binop, vector<Instruction*>* bytecode, size_t reg) {
+	size_t rhs_reg = this->gen(binop->rhs, bytecode, reg);
+	size_t lhs_reg = this->gen(binop->lhs, bytecode, rhs_reg + 1);
+	switch (binop->binary_op) {
+		case AST_BINARY_ADD: {
+			printf("\tBYTECODE_ADD %zd, %zd\n", rhs_reg, lhs_reg);
+            auto inst1 = new Inst_Add(rhs_reg, lhs_reg);
+            copy_location_info(inst1, binop);
+            bytecode->push_back(inst1);
+			return rhs_reg;
+		}
+		case AST_BINARY_SUB: {
+			printf("\tBYTECODE_SUB %zd, %zd\n", rhs_reg, lhs_reg);
+            auto inst1 = new Inst_Sub(rhs_reg, lhs_reg);
+            copy_location_info(inst1, binop);
+            bytecode->push_back(inst1);
+			return rhs_reg;
+		}
+		case AST_BINARY_MUL: {
+			printf("\tBYTECODE_MUL %zd, %zd\n", rhs_reg, lhs_reg);
+            auto inst1 = new Inst_Mul(rhs_reg, lhs_reg);
+            copy_location_info(inst1, binop);
+            bytecode->push_back(inst1);
+			return rhs_reg;
+		}
+		case AST_BINARY_DIV: {
+			printf("\tBYTECODE_DIV %zd, %zd\n", rhs_reg, lhs_reg);
+            auto inst1 = new Inst_Div(rhs_reg, lhs_reg);
+            copy_location_info(inst1, binop);
+            bytecode->push_back(inst1);
+			return rhs_reg;
+		}
+		default: return reg;
+	}
+}
+
 size_t Bytecode_Generator::gen (Ast_Unary* unop, vector<Instruction*>* bytecode, size_t reg) {
 	size_t next_reg = this->gen(unop->exp, bytecode, reg);
 	switch (unop->unary_op) {
@@ -129,22 +171,6 @@ size_t Bytecode_Generator::gen (Ast_Unary* unop, vector<Instruction*>* bytecode,
 		case AST_UNARY_NOT: {
 			printf("\tBYTECODE_NOT %zd\n", next_reg);
 			return next_reg;
-		}
-		default: return reg;
-	}
-}
-
-size_t Bytecode_Generator::gen (Ast_Binary* binop, vector<Instruction*>* bytecode, size_t reg) {
-	size_t rhs_reg = this->gen(binop->rhs, bytecode, reg);
-	size_t lhs_reg = this->gen(binop->lhs, bytecode, rhs_reg + 1);
-	switch (binop->binary_op) {
-		case AST_BINARY_ADD: {
-			printf("\tBYTECODE_ADD %zd, %zd\n", rhs_reg, lhs_reg);
-			return rhs_reg;
-		}
-		case AST_BINARY_SUB: {
-			printf("\tBYTECODE_SUB %zd, %zd\n", rhs_reg, lhs_reg);
-			return rhs_reg;
 		}
 		default: return reg;
 	}
@@ -162,7 +188,13 @@ size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode
 		printf("\t; Load ident '%s' from [stack] @ %zd\n", ident->name, ident->declaration->data_offset);
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
 			printf("\tBYTECODE_STACK_OFFSET %zd, %zd\n", reg + 1, ident->declaration->data_offset);
+            auto inst1 = new Inst_Stack_Offset(reg + 1, ident->declaration->data_offset);
+            copy_location_info(inst1, ident);
+            bytecode->push_back(inst1);
 			printf("\tBYTECODE_DEREFERENCE %zd, %zd, %zd\n", reg, reg + 1, ident->inferred_type->byte_size);
+            auto inst2 = new Inst_Dereference(reg, reg + 1, ident->inferred_type->byte_size);
+            copy_location_info(inst2, ident);
+            bytecode->push_back(inst2);
 		} else {
 			printf("\tBYTECODE_STACK_OFFSET %zd, %zd\n", reg, ident->declaration->data_offset);
 		}

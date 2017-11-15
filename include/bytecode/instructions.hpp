@@ -36,6 +36,17 @@ struct Instruction {
 	size_t line = 0;
 };
 
+struct Inst_Copy : Instruction {
+	uint8_t reg1 = 0;
+	uint8_t reg2 = 0;
+
+	Inst_Copy (uint8_t reg1, uint8_t reg2) {
+		this->bytecode = BYTECODE_COPY;
+		this->reg1 = reg1;
+		this->reg2 = reg2;
+	}
+};
+
 struct Inst_Set_Integer : Instruction {
 	uint8_t reg = 0;
 	uint8_t size = 0;
@@ -53,14 +64,14 @@ struct Inst_Set_Integer : Instruction {
 	}
 };
 
-struct Inst_Copy : Instruction {
-	uint8_t reg1 = 0;
-	uint8_t reg2 = 0;
+struct Inst_Global_Offset : Instruction {
+	uint8_t reg = 0;
+	uint8_t size = 0;
 
-	Inst_Copy (uint8_t reg1, uint8_t reg2) {
-		this->bytecode = BYTECODE_COPY;
-		this->reg1 = reg1;
-		this->reg2 = reg2;
+	Inst_Global_Offset (uint8_t reg, uint8_t size) {
+		this->bytecode = BYTECODE_GLOBAL_OFFSET;
+		this->reg = reg;
+		this->size = size;
 	}
 };
 
@@ -84,12 +95,71 @@ struct Inst_Stack_Offset : Instruction {
 	}
 };
 
+struct Inst_Dereference : Instruction {
+	uint8_t dest = 0;
+	uint8_t src = 0;
+	uint8_t size = 0;
+
+	Inst_Dereference (uint8_t dest, uint8_t src, uint8_t size) {
+		this->bytecode = BYTECODE_DEREFERENCE;
+		this->dest = dest;
+		this->src = src;
+		this->size = size;
+	}
+};
+
+struct Inst_Store : Instruction {
+	uint8_t dest = 0;
+	uint8_t src = 0;
+	uint8_t size = 0;
+
+	Inst_Store (uint8_t dest, uint8_t src, uint8_t size) {
+		this->bytecode = BYTECODE_STORE;
+		this->dest = dest;
+		this->src = src;
+		this->size = size;
+	}
+};
+
 struct Inst_Add : Instruction {
 	uint8_t reg1 = 0;
 	uint8_t reg2 = 0;
 
 	Inst_Add (uint8_t reg1, uint8_t reg2) {
 		this->bytecode = BYTECODE_ADD;
+		this->reg1 = reg1;
+		this->reg2 = reg2;
+	}
+};
+
+struct Inst_Sub : Instruction {
+	uint8_t reg1 = 0;
+	uint8_t reg2 = 0;
+
+	Inst_Sub (uint8_t reg1, uint8_t reg2) {
+		this->bytecode = BYTECODE_SUB;
+		this->reg1 = reg1;
+		this->reg2 = reg2;
+	}
+};
+
+struct Inst_Mul : Instruction {
+	uint8_t reg1 = 0;
+	uint8_t reg2 = 0;
+
+	Inst_Mul (uint8_t reg1, uint8_t reg2) {
+		this->bytecode = BYTECODE_MUL;
+		this->reg1 = reg1;
+		this->reg2 = reg2;
+	}
+};
+
+struct Inst_Div : Instruction {
+	uint8_t reg1 = 0;
+	uint8_t reg2 = 0;
+
+	Inst_Div (uint8_t reg1, uint8_t reg2) {
+		this->bytecode = BYTECODE_DIV;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
 	}

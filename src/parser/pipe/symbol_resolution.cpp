@@ -57,7 +57,10 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
                         } else {
                             (*ident)->declaration = decl;
                         }
-                    } else it2++;
+					} else {
+						it2++;
+						ident = (*it2);
+					}
                 }
                 if (stm_deps->unresolved_symbols.size() == 0) {
                     auto stm = stm_deps->stm;

@@ -18,7 +18,9 @@ struct Bytecode_Interpreter {
 	bool stop_running = false;
 
 	Bytecode_Register registers[INTERP_REGISTER_COUNT];
-	std::deque<uint8_t*> stack_ptrs;
+	uint8_t stack[INTERP_STACK_SIZE];
+	size_t stack_index = 0;
+	size_t stack_base = 0;
 
 	bool flag_carry = false;
 
