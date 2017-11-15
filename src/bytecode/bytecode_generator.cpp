@@ -40,8 +40,10 @@ void Bytecode_Generator::gen (Ast_Return* ret, vector<Instruction*>* bytecode, s
 void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytecode, size_t reg) {
     if (decl->decl_flags & DECL_FLAG_CONSTANT) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
-			this->stack_offset = 0;
+			auto _tmp = this->stack_offset;
+            this->stack_offset = 0;
 			this->gen(static_cast<Ast_Function*>(decl->expression), bytecode, reg);
+            this->stack_offset = _tmp;
 		}
     } else {
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
@@ -57,6 +59,10 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 			}
 		} else {
 			printf("\tBYTECODE_STACK_ALLOCATE %zd\n", ty_decl->byte_size);
+            auto inst = new Inst_Stack_Allocate(ty_decl->byte_size);
+            copy_location_info(inst, decl);
+            bytecode->push_back(inst);
+
 			decl->data_offset = this->stack_offset;
 			this->stack_offset += ty_decl->byte_size;
 			printf("\t; Stack size after alloca %zd\n", this->stack_offset);
@@ -94,12 +100,16 @@ size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode
 		}
 		case AST_LITERAL_UNSIGNED_INT: {
             // TODO: handle different number sizes
-			printf("\tBYTECODE_SET_INTEGER %zd, 8, %lld\n", reg, lit->uint_value);
+			printf("\tBYTECODE_SET_INTEGER %zd, 8, %llu\n", reg, lit->uint_value);
+            auto inst = new Inst_Set_Integer(reg, lit->uint_value);
+            copy_location_info(inst, lit);
+            bytecode->push_back(inst);
 			return reg;
 		}
 		case AST_LITERAL_DECIMAL: {
             // TODO: handle different number sizes
 			printf("\tBYTECODE_SET_DECIMAL %zd, 8, 0x%llf\n", reg, lit->decimal_value);
+            // TODO: build & use BYTECODE_SET_DECIMAL instruction
 			return reg;
 		}
 		default: {
@@ -114,11 +124,11 @@ size_t Bytecode_Generator::gen (Ast_Unary* unop, vector<Instruction*>* bytecode,
 	switch (unop->unary_op) {
 		case AST_UNARY_NEGATE: {
 			printf("\tBYTECODE_NEG %zd\n", next_reg);
-			return reg;
+			return next_reg;
 		}
 		case AST_UNARY_NOT: {
 			printf("\tBYTECODE_NOT %zd\n", next_reg);
-			return reg;
+			return next_reg;
 		}
 		default: return reg;
 	}
@@ -130,11 +140,11 @@ size_t Bytecode_Generator::gen (Ast_Binary* binop, vector<Instruction*>* bytecod
 	switch (binop->binary_op) {
 		case AST_BINARY_ADD: {
 			printf("\tBYTECODE_ADD %zd, %zd\n", rhs_reg, lhs_reg);
-			return reg;
+			return rhs_reg;
 		}
 		case AST_BINARY_SUB: {
 			printf("\tBYTECODE_SUB %zd, %zd\n", rhs_reg, lhs_reg);
-			return reg;
+			return rhs_reg;
 		}
 		default: return reg;
 	}

@@ -15,6 +15,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_SET_DECIMAL,
 
 	BYTECODE_GLOBAL_OFFSET,
+	BYTECODE_STACK_ALLOCATE,
 	BYTECODE_STACK_OFFSET,
 
 	BYTECODE_DEREFERENCE,
@@ -60,6 +61,15 @@ struct Inst_Copy : Instruction {
 		this->bytecode = BYTECODE_COPY;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
+	}
+};
+
+struct Inst_Stack_Allocate : Instruction {
+	uint8_t size = 0;
+
+	Inst_Stack_Allocate (uint8_t size) {
+		this->bytecode = BYTECODE_STACK_ALLOCATE;
+		this->size = size;
 	}
 };
 
