@@ -4,7 +4,6 @@
 
 #include <vector>
 
-struct Ast_Note;
 struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
@@ -20,8 +19,6 @@ using namespace std;
 struct Ast {
 	const char* filename = NULL;
 	long line = 0, col = 0;
-
-	vector<Ast_Note*> notes;
 };
 
 struct Ast_Note : Ast {
@@ -40,6 +37,8 @@ enum Ast_Statement_Type {
 
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
+
+	vector<Ast_Note*> notes;
 };
 
 struct Ast_Block : Ast_Statement {

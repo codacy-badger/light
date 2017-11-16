@@ -117,19 +117,8 @@ void Type_Checking::check_type (Ast_Function_Type* ty) {
     ty->inferred_type = Light_Compiler::inst->type_def_type;
 
 	check_type(ty->return_type);
-	if (ty->return_type->exp_type == AST_EXPRESSION_IDENT) {
-		auto ident = static_cast<Ast_Ident*>(ty->return_type);
-		delete ty->return_type;
-		ty->return_type = ident->declaration->expression;
-	}
-
 	for (int i = 0; i < ty->parameter_decls.size(); i++) {
 		check_type(ty->parameter_decls[i]);
-		/*if (ty->parameter_decls[i]->exp_type == AST_EXPRESSION_IDENT) {
-			auto ident = static_cast<Ast_Ident*>(ty->parameter_decls[i]);
-			delete ty->parameter_decls[i];
-			ty->parameter_decls[i] = ident->declaration->expression;
-		}*/
 	}
 }
 

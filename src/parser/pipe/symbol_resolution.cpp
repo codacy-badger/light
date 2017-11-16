@@ -4,6 +4,12 @@
 
 #include "compiler.hpp"
 
+void replace_ident_by_const (Ast_Ident** addr, Ast_Expression* expression) {
+    auto _addr = reinterpret_cast<Ast_Expression**>(addr);
+    delete (*_addr);
+    (*_addr) = expression;
+}
+
 void Symbol_Resolution::on_statement(Ast_Statement* stm) {
     vector<Ast_Ident**> unresolved_idents;
     check_symbols(stm, &unresolved_idents);
@@ -52,9 +58,7 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
                         // This should remove the need to handle constants
                         // bytecode / executable (appart from string).
                         if (decl->decl_flags & DECL_FLAG_CONSTANT) {
-                            auto exp_ptr = reinterpret_cast<Ast_Expression**>(ident);
-                            delete (*exp_ptr);
-                            (*exp_ptr) = decl->expression;
+                            replace_ident_by_const(ident, decl->expression);
                         } else {
                             (*ident)->declaration = decl;
                         }
@@ -85,6 +89,9 @@ bool Symbol_Resolution::is_unresolved (const char* name) {
 }
 
 void Symbol_Resolution::check_symbols (Ast_Statement* stm, vector<Ast_Ident**>* sym) {
+	for (auto note : stm->notes) {
+		if (note->arguments) check_symbols(&note->arguments, sym);
+	}
     switch (stm->stm_type) {
         case AST_STATEMENT_DECLARATION:
             check_symbols(static_cast<Ast_Declaration*>(stm), sym);
@@ -120,6 +127,9 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
 		case AST_EXPRESSION_TYPE_DEFINITION:
 			check_symbols(reinterpret_cast<Ast_Type_Definition**>(exp), sym);
 			break;
+		case AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS:
+			check_symbols(reinterpret_cast<Ast_Comma_Separated_Arguments**>(exp), sym);
+			break;
 		case AST_EXPRESSION_CALL:
 			check_symbols(reinterpret_cast<Ast_Function_Call**>(exp), sym);
 			break;
@@ -137,9 +147,7 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
 				if ((*ident_ptr)->declaration) {
 					auto decl = (*ident_ptr)->declaration;
 					if (decl->decl_flags & DECL_FLAG_CONSTANT) {
-						auto exp_ptr = reinterpret_cast<Ast_Expression**>(ident_ptr);
-						delete (*exp_ptr);
-						(*exp_ptr) = decl->expression;
+                        replace_ident_by_const(ident_ptr, decl->expression);
 					}
 				}
             }
@@ -187,6 +195,12 @@ void Symbol_Resolution::check_symbols (Ast_Function_Type** fn_type, vector<Ast_I
     check_symbols(&(*fn_type)->return_type, sym);
 	for (int i = 0; i < (*fn_type)->parameter_decls.size(); i++) {
 		check_symbols((*fn_type)->parameter_decls[i], sym);
+	}
+}
+
+void Symbol_Resolution::check_symbols (Ast_Comma_Separated_Arguments** args, vector<Ast_Ident**>* sym) {
+	for (int i = 0; i < (*args)->args.size(); i++) {
+		check_symbols(&(*args)->args[i], sym);
 	}
 }
 
