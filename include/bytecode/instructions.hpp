@@ -178,7 +178,7 @@ struct Inst_Call : Instruction {
 	uint8_t param_count = 0;
 	uint8_t* data = NULL;
 
-	Inst_Call (uint8_t reg, Inst_Call_Convention calling_convention) {
+	Inst_Call (uint8_t reg, uint8_t calling_convention) {
 		this->bytecode = BYTECODE_CALL;
 		this->calling_convention = calling_convention;
 		this->reg = reg;
