@@ -62,7 +62,7 @@ void Bytecode_Runner::on_statement (Ast_Statement* stm) {
 							void* ret = dcCallPointer(this->vm, fn_ptr);
 
 							const char* msg = "\nDYNCALL is super awesome!\n\n";
-							WriteConsole(ret, msg, strlen(msg), NULL, NULL);
+							WriteConsoleA(ret, msg, strlen(msg), NULL, NULL);
 						}
 					}
 				} else {
