@@ -61,8 +61,10 @@ void Bytecode_Runner::on_statement (Ast_Statement* stm) {
 						case AST_TYPEDEF_POINTER: {
 							void* ret = dcCallPointer(this->vm, fn_ptr);
 
-							const char* msg = "\nDYNCALL is super awesome!\n\n";
-							WriteConsoleA(ret, msg, strlen(msg), NULL, NULL);
+							DWORD written;
+							LPSTR msg = "\nDYNCALL is super awesome!\n\n";
+							DWORD length = strlen(msg);
+							WriteConsoleA(ret, msg, length, &written, NULL);
 						}
 					}
 				} else {

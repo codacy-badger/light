@@ -15,6 +15,7 @@ struct Constant_Folding : Pipe {
 	void fold (Ast_Unary** unary);
 	void fold (Ast_Function** stm);
 	void fold (Ast_Function_Call** call);
+	void fold (Ast_Comma_Separated_Arguments** args);
 
 	void fold (Ast_Type_Definition** tydef);
 	void fold (Ast_Struct_Type** _struct);

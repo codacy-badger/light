@@ -30,6 +30,9 @@ void Constant_Folding::on_statement(Ast_Statement* stm) {
 }
 
 void Constant_Folding::fold (Ast_Statement* stm) {
+	for (auto note : stm->notes) {
+		if (note->arguments) this->fold(&note->arguments);
+	}
 	switch (stm->stm_type) {
 		case AST_STATEMENT_BLOCK: {
 			this->fold(static_cast<Ast_Block*>(stm));
@@ -166,6 +169,12 @@ void Constant_Folding::fold (Ast_Function** fn) {
 void Constant_Folding::fold (Ast_Function_Call** call) {
 	for (int i = 0; i < (*call)->parameters.size(); i++) {
 		this->fold(&(*call)->parameters[i]);
+	}
+}
+
+void Constant_Folding::fold (Ast_Comma_Separated_Arguments** args) {
+	for (int i = 0; i < (*args)->args.size(); i++) {
+		this->fold(&(*args)->args[i]);
 	}
 }
 
