@@ -64,7 +64,8 @@ void Bytecode_Runner::on_statement (Ast_Statement* stm) {
 							DWORD written;
 							LPSTR msg = "\nDYNCALL is super awesome!\n\n";
 							DWORD length = strlen(msg);
-							WriteConsoleA(ret, msg, length, &written, NULL);
+							WriteFile(ret, msg, length, &written, NULL);
+							FlushFileBuffers(ret);
 						}
 					}
 				} else {
