@@ -1,9 +1,12 @@
 #pragma once
 
 #include "bytecode/instructions.hpp"
+#include "bytecode/foreign_functions.hpp"
 #include "bytecode/globals.hpp"
 
 #include <deque>
+
+#include "dyncall/dyncall.h"
 
 #define INTERP_REGISTER_SIZE  sizeof(size_t)
 #define INTERP_REGISTER_COUNT 16
@@ -14,6 +17,7 @@
 typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
 struct Bytecode_Interpreter {
+	Foreign_Functions* foreign_functions = new Foreign_Functions();
 	Bytecode_Globals* globals = new Bytecode_Globals();
 	bool stop_running = false;
 
@@ -22,9 +26,10 @@ struct Bytecode_Interpreter {
 	size_t stack_index = 0;
 	size_t stack_base = 0;
 
-	bool flag_carry = false;
+	DCCallVM* vm = NULL;
 
-	Bytecode_Interpreter ();
+	Bytecode_Interpreter (size_t vm_size = 64);
+	~Bytecode_Interpreter ();
 
 	void run (Instruction* inst);
 

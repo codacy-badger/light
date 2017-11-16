@@ -4,6 +4,8 @@
 #include <malloc.h>
 #include <string.h>
 
+#include "parser/ast.hpp"
+
 struct Bytecode_Interpreter;
 
 enum Inst_Bytecode : uint8_t {
@@ -29,6 +31,9 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_MUL,
 	BYTECODE_DIV,
 
+	BYTECODE_CALL_SETUP,
+	BYTECODE_CALL_PARAM,
+	BYTECODE_CALL_FOREIGN,
 	BYTECODE_CALL,
 };
 
@@ -167,20 +172,64 @@ struct Inst_Div : Instruction {
 	}
 };
 
-const uint8_t BYTECODE_CC_UNDEFINED = 0x0;
-const uint8_t BYTECODE_CC_CDECL = 0x1;
-const uint8_t BYTECODE_CC_STDCALL = 0x2;
-const uint8_t BYTECODE_CC_FASTCALL = 0x3;
+const uint8_t BYTECODE_CC_DEFAULT   = 0x0;
+const uint8_t BYTECODE_CC_CDECL     = 0x1;
+const uint8_t BYTECODE_CC_STDCALL   = 0x2;
+const uint8_t BYTECODE_CC_FASTCALL  = 0x3;
+
+const uint8_t BYTECODE_TYPE_VOID 	= 0x0;
+const uint8_t BYTECODE_TYPE_S8 		= 0x1;
+const uint8_t BYTECODE_TYPE_S16 	= 0x2;
+const uint8_t BYTECODE_TYPE_S32 	= 0x3;
+const uint8_t BYTECODE_TYPE_S64 	= 0x4;
+const uint8_t BYTECODE_TYPE_U8 		= 0x5;
+const uint8_t BYTECODE_TYPE_U16 	= 0x6;
+const uint8_t BYTECODE_TYPE_U32 	= 0x7;
+const uint8_t BYTECODE_TYPE_U64 	= 0x8;
+const uint8_t BYTECODE_TYPE_F32 	= 0x9;
+const uint8_t BYTECODE_TYPE_F64 	= 0xA;
+const uint8_t BYTECODE_TYPE_POINTER	= 0xB;
+const uint8_t BYTECODE_TYPE_STRING 	= 0xC;
+
+uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty);
+uint8_t bytecode_get_type (Ast_Expression* exp);
+
+struct Inst_Call_Setup : Instruction {
+	uint8_t calling_convention = BYTECODE_CC_DEFAULT;
+
+	Inst_Call_Setup (uint8_t calling_convention) {
+		this->bytecode = BYTECODE_CALL_SETUP;
+		this->calling_convention = calling_convention;
+	}
+};
+
+struct Inst_Call_Param : Instruction {
+	uint8_t param_index = 0;
+	uint8_t reg = 0;
+	uint8_t type = 0;
+
+	Inst_Call_Param (uint8_t param_index, uint8_t reg, uint8_t type) {
+		this->bytecode = BYTECODE_CALL_PARAM;
+		this->param_index = param_index;
+		this->reg = reg;
+		this->type = type;
+	}
+};
+
+struct Inst_Call_Foreign : Instruction {
+	uint8_t reg = 0;
+
+	Inst_Call_Foreign (uint8_t reg, uint8_t calling_convention) {
+		this->bytecode = BYTECODE_CALL_FOREIGN;
+		this->reg = reg;
+	}
+};
 
 struct Inst_Call : Instruction {
 	uint8_t reg = 0;
-	uint8_t calling_convention = BYTECODE_CC_UNDEFINED;
-	uint8_t param_count = 0;
-	uint8_t* data = NULL;
 
 	Inst_Call (uint8_t reg, uint8_t calling_convention) {
 		this->bytecode = BYTECODE_CALL;
-		this->calling_convention = calling_convention;
 		this->reg = reg;
 	}
 };

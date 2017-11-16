@@ -21,6 +21,7 @@ main :: fn {
     c : s32 = a - NUM;
 	d := c - 2;
 
+	number := factorial(3);
 	e := GetStdHandle(STD_OUTPUT_HANDLE);
 }
 

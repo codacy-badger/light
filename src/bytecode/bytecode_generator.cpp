@@ -208,11 +208,24 @@ size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode
 
 size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* bytecode, size_t reg) {
 	auto func = static_cast<Ast_Function*>(call->fn);
-	printf("\tBYTECODE_CALL_PREPARE %zd, %d\n", func->type->parameter_decls.size(), BYTECODE_CC_CDECL);
-	for (int i = 0; i < func->type->parameter_decls.size(); i++) {
-		auto decl = func->type->parameter_decls[i];
-		printf("\tBYTECODE_CALL_PARAM %d, %zd (%s)\n", i, reg, decl->name);
+	printf("\tBYTECODE_CALL_SETUP %d\n", BYTECODE_CC_CDECL);
+	auto param_reg = reg;
+	auto bytecode_type = BYTECODE_TYPE_VOID;
+	for (int i = 0; i < call->parameters.size(); i++) {
+		auto exp = call->parameters[i];
+		bytecode_type = bytecode_get_type(exp->inferred_type);
+		param_reg = this->gen(exp, bytecode, param_reg);
+		printf("\tBYTECODE_CALL_PARAM %d, %zd, %d\n", i, param_reg, bytecode_type);
 	}
-	printf("\tBYTECODE_CALL %zd (%s)\n", reg, func->name);
+	if (func->foreign_module_name) {
+		bytecode_type = bytecode_get_type(func->type->return_type);
+		size_t module_index, function_index;
+		Light_Compiler::inst->interp->foreign_functions->store(func->foreign_module_name, func->name, &module_index, &function_index);
+		printf("\tBYTECODE_CALL_FOREIGN %zd, %zd, %zd, %d (%s @ %s)\n", reg, module_index, function_index, bytecode_type,
+			Light_Compiler::inst->interp->foreign_functions->function_names[function_index].c_str(),
+			Light_Compiler::inst->interp->foreign_functions->module_names[module_index].c_str());
+	} else {
+		printf("\tBYTECODE_CALL %zd (%s)\n", reg, func->name);
+	}
 	return reg;
 }

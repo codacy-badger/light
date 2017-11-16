@@ -13,10 +13,15 @@
 
 #define INST_OFFSET(offset) buffer[offset]
 
-Bytecode_Interpreter::Bytecode_Interpreter () {
+Bytecode_Interpreter::Bytecode_Interpreter (size_t vm_size) {
 	assert(INTERP_REGISTER_SIZE >= sizeof(void*));
 	// INFO: not necessary, but makes debug easier
 	memset(&this->registers, 0, INTERP_REGISTER_COUNT * sizeof(Bytecode_Register));
+	this->vm = dcNewCallVM(vm_size);
+}
+
+Bytecode_Interpreter::~Bytecode_Interpreter () {
+	dcFree(this->vm);
 }
 
 void Bytecode_Interpreter::run (Instruction* inst) {
@@ -122,6 +127,23 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(&b, this->registers[add->reg2], INTERP_REGISTER_SIZE);
 			a = a / b;
 			memcpy(this->registers[add->reg1], &a, INTERP_REGISTER_SIZE);
+			return;
+		}
+		case BYTECODE_CALL_SETUP: {
+			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
+			if (DEBUG) printf("BYTECODE_CALL_SETUP\n");
+			dcMode(vm, DC_CALL_C_X64_WIN64);
+			dcReset(vm);
+			return;
+		}
+		case BYTECODE_CALL_PARAM: {
+			auto call_param = static_cast<Inst_Call_Param*>(inst);
+			if (DEBUG) printf("BYTECODE_CALL_PARAM\n");
+			return;
+		}
+		case BYTECODE_CALL_FOREIGN: {
+			auto call_foreign = static_cast<Inst_Call_Foreign*>(inst);
+			if (DEBUG) printf("BYTECODE_CALL_FOREIGN\n");
 			return;
 		}
 		case BYTECODE_CALL: {
