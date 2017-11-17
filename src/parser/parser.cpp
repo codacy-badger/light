@@ -20,7 +20,7 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 
 Ast_Block* Parser::top_level_block () {
 	auto _block = AST_NEW(Ast_Block, this->current_block);
-
+	// TODO: simplify declaration of primitive types
 	auto type_decl = ast_make_declaration("type", Light_Compiler::inst->type_def_type);
 	_block->list.push_back(type_decl);
 	this->to_next(type_decl);
@@ -32,14 +32,6 @@ Ast_Block* Parser::top_level_block () {
 	auto s32_decl = ast_make_declaration("s32", Light_Compiler::inst->type_def_s32);
 	_block->list.push_back(s32_decl);
 	this->to_next(s32_decl);
-
-	auto null_lit = new Ast_Literal();
-	null_lit->literal_type = AST_LITERAL_SIGNED_INT;
-	null_lit->int_value = 0;
-	auto null_decl = ast_make_declaration("null", null_lit);
-	null_decl->scope = _block;
-	_block->list.push_back(null_decl);
-	this->to_next(null_decl);
 
 	this->block(_block);
 	return _block;
