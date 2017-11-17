@@ -28,7 +28,17 @@ struct Light_Compiler {
 
 	Ast_Struct_Type* type_def_type;
 	Ast_Struct_Type* type_def_void;
+	Ast_Struct_Type* type_def_s8;
+	Ast_Struct_Type* type_def_s16;
 	Ast_Struct_Type* type_def_s32;
+	Ast_Struct_Type* type_def_s64;
+	Ast_Struct_Type* type_def_u8;
+	Ast_Struct_Type* type_def_u16;
+	Ast_Struct_Type* type_def_u32;
+	Ast_Struct_Type* type_def_u64;
+	Ast_Struct_Type* type_def_f32;
+	Ast_Struct_Type* type_def_f64;
+	Ast_Struct_Type* type_def_string;
 
 	static Light_Compiler* inst;
 

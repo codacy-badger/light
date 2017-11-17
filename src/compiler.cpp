@@ -50,7 +50,16 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 
 	create_new_native_type(&this->type_def_type, "type");
 	create_new_native_type(&this->type_def_void, "void");
+	create_new_native_type(&this->type_def_s8, "s8", 1);
+	create_new_native_type(&this->type_def_s16, "s16", 2);
 	create_new_native_type(&this->type_def_s32, "s32", 4);
+	create_new_native_type(&this->type_def_s64, "s64", 8);
+	create_new_native_type(&this->type_def_u8, "u8", 1);
+	create_new_native_type(&this->type_def_u16, "u16", 2);
+	create_new_native_type(&this->type_def_u32, "u32", 4);
+	create_new_native_type(&this->type_def_u64, "u64", 8);
+	create_new_native_type(&this->type_def_f32, "f32", 4);
+	create_new_native_type(&this->type_def_f64, "f64", 8);
 }
 
 void Light_Compiler::run () {
