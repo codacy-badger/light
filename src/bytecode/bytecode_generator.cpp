@@ -38,16 +38,25 @@ void Bytecode_Generator::gen (Ast_Block* block, vector<Instruction*>* bytecode, 
 
 void Bytecode_Generator::gen (Ast_Return* ret, vector<Instruction*>* bytecode, size_t reg) {
     auto ret_reg = this->gen(ret->exp, bytecode, reg);
-    printf("\tBYTECODE_RETURN %zd\n", ret_reg);
+    printf("\tBYTECODE_COPY 0, %lld\n", ret_reg);
+    auto inst = new Inst_Copy(0, ret_reg);
+    copy_location_info(inst, ret);
+    bytecode->push_back(inst);
+    printf("\tBYTECODE_RETURN\n");
+    auto inst2 = new Inst_Return();
+    copy_location_info(inst2, ret);
+    bytecode->push_back(inst2);
 }
 
 void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytecode, size_t reg) {
     if (decl->decl_flags & DECL_FLAG_CONSTANT) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
-			auto _tmp = this->stack_offset;
-            this->stack_offset = 0;
-			this->gen(static_cast<Ast_Function*>(decl->expression), bytecode, reg);
-            this->stack_offset = _tmp;
+            auto func = static_cast<Ast_Function*>(decl->expression);
+            if (!func->foreign_module_name) {
+    			auto _tmp = this->stack_offset;
+    			this->gen(func, bytecode, reg);
+                this->stack_offset = _tmp;
+            }
 		}
     } else {
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
@@ -79,7 +88,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
                 auto inst2 = new Inst_Store(_reg + 1, _reg, ty_decl->byte_size);
                 copy_location_info(inst2, decl);
                 bytecode->push_back(inst2);
-			} else printf("\t; No value to store\n");
+			}
 		}
 	}
 }
@@ -90,7 +99,7 @@ size_t Bytecode_Generator::gen (Ast_Expression* exp, vector<Instruction*>* bytec
 		case AST_EXPRESSION_UNARY: return this->gen(static_cast<Ast_Unary*>(exp), bytecode, reg);
         case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp), bytecode, reg);
         case AST_EXPRESSION_IDENT: return this->gen(static_cast<Ast_Ident*>(exp), bytecode, reg, address);
-        case AST_EXPRESSION_FUNCTION: return this->gen(static_cast<Ast_Function*>(exp), bytecode, reg);
+        //case AST_EXPRESSION_FUNCTION: return this->gen(static_cast<Ast_Function*>(exp), bytecode, reg);
         case AST_EXPRESSION_CALL: return this->gen(static_cast<Ast_Function_Call*>(exp), bytecode, reg);
         default: return reg;
     }
@@ -139,43 +148,43 @@ size_t Bytecode_Generator::gen (Ast_Binary* binop, vector<Instruction*>* bytecod
             auto inst2 = new Inst_Store(lhs_reg, rhs_reg, size);
             copy_location_info(inst2, binop);
             bytecode->push_back(inst2);
-			return rhs_reg;
+			return lhs_reg;
 		}
 		case AST_BINARY_ADD: {
         	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
         	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
-			printf("\tBYTECODE_ADD %zd, %zd\n", rhs_reg, lhs_reg);
+			printf("\tBYTECODE_ADD %zd, %zd\n", lhs_reg, rhs_reg);
             auto inst1 = new Inst_Add(lhs_reg, rhs_reg);
             copy_location_info(inst1, binop);
             bytecode->push_back(inst1);
-			return rhs_reg;
+			return lhs_reg;
 		}
 		case AST_BINARY_SUB: {
         	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
         	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
-			printf("\tBYTECODE_SUB %zd, %zd\n", rhs_reg, lhs_reg);
+			printf("\tBYTECODE_SUB %zd, %zd\n", lhs_reg, rhs_reg);
             auto inst1 = new Inst_Sub(lhs_reg, rhs_reg);
             copy_location_info(inst1, binop);
             bytecode->push_back(inst1);
-			return rhs_reg;
+			return lhs_reg;
 		}
 		case AST_BINARY_MUL: {
         	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
         	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
-			printf("\tBYTECODE_MUL %zd, %zd\n", rhs_reg, lhs_reg);
+			printf("\tBYTECODE_MUL %zd, %zd\n", lhs_reg, rhs_reg);
             auto inst1 = new Inst_Mul(lhs_reg, rhs_reg);
             copy_location_info(inst1, binop);
             bytecode->push_back(inst1);
-			return rhs_reg;
+			return lhs_reg;
 		}
 		case AST_BINARY_DIV: {
         	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
         	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
-			printf("\tBYTECODE_DIV %zd, %zd\n", rhs_reg, lhs_reg);
+			printf("\tBYTECODE_DIV %zd, %zd\n", lhs_reg, rhs_reg);
             auto inst1 = new Inst_Div(lhs_reg, rhs_reg);
             copy_location_info(inst1, binop);
             bytecode->push_back(inst1);
-			return rhs_reg;
+			return lhs_reg;
 		}
 		default: return reg;
 	}
@@ -224,15 +233,38 @@ size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode
 }
 
 size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode, size_t reg) {
+    auto free_reg = fn->type->parameter_decls.size();
+    for (int i = 0; i < fn->type->parameter_decls.size(); i++) {
+        auto decl = fn->type->parameter_decls[i];
+
+        auto decl_type = static_cast<Ast_Type_Definition*>(decl->type);
+        auto size = decl_type->byte_size;
+        decl->data_offset = this->stack_offset;
+        this->stack_offset += size;
+
+        printf("\tBYTECODE_STACK_ALLOCATE %zd\n", size);
+        auto inst = new Inst_Stack_Allocate(size);
+        copy_location_info(inst, decl);
+        fn->bytecode.push_back(inst);
+        printf("\tBYTECODE_STACK_OFFSET %zd, %zd\n", free_reg, decl->data_offset);
+        auto inst1 = new Inst_Stack_Offset(free_reg, decl->data_offset);
+        copy_location_info(inst1, decl);
+        fn->bytecode.push_back(inst1);
+        printf("\tBYTECODE_STORE %zd, %d, %lld\n", free_reg, i, size);
+        auto inst2 = new Inst_Store(free_reg, i, size);
+        copy_location_info(inst2, decl);
+        fn->bytecode.push_back(inst2);
+    }
 	if (fn->scope) this->gen(fn->scope, &fn->bytecode, 0);
+    // TODO: if there's no return instructions (void) add one at the end
 	return reg;
 }
 
 size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* bytecode, size_t reg) {
 	auto func = static_cast<Ast_Function*>(call->fn);
-	printf("\tBYTECODE_CALL_SETUP %d\n", BYTECODE_CC_CDECL);
+	printf("\tBYTECODE_CALL_SETUP %d, %d\n", BYTECODE_CC_CDECL, !!func->foreign_module_name);
 
-    auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL);
+    auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL, !!func->foreign_module_name);
     copy_location_info(inst1, call);
     bytecode->push_back(inst1);
 

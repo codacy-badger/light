@@ -35,6 +35,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_CALL_PARAM,
 	BYTECODE_CALL_FOREIGN,
 	BYTECODE_CALL,
+	BYTECODE_RETURN,
 };
 
 struct Instruction {
@@ -196,21 +197,23 @@ uint8_t bytecode_get_type (Ast_Expression* exp);
 
 struct Inst_Call_Setup : Instruction {
 	uint8_t calling_convention = BYTECODE_CC_DEFAULT;
+	uint8_t is_native = 0;
 
-	Inst_Call_Setup (uint8_t calling_convention) {
+	Inst_Call_Setup (uint8_t calling_convention, bool is_native) {
 		this->bytecode = BYTECODE_CALL_SETUP;
 		this->calling_convention = calling_convention;
+		this->is_native = is_native;
 	}
 };
 
 struct Inst_Call_Param : Instruction {
-	uint8_t param_index = 0;
+	uint8_t index = 0;
 	uint8_t reg = 0;
 	uint8_t bytecode_type = 0;
 
-	Inst_Call_Param (uint8_t param_index, uint8_t reg, uint8_t bytecode_type) {
+	Inst_Call_Param (uint8_t index, uint8_t reg, uint8_t bytecode_type) {
 		this->bytecode = BYTECODE_CALL_PARAM;
-		this->param_index = param_index;
+		this->index = index;
 		this->reg = reg;
 		this->bytecode_type = bytecode_type;
 	}
@@ -233,11 +236,15 @@ struct Inst_Call_Foreign : Instruction {
 
 struct Inst_Call : Instruction {
 	uint8_t reg = 0;
-	size_t target = 0;
+	size_t function_pointer = 0;
 
-	Inst_Call (uint8_t reg, size_t target) {
+	Inst_Call (uint8_t reg, size_t function_pointer) {
 		this->bytecode = BYTECODE_CALL;
 		this->reg = reg;
-		this->target = target;
+		this->function_pointer = function_pointer;
 	}
+};
+
+struct Inst_Return : Instruction {
+	Inst_Return () { this->bytecode = BYTECODE_RETURN; }
 };

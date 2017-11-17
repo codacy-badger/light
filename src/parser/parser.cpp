@@ -339,7 +339,11 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 		auto fn_type = this->function_type();
 		if (this->lexer->isNextType(TOKEN_BRAC_OPEN)) {
-			return this->function(fn_type);
+			auto func = this->function(fn_type);
+			for (auto decl : fn_type->parameter_decls) {
+				decl->scope = func->scope;
+			}
+			return func;
 		} else return fn_type;
 
 	} else if (this->lexer->isNextType(TOKEN_STRUCT)) {

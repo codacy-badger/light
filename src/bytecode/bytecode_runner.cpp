@@ -62,10 +62,7 @@ size_t run_function (DCCallVM* vm, Ast_Function* func, Ast_Note* run_note) {
 		DCpointer fn_ptr = (DCpointer) GetProcAddress(module, func->name);
 		return reinterpret_cast<size_t>(dcCallPointer(vm, fn_ptr));
 	} else {
-		for (auto inst : func->bytecode) {
-			Light_Compiler::inst->interp->run(inst);
-		}
-		Light_Compiler::inst->interp->dump();
+		Light_Compiler::inst->interp->run(func);
 	}
 	return NULL;
 }

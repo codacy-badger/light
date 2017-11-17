@@ -8,8 +8,7 @@ Vec2 :: struct {
 }
 
 factorial :: fn (number: s32) -> s32 {
-	result := NUM - global_value;
-    return result - number;
+    return number * 2;
 }
 
 NUM :: VAL + 10;
@@ -18,13 +17,13 @@ WIN_CALL : type : fn (val: s32) -> s32;
 
 #run
 main :: fn {
-    //c : s32 = a - NUM;
-	//d := c - 2;
+    c : s32 = a - NUM;
+	d := c + 1;
 
-	//number := factorial(3);
-	cout := GetStdHandle(STD_ERROR_HANDLE);
-	cout = GetStdHandle(STD_OUTPUT_HANDLE);
-	cerr := GetStdHandle(STD_ERROR_HANDLE);
+	number := factorial(d);
+	//cout := GetStdHandle(STD_ERROR_HANDLE);
+	//cout = GetStdHandle(STD_OUTPUT_HANDLE);
+	//cerr := GetStdHandle(STD_ERROR_HANDLE);
 	//WriteFile(cout, "Hello Light!", null, null);
 }
 

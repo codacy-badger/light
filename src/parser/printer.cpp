@@ -141,7 +141,9 @@ void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool name_only) {
 		if (type->attributes.size() > 0) {
 			printf("{\n");
 			for (auto attr : type->attributes) {
+				_tabs(tabs + 1);
 				print(attr, tabs + 1);
+				printf(";\n");
 			}
 			_tabs(tabs);
 			printf("}");
