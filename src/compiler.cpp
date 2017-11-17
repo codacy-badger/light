@@ -75,7 +75,7 @@ void Light_Compiler::run () {
 		parser->append(new Struct_Sizer());
 		parser->append(new Bytecode_Generator());
 		parser->append(new Bytecode_Runner());
-		parser->append(new PrintPipe());
+		//parser->append(new PrintPipe());
 
 		auto start = Timer::getTime();
 		parser->top_level_block();

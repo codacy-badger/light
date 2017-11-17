@@ -74,12 +74,12 @@ struct Inst_Set_Integer : Instruction {
 
 struct Inst_Global_Offset : Instruction {
 	uint8_t reg = 0;
-	uint8_t size = 0;
+	uint8_t offset = 0;
 
-	Inst_Global_Offset (uint8_t reg, uint8_t size) {
+	Inst_Global_Offset (uint8_t reg, uint8_t offset) {
 		this->bytecode = BYTECODE_GLOBAL_OFFSET;
 		this->reg = reg;
-		this->size = size;
+		this->offset = offset;
 	}
 };
 
@@ -94,12 +94,12 @@ struct Inst_Stack_Allocate : Instruction {
 
 struct Inst_Stack_Offset : Instruction {
 	uint8_t reg = 0;
-	uint8_t size = 0;
+	uint8_t offset = 0;
 
-	Inst_Stack_Offset (uint8_t reg, uint8_t size) {
+	Inst_Stack_Offset (uint8_t reg, uint8_t offset) {
 		this->bytecode = BYTECODE_STACK_OFFSET;
 		this->reg = reg;
-		this->size = size;
+		this->offset = offset;
 	}
 };
 
@@ -197,12 +197,12 @@ uint8_t bytecode_get_type (Ast_Expression* exp);
 
 struct Inst_Call_Setup : Instruction {
 	uint8_t calling_convention = BYTECODE_CC_DEFAULT;
-	uint8_t is_native = 0;
+	uint8_t is_foreign = 0;
 
-	Inst_Call_Setup (uint8_t calling_convention, bool is_native) {
+	Inst_Call_Setup (uint8_t calling_convention, bool is_foreign) {
 		this->bytecode = BYTECODE_CALL_SETUP;
 		this->calling_convention = calling_convention;
-		this->is_native = is_native;
+		this->is_foreign = is_foreign;
 	}
 };
 

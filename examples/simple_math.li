@@ -1,7 +1,5 @@
 import! "examples/win_api.li"
 
-global_value := -12;
-
 Vec2 :: struct {
 	x : s32;
 	y : s32;
@@ -21,7 +19,8 @@ main :: fn {
 	d := c + 1;
 
 	number := factorial(d);
-	//cout := GetStdHandle(STD_ERROR_HANDLE);
+
+	cout := GetStdHandle(STD_ERROR_HANDLE);
 	//cout = GetStdHandle(STD_OUTPUT_HANDLE);
 	//cerr := GetStdHandle(STD_ERROR_HANDLE);
 	//WriteFile(cout, "Hello Light!", null, null);
@@ -30,5 +29,3 @@ main :: fn {
 a :: 50;
 
 VAL : s32 : -2;
-
-vec2_zero : *Vec2 = null;

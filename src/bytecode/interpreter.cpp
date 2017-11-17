@@ -23,12 +23,18 @@ Bytecode_Interpreter::~Bytecode_Interpreter () {
 }
 
 void Bytecode_Interpreter::run (Ast_Function* func) {
+	printf(" + START function... '%s' (Stack %zd bytes)\n", func->name, this->stack_index);
 	auto _tmp = this->stack_index;
-	for (auto inst : func->bytecode) {
+	for (size_t i = 0; i < func->bytecode.size(); i++) {
+		auto inst = func->bytecode[i];
+
+		printf(" #%-4zd ", i);
+		Light_Compiler::inst->interp->print(inst);
 		Light_Compiler::inst->interp->run(inst);
 		if (inst->bytecode == BYTECODE_RETURN) break;
 	}
-	Light_Compiler::inst->interp->dump();
+	printf(" + STOP function... '%s' (Stack %zd bytes)\n", func->name, this->stack_index);
+	//Light_Compiler::inst->interp->dump();
 	this->stack_index = _tmp;
 }
 
@@ -71,7 +77,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_STACK_OFFSET: {
 			auto stoff = static_cast<Inst_Stack_Offset*>(inst);
 
-			uint8_t* value = this->stack + this->stack_base + stoff->size;
+			uint8_t* value = this->stack + this->stack_base + stoff->offset;
 			memcpy(this->registers[stoff->reg], &value, INTERP_REGISTER_SIZE);
 			return;
 		}
@@ -143,7 +149,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_CALL_SETUP: {
 			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
 
-			next_call_is_foreign = call_setup->is_native;
+			next_call_is_foreign = call_setup->is_foreign;
 			if (next_call_is_foreign) {
 				dcMode(vm, DC_CALL_C_X64_WIN64);
 				dcReset(vm);
@@ -237,101 +243,122 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 }
 
 void Bytecode_Interpreter::print (Instruction* inst) {
+	printf("( %s @ %zd ) ", inst->filename, inst->line);
 	switch (inst->bytecode) {
-		case BYTECODE_NOOP: printf("BYTECODE_NOOP"); break;
-		case BYTECODE_RETURN: printf("BYTECODE_RETURN"); break;
+		case BYTECODE_NOOP: printf("NOOP"); break;
+		case BYTECODE_RETURN: printf("RETURN"); break;
 		case BYTECODE_COPY: {
 			auto cpy = static_cast<Inst_Copy*>(inst);
-			printf("BYTECODE_COPY\n");
+			printf("COPY %d, %d", cpy->reg1, cpy->reg2);
+			if (cpy->reg1 == cpy->reg2) {
+				printf(" [WARNING: instruction has no effect]");
+			}
 			break;
 		}
 		case BYTECODE_SET_INTEGER: {
-			auto cpy = static_cast<Inst_Set_Integer*>(inst);
-			printf("BYTECODE_SET_INTEGER\n");
+			auto set_int = static_cast<Inst_Set_Integer*>(inst);
+			int64_t value = 0;
+			memcpy(&value, set_int->data, set_int->size);
+			printf("SET_INTEGER %d, %d, %lld (0x%08llX)", set_int->reg, set_int->size, value, value);
 			break;
 		}
 		case BYTECODE_SET_DECIMAL: {
 			//auto cpy = static_cast<Inst_Set_Decimal*>(inst);
-			printf("BYTECODE_SET_DECIMAL\n");
+			printf("SET_DECIMAL");
 			break;
 		}
 		case BYTECODE_GLOBAL_OFFSET: {
-			auto cpy = static_cast<Inst_Global_Offset*>(inst);
-			printf("BYTECODE_GLOBAL_OFFSET\n");
+			auto gloff = static_cast<Inst_Global_Offset*>(inst);
+			printf("GLOBAL_OFFSET, %d, %d", gloff->reg, gloff->offset);
 			break;
 		}
 		case BYTECODE_STACK_ALLOCATE: {
-			auto cpy = static_cast<Inst_Stack_Allocate*>(inst);
-			printf("BYTECODE_STACK_ALLOCATE\n");
+			auto alloca = static_cast<Inst_Stack_Allocate*>(inst);
+			printf("STACK_ALLOCATE %d", alloca->size);
 			break;
 		}
 		case BYTECODE_STACK_OFFSET: {
-			auto cpy = static_cast<Inst_Stack_Offset*>(inst);
-			printf("BYTECODE_STACK_OFFSET\n");
+			auto stoff = static_cast<Inst_Stack_Offset*>(inst);
+			printf("STACK_OFFSET %d, %d", stoff->reg, stoff->offset);
 			break;
 		}
 		case BYTECODE_LOAD: {
-			auto cpy = static_cast<Inst_Load*>(inst);
-			printf("BYTECODE_LOAD\n");
+			auto load = static_cast<Inst_Load*>(inst);
+			printf("LOAD %d, %d, %d", load->dest, load->src, load->size);
 			break;
 		}
 		case BYTECODE_STORE: {
-			auto cpy = static_cast<Inst_Store*>(inst);
-			printf("BYTECODE_STORE\n");
+			auto store = static_cast<Inst_Store*>(inst);
+			printf("STORE %d, %d, %d", store->dest, store->src, store->size);
 			break;
 		}
 		case BYTECODE_NOT: {
 			//auto cpy = static_cast<Inst_Not*>(inst);
-			printf("BYTECODE_NOT\n");
+			printf("NOT");
 			break;
 		}
 		case BYTECODE_NEG: {
 			//auto cpy = static_cast<Inst_Neg*>(inst);
-			printf("BYTECODE_NEG\n");
+			printf("NEG");
 			break;
 		}
 		case BYTECODE_ADD: {
-			auto cpy = static_cast<Inst_Add*>(inst);
-			printf("BYTECODE_ADD\n");
+			auto add = static_cast<Inst_Add*>(inst);
+			printf("ADD %d, %d", add->reg1, add->reg2);
 			break;
 		}
 		case BYTECODE_SUB: {
-			auto cpy = static_cast<Inst_Sub*>(inst);
-			printf("BYTECODE_SUB\n");
+			auto sub = static_cast<Inst_Sub*>(inst);
+			printf("SUB %d, %d", sub->reg1, sub->reg2);
 			break;
 		}
 		case BYTECODE_MUL: {
-			auto cpy = static_cast<Inst_Mul*>(inst);
-			printf("BYTECODE_MUL\n");
+			auto mul = static_cast<Inst_Mul*>(inst);
+			printf("MUL %d, %d", mul->reg1, mul->reg2);
 			break;
 		}
 		case BYTECODE_DIV: {
-			auto cpy = static_cast<Inst_Div*>(inst);
-			printf("BYTECODE_DIV\n");
+			auto div = static_cast<Inst_Div*>(inst);
+			printf("DIV %d, %d", div->reg1, div->reg2);
 			break;
 		}
 		case BYTECODE_CALL_SETUP: {
-			auto cpy = static_cast<Inst_Call_Setup*>(inst);
-			printf("BYTECODE_CALL_SETUP\n");
+			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
+			printf("CALL_SETUP %d", call_setup->calling_convention);
+			switch (call_setup->calling_convention) {
+				case BYTECODE_CC_DEFAULT:  printf(" (DEFAULT)"); break;
+				case BYTECODE_CC_CDECL:    printf(" (CDECL)"); break;
+				case BYTECODE_CC_STDCALL:  printf(" (STDCALL)"); break;
+				case BYTECODE_CC_FASTCALL: printf(" (FASTCALL)"); break;
+			}
+			printf(", %d", call_setup->is_foreign);
+			if (call_setup->is_foreign) printf(" (external)");
+			else printf(" (internal)");
 			break;
 		}
 		case BYTECODE_CALL_PARAM: {
-			auto cpy = static_cast<Inst_Call_Param*>(inst);
-			printf("BYTECODE_CALL_PARAM\n");
+			auto call_param = static_cast<Inst_Call_Param*>(inst);
+			// TODO: print the bytecode type in a readable way
+			printf("CALL_PARAM %d, %d, %d", call_param->index, call_param->reg, call_param->bytecode_type);
 			break;
 		}
 		case BYTECODE_CALL_FOREIGN: {
-			auto cpy = static_cast<Inst_Call_Foreign*>(inst);
-			printf("BYTECODE_CALL_FOREIGN\n");
+			auto call_f = static_cast<Inst_Call_Foreign*>(inst);
+			auto module_name = Light_Compiler::inst->interp->foreign_functions->module_names[call_f->module_index];
+			auto function_name = Light_Compiler::inst->interp->foreign_functions->function_names[call_f->function_index];
+			printf("CALL_FOREIGN %d, %d (%s), %d (%s), %d", call_f->reg, call_f->module_index,
+				module_name.c_str(), call_f->function_index, function_name.c_str(), call_f->bytecode_type);
 			break;
 		}
 		case BYTECODE_CALL: {
-			auto cpy = static_cast<Inst_Call*>(inst);
-			printf("BYTECODE_CALL\n");
+			auto call = static_cast<Inst_Call*>(inst);
+			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
+			printf("CALL %d, %p (%s)", call->reg, func, func->name);
 			break;
 		}
 		default: assert(false);
 	}
+	printf("\n");
 }
 
 void Bytecode_Interpreter::dump () {
