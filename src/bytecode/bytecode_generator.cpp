@@ -209,6 +209,11 @@ size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode
 size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* bytecode, size_t reg) {
 	auto func = static_cast<Ast_Function*>(call->fn);
 	printf("\tBYTECODE_CALL_SETUP %d\n", BYTECODE_CC_CDECL);
+
+    auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL);
+    copy_location_info(inst1, call);
+    bytecode->push_back(inst1);
+
 	auto param_reg = reg;
 	auto bytecode_type = BYTECODE_TYPE_VOID;
 	for (int i = 0; i < call->parameters.size(); i++) {
@@ -216,6 +221,11 @@ size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* b
 		bytecode_type = bytecode_get_type(exp->inferred_type);
 		param_reg = this->gen(exp, bytecode, param_reg);
 		printf("\tBYTECODE_CALL_PARAM %d, %zd, %d\n", i, param_reg, bytecode_type);
+
+        auto inst2 = new Inst_Call_Param(i, param_reg, bytecode_type);
+        copy_location_info(inst2, call);
+        bytecode->push_back(inst2);
+
 	}
 	if (func->foreign_module_name) {
 		bytecode_type = bytecode_get_type(func->type->return_type);
@@ -224,8 +234,16 @@ size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* b
 		printf("\tBYTECODE_CALL_FOREIGN %zd, %zd, %zd, %d (%s @ %s)\n", reg, module_index, function_index, bytecode_type,
 			Light_Compiler::inst->interp->foreign_functions->function_names[function_index].c_str(),
 			Light_Compiler::inst->interp->foreign_functions->module_names[module_index].c_str());
+
+        auto inst2 = new Inst_Call_Foreign(reg, module_index, function_index, bytecode_type);
+        copy_location_info(inst2, call);
+        bytecode->push_back(inst2);
 	} else {
-		printf("\tBYTECODE_CALL %zd (%s)\n", reg, func->name);
+		printf("\tBYTECODE_CALL %zd, %p (%s)\n", reg, func, func->name);
+        
+        auto inst2 = new Inst_Call(reg, reinterpret_cast<size_t>(func));
+        copy_location_info(inst2, call);
+        bytecode->push_back(inst2);
 	}
 	return reg;
 }
