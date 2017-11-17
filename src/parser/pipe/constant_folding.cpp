@@ -103,6 +103,7 @@ void Constant_Folding::fold (Ast_Binary** binary) {
 		auto litR = reinterpret_cast<Ast_Literal*>((*binary)->rhs);
 
 		auto tmp = new Ast_Literal();
+		ast_copy_location_info(tmp, *binary);
 		tmp->literal_type = litL->literal_type;
 		Ast_Binary_Type binop = (*binary)->binary_op;
 		switch (litL->literal_type) {
@@ -135,6 +136,7 @@ void Constant_Folding::fold (Ast_Unary** unary) {
 		auto lit = reinterpret_cast<Ast_Literal*>((*unary)->exp);
 
 		auto tmp = new Ast_Literal();
+		ast_copy_location_info(tmp, *unary);
 		tmp->literal_type = lit->literal_type;
 		Ast_Unary_Type unop = (*unary)->unary_op;
 		switch (lit->literal_type) {

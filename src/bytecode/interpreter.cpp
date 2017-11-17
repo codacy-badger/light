@@ -240,7 +240,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 }
 
 void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
-	printf(" #%-4zd ( %s @ %zd ) ", index, inst->filename, inst->line);
+	printf(" #%-4zd ( %-28s @ %zd ) ", index, inst->filename, inst->line);
 	switch (inst->bytecode) {
 		case BYTECODE_NOOP: printf("NOOP"); break;
 		case BYTECODE_RETURN: printf("RETURN\n"); break;

@@ -4,6 +4,12 @@
 
 #include <string.h>
 
+void ast_copy_location_info (Ast* destination, Ast* source) {
+	destination->filename = source->filename;
+	destination->line = source->line;
+	destination->col = source->col;
+}
+
 bool Ast_Block::is_global () {
 	return !this->parent;
 }
