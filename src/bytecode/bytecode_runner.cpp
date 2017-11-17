@@ -60,17 +60,7 @@ size_t run_function (DCCallVM* vm, Ast_Function* func, Ast_Note* run_note) {
 		// TODO: make platform layer to load functions from (#ifdef _WIN32)
 		HMODULE module = LoadLibrary(func->foreign_module_name);
 		DCpointer fn_ptr = (DCpointer) GetProcAddress(module, func->name);
-
-		void* ret = dcCallPointer(vm, fn_ptr);
-
-		// TEST
-		DWORD written;
-		LPSTR msg = "\nDYNCALL is super awesome!\n\n";
-		DWORD length = strlen(msg);
-		WriteFile(ret, msg, length, &written, NULL);
-		FlushFileBuffers(ret);
-
-		return reinterpret_cast<size_t>(ret);
+		return reinterpret_cast<size_t>(dcCallPointer(vm, fn_ptr));
 	} else {
 		for (auto inst : func->bytecode) {
 			Light_Compiler::inst->interp->run(inst);
