@@ -93,15 +93,23 @@ void Symbol_Resolution::check_symbols (Ast_Statement* stm, vector<Ast_Ident**>* 
 		if (note->arguments) check_symbols(&note->arguments, sym);
 	}
     switch (stm->stm_type) {
-        case AST_STATEMENT_DECLARATION:
+        case AST_STATEMENT_DECLARATION: {
             check_symbols(static_cast<Ast_Declaration*>(stm), sym);
 			break;
-        case AST_STATEMENT_BLOCK:
+        }
+        case AST_STATEMENT_BLOCK: {
             check_symbols(static_cast<Ast_Block*>(stm), sym);
 			break;
-        case AST_STATEMENT_RETURN:
+        }
+        case AST_STATEMENT_RETURN: {
             check_symbols(static_cast<Ast_Return*>(stm), sym);
 			break;
+        }
+        case AST_STATEMENT_EXPRESSION: {
+            auto exp = static_cast<Ast_Expression*>(stm);
+            check_symbols(&exp, sym);
+			break;
+        }
         default: break;
     }
 }

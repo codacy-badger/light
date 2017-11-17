@@ -22,6 +22,10 @@ void Bytecode_Generator::gen (Ast_Statement* stm, vector<Instruction*>* bytecode
 			this->gen(static_cast<Ast_Return*>(stm), bytecode, reg);
 			break;
 		}
+		case AST_STATEMENT_EXPRESSION: {
+			this->gen(static_cast<Ast_Expression*>(stm), bytecode, reg);
+			break;
+		}
         default: return;
     }
 }
@@ -240,7 +244,7 @@ size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* b
         bytecode->push_back(inst2);
 	} else {
 		printf("\tBYTECODE_CALL %zd, %p (%s)\n", reg, func, func->name);
-        
+
         auto inst2 = new Inst_Call(reg, reinterpret_cast<size_t>(func));
         copy_location_info(inst2, call);
         bytecode->push_back(inst2);

@@ -20,6 +20,9 @@ void Type_Checking::check_type (Ast_Statement* stm) {
         case AST_STATEMENT_RETURN:
             check_type(static_cast<Ast_Return*>(stm));
             break;
+        case AST_STATEMENT_EXPRESSION:
+            check_type(static_cast<Ast_Expression*>(stm));
+            break;
         default: break;
     }
 }
