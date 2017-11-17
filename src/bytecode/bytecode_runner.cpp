@@ -48,13 +48,15 @@ size_t run_function (DCCallVM* vm, Ast_Function* func, Ast_Note* run_note) {
 		// TODO: have some notion of calling convention options
 		dcMode(vm, DC_CALL_C_X64_WIN64);
 		dcReset(vm);
-		for (auto exp : run_note->arguments->args) {
-			// TODO: passing complex expression should trigger more bytecode execution
-			if (exp->exp_type == AST_EXPRESSION_LITERAL) {
-				auto lit = static_cast<Ast_Literal*>(exp);
-				push_parameter(vm, lit);
-			} else {
-				Light_Compiler::inst->error_stop(run_note, "#run can only have literal arguments!");
+		if (run_note->arguments) {
+			for (auto exp : run_note->arguments->args) {
+				if (exp->exp_type == AST_EXPRESSION_LITERAL) {
+					auto lit = static_cast<Ast_Literal*>(exp);
+					push_parameter(vm, lit);
+				} else {
+					// TODO: passing complex expression should trigger more bytecode execution
+					Light_Compiler::inst->error_stop(run_note, "#run can only have literal arguments!");
+				}
 			}
 		}
 		// TODO: make platform layer to load functions from (#ifdef _WIN32)
@@ -62,6 +64,19 @@ size_t run_function (DCCallVM* vm, Ast_Function* func, Ast_Note* run_note) {
 		DCpointer fn_ptr = (DCpointer) GetProcAddress(module, func->name);
 		return reinterpret_cast<size_t>(dcCallPointer(vm, fn_ptr));
 	} else {
+		if (run_note->arguments) {
+			for (size_t i = 0; i < run_note->arguments->args.size(); i++) {
+				auto exp = run_note->arguments->args[i];
+				if (exp->exp_type == AST_EXPRESSION_LITERAL) {
+					auto lit = static_cast<Ast_Literal*>(exp);
+					auto reg = Light_Compiler::inst->interp->registers[i];
+					memcpy(reg, &lit->int_value, INTERP_REGISTER_SIZE);
+				} else {
+					// TODO: passing complex expression should trigger more bytecode execution
+					Light_Compiler::inst->error_stop(run_note, "#run can only have literal arguments!");
+				}
+			}
+		}
 		Light_Compiler::inst->interp->run(func);
 	}
 	return NULL;

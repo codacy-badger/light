@@ -129,48 +129,39 @@ struct Inst_Store : Instruction {
 	}
 };
 
-struct Inst_Add : Instruction {
+struct Inst_Binary : Instruction {
 	uint8_t reg1 = 0;
 	uint8_t reg2 = 0;
 
-	Inst_Add (uint8_t reg1, uint8_t reg2) {
-		this->bytecode = BYTECODE_ADD;
+	Inst_Binary (uint8_t bytecode, uint8_t reg1, uint8_t reg2) {
+		this->bytecode = bytecode;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
 	}
 };
 
-struct Inst_Sub : Instruction {
-	uint8_t reg1 = 0;
-	uint8_t reg2 = 0;
-
-	Inst_Sub (uint8_t reg1, uint8_t reg2) {
-		this->bytecode = BYTECODE_SUB;
-		this->reg1 = reg1;
-		this->reg2 = reg2;
-	}
+struct Inst_Add : Inst_Binary {
+	Inst_Add (uint8_t reg1, uint8_t reg2)
+		: Inst_Binary (BYTECODE_ADD, reg1, reg2)
+	{/* empty */}
 };
 
-struct Inst_Mul : Instruction {
-	uint8_t reg1 = 0;
-	uint8_t reg2 = 0;
-
-	Inst_Mul (uint8_t reg1, uint8_t reg2) {
-		this->bytecode = BYTECODE_MUL;
-		this->reg1 = reg1;
-		this->reg2 = reg2;
-	}
+struct Inst_Sub : Inst_Binary {
+	Inst_Sub (uint8_t reg1, uint8_t reg2)
+		: Inst_Binary (BYTECODE_SUB, reg1, reg2)
+	{/* empty */}
 };
 
-struct Inst_Div : Instruction {
-	uint8_t reg1 = 0;
-	uint8_t reg2 = 0;
+struct Inst_Mul : Inst_Binary {
+	Inst_Mul (uint8_t reg1, uint8_t reg2)
+		: Inst_Binary (BYTECODE_MUL, reg1, reg2)
+	{/* empty */}
+};
 
-	Inst_Div (uint8_t reg1, uint8_t reg2) {
-		this->bytecode = BYTECODE_DIV;
-		this->reg1 = reg1;
-		this->reg2 = reg2;
-	}
+struct Inst_Div : Inst_Binary {
+	Inst_Div (uint8_t reg1, uint8_t reg2)
+		: Inst_Binary (BYTECODE_DIV, reg1, reg2)
+	{/* empty */}
 };
 
 const uint8_t BYTECODE_CC_DEFAULT   = 0x0;

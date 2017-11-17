@@ -5,6 +5,7 @@ Vec2 :: struct {
 	y : s32;
 }
 
+#run(9)
 factorial :: fn (number: s32) -> s32 {
     return number * 2;
 }

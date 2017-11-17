@@ -2,9 +2,10 @@
 
 #include "compiler.hpp"
 
-void copy_location_info (Instruction* intruction, Ast* node) {
+Instruction* copy_location_info (Instruction* intruction, Ast* node) {
     intruction->filename = node->filename;
     intruction->line = node->line;
+	return intruction;
 }
 
 void Bytecode_Generator::on_statement (Ast_Statement* stm) {
@@ -40,12 +41,10 @@ void Bytecode_Generator::gen (Ast_Return* ret, vector<Instruction*>* bytecode, s
     auto ret_reg = this->gen(ret->exp, bytecode, reg);
     if (ret_reg != 0) {
         auto inst = new Inst_Copy(0, ret_reg);
-        copy_location_info(inst, ret);
-        bytecode->push_back(inst);
+        bytecode->push_back(copy_location_info(inst, ret));
     }
     auto inst2 = new Inst_Return();
-    copy_location_info(inst2, ret);
-    bytecode->push_back(inst2);
+    bytecode->push_back(copy_location_info(inst2, ret));
 }
 
 void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytecode, size_t reg) {
@@ -72,19 +71,17 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 			}
 		} else {
             auto inst = new Inst_Stack_Allocate(ty_decl->byte_size);
-            copy_location_info(inst, decl);
-            bytecode->push_back(inst);
+            ;
+            bytecode->push_back(copy_location_info(inst, decl));
 
 			decl->data_offset = this->stack_offset;
 			this->stack_offset += ty_decl->byte_size;
 			if (decl->expression) {
 				auto _reg = this->gen(decl->expression, bytecode, reg);
                 auto inst1 = new Inst_Stack_Offset(_reg + 1, decl->data_offset);
-                copy_location_info(inst1, decl);
-                bytecode->push_back(inst1);
+                bytecode->push_back(copy_location_info(inst1, decl));
                 auto inst2 = new Inst_Store(_reg + 1, _reg, ty_decl->byte_size);
-                copy_location_info(inst2, decl);
-                bytecode->push_back(inst2);
+                bytecode->push_back(copy_location_info(inst2, decl));
 			}
 		}
 	}
@@ -109,15 +106,13 @@ size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode
 		case AST_LITERAL_SIGNED_INT: {
             // TODO: handle different number sizes
             auto inst = new Inst_Set_Integer(reg, lit->int_value);
-            copy_location_info(inst, lit);
-            bytecode->push_back(inst);
+            bytecode->push_back(copy_location_info(inst, lit));
 			return reg;
 		}
 		case AST_LITERAL_UNSIGNED_INT: {
             // TODO: handle different number sizes
             auto inst = new Inst_Set_Integer(reg, lit->uint_value);
-            copy_location_info(inst, lit);
-            bytecode->push_back(inst);
+            bytecode->push_back(copy_location_info(inst, lit));
 			return reg;
 		}
 		case AST_LITERAL_DECIMAL: {
@@ -140,40 +135,35 @@ size_t Bytecode_Generator::gen (Ast_Binary* binop, vector<Instruction*>* bytecod
         	size_t rhs_reg = this->gen(binop->rhs, bytecode, reg);
         	size_t lhs_reg = this->gen(binop->lhs, bytecode, rhs_reg + 1, true);
             auto inst2 = new Inst_Store(lhs_reg, rhs_reg, size);
-            copy_location_info(inst2, binop);
-            bytecode->push_back(inst2);
+            bytecode->push_back(copy_location_info(inst2, binop));
 			return lhs_reg;
 		}
 		case AST_BINARY_ADD: {
         	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
         	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
             auto inst1 = new Inst_Add(lhs_reg, rhs_reg);
-            copy_location_info(inst1, binop);
-            bytecode->push_back(inst1);
+            bytecode->push_back(copy_location_info(inst1, binop));
 			return lhs_reg;
 		}
 		case AST_BINARY_SUB: {
         	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
         	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
             auto inst1 = new Inst_Sub(lhs_reg, rhs_reg);
-            copy_location_info(inst1, binop);
-            bytecode->push_back(inst1);
+            bytecode->push_back(copy_location_info(inst1, binop));
 			return lhs_reg;
 		}
 		case AST_BINARY_MUL: {
         	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
         	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
             auto inst1 = new Inst_Mul(lhs_reg, rhs_reg);
-            copy_location_info(inst1, binop);
-            bytecode->push_back(inst1);
+            bytecode->push_back(copy_location_info(inst1, binop));
 			return lhs_reg;
 		}
 		case AST_BINARY_DIV: {
         	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
         	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
             auto inst1 = new Inst_Div(lhs_reg, rhs_reg);
-            copy_location_info(inst1, binop);
-            bytecode->push_back(inst1);
+            bytecode->push_back(copy_location_info(inst1, binop));
 			return lhs_reg;
 		}
 		default: return reg;
@@ -206,12 +196,10 @@ size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode
 	} else {
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
             auto inst1 = new Inst_Stack_Offset(reg, ident->declaration->data_offset);
-            copy_location_info(inst1, ident);
-            bytecode->push_back(inst1);
+            bytecode->push_back(copy_location_info(inst1, ident));
             if (!address) {
                 auto inst2 = new Inst_Load(reg, reg, ident->inferred_type->byte_size);
-                copy_location_info(inst2, ident);
-                bytecode->push_back(inst2);
+                bytecode->push_back(copy_location_info(inst2, ident));
             }
 		} else {
 			printf("\tBYTECODE_STACK_OFFSET %zd, %zd\n", reg, ident->declaration->data_offset);
@@ -231,14 +219,11 @@ size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode
         this->stack_offset += size;
 
         auto inst = new Inst_Stack_Allocate(size);
-        copy_location_info(inst, decl);
-        fn->bytecode.push_back(inst);
+        fn->bytecode.push_back(copy_location_info(inst, decl));
         auto inst1 = new Inst_Stack_Offset(free_reg, decl->data_offset);
-        copy_location_info(inst1, decl);
-        fn->bytecode.push_back(inst1);
+        fn->bytecode.push_back(copy_location_info(inst1, decl));
         auto inst2 = new Inst_Store(free_reg, i, size);
-        copy_location_info(inst2, decl);
-        fn->bytecode.push_back(inst2);
+        fn->bytecode.push_back(copy_location_info(inst2, decl));
     }
 	if (fn->scope) this->gen(fn->scope, &fn->bytecode, 0);
     // TODO: if there's no return instructions (void) add one at the end
@@ -260,8 +245,7 @@ size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* b
 		param_reg = this->gen(exp, bytecode, param_reg);
 
         auto inst2 = new Inst_Call_Param(i, param_reg, bytecode_type);
-        copy_location_info(inst2, call);
-        bytecode->push_back(inst2);
+        bytecode->push_back(copy_location_info(inst2, call));
 
 	}
 	if (func->foreign_module_name) {
@@ -270,12 +254,10 @@ size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* b
 		Light_Compiler::inst->interp->foreign_functions->store(func->foreign_module_name, func->name, &module_index, &function_index);
 
         auto inst2 = new Inst_Call_Foreign(reg, module_index, function_index, bytecode_type);
-        copy_location_info(inst2, call);
-        bytecode->push_back(inst2);
+        bytecode->push_back(copy_location_info(inst2, call));
 	} else {
         auto inst2 = new Inst_Call(reg, reinterpret_cast<size_t>(func));
-        copy_location_info(inst2, call);
-        bytecode->push_back(inst2);
+        bytecode->push_back(copy_location_info(inst2, call));
 	}
 	return reg;
 }
