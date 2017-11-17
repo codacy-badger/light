@@ -22,8 +22,9 @@ main :: fn {
 	//d := c - 2;
 
 	//number := factorial(3);
-	cout := GetStdHandle(STD_OUTPUT_HANDLE);
-	cout = GetStdHandle(STD_ERROR_HANDLE);
+	cout := GetStdHandle(STD_ERROR_HANDLE);
+	cout = GetStdHandle(STD_OUTPUT_HANDLE);
+	cerr := GetStdHandle(STD_ERROR_HANDLE);
 	//WriteFile(cout, "Hello Light!", null, null);
 }
 
