@@ -221,14 +221,12 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			auto call = static_cast<Inst_Call*>(inst);
 
 			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
-			printf("Stack BASE - 1: %zd\n", this->stack_base);
 
 			auto _base = this->stack_base;
 			this->stack_base = this->stack_index;
 			this->run(func);
 			this->stack_index = this->stack_base;
 			this->stack_base = _base;
-			printf("Stack BASE - 2: %zd\n", this->stack_base);
 			return;
 		}
 		default: {
