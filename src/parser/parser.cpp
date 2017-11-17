@@ -29,7 +29,16 @@ Ast_Block* Parser::top_level_block () {
 
 	push_new_type(this, _block, Light_Compiler::inst->type_def_type);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_void);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_s8);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_s16);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_s32);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_s64);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_u8);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_u16);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_u32);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_u64);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_f32);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_f64);
 
 	this->block(_block);
 	return _block;
