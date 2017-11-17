@@ -18,20 +18,18 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 	this->lexer = new Lexer(filepath);
 }
 
+void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def) {
+	auto type_decl = ast_make_declaration(type_def->name, type_def);
+	block->list.push_back(type_decl);
+	parser->to_next(type_decl);
+}
+
 Ast_Block* Parser::top_level_block () {
 	auto _block = AST_NEW(Ast_Block, this->current_block);
-	// TODO: simplify declaration of primitive types
-	auto type_decl = ast_make_declaration("type", Light_Compiler::inst->type_def_type);
-	_block->list.push_back(type_decl);
-	this->to_next(type_decl);
 
-	auto void_decl = ast_make_declaration("void", Light_Compiler::inst->type_def_void);
-	_block->list.push_back(void_decl);
-	this->to_next(void_decl);
-
-	auto s32_decl = ast_make_declaration("s32", Light_Compiler::inst->type_def_s32);
-	_block->list.push_back(s32_decl);
-	this->to_next(s32_decl);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_type);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_void);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_s32);
 
 	this->block(_block);
 	return _block;

@@ -119,10 +119,6 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs, bool name_only) {
 
 void ASTPrinter::print (Ast_Type_Definition* tydef, int tabs, bool name_only) {
 	switch (tydef->typedef_type) {
-		case AST_TYPEDEF_TYPE: {
-			printf("type ");
-			break;
-		}
 		case AST_TYPEDEF_FUNCTION: {
 			print(static_cast<Ast_Function_Type*>(tydef), tabs);
 			break;

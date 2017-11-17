@@ -129,7 +129,6 @@ struct Ast_Comma_Separated_Arguments : Ast_Expression {
 
 enum Ast_Type_Definition_Type {
 	AST_TYPEDEF_UNDEFINED = 0,
-	AST_TYPEDEF_TYPE,
 	AST_TYPEDEF_FUNCTION,
 	AST_TYPEDEF_STRUCT,
 	AST_TYPEDEF_POINTER,
@@ -158,8 +157,9 @@ struct Ast_Struct_Type : Ast_Type_Definition {
 	const char* name = NULL;
 	vector<Ast_Declaration*> attributes;
 
-	Ast_Struct_Type(const char* name = NULL) {
+	Ast_Struct_Type(const char* name = NULL, size_t byte_size = 0) {
 		this->typedef_type = AST_TYPEDEF_STRUCT;
+		this->byte_size = byte_size;
 		this->name = name;
 	}
 };

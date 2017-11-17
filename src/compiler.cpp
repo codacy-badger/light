@@ -32,6 +32,11 @@ void link (std::string output) {
 	Timer::print("  Link  ", linker);
 }
 
+void create_new_native_type (Ast_Struct_Type** target, const char* name, size_t size = 0) {
+	(*target) = new Ast_Struct_Type(name, size);
+	(*target)->inferred_type = Light_Compiler::inst->type_def_type;
+}
+
 Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	if (!settings) this->settings = new Light_Compiler_Settings();
 	else this->settings = settings;
@@ -42,15 +47,10 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	if (((int8_t *) &i)[0] == 1) {
 		this->byte_order = BYTEORDER_LITTLE_ENDIAN;
 	} else this->byte_order = BYTEORDER_BIG_ENDIAN;
-	// TODO: improve setup of primitive types
-	this->type_def_type = new Ast_Type_Definition();
-	this->type_def_type->inferred_type = this->type_def_type;
-	this->type_def_type->typedef_type = AST_TYPEDEF_TYPE;
 
-	this->type_def_void = new Ast_Struct_Type("void");
-	this->type_def_void->byte_size = 0;
-	this->type_def_s32 = new Ast_Struct_Type("s32");
-	this->type_def_s32->byte_size = 4;
+	create_new_native_type(&this->type_def_type, "type");
+	create_new_native_type(&this->type_def_void, "void");
+	create_new_native_type(&this->type_def_s32, "s32", 4);
 }
 
 void Light_Compiler::run () {

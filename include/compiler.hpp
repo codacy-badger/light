@@ -26,7 +26,7 @@ struct Light_Compiler {
 	Byte_Order byte_order = BYTEORDER_UNDEFINED;
 	bool has_errors = false;
 
-	Ast_Type_Definition* type_def_type;
+	Ast_Struct_Type* type_def_type;
 	Ast_Struct_Type* type_def_void;
 	Ast_Struct_Type* type_def_s32;
 
