@@ -5,11 +5,6 @@ Vec2 :: struct {
 	y : s32;
 }
 
-#run(9)
-factorial :: fn (number: s32) -> s32 {
-    return number * 2;
-}
-
 NUM :: VAL + 10;
 
 WIN_CALL : type : fn (val: s32) -> s32;
@@ -22,9 +17,12 @@ main :: fn {
 	number := factorial(d);
 
 	cout := GetStdHandle(STD_ERROR_HANDLE);
-	//cout = GetStdHandle(STD_OUTPUT_HANDLE);
-	//cerr := GetStdHandle(STD_ERROR_HANDLE);
-	//WriteFile(cout, "Hello Light!", null, null);
+	cout = GetStdHandle(STD_OUTPUT_HANDLE);
+}
+
+#run(9)
+factorial :: fn (number: s32) -> s32 {
+    return number * 2;
 }
 
 a :: 50;
