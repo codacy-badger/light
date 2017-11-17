@@ -38,9 +38,11 @@ void Bytecode_Generator::gen (Ast_Block* block, vector<Instruction*>* bytecode, 
 
 void Bytecode_Generator::gen (Ast_Return* ret, vector<Instruction*>* bytecode, size_t reg) {
     auto ret_reg = this->gen(ret->exp, bytecode, reg);
-    auto inst = new Inst_Copy(0, ret_reg);
-    copy_location_info(inst, ret);
-    bytecode->push_back(inst);
+    if (ret_reg != 0) {
+        auto inst = new Inst_Copy(0, ret_reg);
+        copy_location_info(inst, ret);
+        bytecode->push_back(inst);
+    }
     auto inst2 = new Inst_Return();
     copy_location_info(inst2, ret);
     bytecode->push_back(inst2);

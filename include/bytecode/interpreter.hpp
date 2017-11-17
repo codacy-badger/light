@@ -33,7 +33,7 @@ struct Bytecode_Interpreter {
 
 	void run (Ast_Function* func);
 	void run (Instruction* inst);
-	void print (Instruction* inst);
+	void print (size_t index, Instruction* inst);
 
 	void dump ();
 };

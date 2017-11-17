@@ -23,17 +23,14 @@ Bytecode_Interpreter::~Bytecode_Interpreter () {
 }
 
 void Bytecode_Interpreter::run (Ast_Function* func) {
-	printf(" + START function... '%s' (Stack %zd bytes)\n", func->name, this->stack_index);
 	auto _tmp = this->stack_index;
 	for (size_t i = 0; i < func->bytecode.size(); i++) {
 		auto inst = func->bytecode[i];
 
-		printf(" #%-4zd ", i);
-		Light_Compiler::inst->interp->print(inst);
+		Light_Compiler::inst->interp->print(i, inst);
 		Light_Compiler::inst->interp->run(inst);
 		if (inst->bytecode == BYTECODE_RETURN) break;
 	}
-	printf(" + STOP function... '%s' (Stack %zd bytes)\n", func->name, this->stack_index);
 	//Light_Compiler::inst->interp->dump();
 	this->stack_index = _tmp;
 }
@@ -242,11 +239,11 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 	}
 }
 
-void Bytecode_Interpreter::print (Instruction* inst) {
-	printf("( %s @ %zd ) ", inst->filename, inst->line);
+void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
+	printf(" #%-4zd ( %s @ %zd ) ", index, inst->filename, inst->line);
 	switch (inst->bytecode) {
 		case BYTECODE_NOOP: printf("NOOP"); break;
-		case BYTECODE_RETURN: printf("RETURN"); break;
+		case BYTECODE_RETURN: printf("RETURN\n"); break;
 		case BYTECODE_COPY: {
 			auto cpy = static_cast<Inst_Copy*>(inst);
 			printf("COPY %d, %d", cpy->reg1, cpy->reg2);
@@ -346,14 +343,14 @@ void Bytecode_Interpreter::print (Instruction* inst) {
 			auto call_f = static_cast<Inst_Call_Foreign*>(inst);
 			auto module_name = Light_Compiler::inst->interp->foreign_functions->module_names[call_f->module_index];
 			auto function_name = Light_Compiler::inst->interp->foreign_functions->function_names[call_f->function_index];
-			printf("CALL_FOREIGN %d, %d (%s), %d (%s), %d", call_f->reg, call_f->module_index,
+			printf("CALL_FOREIGN %d, %d (%s), %d (%s), %d\n", call_f->reg, call_f->module_index,
 				module_name.c_str(), call_f->function_index, function_name.c_str(), call_f->bytecode_type);
 			break;
 		}
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
 			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
-			printf("CALL %d, %p (%s)", call->reg, func, func->name);
+			printf("CALL %d, %p (%s)\n", call->reg, func, func->name);
 			break;
 		}
 		default: assert(false);
