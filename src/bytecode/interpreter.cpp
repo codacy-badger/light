@@ -178,7 +178,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 
 			if (next_call_is_foreign) {
 				size_t value;
-				memcpy(&value, this->registers[call_param->reg], INTERP_REGISTER_SIZE);
+				memcpy(&value, this->registers[call_param->index + 1], INTERP_REGISTER_SIZE);
 				switch (call_param->bytecode_type) {
 					case BYTECODE_TYPE_VOID: break;
 					case BYTECODE_TYPE_S8: dcArgChar(vm, (int8_t) value); break;
@@ -195,61 +195,47 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 					case BYTECODE_TYPE_STRING: dcArgPointer(vm, (void*) value); break;
 				}
 			} else {
-				memcpy(this->registers[call_param->index], this->registers[call_param->reg], INTERP_REGISTER_SIZE);
-			}
-			return;
-		}
-		case BYTECODE_CALL_FOREIGN: {
-			assert(next_call_is_foreign == true);
-
-			auto call_foreign = static_cast<Inst_Call_Foreign*>(inst);
-
-			auto interp = Light_Compiler::inst->interp;
-			auto module_name = interp->foreign_functions->module_names[call_foreign->module_index];
-			auto function_name = interp->foreign_functions->function_names[call_foreign->function_index];
-			DCpointer function_pointer = interp->foreign_functions->function_pointers[module_name][function_name];
-
-			if (call_foreign->bytecode_type == BYTECODE_TYPE_VOID)
-				dcCallVoid(vm, function_pointer);
-			else {
-				size_t result = 0;
-				switch (call_foreign->bytecode_type) {
-					case BYTECODE_TYPE_U8:
-					case BYTECODE_TYPE_S8:
-						result = (size_t) dcCallChar(vm, function_pointer); break;
-					case BYTECODE_TYPE_U16:
-					case BYTECODE_TYPE_S16:
-						result = (size_t) dcCallShort(vm, function_pointer); break;
-					case BYTECODE_TYPE_U32:
-					case BYTECODE_TYPE_S32:
-						result = (size_t) dcCallInt(vm, function_pointer); break;
-					case BYTECODE_TYPE_U64:
-					case BYTECODE_TYPE_S64:
-						result = (size_t) dcCallLongLong(vm, function_pointer); break;
-					case BYTECODE_TYPE_F32:
-						result = (size_t) dcCallFloat(vm, function_pointer); break;
-					case BYTECODE_TYPE_F64:
-						result = (size_t) dcCallDouble(vm, function_pointer); break;
-					case BYTECODE_TYPE_POINTER:
-					case BYTECODE_TYPE_STRING:
-						result = (size_t) dcCallPointer(vm, function_pointer); break;
-				}
-				memcpy(this->registers[call_foreign->reg], &result, INTERP_REGISTER_SIZE);
+				//memcpy(this->registers[call_param->index + 1], this->registers[call_param->reg], INTERP_REGISTER_SIZE);
 			}
 			return;
 		}
 		case BYTECODE_CALL: {
-			assert(next_call_is_foreign == false);
-
 			auto call = static_cast<Inst_Call*>(inst);
-
 			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
 
-			auto _base = this->stack_base;
-			this->stack_base = this->stack_index;
-			this->run(func);
-			this->stack_index = this->stack_base;
-			this->stack_base = _base;
+			if (func->foreign_module_name) {
+				auto ffunctions = Light_Compiler::inst->interp->foreign_functions;
+				auto module_name = func->foreign_module_name;
+				DCpointer function_pointer = ffunctions->function_pointers[module_name][func->name];
+
+				size_t result = 0;
+				auto instance = Light_Compiler::inst;
+				auto ret_ty = func->type->return_type;
+				if (ret_ty == instance->type_def_void) {
+					dcCallVoid(vm, function_pointer);
+				} else if (ret_ty == instance->type_def_s8 || ret_ty == instance->type_def_u8) {
+					result = (size_t) dcCallChar(vm, function_pointer);
+				} else if (ret_ty == instance->type_def_s16 || ret_ty == instance->type_def_u16) {
+					result = (size_t) dcCallShort(vm, function_pointer);
+				} else if (ret_ty == instance->type_def_s32 || ret_ty == instance->type_def_u32) {
+					result = (size_t) dcCallInt(vm, function_pointer);
+				} else if (ret_ty == instance->type_def_s64 || ret_ty == instance->type_def_u64) {
+					result = (size_t) dcCallLongLong(vm, function_pointer);
+				} else if (ret_ty == instance->type_def_f32) {
+					result = (size_t) dcCallFloat(vm, function_pointer);
+				} else if (ret_ty == instance->type_def_f64) {
+					result = (size_t) dcCallDouble(vm, function_pointer);
+				} else {
+					result = (size_t) dcCallPointer(vm, function_pointer);
+				}
+				memcpy(this->registers[0], &result, INTERP_REGISTER_SIZE);
+			}else {
+				auto _base = this->stack_base;
+				this->stack_base = this->stack_index;
+				this->run(func);
+				this->stack_index = this->stack_base;
+				this->stack_base = _base;
+			}
 			return;
 		}
 		default: {
@@ -361,21 +347,15 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		case BYTECODE_CALL_PARAM: {
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
 			// TODO: print the bytecode type in a readable way
-			printf("CALL_PARAM %d, %d, %d", call_param->index, call_param->reg, call_param->bytecode_type);
-			break;
-		}
-		case BYTECODE_CALL_FOREIGN: {
-			auto call_f = static_cast<Inst_Call_Foreign*>(inst);
-			auto module_name = Light_Compiler::inst->interp->foreign_functions->module_names[call_f->module_index];
-			auto function_name = Light_Compiler::inst->interp->foreign_functions->function_names[call_f->function_index];
-			printf("CALL_FOREIGN %d, %d (%s), %d (%s), %d", call_f->reg, call_f->module_index,
-				module_name.c_str(), call_f->function_index, function_name.c_str(), call_f->bytecode_type);
+			printf("CALL_PARAM %d, %d", call_param->index, call_param->bytecode_type);
 			break;
 		}
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
 			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
-			printf("CALL %d, %p (%s)", call->reg, func, func->name);
+			printf("CALL %p (%s", func, func->name);
+			if (func->foreign_module_name) printf("@%s", func->foreign_module_name);
+			printf(")");
 			break;
 		}
 		default: assert(false);

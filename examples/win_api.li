@@ -12,6 +12,3 @@ WriteFile : fn (handle: *void, buffer: *void, bytes_to_write: s32, written_bytes
 
 #foreign("kernel32")
 WriteConsole : fn (handle: *void, buffer: *void, bytes_to_write: s32, written_bytes: *s32, overlapped: *void) -> u8 :;
-
-#foreign("kernel32")
-FlushFileBuffers : fn (handle: *void) -> u8 :;

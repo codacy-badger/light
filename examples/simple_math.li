@@ -12,17 +12,10 @@ WIN_CALL : type : fn (val: s32) -> s32;
 #run
 main :: fn {
 	name : string = "\nThis text comes from bytecode!!\n\n";
-	/*attr : string = "Sexy";
-
-    c : s32 = a - NUM;
-	d := c + 1;
-
-	number := factorial(d);*/
 
 	cout := GetStdHandle(STD_ERROR_HANDLE);
 	len := strlen(name);
 	WriteFile(cout, name, len, 0, 0);
-	FlushFileBuffers(cout);
 
 	return;
 }

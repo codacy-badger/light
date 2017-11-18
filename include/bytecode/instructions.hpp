@@ -211,26 +211,22 @@ struct Inst_Call_Setup : Instruction {
 
 struct Inst_Call_Param : Instruction {
 	uint8_t index = 0;
-	uint8_t reg = 0;
 	uint8_t bytecode_type = 0;
 
-	Inst_Call_Param (uint8_t index, uint8_t reg, uint8_t bytecode_type) {
+	Inst_Call_Param (uint8_t index, uint8_t bytecode_type) {
 		this->bytecode = BYTECODE_CALL_PARAM;
 		this->index = index;
-		this->reg = reg;
 		this->bytecode_type = bytecode_type;
 	}
 };
 
 struct Inst_Call_Foreign : Instruction {
-	uint8_t reg = 0;
 	uint8_t module_index = 0;
 	uint8_t function_index = 0;
 	uint8_t bytecode_type = 0;
 
-	Inst_Call_Foreign (uint8_t reg, size_t module_index, size_t function_index, uint8_t bytecode_type) {
+	Inst_Call_Foreign (size_t module_index, size_t function_index, uint8_t bytecode_type) {
 		this->bytecode = BYTECODE_CALL_FOREIGN;
-		this->reg = reg;
 		this->module_index = module_index;
 		this->function_index = function_index;
 		this->bytecode_type = bytecode_type;
@@ -241,9 +237,8 @@ struct Inst_Call : Instruction {
 	uint8_t reg = 0;
 	size_t function_pointer = 0;
 
-	Inst_Call (uint8_t reg, size_t function_pointer) {
+	Inst_Call (size_t function_pointer) {
 		this->bytecode = BYTECODE_CALL;
-		this->reg = reg;
 		this->function_pointer = function_pointer;
 	}
 };

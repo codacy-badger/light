@@ -247,7 +247,7 @@ size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode
         fn->bytecode.push_back(copy_location_info(inst, decl));
         auto inst1 = new Inst_Stack_Offset(free_reg, decl->data_offset);
         fn->bytecode.push_back(copy_location_info(inst1, decl));
-        auto inst2 = new Inst_Store(free_reg, i, size);
+        auto inst2 = new Inst_Store(free_reg, i + 1, size);
         fn->bytecode.push_back(copy_location_info(inst2, decl));
     }
 	if (fn->scope) this->gen(fn->scope, &fn->bytecode, 0);
@@ -258,31 +258,27 @@ size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode
 size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* bytecode, size_t reg) {
 	auto func = static_cast<Ast_Function*>(call->fn);
 
-    auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL, !!func->foreign_module_name);
+    auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL, func->foreign_module_name);
     copy_location_info(inst1, call);
     bytecode->push_back(inst1);
 
-	auto param_reg = reg;
 	auto bytecode_type = BYTECODE_TYPE_VOID;
 	for (int i = 0; i < call->parameters.size(); i++) {
 		auto exp = call->parameters[i];
 		bytecode_type = bytecode_get_type(exp->inferred_type);
-		param_reg = this->gen(exp, bytecode, param_reg);
+		auto _reg = this->gen(exp, bytecode, i + 1);
+		assert(_reg == i + 1);
 
-        auto inst2 = new Inst_Call_Param(i, param_reg, bytecode_type);
+        auto inst2 = new Inst_Call_Param(i, bytecode_type);
         bytecode->push_back(copy_location_info(inst2, call));
 	}
 
 	if (func->foreign_module_name) {
 		bytecode_type = bytecode_get_type(func->type->return_type);
 		size_t module_index, function_index;
-		Light_Compiler::inst->interp->foreign_functions->store(func->foreign_module_name, func->name, &module_index, &function_index);
-
-        auto inst2 = new Inst_Call_Foreign(reg, module_index, function_index, bytecode_type);
-        bytecode->push_back(copy_location_info(inst2, call));
-	} else {
-        auto inst2 = new Inst_Call(reg, reinterpret_cast<size_t>(func));
-        bytecode->push_back(copy_location_info(inst2, call));
+		Light_Compiler::inst->interp->foreign_functions->store(func->foreign_module_name, func->name);
 	}
+    auto inst2 = new Inst_Call(reinterpret_cast<size_t>(func));
+    bytecode->push_back(copy_location_info(inst2, call));
 	return reg;
 }
