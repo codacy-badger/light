@@ -376,5 +376,5 @@ void Bytecode_Interpreter::dump () {
 		printf("%02X ", this->stack[i]);
 		if ((i + 1) % 32 == 0) printf("\n\t");
 	}
-	printf("\n\n");
+	printf("\n");
 }

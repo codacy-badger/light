@@ -15,6 +15,7 @@ main :: fn {
 
 	cout := GetStdHandle(STD_ERROR_HANDLE);
 	len := strlen(name);
+	
 	WriteFile(cout, name, len, 0, 0);
 
 	return;
