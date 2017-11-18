@@ -34,7 +34,6 @@ enum Inst_Bytecode : uint8_t {
 
 	BYTECODE_CALL_SETUP,
 	BYTECODE_CALL_PARAM,
-	BYTECODE_CALL_FOREIGN,
 	BYTECODE_CALL,
 	BYTECODE_RETURN,
 };
@@ -216,19 +215,6 @@ struct Inst_Call_Param : Instruction {
 	Inst_Call_Param (uint8_t index, uint8_t bytecode_type) {
 		this->bytecode = BYTECODE_CALL_PARAM;
 		this->index = index;
-		this->bytecode_type = bytecode_type;
-	}
-};
-
-struct Inst_Call_Foreign : Instruction {
-	uint8_t module_index = 0;
-	uint8_t function_index = 0;
-	uint8_t bytecode_type = 0;
-
-	Inst_Call_Foreign (size_t module_index, size_t function_index, uint8_t bytecode_type) {
-		this->bytecode = BYTECODE_CALL_FOREIGN;
-		this->module_index = module_index;
-		this->function_index = function_index;
 		this->bytecode_type = bytecode_type;
 	}
 };
