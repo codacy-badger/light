@@ -20,7 +20,6 @@ main :: fn {
 	cout = GetStdHandle(STD_OUTPUT_HANDLE);
 }
 
-#run(9)
 factorial :: fn (number: s32) -> s32 {
     return number * 2;
 }

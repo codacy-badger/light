@@ -60,6 +60,11 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	create_new_native_type(&this->type_def_u64, "u64", 8);
 	create_new_native_type(&this->type_def_f32, "f32", 4);
 	create_new_native_type(&this->type_def_f64, "f64", 8);
+	// TODO: add array structure (length, data?)
+	// TODO: improve string representation in the language (array?)
+	this->type_def_string = new Ast_Pointer_Type();
+	this->type_def_string->base = this->type_def_u8;
+
 }
 
 void Light_Compiler::run () {
@@ -75,7 +80,7 @@ void Light_Compiler::run () {
 		parser->append(new Struct_Sizer());
 		parser->append(new Bytecode_Generator());
 		parser->append(new Bytecode_Runner());
-		//parser->append(new PrintPipe());
+		parser->append(new PrintPipe());
 
 		auto start = Timer::getTime();
 		parser->top_level_block();

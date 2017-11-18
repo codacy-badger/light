@@ -18,10 +18,14 @@ Parser::Parser (Light_Compiler* compiler, const char* filepath) {
 	this->lexer = new Lexer(filepath);
 }
 
-void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def) {
-	auto type_decl = ast_make_declaration(type_def->name, type_def);
+void push_new_type (Parser* parser, Ast_Block* block, const char* name, Ast_Type_Definition* type_def) {
+	auto type_decl = ast_make_declaration(name, type_def);
 	block->list.push_back(type_decl);
 	parser->to_next(type_decl);
+}
+
+void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def) {
+	push_new_type(parser, block, type_def->name, type_def);
 }
 
 Ast_Block* Parser::top_level_block () {
@@ -39,6 +43,7 @@ Ast_Block* Parser::top_level_block () {
 	push_new_type(this, _block, Light_Compiler::inst->type_def_u64);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_f32);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_f64);
+	push_new_type(this, _block, "string", Light_Compiler::inst->type_def_string);
 
 	this->block(_block);
 	return _block;

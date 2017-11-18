@@ -9,6 +9,8 @@
 
 #include "compiler.hpp"
 
+#define DEBUG false
+
 #define INST_OFFSET(offset) buffer[offset]
 
 Bytecode_Interpreter::Bytecode_Interpreter (size_t vm_size) {
@@ -24,15 +26,13 @@ Bytecode_Interpreter::~Bytecode_Interpreter () {
 
 void Bytecode_Interpreter::run (Ast_Function* func) {
 	auto _tmp = this->stack_index;
-	printf(" + BEGIN '%s'\n", func->name);
 	for (size_t i = 0; i < func->bytecode.size(); i++) {
 		auto inst = func->bytecode[i];
 
-		Light_Compiler::inst->interp->print(i, inst);
+		if (DEBUG) Light_Compiler::inst->interp->print(i, inst);
 		Light_Compiler::inst->interp->run(inst);
 		if (inst->bytecode == BYTECODE_RETURN) break;
 	}
-	printf(" + END '%s'\n", func->name);
 	//Light_Compiler::inst->interp->dump();
 	this->stack_index = _tmp;
 }

@@ -38,7 +38,7 @@ struct Light_Compiler {
 	Ast_Struct_Type* type_def_u64;
 	Ast_Struct_Type* type_def_f32;
 	Ast_Struct_Type* type_def_f64;
-	Ast_Struct_Type* type_def_string;
+	Ast_Pointer_Type* type_def_string;
 
 	static Light_Compiler* inst;
 
