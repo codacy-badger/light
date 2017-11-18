@@ -9,7 +9,7 @@
 
 #include "compiler.hpp"
 
-#define DEBUG false
+#define DEBUG true
 
 #define INST_OFFSET(offset) buffer[offset]
 
@@ -29,9 +29,20 @@ void Bytecode_Interpreter::run (Ast_Function* func) {
 	for (size_t i = 0; i < func->bytecode.size(); i++) {
 		auto inst = func->bytecode[i];
 
-		if (DEBUG) Light_Compiler::inst->interp->print(i, inst);
+		if (DEBUG) {
+			Light_Compiler::inst->interp->print(i, inst);
+			if (inst->bytecode == BYTECODE_RETURN
+				|| inst->bytecode == BYTECODE_CALL
+				|| inst->bytecode == BYTECODE_CALL_FOREIGN)
+				printf("\n");
+			if (inst->bytecode == BYTECODE_RETURN) {
+				Light_Compiler::inst->interp->dump();
+			}
+		}
 		Light_Compiler::inst->interp->run(inst);
 		if (inst->bytecode == BYTECODE_RETURN) break;
+
+		//Light_Compiler::inst->interp->dump();
 	}
 	//Light_Compiler::inst->interp->dump();
 	this->stack_index = _tmp;
@@ -58,6 +69,13 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_SET_DECIMAL: {
 			Light_Compiler::inst->error_stop(NULL, "Decimal bytecode not implemented!");
+			return;
+		}
+		case BYTECODE_CONSTANT_OFFSET: {
+			auto coff = static_cast<Inst_Constant_Offset*>(inst);
+
+			auto ptr = Light_Compiler::inst->interp->constants->allocated[coff->offset];
+			memcpy(this->registers[coff->reg], &ptr, INTERP_REGISTER_SIZE);
 			return;
 		}
 		case BYTECODE_GLOBAL_OFFSET: {
@@ -264,6 +282,11 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		case BYTECODE_SET_DECIMAL: {
 			//auto cpy = static_cast<Inst_Set_Decimal*>(inst);
 			printf("SET_DECIMAL");
+			break;
+		}
+		case BYTECODE_CONSTANT_OFFSET: {
+			auto coff = static_cast<Inst_Constant_Offset*>(inst);
+			printf("CONSTANT_OFFSET, %d, %d", coff->reg, coff->offset);
 			break;
 		}
 		case BYTECODE_GLOBAL_OFFSET: {

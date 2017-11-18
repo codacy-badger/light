@@ -38,11 +38,13 @@ void Bytecode_Generator::gen (Ast_Block* block, vector<Instruction*>* bytecode, 
 }
 
 void Bytecode_Generator::gen (Ast_Return* ret, vector<Instruction*>* bytecode, size_t reg) {
-    auto ret_reg = this->gen(ret->exp, bytecode, reg);
-    if (ret_reg != 0) {
-        auto inst = new Inst_Copy(0, ret_reg);
-        bytecode->push_back(copy_location_info(inst, ret));
-    }
+	if (ret->exp) {
+	    auto ret_reg = this->gen(ret->exp, bytecode, reg);
+	    if (ret_reg != 0) {
+	        auto inst = new Inst_Copy(0, ret_reg);
+	        bytecode->push_back(copy_location_info(inst, ret));
+	    }
+	}
     auto inst2 = new Inst_Return();
     bytecode->push_back(copy_location_info(inst2, ret));
 }
@@ -102,16 +104,33 @@ size_t Bytecode_Generator::gen (Ast_Expression* exp, vector<Instruction*>* bytec
 size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode, size_t reg) {
 	// TODO: handle initialization of global variables
 	if (!bytecode) return reg;
+	auto instance = Light_Compiler::inst;
 	switch (lit->literal_type) {
 		case AST_LITERAL_SIGNED_INT: {
-            // TODO: handle different number sizes
-            auto inst = new Inst_Set_Integer(reg, lit->int_value);
+			Inst_Set_Integer* inst = NULL;
+			if (lit->inferred_type == instance->type_def_s8) {
+				inst = new Inst_Set_Integer(reg, (int8_t)lit->int_value);
+			} else if (lit->inferred_type == instance->type_def_s16) {
+				inst = new Inst_Set_Integer(reg, (int16_t)lit->int_value);
+			} else if (lit->inferred_type == instance->type_def_s32) {
+				inst = new Inst_Set_Integer(reg, (int32_t)lit->int_value);
+			} else if (lit->inferred_type == instance->type_def_s64) {
+				inst = new Inst_Set_Integer(reg, (int64_t)lit->int_value);
+			}
             bytecode->push_back(copy_location_info(inst, lit));
 			return reg;
 		}
 		case AST_LITERAL_UNSIGNED_INT: {
-            // TODO: handle different number sizes
-            auto inst = new Inst_Set_Integer(reg, lit->uint_value);
+			Inst_Set_Integer* inst = NULL;
+			if (lit->inferred_type == instance->type_def_u8) {
+				inst = new Inst_Set_Integer(reg, (uint8_t)lit->uint_value);
+			} else if (lit->inferred_type == instance->type_def_u16) {
+				inst = new Inst_Set_Integer(reg, (uint16_t)lit->uint_value);
+			} else if (lit->inferred_type == instance->type_def_u32) {
+				inst = new Inst_Set_Integer(reg, (uint32_t)lit->uint_value);
+			} else if (lit->inferred_type == instance->type_def_u64) {
+				inst = new Inst_Set_Integer(reg, (uint64_t)lit->uint_value);
+			}
             bytecode->push_back(copy_location_info(inst, lit));
 			return reg;
 		}
@@ -119,6 +138,12 @@ size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode
             // TODO: handle different number sizes
 			printf("\tBYTECODE_SET_DECIMAL %zd, 8, 0x%llf\n", reg, lit->decimal_value);
             // TODO: build & use BYTECODE_SET_DECIMAL instruction
+			return reg;
+		}
+		case AST_LITERAL_STRING: {
+			lit->data_offset = Light_Compiler::inst->interp->constants->add(lit->string_value);
+            auto inst = new Inst_Constant_Offset(reg, lit->data_offset);
+            bytecode->push_back(copy_location_info(inst, lit));
 			return reg;
 		}
 		default: {
@@ -246,8 +271,8 @@ size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* b
 
         auto inst2 = new Inst_Call_Param(i, param_reg, bytecode_type);
         bytecode->push_back(copy_location_info(inst2, call));
-
 	}
+
 	if (func->foreign_module_name) {
 		bytecode_type = bytecode_get_type(func->type->return_type);
 		size_t module_index, function_index;

@@ -187,8 +187,20 @@ void Type_Checking::check_type (Ast_Literal* lit) {
     //TODO: smarter inference: use the smallest possible type
     if (!lit->inferred_type) {
         switch (lit->literal_type) {
+            case AST_LITERAL_UNSIGNED_INT: {
+				lit->inferred_type = Light_Compiler::inst->type_def_u32;
+                break;
+            }
             case AST_LITERAL_SIGNED_INT: {
 				lit->inferred_type = Light_Compiler::inst->type_def_s32;
+                break;
+            }
+            case AST_LITERAL_DECIMAL: {
+				lit->inferred_type = Light_Compiler::inst->type_def_f32;
+                break;
+            }
+            case AST_LITERAL_STRING: {
+				lit->inferred_type = Light_Compiler::inst->type_def_string;
                 break;
             }
             default: break;

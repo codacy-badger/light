@@ -16,6 +16,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_SET_INTEGER,
 	BYTECODE_SET_DECIMAL,
 
+	BYTECODE_CONSTANT_OFFSET,
 	BYTECODE_GLOBAL_OFFSET,
 	BYTECODE_STACK_ALLOCATE,
 	BYTECODE_STACK_OFFSET,
@@ -69,6 +70,17 @@ struct Inst_Set_Integer : Instruction {
 		this->size = size;
 		this->data = (uint8_t*) malloc(size);
 		memcpy(this->data, data, size);
+	}
+};
+
+struct Inst_Constant_Offset : Instruction {
+	uint8_t reg = 0;
+	uint8_t offset = 0;
+
+	Inst_Constant_Offset (uint8_t reg, uint8_t offset) {
+		this->bytecode = BYTECODE_CONSTANT_OFFSET;
+		this->reg = reg;
+		this->offset = offset;
 	}
 };
 

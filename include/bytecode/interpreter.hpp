@@ -2,6 +2,7 @@
 
 #include "bytecode/instructions.hpp"
 #include "bytecode/foreign_functions.hpp"
+#include "bytecode/constants.hpp"
 #include "bytecode/globals.hpp"
 
 #include <deque>
@@ -18,6 +19,7 @@ typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
 struct Bytecode_Interpreter {
 	Foreign_Functions* foreign_functions = new Foreign_Functions();
+	Bytecode_Constants* constants = new Bytecode_Constants();
 	Bytecode_Globals* globals = new Bytecode_Globals();
 	bool stop_running = false;
 

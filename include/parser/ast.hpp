@@ -261,6 +261,9 @@ struct Ast_Literal : Ast_Expression {
 		char* 		string_value;
 	};
 
+	// for bytecode
+	size_t data_offset = 0;
+
 	Ast_Literal () { this->exp_type = AST_EXPRESSION_LITERAL; }
 };
 
