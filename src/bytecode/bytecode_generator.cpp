@@ -246,22 +246,25 @@ size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* b
 	std::vector<int64_t> stack_offsets;
 	for (int i = 0; i < call->parameters.size(); i++) {
 		auto exp = call->parameters[i];
-		if (exp->exp_type == AST_EXPRESSION_CALL) {
-			auto call = static_cast<Ast_Function_Call*>(exp);
-			this->gen(call, bytecode, reg);
 
-			auto bytecode_type = bytecode_get_type(call->inferred_type);
+		if (exp->exp_type == AST_EXPRESSION_IDENT
+			|| exp->exp_type == AST_EXPRESSION_LITERAL) {
+			stack_offsets.push_back(-1);
+		} else {
+			this->gen(exp, bytecode, reg);
+
+			auto bytecode_type = bytecode_get_type(exp->inferred_type);
 			auto size = bytecode_get_size(bytecode_type);
 			stack_offsets.push_back(this->stack_offset);
 
 			auto inst = new Inst_Stack_Allocate(size);
-	        bytecode->push_back(copy_location_info(inst, call));
+	        bytecode->push_back(copy_location_info(inst, exp));
 	        auto inst1 = new Inst_Stack_Offset(reg + 1, this->stack_offset);
-	        bytecode->push_back(copy_location_info(inst1, call));
+	        bytecode->push_back(copy_location_info(inst1, exp));
 	        auto inst2 = new Inst_Store(reg + 1, reg, size);
-	        bytecode->push_back(copy_location_info(inst2, call));
+	        bytecode->push_back(copy_location_info(inst2, exp));
 			this->stack_offset += size;
-		} else stack_offsets.push_back(-1);
+		}
 	}
 
     auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL, func->foreign_module_name);
