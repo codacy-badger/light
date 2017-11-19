@@ -15,7 +15,6 @@
 
 Bytecode_Interpreter::Bytecode_Interpreter (size_t vm_size) {
 	assert(INTERP_REGISTER_SIZE >= sizeof(void*));
-	// INFO: not necessary, but makes debug easier
 	memset(&this->registers, 0, INTERP_REGISTER_COUNT * sizeof(Bytecode_Register));
 	this->vm = dcNewCallVM(vm_size);
 }
@@ -59,15 +58,10 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(this->registers[cpy->reg1], this->registers[cpy->reg2], INTERP_REGISTER_SIZE);
 			return;
 		}
-		case BYTECODE_SET_INTEGER: {
-			auto set = static_cast<Inst_Set_Integer*>(inst);
-
-			assert(set->size <= INTERP_REGISTER_SIZE);
-			memcpy(this->registers[set->reg], set->data, set->size);
-			return;
-		}
-		case BYTECODE_SET_DECIMAL: {
-			Light_Compiler::inst->error_stop(NULL, "Decimal bytecode not implemented!");
+		case BYTECODE_SET: {
+			auto set = static_cast<Inst_Set*>(inst);
+			auto size = bytecode_get_size(set->bytecode_type);
+			memcpy(this->registers[set->reg], set->data, size);
 			return;
 		}
 		case BYTECODE_CONSTANT_OFFSET: {
@@ -257,16 +251,61 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 			}
 			break;
 		}
-		case BYTECODE_SET_INTEGER: {
-			auto set_int = static_cast<Inst_Set_Integer*>(inst);
-			int64_t value = 0;
-			memcpy(&value, set_int->data, set_int->size);
-			printf("SET_INTEGER %d, %d, %lld (0x%08llX)", set_int->reg, set_int->size, value, value);
-			break;
-		}
-		case BYTECODE_SET_DECIMAL: {
-			//auto cpy = static_cast<Inst_Set_Decimal*>(inst);
-			printf("SET_DECIMAL");
+		case BYTECODE_SET: {
+			auto set = static_cast<Inst_Set*>(inst);
+			uint64_t value = 0;
+			switch (set->bytecode_type) {
+				case BYTECODE_TYPE_U8: {
+					memcpy(&value, set->data, 1);
+					printf("SET %d, %u", set->reg, (uint8_t) value);
+					break;
+				}
+				case BYTECODE_TYPE_U16: {
+					memcpy(&value, set->data, 2);
+					printf("SET %d, %u", set->reg, (uint16_t) value);
+					break;
+				}
+				case BYTECODE_TYPE_U32: {
+					memcpy(&value, set->data, 4);
+					printf("SET %d, %u", set->reg, (uint32_t) value);
+					break;
+				}
+				case BYTECODE_TYPE_U64: {
+					memcpy(&value, set->data, 8);
+					printf("SET %d, %llu", set->reg, (uint64_t) value);
+					break;
+				}
+				case BYTECODE_TYPE_S8: {
+					memcpy(&value, set->data, 1);
+					printf("SET %d, %d", set->reg, (int8_t) value);
+					break;
+				}
+				case BYTECODE_TYPE_S16: {
+					memcpy(&value, set->data, 2);
+					printf("SET %d, %d", set->reg, (int16_t) value);
+					break;
+				}
+				case BYTECODE_TYPE_S32: {
+					memcpy(&value, set->data, 4);
+					printf("SET %d, %d", set->reg, (int32_t) value);
+					break;
+				}
+				case BYTECODE_TYPE_S64: {
+					memcpy(&value, set->data, 8);
+					printf("SET %d, %lld", set->reg, (int64_t) value);
+					break;
+				}
+				case BYTECODE_TYPE_F32: {
+					memcpy(&value, set->data, 4);
+					printf("SET %d, %f", set->reg, (float) value);
+					break;
+				}
+				case BYTECODE_TYPE_F64: {
+					memcpy(&value, set->data, 8);
+					printf("SET %d, %lf", set->reg, (double) value);
+					break;
+				}
+			}
 			break;
 		}
 		case BYTECODE_CONSTANT_OFFSET: {

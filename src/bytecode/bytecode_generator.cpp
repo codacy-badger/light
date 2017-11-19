@@ -105,39 +105,24 @@ size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode
 	// TODO: handle initialization of global variables
 	if (!bytecode) return reg;
 	auto instance = Light_Compiler::inst;
+
 	switch (lit->literal_type) {
 		case AST_LITERAL_SIGNED_INT: {
-			Inst_Set_Integer* inst = NULL;
-			if (lit->inferred_type == instance->type_def_s8) {
-				inst = new Inst_Set_Integer(reg, (int8_t)lit->int_value);
-			} else if (lit->inferred_type == instance->type_def_s16) {
-				inst = new Inst_Set_Integer(reg, (int16_t)lit->int_value);
-			} else if (lit->inferred_type == instance->type_def_s32) {
-				inst = new Inst_Set_Integer(reg, (int32_t)lit->int_value);
-			} else if (lit->inferred_type == instance->type_def_s64) {
-				inst = new Inst_Set_Integer(reg, (int64_t)lit->int_value);
-			}
+			auto bytecode_type = bytecode_get_type(lit->inferred_type);
+			auto inst = new Inst_Set(reg, bytecode_type, &lit->int_value);
             bytecode->push_back(copy_location_info(inst, lit));
 			return reg;
 		}
 		case AST_LITERAL_UNSIGNED_INT: {
-			Inst_Set_Integer* inst = NULL;
-			if (lit->inferred_type == instance->type_def_u8) {
-				inst = new Inst_Set_Integer(reg, (uint8_t)lit->uint_value);
-			} else if (lit->inferred_type == instance->type_def_u16) {
-				inst = new Inst_Set_Integer(reg, (uint16_t)lit->uint_value);
-			} else if (lit->inferred_type == instance->type_def_u32) {
-				inst = new Inst_Set_Integer(reg, (uint32_t)lit->uint_value);
-			} else if (lit->inferred_type == instance->type_def_u64) {
-				inst = new Inst_Set_Integer(reg, (uint64_t)lit->uint_value);
-			}
+			auto bytecode_type = bytecode_get_type(lit->inferred_type);
+			auto inst = new Inst_Set(reg, bytecode_type, &lit->uint_value);
             bytecode->push_back(copy_location_info(inst, lit));
 			return reg;
 		}
 		case AST_LITERAL_DECIMAL: {
-            // TODO: handle different number sizes
-			printf("\tBYTECODE_SET_DECIMAL %zd, 8, 0x%llf\n", reg, lit->decimal_value);
-            // TODO: build & use BYTECODE_SET_DECIMAL instruction
+			auto bytecode_type = bytecode_get_type(lit->inferred_type);
+			auto inst = new Inst_Set(reg, bytecode_type, &lit->decimal_value);
+            bytecode->push_back(copy_location_info(inst, lit));
 			return reg;
 		}
 		case AST_LITERAL_STRING: {

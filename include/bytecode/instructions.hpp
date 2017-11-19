@@ -13,8 +13,7 @@ enum Inst_Bytecode : uint8_t {
 
 	BYTECODE_COPY,
 
-	BYTECODE_SET_INTEGER,
-	BYTECODE_SET_DECIMAL,
+	BYTECODE_SET,
 
 	BYTECODE_CONSTANT_OFFSET,
 	BYTECODE_GLOBAL_OFFSET,
@@ -38,6 +37,29 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_RETURN,
 };
 
+const uint8_t BYTECODE_CC_DEFAULT   = 0x0;
+const uint8_t BYTECODE_CC_CDECL     = 0x1;
+const uint8_t BYTECODE_CC_STDCALL   = 0x2;
+const uint8_t BYTECODE_CC_FASTCALL  = 0x3;
+
+const uint8_t BYTECODE_TYPE_VOID 	= 0x0;
+const uint8_t BYTECODE_TYPE_S8 		= 0x1;
+const uint8_t BYTECODE_TYPE_S16 	= 0x2;
+const uint8_t BYTECODE_TYPE_S32 	= 0x3;
+const uint8_t BYTECODE_TYPE_S64 	= 0x4;
+const uint8_t BYTECODE_TYPE_U8 		= 0x5;
+const uint8_t BYTECODE_TYPE_U16 	= 0x6;
+const uint8_t BYTECODE_TYPE_U32 	= 0x7;
+const uint8_t BYTECODE_TYPE_U64 	= 0x8;
+const uint8_t BYTECODE_TYPE_F32 	= 0x9;
+const uint8_t BYTECODE_TYPE_F64 	= 0xA;
+const uint8_t BYTECODE_TYPE_POINTER	= 0xB;
+const uint8_t BYTECODE_TYPE_STRING 	= 0xC;
+
+uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty);
+uint8_t bytecode_get_type (Ast_Expression* exp);
+size_t bytecode_get_size (uint8_t bytecode_type);
+
 struct Instruction {
 	uint8_t bytecode = BYTECODE_NOOP;
 	const char* filename = NULL;
@@ -55,18 +77,26 @@ struct Inst_Copy : Instruction {
 	}
 };
 
-struct Inst_Set_Integer : Instruction {
+struct Inst_Set : Instruction {
 	uint8_t reg = 0;
-	uint8_t size = 0;
+	uint8_t bytecode_type = 0;
 	uint8_t* data = NULL;
 
-	template<typename N>
-	Inst_Set_Integer (uint8_t reg, N value)
-		: Inst_Set_Integer(reg, sizeof(N), reinterpret_cast<uint8_t*>(&value)) {}
-	Inst_Set_Integer (uint8_t reg, uint8_t size, uint8_t* data) {
-		this->bytecode = BYTECODE_SET_INTEGER;
+	Inst_Set (uint8_t reg, uint8_t value)  : Inst_Set (reg, BYTECODE_TYPE_U8,  &value) {}
+	Inst_Set (uint8_t reg, uint16_t value) : Inst_Set (reg, BYTECODE_TYPE_U16, &value) {}
+	Inst_Set (uint8_t reg, uint32_t value) : Inst_Set (reg, BYTECODE_TYPE_U32, &value) {}
+	Inst_Set (uint8_t reg, uint64_t value) : Inst_Set (reg, BYTECODE_TYPE_U64, &value) {}
+	Inst_Set (uint8_t reg, int8_t value)   : Inst_Set (reg, BYTECODE_TYPE_S8,  &value) {}
+	Inst_Set (uint8_t reg, int16_t value)  : Inst_Set (reg, BYTECODE_TYPE_S16, &value) {}
+	Inst_Set (uint8_t reg, int32_t value)  : Inst_Set (reg, BYTECODE_TYPE_S32, &value) {}
+	Inst_Set (uint8_t reg, int64_t value)  : Inst_Set (reg, BYTECODE_TYPE_S64, &value) {}
+	Inst_Set (uint8_t reg, float value)    : Inst_Set (reg, BYTECODE_TYPE_F32, &value) {}
+	Inst_Set (uint8_t reg, double value)   : Inst_Set (reg, BYTECODE_TYPE_F64, &value) {}
+	Inst_Set (uint8_t reg, uint8_t bytecode_type, void* data) {
+		this->bytecode = BYTECODE_SET;
 		this->reg = reg;
-		this->size = size;
+		this->bytecode_type = bytecode_type;
+		auto size = bytecode_get_size(bytecode_type);
 		this->data = (uint8_t*) malloc(size);
 		memcpy(this->data, data, size);
 	}
@@ -174,28 +204,6 @@ struct Inst_Div : Inst_Binary {
 		: Inst_Binary (BYTECODE_DIV, reg1, reg2)
 	{/* empty */}
 };
-
-const uint8_t BYTECODE_CC_DEFAULT   = 0x0;
-const uint8_t BYTECODE_CC_CDECL     = 0x1;
-const uint8_t BYTECODE_CC_STDCALL   = 0x2;
-const uint8_t BYTECODE_CC_FASTCALL  = 0x3;
-
-const uint8_t BYTECODE_TYPE_VOID 	= 0x0;
-const uint8_t BYTECODE_TYPE_S8 		= 0x1;
-const uint8_t BYTECODE_TYPE_S16 	= 0x2;
-const uint8_t BYTECODE_TYPE_S32 	= 0x3;
-const uint8_t BYTECODE_TYPE_S64 	= 0x4;
-const uint8_t BYTECODE_TYPE_U8 		= 0x5;
-const uint8_t BYTECODE_TYPE_U16 	= 0x6;
-const uint8_t BYTECODE_TYPE_U32 	= 0x7;
-const uint8_t BYTECODE_TYPE_U64 	= 0x8;
-const uint8_t BYTECODE_TYPE_F32 	= 0x9;
-const uint8_t BYTECODE_TYPE_F64 	= 0xA;
-const uint8_t BYTECODE_TYPE_POINTER	= 0xB;
-const uint8_t BYTECODE_TYPE_STRING 	= 0xC;
-
-uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty);
-uint8_t bytecode_get_type (Ast_Expression* exp);
 
 struct Inst_Call_Setup : Instruction {
 	uint8_t calling_convention = BYTECODE_CC_DEFAULT;
