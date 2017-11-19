@@ -14,9 +14,8 @@ main :: fn {
 	name : string = "\nThis text comes from bytecode!!\n\n";
 
 	cout := GetStdHandle(STD_ERROR_HANDLE);
-	len := strlen(name);
-	
-	WriteFile(cout, name, len, 0, 0);
+
+	WriteFile(cout, name, strlen(name), 0, 0);
 
 	return;
 }

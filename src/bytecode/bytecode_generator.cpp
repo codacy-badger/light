@@ -243,6 +243,27 @@ size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode
 size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* bytecode, size_t reg) {
 	auto func = static_cast<Ast_Function*>(call->fn);
 
+	std::vector<int64_t> stack_offsets;
+	for (int i = 0; i < call->parameters.size(); i++) {
+		auto exp = call->parameters[i];
+		if (exp->exp_type == AST_EXPRESSION_CALL) {
+			auto call = static_cast<Ast_Function_Call*>(exp);
+			this->gen(call, bytecode, reg);
+
+			auto bytecode_type = bytecode_get_type(call->inferred_type);
+			auto size = bytecode_get_size(bytecode_type);
+			stack_offsets.push_back(this->stack_offset);
+
+			auto inst = new Inst_Stack_Allocate(size);
+	        bytecode->push_back(copy_location_info(inst, call));
+	        auto inst1 = new Inst_Stack_Offset(reg + 1, this->stack_offset);
+	        bytecode->push_back(copy_location_info(inst1, call));
+	        auto inst2 = new Inst_Store(reg + 1, reg, size);
+	        bytecode->push_back(copy_location_info(inst2, call));
+			this->stack_offset += size;
+		} else stack_offsets.push_back(-1);
+	}
+
     auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL, func->foreign_module_name);
     copy_location_info(inst1, call);
     bytecode->push_back(inst1);
@@ -251,16 +272,27 @@ size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* b
 	for (int i = 0; i < call->parameters.size(); i++) {
 		auto exp = call->parameters[i];
 		bytecode_type = bytecode_get_type(exp->inferred_type);
-		auto _reg = this->gen(exp, bytecode, i + 1);
-		assert(_reg == i + 1);
 
-        auto inst2 = new Inst_Call_Param(i, bytecode_type);
-        bytecode->push_back(copy_location_info(inst2, call));
+		if (stack_offsets[i] > -1) {
+			auto size = bytecode_get_size(bytecode_type);
+
+			auto inst1 = new Inst_Stack_Offset(i + 1, stack_offsets[i]);
+	        bytecode->push_back(copy_location_info(inst1, exp));
+	        auto inst2 = new Inst_Load(i + 1, i + 1, size);
+	        bytecode->push_back(copy_location_info(inst2, exp));
+
+	        auto inst3 = new Inst_Call_Param(i, bytecode_type);
+	        bytecode->push_back(copy_location_info(inst3, call));
+		} else {
+			auto _reg = this->gen(exp, bytecode, i + 1);
+			assert(_reg == i + 1);
+
+	        auto inst2 = new Inst_Call_Param(i, bytecode_type);
+	        bytecode->push_back(copy_location_info(inst2, call));
+		}
 	}
 
 	if (func->foreign_module_name) {
-		bytecode_type = bytecode_get_type(func->type->return_type);
-		size_t module_index, function_index;
 		Light_Compiler::inst->interp->foreign_functions->store(func->foreign_module_name, func->name);
 	}
     auto inst2 = new Inst_Call(reinterpret_cast<size_t>(func));
