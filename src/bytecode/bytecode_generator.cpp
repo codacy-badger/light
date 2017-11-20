@@ -63,24 +63,23 @@ void Bytecode_Generator::gen (Ast_Declaration* decl, vector<Instruction*>* bytec
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 		if (decl->scope->is_global()) {
             auto ty_defn = static_cast<Ast_Type_Definition*>(decl->type);
-			decl->data_offset = this->global_offset;
+			decl->stack_offset = this->global_offset;
             this->global_offset += ty_defn->byte_size;
 
 			if (decl->expression) {
 				auto _reg = this->gen(decl->expression, bytecode, reg);
-				printf("\tBYTECODE_GLOBAL_OFFSET %zd, %lld\n", _reg + 1, decl->data_offset);
+				printf("\tBYTECODE_GLOBAL_OFFSET %zd, %lld\n", _reg + 1, decl->stack_offset);
 				printf("\tBYTECODE_STORE %zd, %zd, %lld\n", _reg + 1, _reg, ty_decl->byte_size);
 			}
 		} else {
             auto inst = new Inst_Stack_Allocate(ty_decl->byte_size);
-            ;
             bytecode->push_back(copy_location_info(inst, decl));
 
-			decl->data_offset = this->stack_offset;
+			decl->stack_offset = this->stack_offset;
 			this->stack_offset += ty_decl->byte_size;
 			if (decl->expression) {
 				auto _reg = this->gen(decl->expression, bytecode, reg);
-                auto inst1 = new Inst_Stack_Offset(_reg + 1, decl->data_offset);
+                auto inst1 = new Inst_Stack_Offset(_reg + 1, decl->stack_offset);
                 bytecode->push_back(copy_location_info(inst1, decl));
                 auto inst2 = new Inst_Store(_reg + 1, _reg, ty_decl->byte_size);
                 bytecode->push_back(copy_location_info(inst2, decl));
@@ -198,21 +197,21 @@ size_t Bytecode_Generator::gen (Ast_Unary* unop, vector<Instruction*>* bytecode,
 size_t Bytecode_Generator::gen (Ast_Ident* ident, vector<Instruction*>* bytecode, size_t reg, bool address) {
 	if (ident->declaration->is_global()) {
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			printf("\tBYTECODE_LOAD_GLOBAL %zd, %zd, %zd (%s)\n", reg, ident->declaration->data_offset, ident->inferred_type->byte_size, ident->name);
+			printf("\tBYTECODE_LOAD_GLOBAL %zd, %zd, %zd (%s)\n", reg, ident->declaration->stack_offset, ident->inferred_type->byte_size, ident->name);
 		} else {
-			printf("\tBYTECODE_LOAD_GLOBAL_POINTER %zd, %zd (%s)\n", reg, ident->declaration->data_offset, ident->name);
+			printf("\tBYTECODE_LOAD_GLOBAL_POINTER %zd, %zd (%s)\n", reg, ident->declaration->stack_offset, ident->name);
 		}
 		return reg;
 	} else {
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-            auto inst1 = new Inst_Stack_Offset(reg, ident->declaration->data_offset);
+            auto inst1 = new Inst_Stack_Offset(reg, ident->declaration->stack_offset);
             bytecode->push_back(copy_location_info(inst1, ident));
             if (!address) {
                 auto inst2 = new Inst_Load(reg, reg, ident->inferred_type->byte_size);
                 bytecode->push_back(copy_location_info(inst2, ident));
             }
 		} else {
-			printf("\tBYTECODE_STACK_OFFSET %zd, %zd\n", reg, ident->declaration->data_offset);
+			printf("\tBYTECODE_STACK_OFFSET %zd, %zd\n", reg, ident->declaration->stack_offset);
 		}
 		return reg;
 	}
@@ -225,12 +224,12 @@ size_t Bytecode_Generator::gen (Ast_Function* fn, vector<Instruction*>* bytecode
 
         auto decl_type = static_cast<Ast_Type_Definition*>(decl->type);
         auto size = decl_type->byte_size;
-        decl->data_offset = this->stack_offset;
+        decl->stack_offset = this->stack_offset;
         this->stack_offset += size;
 
         auto inst = new Inst_Stack_Allocate(size);
         fn->bytecode.push_back(copy_location_info(inst, decl));
-        auto inst1 = new Inst_Stack_Offset(free_reg, decl->data_offset);
+        auto inst1 = new Inst_Stack_Offset(free_reg, decl->stack_offset);
         fn->bytecode.push_back(copy_location_info(inst1, decl));
         auto inst2 = new Inst_Store(free_reg, i + 1, size);
         fn->bytecode.push_back(copy_location_info(inst2, decl));

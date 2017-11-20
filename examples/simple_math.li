@@ -11,9 +11,11 @@ WIN_CALL : type : fn (val: s32) -> s32;
 
 #run
 main :: fn {
-	name : string = "\nThis text comes from bytecode!!\n\n";
+	name : string = "This text comes from bytecode!!\n\n";
 
-	WriteFile(GetStdHandle(STD_ERROR_HANDLE), name, strlen(name), 0, 0);
+	len := strlen(name) + 2;
+
+	WriteFile(GetStdHandle(STD_ERROR_HANDLE), name, len, 0, 0);
 
 	return;
 }
@@ -22,8 +24,8 @@ factorial :: fn (number: s32) -> s32 {
     return number * 2;
 }
 
-strlen :: fn (str: string) -> u32 {
-	result : u32 = 34;
+strlen :: fn (str: string) -> s32 {
+	result : s32 = 31;
 	return result;
 }
 

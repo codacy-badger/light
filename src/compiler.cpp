@@ -13,6 +13,7 @@
 #include "parser/pipe/print_pipe.hpp"
 
 #include "parser/pipe/struct_sizer.hpp"
+#include "bytecode/register_allocation.hpp"
 #include "bytecode/bytecode_generator.hpp"
 #include "bytecode/bytecode_runner.hpp"
 
@@ -73,13 +74,25 @@ void Light_Compiler::run () {
 		printf("%s\n", filename);
 
 		auto parser = new Parser(this, filename);
+		// Mandatory
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Type_Checking());
 		parser->append(new Foreign_Function());
+
+		// Optimizations
+		// NONE
+
+		// Bytecode
 		parser->append(new Struct_Sizer());
+		parser->append(new Register_Allocation());
 		parser->append(new Bytecode_Generator());
 		parser->append(new Bytecode_Runner());
+
+		// Bytecode Optimizations
+		// NONE
+
+		// Ouput
 		//parser->append(new PrintPipe());
 
 		auto start = Timer::getTime();

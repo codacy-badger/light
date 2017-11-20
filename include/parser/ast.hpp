@@ -73,8 +73,8 @@ struct Ast_Declaration : Ast_Statement {
 
 	Ast_Block* scope = NULL;
 
-	// For bytecode
-	size_t data_offset = 0;
+	// for bytecode
+	size_t stack_offset = 0;
 
 	// If struct property
 	Ast_Struct_Type* _struct = NULL;
@@ -119,6 +119,10 @@ enum Ast_Expression_Type {
 struct Ast_Expression : Ast_Statement {
 	Ast_Expression_Type exp_type = AST_EXPRESSION_UNDEFINED;
 	Ast_Type_Definition* inferred_type = NULL;
+
+	// for bytecode
+	int64_t register_index = -1; // negative means spilling
+	int64_t stack_offset = -1; // negative means not yet computed
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
 };

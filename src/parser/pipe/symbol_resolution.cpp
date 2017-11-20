@@ -45,7 +45,10 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
         if (it != this->unresolved_symbols.end()) {
             auto deps = it->second;
             this->unresolved_symbols.erase(it);
-            for (auto stm_deps : deps) {
+            auto _it = deps.begin();
+            while (_it != deps.end()) {
+                auto stm_deps = (*_it);
+
                 auto it2 = stm_deps->unresolved_symbols.begin();
                 Ast_Ident** ident = NULL;
                 while (it2 != stm_deps->unresolved_symbols.end()) {
@@ -62,15 +65,12 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
                         } else {
                             (*ident)->declaration = decl;
                         }
-					} else {
-						it2++;
-					}
+					} else it2++;
                 }
                 if (stm_deps->unresolved_symbols.size() == 0) {
-                    auto stm = stm_deps->stm;
-                    delete stm_deps;
-                    this->on_resolved(stm);
-                }
+                    _it = deps.erase(_it);
+                    this->on_resolved(stm_deps->stm);
+                } else _it++;
             }
         }
     }
