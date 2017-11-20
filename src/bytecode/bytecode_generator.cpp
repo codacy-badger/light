@@ -137,6 +137,16 @@ size_t Bytecode_Generator::gen (Ast_Literal* lit, vector<Instruction*>* bytecode
 	}
 }
 
+uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
+	switch (binop) {
+		case AST_BINARY_ADD: return BYTECODE_ADD;
+		case AST_BINARY_SUB: return BYTECODE_SUB;
+		case AST_BINARY_MUL: return BYTECODE_MUL;
+		case AST_BINARY_DIV: return BYTECODE_DIV;
+	}
+	return BYTECODE_NOOP;
+}
+
 size_t Bytecode_Generator::gen (Ast_Binary* binop, vector<Instruction*>* bytecode, size_t reg) {
 	switch (binop->binary_op) {
 		case AST_BINARY_ASSIGN: {
@@ -147,31 +157,14 @@ size_t Bytecode_Generator::gen (Ast_Binary* binop, vector<Instruction*>* bytecod
             bytecode->push_back(copy_location_info(inst2, binop));
 			return lhs_reg;
 		}
-		case AST_BINARY_ADD: {
-        	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
-        	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
-            auto inst1 = new Inst_Add(lhs_reg, rhs_reg);
-            bytecode->push_back(copy_location_info(inst1, binop));
-			return lhs_reg;
-		}
-		case AST_BINARY_SUB: {
-        	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
-        	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
-            auto inst1 = new Inst_Sub(lhs_reg, rhs_reg);
-            bytecode->push_back(copy_location_info(inst1, binop));
-			return lhs_reg;
-		}
-		case AST_BINARY_MUL: {
-        	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
-        	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
-            auto inst1 = new Inst_Mul(lhs_reg, rhs_reg);
-            bytecode->push_back(copy_location_info(inst1, binop));
-			return lhs_reg;
-		}
+		case AST_BINARY_ADD:
+		case AST_BINARY_SUB:
+		case AST_BINARY_MUL:
 		case AST_BINARY_DIV: {
-        	size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
-        	size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
-            auto inst1 = new Inst_Div(lhs_reg, rhs_reg);
+			size_t lhs_reg = this->gen(binop->lhs, bytecode, reg);
+			size_t rhs_reg = this->gen(binop->rhs, bytecode, lhs_reg + 1);
+            auto inst1 = new Inst_Binary(get_bytecode_from_binop(binop->binary_op),
+				lhs_reg, rhs_reg);
             bytecode->push_back(copy_location_info(inst1, binop));
 			return lhs_reg;
 		}
