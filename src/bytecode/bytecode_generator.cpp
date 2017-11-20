@@ -266,7 +266,7 @@ size_t Bytecode_Generator::gen (Ast_Function_Call* call, vector<Instruction*>* b
 		}
 	}
 
-    auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL, func->foreign_module_name);
+    auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL);
     copy_location_info(inst1, call);
     bytecode->push_back(inst1);
 

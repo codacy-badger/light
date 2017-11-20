@@ -46,8 +46,6 @@ void Bytecode_Interpreter::run (Ast_Function* func) {
 	this->stack_index = _tmp;
 }
 
-bool next_call_is_foreign = false;
-
 void Bytecode_Interpreter::run (Instruction* inst) {
 	switch (inst->bytecode) {
 		case BYTECODE_NOOP: return;
@@ -159,36 +157,29 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_CALL_SETUP: {
 			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
 
-			next_call_is_foreign = call_setup->is_foreign;
-			if (next_call_is_foreign) {
-				dcMode(vm, DC_CALL_C_X64_WIN64);
-				dcReset(vm);
-			}
+			dcMode(vm, DC_CALL_C_X64_WIN64);
+			dcReset(vm);
 			return;
 		}
 		case BYTECODE_CALL_PARAM: {
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
 
-			if (next_call_is_foreign) {
-				size_t value;
-				memcpy(&value, this->registers[call_param->index + 1], INTERP_REGISTER_SIZE);
-				switch (call_param->bytecode_type) {
-					case BYTECODE_TYPE_VOID: break;
-					case BYTECODE_TYPE_S8: dcArgChar(vm, (int8_t) value); break;
-					case BYTECODE_TYPE_S16: dcArgShort(vm, (int16_t) value); break;
-					case BYTECODE_TYPE_S32: dcArgInt(vm, (int32_t) value); break;
-					case BYTECODE_TYPE_S64: dcArgLongLong(vm, (int64_t) value); break;
-					case BYTECODE_TYPE_U8: dcArgChar(vm, (int8_t) value); break;
-					case BYTECODE_TYPE_U16: dcArgShort(vm, (int16_t) value); break;
-					case BYTECODE_TYPE_U32: dcArgInt(vm, (int32_t) value); break;
-					case BYTECODE_TYPE_U64: dcArgLongLong(vm, (int64_t) value); break;
-					case BYTECODE_TYPE_F32: dcArgFloat(vm, (float) value); break;
-					case BYTECODE_TYPE_F64: dcArgDouble(vm, (double) value); break;
-					case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (char*) value); break;
-					case BYTECODE_TYPE_STRING: dcArgPointer(vm, (void*) value); break;
-				}
-			} else {
-				//memcpy(this->registers[call_param->index + 1], this->registers[call_param->reg], INTERP_REGISTER_SIZE);
+			size_t value;
+			memcpy(&value, this->registers[call_param->index + 1], INTERP_REGISTER_SIZE);
+			switch (call_param->bytecode_type) {
+				case BYTECODE_TYPE_VOID: break;
+				case BYTECODE_TYPE_S8: dcArgChar(vm, (int8_t) value); break;
+				case BYTECODE_TYPE_S16: dcArgShort(vm, (int16_t) value); break;
+				case BYTECODE_TYPE_S32: dcArgInt(vm, (int32_t) value); break;
+				case BYTECODE_TYPE_S64: dcArgLongLong(vm, (int64_t) value); break;
+				case BYTECODE_TYPE_U8: dcArgChar(vm, (int8_t) value); break;
+				case BYTECODE_TYPE_U16: dcArgShort(vm, (int16_t) value); break;
+				case BYTECODE_TYPE_U32: dcArgInt(vm, (int32_t) value); break;
+				case BYTECODE_TYPE_U64: dcArgLongLong(vm, (int64_t) value); break;
+				case BYTECODE_TYPE_F32: dcArgFloat(vm, (float) value); break;
+				case BYTECODE_TYPE_F64: dcArgDouble(vm, (double) value); break;
+				case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (char*) value); break;
+				case BYTECODE_TYPE_STRING: dcArgPointer(vm, (void*) value); break;
 			}
 			return;
 		}
@@ -377,9 +368,6 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 				case BYTECODE_CC_STDCALL:  printf(" (STDCALL)"); break;
 				case BYTECODE_CC_FASTCALL: printf(" (FASTCALL)"); break;
 			}
-			printf(", %d", call_setup->is_foreign);
-			if (call_setup->is_foreign) printf(" (external)");
-			else printf(" (internal)");
 			break;
 		}
 		case BYTECODE_CALL_PARAM: {

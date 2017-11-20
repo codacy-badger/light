@@ -207,12 +207,10 @@ struct Inst_Div : Inst_Binary {
 
 struct Inst_Call_Setup : Instruction {
 	uint8_t calling_convention = BYTECODE_CC_DEFAULT;
-	uint8_t is_foreign = 0;
 
-	Inst_Call_Setup (uint8_t calling_convention, bool is_foreign) {
+	Inst_Call_Setup (uint8_t calling_convention) {
 		this->bytecode = BYTECODE_CALL_SETUP;
 		this->calling_convention = calling_convention;
-		this->is_foreign = is_foreign;
 	}
 };
 

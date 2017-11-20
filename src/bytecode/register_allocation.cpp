@@ -43,11 +43,7 @@ void Register_Allocation::assign (Ast_Declaration* decl) {
         if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
             auto func = static_cast<Ast_Function*>(decl->expression);
             if (!func->foreign_module_name) {
-                for (auto decl : func->type->parameter_decls) {
-                    this->assign(decl);
-                }
-    			this->current_register = 0;
-    			this->assign(func->scope);
+    			this->assign(func);
             }
 		}
     } else {
@@ -60,7 +56,12 @@ void Register_Allocation::assign (Ast_Declaration* decl) {
     }
 }
 
-void Register_Allocation::assign (Ast_Function* fn) {
+void Register_Allocation::assign (Ast_Function* func) {
+    for (auto decl : func->type->parameter_decls) {
+        this->assign(decl);
+    }
+    this->current_register = 0;
+    this->assign(func->scope);
 }
 
 void Register_Allocation::assign (Ast_Expression* exp) {
