@@ -37,11 +37,6 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_RETURN,
 };
 
-const uint8_t BYTECODE_CC_DEFAULT   = 0x0;
-const uint8_t BYTECODE_CC_CDECL     = 0x1;
-const uint8_t BYTECODE_CC_STDCALL   = 0x2;
-const uint8_t BYTECODE_CC_FASTCALL  = 0x3;
-
 const uint8_t BYTECODE_TYPE_VOID 	= 0x0;
 const uint8_t BYTECODE_TYPE_S8 		= 0x1;
 const uint8_t BYTECODE_TYPE_S16 	= 0x2;
@@ -206,7 +201,7 @@ struct Inst_Div : Inst_Binary {
 };
 
 struct Inst_Call_Setup : Instruction {
-	uint8_t calling_convention = BYTECODE_CC_DEFAULT;
+	uint8_t calling_convention;
 
 	Inst_Call_Setup (uint8_t calling_convention) {
 		this->bytecode = BYTECODE_CALL_SETUP;
@@ -215,8 +210,8 @@ struct Inst_Call_Setup : Instruction {
 };
 
 struct Inst_Call_Param : Instruction {
-	uint8_t index = 0;
-	uint8_t bytecode_type = 0;
+	uint8_t index;
+	uint8_t bytecode_type;
 
 	Inst_Call_Param (uint8_t index, uint8_t bytecode_type) {
 		this->bytecode = BYTECODE_CALL_PARAM;
@@ -226,8 +221,8 @@ struct Inst_Call_Param : Instruction {
 };
 
 struct Inst_Call : Instruction {
-	uint8_t reg = 0;
-	size_t function_pointer = 0;
+	uint8_t reg;
+	size_t function_pointer;
 
 	Inst_Call (size_t function_pointer) {
 		this->bytecode = BYTECODE_CALL;

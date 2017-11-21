@@ -153,8 +153,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_CALL_SETUP: {
 			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
-
-			dcMode(vm, DC_CALL_C_X64_WIN64);
+			dcMode(vm, call_setup->calling_convention);
 			dcReset(vm);
 			return;
 		}
@@ -359,12 +358,6 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		case BYTECODE_CALL_SETUP: {
 			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
 			printf("CALL_SETUP %d", call_setup->calling_convention);
-			switch (call_setup->calling_convention) {
-				case BYTECODE_CC_DEFAULT:  printf(" (DEFAULT)"); break;
-				case BYTECODE_CC_CDECL:    printf(" (CDECL)"); break;
-				case BYTECODE_CC_STDCALL:  printf(" (STDCALL)"); break;
-				case BYTECODE_CC_FASTCALL: printf(" (FASTCALL)"); break;
-			}
 			break;
 		}
 		case BYTECODE_CALL_PARAM: {

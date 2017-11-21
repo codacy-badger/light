@@ -13,7 +13,6 @@
 #include "parser/pipe/print_pipe.hpp"
 
 #include "parser/pipe/struct_sizer.hpp"
-#include "bytecode/register_allocation.hpp"
 #include "bytecode/bytecode_generator.hpp"
 #include "bytecode/bytecode_runner.hpp"
 
@@ -85,7 +84,6 @@ void Light_Compiler::run () {
 
 		// Bytecode
 		parser->append(new Struct_Sizer());
-		parser->append(new Register_Allocation());
 		parser->append(new Bytecode_Generator());
 		parser->append(new Bytecode_Runner());
 

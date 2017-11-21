@@ -2,6 +2,8 @@
 
 #include "compiler.hpp"
 
+#include "dyncall/dyncall.h"
+
 Instruction* copy_location_info (Instruction* intruction, Ast* node) {
     intruction->filename = node->filename;
     intruction->line = node->line;
@@ -242,7 +244,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 		this->gen(call->parameters[i]);
 	}
 
-	auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL);
+	auto inst1 = new Inst_Call_Setup(DC_CALL_C_DEFAULT);
 	copy_location_info(inst1, call);
 	this->bytecode->push_back(inst1);
 
