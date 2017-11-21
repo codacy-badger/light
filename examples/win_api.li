@@ -11,4 +11,4 @@ GetStdHandle : fn (code: s32) -> *void :;
 WriteFile : fn (handle: *void, buffer: *void, bytes_to_write: s32, written_bytes: *s32, overlapped: *void) -> u8 :;
 
 #foreign("kernel32")
-WriteConsole : fn (handle: *void, buffer: *void, bytes_to_write: s32, written_bytes: *s32, overlapped: *void) -> u8 :;
+WriteConsoleA : fn (handle: *void, buffer: *void, bytes_to_write: s32, written_bytes: *s32, overlapped: *void) -> u8 :;

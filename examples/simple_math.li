@@ -14,7 +14,7 @@ main :: fn {
 	number := factorial(5);
 	name : string = "This text comes from bytecode!!\n\n";
 
-	WriteFile(GetStdHandle(STD_ERROR_HANDLE), name, strlen(name), 0, 0);
+	WriteConsoleA(GetStdHandle(STD_ERROR_HANDLE), name, strlen(name), 0, 0);
 
 	return;
 }
