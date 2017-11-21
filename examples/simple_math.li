@@ -11,9 +11,8 @@ WIN_CALL : type : fn (val: s32) -> s32;
 
 #run
 main :: fn {
-	name : string = "This text comes from bytecode!!\n\n";
-
 	number := factorial(5);
+	name : string = "This text comes from bytecode!!\n\n";
 
 	WriteFile(GetStdHandle(STD_ERROR_HANDLE), name, strlen(name), 0, 0);
 
