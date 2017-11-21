@@ -165,7 +165,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
 
 			size_t value;
-			memcpy(&value, this->registers[call_param->index + 1], INTERP_REGISTER_SIZE);
+			memcpy(&value, this->registers[call_param->index], INTERP_REGISTER_SIZE);
 			switch (call_param->bytecode_type) {
 				case BYTECODE_TYPE_VOID: break;
 				case BYTECODE_TYPE_S8: dcArgChar(vm, (int8_t) value); break;
