@@ -33,9 +33,6 @@ void Bytecode_Interpreter::run (Ast_Function* func) {
 			if (inst->bytecode == BYTECODE_RETURN
 				|| inst->bytecode == BYTECODE_CALL)
 				printf("\n");
-			if (inst->bytecode == BYTECODE_RETURN) {
-				Light_Compiler::inst->interp->dump();
-			}
 		}
 		Light_Compiler::inst->interp->run(inst);
 		if (inst->bytecode == BYTECODE_RETURN) break;
