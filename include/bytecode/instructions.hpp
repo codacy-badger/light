@@ -18,6 +18,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_CONSTANT_OFFSET,
 	BYTECODE_GLOBAL_OFFSET,
 	BYTECODE_STACK_ALLOCATE,
+	BYTECODE_STACK_FREE,
 	BYTECODE_STACK_OFFSET,
 
 	BYTECODE_LOAD,
@@ -124,6 +125,15 @@ struct Inst_Stack_Allocate : Instruction {
 
 	Inst_Stack_Allocate (uint8_t size) {
 		this->bytecode = BYTECODE_STACK_ALLOCATE;
+		this->size = size;
+	}
+};
+
+struct Inst_Stack_Free : Instruction {
+	uint8_t size = 0;
+
+	Inst_Stack_Free (uint8_t size) {
+		this->bytecode = BYTECODE_STACK_FREE;
 		this->size = size;
 	}
 };

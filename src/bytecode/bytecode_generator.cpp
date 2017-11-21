@@ -227,9 +227,9 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	// store them in the stack and restore them after the call
 	auto _tmp = this->current_register;
 	if (_tmp > 0) {
+		auto inst = new Inst_Stack_Allocate(_tmp * INTERP_REGISTER_SIZE);
+		this->bytecode->push_back(copy_location_info(inst, call));
 		for (int i = 0; i < _tmp; i++) {
-			auto inst = new Inst_Stack_Allocate(INTERP_REGISTER_SIZE);
-	        this->bytecode->push_back(copy_location_info(inst, call));
 	        auto inst1 = new Inst_Stack_Offset(_tmp, this->stack_offset);
 	        this->bytecode->push_back(copy_location_info(inst1, call));
 	        auto inst2 = new Inst_Store(_tmp, i, INTERP_REGISTER_SIZE);
@@ -240,8 +240,8 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	}
 
 	this->current_register = 0;
-	for (int i = 0; i < call->parameters.size(); i++) {
-		this->gen(call->parameters[i]);
+	for (auto exp : call->parameters) {
+		this->gen(exp);
 	}
 
 	auto inst1 = new Inst_Call_Setup(DC_CALL_C_DEFAULT);
@@ -260,6 +260,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	if (func->foreign_module_name) {
 		Light_Compiler::inst->interp->foreign_functions->store(func->foreign_module_name, func->name);
 	}
+	
     auto inst2 = new Inst_Call(reinterpret_cast<size_t>(func));
     this->bytecode->push_back(copy_location_info(inst2, call));
 	if (_tmp != 0) {
@@ -270,6 +271,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	// Now we restore the values from previous registers so we can continue
 	// with the current expression
 	if (_tmp > 0) {
+		auto max_size = this->stack_offset;
 		for (int i = _tmp - 1; i >= 0; i--) {
 			this->stack_offset -= INTERP_REGISTER_SIZE;
 
@@ -278,6 +280,8 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	        auto inst2 = new Inst_Load(i, _tmp + 1, INTERP_REGISTER_SIZE);
 	        this->bytecode->push_back(copy_location_info(inst2, call));
 		}
+        auto inst1 = new Inst_Stack_Free(max_size - this->stack_offset);
+        this->bytecode->push_back(copy_location_info(inst1, call));
 	}
 
 	this->current_register = _tmp + 1;

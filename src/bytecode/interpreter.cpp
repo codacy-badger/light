@@ -79,6 +79,12 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			assert(this->stack_index < INTERP_STACK_SIZE);
 			return;
 		}
+		case BYTECODE_STACK_FREE: {
+			auto _free = static_cast<Inst_Stack_Free*>(inst);
+
+			this->stack_index -= _free->size;
+			return;
+		}
 		case BYTECODE_STACK_OFFSET: {
 			auto stoff = static_cast<Inst_Stack_Offset*>(inst);
 
@@ -308,6 +314,11 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		case BYTECODE_STACK_ALLOCATE: {
 			auto alloca = static_cast<Inst_Stack_Allocate*>(inst);
 			printf("STACK_ALLOCATE %d", alloca->size);
+			break;
+		}
+		case BYTECODE_STACK_FREE: {
+			auto _free = static_cast<Inst_Stack_Free*>(inst);
+			printf("STACK_FREE %d", _free->size);
 			break;
 		}
 		case BYTECODE_STACK_OFFSET: {
