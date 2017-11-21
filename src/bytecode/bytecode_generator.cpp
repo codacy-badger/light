@@ -14,6 +14,7 @@ void Bytecode_Generator::on_statement (Ast_Statement* stm) {
 }
 
 void Bytecode_Generator::gen (Ast_Statement* stm) {
+	this->current_register = 0;
     switch (stm->stm_type) {
         case AST_STATEMENT_DECLARATION: {
             this->gen(static_cast<Ast_Declaration*>(stm));
@@ -219,12 +220,27 @@ void Bytecode_Generator::gen (Ast_Function* fn) {
 }
 
 void Bytecode_Generator::gen (Ast_Function_Call* call) {
+	// If we're not the 1st argument in an expression or argument list,
+	// we're overriding the values in previous registers, so we have to
+	// store them in the stack and restore them after the call
 	auto _tmp = this->current_register;
+	if (_tmp > 0) {
+		for (int i = 0; i < _tmp; i++) {
+			auto inst = new Inst_Stack_Allocate(INTERP_REGISTER_SIZE);
+	        this->bytecode->push_back(copy_location_info(inst, call));
+	        auto inst1 = new Inst_Stack_Offset(_tmp, this->stack_offset);
+	        this->bytecode->push_back(copy_location_info(inst1, call));
+	        auto inst2 = new Inst_Store(_tmp, i, INTERP_REGISTER_SIZE);
+	        this->bytecode->push_back(copy_location_info(inst2, call));
+
+			this->stack_offset += INTERP_REGISTER_SIZE;
+		}
+	}
+
 	this->current_register = 0;
 	for (int i = 0; i < call->parameters.size(); i++) {
 		this->gen(call->parameters[i]);
 	}
-	this->current_register = _tmp + 1;
 
 	auto inst1 = new Inst_Call_Setup(BYTECODE_CC_CDECL);
 	copy_location_info(inst1, call);
@@ -244,4 +260,23 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	}
     auto inst2 = new Inst_Call(reinterpret_cast<size_t>(func));
     this->bytecode->push_back(copy_location_info(inst2, call));
+	if (_tmp != 0) {
+		auto inst3 = new Inst_Copy(_tmp, 0);
+	    this->bytecode->push_back(copy_location_info(inst3, call));
+	}
+
+	// Now we restore the values from previous registers so we can continue
+	// with the current expression
+	if (_tmp > 0) {
+		for (int i = _tmp - 1; i >= 0; i--) {
+			this->stack_offset -= INTERP_REGISTER_SIZE;
+
+	        auto inst1 = new Inst_Stack_Offset(_tmp + 1, this->stack_offset);
+	        this->bytecode->push_back(copy_location_info(inst1, call));
+	        auto inst2 = new Inst_Load(i, _tmp + 1, INTERP_REGISTER_SIZE);
+	        this->bytecode->push_back(copy_location_info(inst2, call));
+		}
+	}
+
+	this->current_register = _tmp + 1;
 }
