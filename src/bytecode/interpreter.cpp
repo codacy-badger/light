@@ -56,6 +56,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_SET: {
 			auto set = static_cast<Inst_Set*>(inst);
 			auto size = bytecode_get_size(set->bytecode_type);
+			memset(this->registers[set->reg], 0, INTERP_REGISTER_SIZE);
 			memcpy(this->registers[set->reg], set->data, size);
 			return;
 		}
@@ -165,9 +166,11 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_CALL_PARAM: {
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
+			auto size = bytecode_get_size(call_param->bytecode_type);
 
-			size_t value;
-			memcpy(&value, this->registers[call_param->index], INTERP_REGISTER_SIZE);
+			size_t value = 0;
+			memcpy(&value, this->registers[call_param->index], size);
+			//printf("\t + Param value: %llX\n", value);
 			switch (call_param->bytecode_type) {
 				case BYTECODE_TYPE_VOID: break;
 				case BYTECODE_TYPE_S8: dcArgChar(vm, (int8_t) value); break;

@@ -135,12 +135,13 @@ uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
 }
 
 void Bytecode_Generator::gen (Ast_Binary* binop) {
-	auto reg = this->current_register++;
 	switch (binop->binary_op) {
 		case AST_BINARY_ASSIGN: {
             auto size = binop->rhs->inferred_type->byte_size;
         	this->gen(binop->lhs, true);
         	this->gen(binop->rhs);
+            this->current_register--;
+			auto reg = this->current_register;
             auto inst2 = new Inst_Store(reg - 1, reg, size);
             this->bytecode->push_back(copy_location_info(inst2, binop));
 			break;
@@ -151,9 +152,12 @@ void Bytecode_Generator::gen (Ast_Binary* binop) {
 		case AST_BINARY_DIV: {
 			this->gen(binop->lhs);
 			this->gen(binop->rhs);
+            this->current_register--;
+			auto reg = this->current_register;
 			auto binop_type = get_bytecode_from_binop(binop->binary_op);
             auto inst1 = new Inst_Binary(binop_type, reg - 1, reg);
             this->bytecode->push_back(copy_location_info(inst1, binop));
+
 			break;
 		}
 		default: return;
@@ -244,7 +248,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 		this->gen(exp);
 	}
 
-	auto inst1 = new Inst_Call_Setup(DC_CALL_C_DEFAULT);
+	auto inst1 = new Inst_Call_Setup(DC_CALL_C_X64_WIN64);
 	copy_location_info(inst1, call);
 	this->bytecode->push_back(inst1);
 
@@ -260,7 +264,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	if (func->foreign_module_name) {
 		Light_Compiler::inst->interp->foreign_functions->store(func->foreign_module_name, func->name);
 	}
-	
+
     auto inst2 = new Inst_Call(reinterpret_cast<size_t>(func));
     this->bytecode->push_back(copy_location_info(inst2, call));
 	if (_tmp != 0) {
