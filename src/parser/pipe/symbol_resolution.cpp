@@ -40,39 +40,40 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
     this->to_next(stm);
     if (stm->stm_type == AST_STATEMENT_DECLARATION) {
         auto decl = static_cast<Ast_Declaration*>(stm);
+		if (decl->decl_flags & DECL_FLAG_CONSTANT) {
+	        auto it = this->unresolved_symbols.find(decl->name);
+	        if (it != this->unresolved_symbols.end()) {
+	            auto deps = it->second;
+	            this->unresolved_symbols.erase(it);
+	            auto _it = deps.begin();
+	            while (_it != deps.end()) {
+	                auto stm_deps = (*_it);
 
-        auto it = this->unresolved_symbols.find(decl->name);
-        if (it != this->unresolved_symbols.end()) {
-            auto deps = it->second;
-            this->unresolved_symbols.erase(it);
-            auto _it = deps.begin();
-            while (_it != deps.end()) {
-                auto stm_deps = (*_it);
+	                auto it2 = stm_deps->unresolved_symbols.begin();
+	                Ast_Ident** ident = NULL;
+	                while (it2 != stm_deps->unresolved_symbols.end()) {
+						ident = (*it2);
+	                    if (strcmp((*ident)->name, decl->name) == 0) {
+	                        it2 = stm_deps->unresolved_symbols.erase(it2);
 
-                auto it2 = stm_deps->unresolved_symbols.begin();
-                Ast_Ident** ident = NULL;
-                while (it2 != stm_deps->unresolved_symbols.end()) {
-					ident = (*it2);
-                    if (strcmp((*ident)->name, decl->name) == 0) {
-                        it2 = stm_deps->unresolved_symbols.erase(it2);
-
-                        // INFO: if the declaration we've resolved to is constant
-                        // we replace the current Ident with the decl expression.
-                        // This should remove the need to handle constants
-                        // bytecode / executable (appart from string).
-                        if (decl->decl_flags & DECL_FLAG_CONSTANT) {
-                            replace_ident_by_const(ident, decl->expression);
-                        } else {
-                            (*ident)->declaration = decl;
-                        }
-					} else it2++;
-                }
-                if (stm_deps->unresolved_symbols.size() == 0) {
-                    _it = deps.erase(_it);
-                    this->on_resolved(stm_deps->stm);
-                } else _it++;
-            }
-        }
+	                        // INFO: if the declaration we've resolved to is constant
+	                        // we replace the current Ident with the decl expression.
+	                        // This should remove the need to handle constants
+	                        // bytecode / executable (appart from string).
+	                        if (decl->decl_flags & DECL_FLAG_CONSTANT) {
+	                            replace_ident_by_const(ident, decl->expression);
+	                        } else {
+	                            (*ident)->declaration = decl;
+	                        }
+						} else it2++;
+	                }
+	                if (stm_deps->unresolved_symbols.size() == 0) {
+	                    _it = deps.erase(_it);
+	                    this->on_resolved(stm_deps->stm);
+	                } else _it++;
+	            }
+	        }
+		}
     }
 }
 

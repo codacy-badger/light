@@ -50,6 +50,7 @@ Ast_Block* Parser::top_level_block () {
 }
 
 void Parser::block (Ast_Block* insert_block) {
+	auto _tmp = this->current_block;
 	this->current_block = insert_block;
 	this->on_block_begin(this->current_block);
 
@@ -60,11 +61,7 @@ void Parser::block (Ast_Block* insert_block) {
 			if (imp->import_flags & IMPORT_INCLUDE_CONTENT) {
 				this->lexer = this->lexer->push(imp->filepath);
 				if (this->lexer->buffer->is_valid()) {
-					auto include_block = AST_NEW(Ast_Block, this->current_block);
-					this->block(include_block);
-					this->current_block->list.insert(this->current_block->list.end(),
-						include_block->list.begin(), include_block->list.end());
-					delete include_block;
+					this->block(this->current_block);
 				} else this->compiler->error(imp,
 					"Can't open import file: '%s'", imp->filepath);
 				this->lexer = this->lexer->pop();
@@ -86,7 +83,7 @@ void Parser::block (Ast_Block* insert_block) {
 	}
 
 	this->on_block_end(this->current_block);
-	this->current_block = this->current_block->parent;
+	this->current_block = _tmp;
 }
 
 Ast_Note* Parser::note () {
