@@ -8,7 +8,7 @@
 using namespace std;
 
 struct Bytecode_Types {
-    vector<Ast_Type_Definition*> all;
+    vector<Ast_Type_Definition*> all_types;
 
     bool contains (Ast_Type_Definition* type_def);
     void add (Ast_Type_Definition* type_def);

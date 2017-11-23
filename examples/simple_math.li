@@ -1,6 +1,6 @@
 import! "examples/win_api.li"
 
-Vec2 :: struct {
+Vec3 :: struct {
 	x : s32;
 	y : s32;
 }

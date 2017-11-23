@@ -44,6 +44,7 @@ void push_parameter (DCCallVM* vm, Ast_Literal* lit) {
 
 size_t run_function (DCCallVM* vm, Ast_Function* func, Ast_Note* run_note) {
 	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
+	// TODO: this part of the code shouldn't care if the function is foreign or not
 	if (func->foreign_module_name) {
 		// TODO: have some notion of calling convention options
 		dcMode(vm, DC_CALL_C_X64_WIN64);

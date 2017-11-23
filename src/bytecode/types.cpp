@@ -1,7 +1,7 @@
 #include "bytecode/types.hpp"
 
 bool Bytecode_Types::contains (Ast_Type_Definition* type_def) {
-    for (auto _type_def : this->all) {
+    for (auto _type_def : this->all_types) {
         if (_type_def == type_def) return true;
     }
     return false;
@@ -9,19 +9,14 @@ bool Bytecode_Types::contains (Ast_Type_Definition* type_def) {
 
 void Bytecode_Types::add (Ast_Type_Definition* type_def) {
     if (!this->contains(type_def)) {
-        this->print(stdout, type_def);
-        fprintf(stdout, "\n");
-        this->all.push_back(type_def);
         switch (type_def->typedef_type) {
             case AST_TYPEDEF_FUNCTION: {
                 Ast_Type_Definition* _ty = NULL;
                 auto func_type = static_cast<Ast_Function_Type*>(type_def);
                 for (auto decl : func_type->parameter_decls) {
-                    _ty = static_cast<Ast_Type_Definition*>(decl->type);
-                    this->add(_ty);
+                    this->add(static_cast<Ast_Type_Definition*>(decl->type));
                 }
-                _ty = static_cast<Ast_Type_Definition*>(func_type->return_type);
-                this->add(_ty);
+                this->add(static_cast<Ast_Type_Definition*>(func_type->return_type));
                 break;
             }
         	case AST_TYPEDEF_POINTER: {
@@ -32,6 +27,9 @@ void Bytecode_Types::add (Ast_Type_Definition* type_def) {
             }
             default: break;
         }
+        this->print(stdout, type_def);
+        fprintf(stdout, "\n");
+        this->all_types.push_back(type_def);
     }
 }
 
