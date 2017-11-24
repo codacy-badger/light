@@ -32,23 +32,25 @@ void Type_Checking::check_type (Ast_Block* block) {
 }
 
 void Type_Checking::check_type (Ast_Declaration* decl) {
-	if (decl->expression) {
-		check_type(decl->expression);
-		if (!decl->expression->inferred_type)
-			Light_Compiler::inst->error_stop(decl->expression,
-				"Expression type could not be inferred!");
-	}
-
 	if (decl->type) check_type(decl->type);
 
-	if (!decl->type && !decl->expression) {
-		Light_Compiler::inst->error_stop(decl, "Cannot infer type without an expression!");
-	} else if (!decl->type) {
-		decl->type = decl->expression->inferred_type;
-	}
+	if (decl->expression) {
+		check_type(decl->expression);
+		if (!decl->expression->inferred_type) {
+			Light_Compiler::inst->error_stop(decl->expression, "Expression type could not be inferred!");
+		}
 
-	if (decl->expression && (decl->decl_flags & DECL_FLAG_CONSTANT)) {
-		// TODO: ensure expression is constant
+		if (decl->decl_flags & DECL_FLAG_CONSTANT) {
+			// TODO: ensure expression is constant
+		}
+
+		if (!decl->type) {
+			decl->type = decl->expression->inferred_type;
+		}
+	} else {
+		if (!decl->type) {
+			Light_Compiler::inst->error_stop(decl, "Cannot infer type without an expression!");
+		}
 	}
 
 	if (decl->type->inferred_type != Light_Compiler::inst->type_def_type) {
@@ -173,8 +175,10 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
 	call->inferred_type = ret_ty;
 
-	for (auto exp : call->args->values)
-		check_type(exp);
+	if (call->args) {
+		for (auto exp : call->args->values)
+			check_type(exp);
+	}
 }
 
 void Type_Checking::check_type (Ast_Binary* binop) {

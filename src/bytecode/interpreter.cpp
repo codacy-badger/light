@@ -210,10 +210,10 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 				auto ffunctions = Light_Compiler::inst->interp->foreign_functions;
 				auto module = ffunctions->get_or_add_module(func->foreign_module_name);
 				if (module) {
-					function_pointer = ffunctions->get_or_add_function(module, func->name);
+					function_pointer = ffunctions->get_or_add_function(module, func->foreign_function_name);
 					if (!function_pointer) {
-						Light_Compiler::inst->error_stop(func, "Function '%s' not found (module '%s')!",
-							func->name, func->foreign_module_name);
+						Light_Compiler::inst->error_stop(func, "Function '%s' not found in module '%s'!",
+							func->foreign_function_name, func->foreign_module_name);
 					}
 				} else {
 					Light_Compiler::inst->error_stop(func, "Module '%s' not found!", func->foreign_module_name);

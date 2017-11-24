@@ -180,6 +180,7 @@ struct Ast_Function : Ast_Expression {
 	Ast_Block* scope = NULL;
 
 	const char* foreign_module_name = NULL;
+	const char* foreign_function_name = NULL;
 
 	vector<Instruction*> bytecode;
 

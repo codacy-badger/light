@@ -249,20 +249,24 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	}
 
 	this->current_register = 0;
-	for (auto exp : call->args->values) {
-		this->gen(exp);
+	if (call->args) {
+		for (auto exp : call->args->values) {
+			this->gen(exp);
+		}
 	}
 
 	auto inst1 = new Inst_Call_Setup(DC_CALL_C_X64_WIN64);
 	copy_location_info(inst1, call);
 	this->bytecode->push_back(inst1);
 
-	auto bytecode_type = BYTECODE_TYPE_VOID;
-	for (int i = 0; i < call->args->values.size(); i++) {
-		auto exp = call->args->values[i];
-		bytecode_type = bytecode_get_type(exp->inferred_type);
-        auto inst2 = new Inst_Call_Param(i, bytecode_type);
-        this->bytecode->push_back(copy_location_info(inst2, call));
+	if (call->args) {
+		auto bytecode_type = BYTECODE_TYPE_VOID;
+		for (int i = 0; i < call->args->values.size(); i++) {
+			auto exp = call->args->values[i];
+			bytecode_type = bytecode_get_type(exp->inferred_type);
+			auto inst2 = new Inst_Call_Param(i, bytecode_type);
+			this->bytecode->push_back(copy_location_info(inst2, call));
+		}
 	}
 
 	auto func = static_cast<Ast_Function*>(call->fn);

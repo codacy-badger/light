@@ -19,6 +19,16 @@ Ast_Note* remove_foreign_note (Ast_Declaration* decl) {
 	return NULL;
 }
 
+char* extract_string_parameter (Ast_Expression* exp) {
+	if (exp->exp_type == AST_EXPRESSION_LITERAL) {
+		auto lit = static_cast<Ast_Literal*>(exp);
+		if (lit->literal_type == AST_LITERAL_STRING) {
+			return lit->string_value;
+		} else Light_Compiler::inst->error_stop(exp, "foreign note parameter is not a string!");
+	} else Light_Compiler::inst->error_stop(exp, "foreign notes parameter is not a literal!");
+	return NULL;
+}
+
 void Foreign_Function::on_statement(Ast_Statement* stm) {
 	if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 		auto decl = static_cast<Ast_Declaration*>(stm);
@@ -34,18 +44,21 @@ void Foreign_Function::on_statement(Ast_Statement* stm) {
 						fn->name = decl->name;
 						fn->type = fn_type;
 
-						if (!note->arguments || note->arguments->values.size() != 1) {
-							Light_Compiler::inst->error_stop(note, "foreign notes must have 1 (string) parameter!");
+						if (!note->arguments || (note->arguments->values.size() != 1
+							&& note->arguments->values.size() != 2)) {
+							Light_Compiler::inst->error_stop(note, "foreign notes must have 1 or 2 (string) parameter!");
 						}
 
 						auto exp = note->arguments->values[0];
-						if (exp->exp_type == AST_EXPRESSION_LITERAL) {
-							auto lit = static_cast<Ast_Literal*>(exp);
-							if (lit->literal_type == AST_LITERAL_STRING) {
-								fn->foreign_module_name = lit->string_value;
-								delete note;
-							} else Light_Compiler::inst->error_stop(note, "foreign note parameter is not a string!");
-						} else Light_Compiler::inst->error_stop(note, "foreign notes parameter is not a literal!");
+						auto module_name = extract_string_parameter(exp);
+						if (module_name) {
+							fn->foreign_module_name = module_name;
+							if (note->arguments->values.size() == 2) {
+								exp = note->arguments->values[1];
+								fn->foreign_function_name = extract_string_parameter(exp);
+							} else fn->foreign_function_name = fn->name;
+						}
+						delete note;
 
 						decl->expression = fn;
 					}

@@ -5,10 +5,11 @@ main :: fn {
 	number := factorial(5);
 	name : string = "This text comes from bytecode!!\n\n";
 
-	WriteConsoleA(GetStdHandle(STD_ERROR_HANDLE), name, strlen(name), 0, 0);
+	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), name, strlen(name), 0, 0);
 }
 
 factorial :: fn (number: s32) -> s32 {
+	asd := 123;
     return number * 2;
 }
 

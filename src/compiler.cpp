@@ -97,7 +97,7 @@ void Light_Compiler::run () {
 }
 
 void print_node_location (FILE* buffer, Ast* node) {
-	if (node) {
+	if (node && node->filename) {
 		fprintf(buffer, "@ %s:%d,%d", node->filename, node->line, node->col);
 		fprintf(stdout, "\n");
 	}
