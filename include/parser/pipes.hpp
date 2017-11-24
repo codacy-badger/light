@@ -37,5 +37,9 @@ struct Pipe {
 		if (next) next->on_finish();
 	}
 
-	void append (Pipe* next);
+	void append (Pipe* next) {
+		Pipe* last = this;
+		while (last->next) last = last->next;
+		last->next = next;
+	}
 };
