@@ -2,8 +2,6 @@
 
 #include "lexer/lexer.hpp"
 
-#include <assert.h>
-
 #include "compiler.hpp"
 
 #define LEXER_DEBUG false
@@ -144,17 +142,17 @@ bool Lexer::optional_skip (Token_Type type) {
 }
 
 void Lexer::report_unexpected (Token_Type expected) {
-	fprintf(stderr, "[ERROR] Parser: Expected '%s', but got '%s'\n",
+	// TODO: make some sort of generic location info structure to pass
+	Light_Compiler::inst->error(NULL, "Parser: Expected '%s', but got '%s'",
 		get_name(expected), get_name(this->nextType));
-	fprintf(stderr, "\tat %s:%d,%d\n", this->buffer->source,
+	Light_Compiler::inst->error_stop(NULL, "@ %s:%d,%d", this->buffer->source,
 		this->buffer->line, this->buffer->col);
-	exit(EXIT_FAILURE);
 }
 
 void Lexer::report_unexpected () {
-	fprintf(stderr, "[ERROR] Parser: Unexpected token '%s'\n",
+	Light_Compiler::inst->error(NULL, "Parser: Unexpected token '%s'",
 		get_name(this->nextType));
-	fprintf(stderr, "\tat %s:%d,%d\n", this->buffer->source,
+	Light_Compiler::inst->error_stop(NULL, "@ %s:%d,%d", this->buffer->source,
 		this->buffer->line, this->buffer->col);
 	exit(EXIT_FAILURE);
 }
@@ -268,7 +266,6 @@ Lexer* Lexer::push (const char* filepath) {
 }
 
 Lexer* Lexer::pop () {
-	assert(this->parent);
 	auto out = this->parent;
 	delete this;
 	return out;

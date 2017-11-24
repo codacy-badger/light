@@ -102,9 +102,10 @@ void Light_Compiler::run () {
 }
 
 void print_node_location (FILE* buffer, Ast* node) {
-	if (node)
+	if (node) {
 		fprintf(buffer, "@ %s:%d,%d", node->filename, node->line, node->col);
-	else fprintf(buffer, "@ (null):?,?");
+		fprintf(stdout, "\n");
+	}
 }
 
 void Light_Compiler::info (Ast* node, const char* format, ...) {
@@ -117,7 +118,6 @@ void Light_Compiler::info (Ast* node, const char* format, ...) {
 	fprintf(stdout, "\n\t");
 
 	print_node_location(stdout, node);
-	fprintf(stdout, "\n");
 }
 
 void Light_Compiler::warning (Ast* node, const char* format, ...) {
@@ -130,7 +130,6 @@ void Light_Compiler::warning (Ast* node, const char* format, ...) {
 	fprintf(stdout, "\n\t");
 
 	print_node_location(stdout, node);
-	fprintf(stdout, "\n");
 }
 
 void Light_Compiler::error (Ast* node, const char* format, ...) {
@@ -147,7 +146,6 @@ void Light_Compiler::v_error (Ast* node, const char* format, va_list argptr) {
 	fprintf(stderr, "\n\t");
 
 	print_node_location(stderr, node);
-	fprintf(stderr, "\n");
 	has_errors = true;
 }
 
