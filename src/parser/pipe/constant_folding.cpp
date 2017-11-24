@@ -31,19 +31,27 @@ void Constant_Folding::on_statement(Ast_Statement* stm) {
 
 void Constant_Folding::fold (Ast_Statement* stm) {
 	for (auto note : stm->notes) {
-		if (note->arguments) this->fold(&note->arguments);
+		if (note->arguments) {
+			for (int i = 0; i < note->arguments->values.size(); i++) {
+				this->fold(&note->arguments->values[i]);
+			}
+		}
 	}
 	switch (stm->stm_type) {
 		case AST_STATEMENT_BLOCK: {
-			this->fold(static_cast<Ast_Block*>(stm));
+			auto block = static_cast<Ast_Block*>(stm);
+			for (auto stm : block->list) this->fold(stm);
 			break;
 		}
 		case AST_STATEMENT_RETURN: {
-			this->fold(static_cast<Ast_Return*>(stm));
+			auto ret = static_cast<Ast_Return*>(stm);
+			if (ret->exp) this->fold(&ret->exp);
 			break;
 		}
 		case AST_STATEMENT_DECLARATION: {
-			this->fold(static_cast<Ast_Declaration*>(stm));
+			auto decl = static_cast<Ast_Declaration*>(stm);
+			if (decl->type) this->fold(&decl->type);
+			if (decl->expression) this->fold(&decl->expression);
 			break;
 		}
 		case AST_STATEMENT_EXPRESSION: {
@@ -54,43 +62,43 @@ void Constant_Folding::fold (Ast_Statement* stm) {
 	}
 }
 
-void Constant_Folding::fold (Ast_Block* block) {
-	for (auto stm : block->list)
-		this->fold(stm);
-}
-
-void Constant_Folding::fold (Ast_Return* ret) {
-	if (ret->exp) this->fold(&ret->exp);
-}
-
-void Constant_Folding::fold (Ast_Declaration* decl) {
-	if (decl->type) this->fold(&decl->type);
-	if (decl->expression) this->fold(&decl->expression);
-}
-
 void Constant_Folding::fold (Ast_Expression** exp) {
 	switch ((*exp)->exp_type) {
 		case AST_EXPRESSION_FUNCTION: {
-			this->fold(reinterpret_cast<Ast_Function**>(exp));
-			return;
-		}
-		case AST_EXPRESSION_CALL: {
-			this->fold(reinterpret_cast<Ast_Function_Call**>(exp));
-			return;
+			auto func = reinterpret_cast<Ast_Function*>(*exp);
+			this->fold(reinterpret_cast<Ast_Type_Definition**>(&func->type));
+			if (func->scope) {
+				for (auto stm : func->scope->list) this->fold(stm);
+			}
+			break;
 		}
 		case AST_EXPRESSION_TYPE_DEFINITION: {
 			this->fold(reinterpret_cast<Ast_Type_Definition**>(exp));
-			return;
+			break;
 		}
 		case AST_EXPRESSION_BINARY: {
 			this->fold(reinterpret_cast<Ast_Binary**>(exp));
-			return;
+			break;
 		}
 		case AST_EXPRESSION_UNARY: {
 			this->fold(reinterpret_cast<Ast_Unary**>(exp));
-			return;
+			break;
 		}
-		default: return;
+		case AST_EXPRESSION_CALL: {
+			auto call = reinterpret_cast<Ast_Function_Call*>(*exp);
+			for (int i = 0; i < call->parameters.size(); i++) {
+				this->fold(&call->parameters[i]);
+			}
+			break;
+		}
+		case AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS: {
+			auto args = reinterpret_cast<Ast_Comma_Separated_Arguments*>(*exp);
+			for (int i = 0; i < args->values.size(); i++) {
+				this->fold(&args->values[i]);
+			}
+			break;
+		}
+		default: break;
 	}
 }
 
@@ -120,11 +128,10 @@ void Constant_Folding::fold (Ast_Binary** binary) {
 				break;
 			}
 			case AST_LITERAL_STRING: {
-				Light_Compiler::inst->error_stop(*binary, "String literal folding not supported yet!");
+				Light_Compiler::inst->warning(*binary, "String literal folding not supported yet!");
 				break;
 			}
 		}
-		//TODO: copy location info to the new literal
 		delete *binary;
 		*binary = reinterpret_cast<Ast_Binary*>(tmp);
 	}
@@ -153,55 +160,27 @@ void Constant_Folding::fold (Ast_Unary** unary) {
 				break;
 			}
 			case AST_LITERAL_STRING: {
-				Light_Compiler::inst->error_stop(*unary, "String literal folding not supported yet!");
+				Light_Compiler::inst->warning(*unary, "String literal folding not supported yet!");
 				break;
 			}
 		}
-		//TODO: copy location info to the new literal
 		delete *unary;
 		*unary = reinterpret_cast<Ast_Unary*>(tmp);
-	}
-}
-
-void Constant_Folding::fold (Ast_Function** fn) {
-	this->fold((*fn)->type);
-	this->fold((*fn)->scope);
-}
-
-void Constant_Folding::fold (Ast_Function_Call** call) {
-	for (int i = 0; i < (*call)->parameters.size(); i++) {
-		this->fold(&(*call)->parameters[i]);
-	}
-}
-
-void Constant_Folding::fold (Ast_Comma_Separated_Arguments** args) {
-	for (int i = 0; i < (*args)->values.size(); i++) {
-		this->fold(&(*args)->values[i]);
 	}
 }
 
 void Constant_Folding::fold (Ast_Type_Definition** tydef) {
 	switch ((*tydef)->typedef_type) {
 		case AST_TYPEDEF_FUNCTION: {
-			this->fold(reinterpret_cast<Ast_Function_Type**>(tydef));
+			auto fn_type = reinterpret_cast<Ast_Function_Type*>(*tydef);
+			for (auto exp : fn_type->parameter_decls) this->fold(exp);
 			break;
 		}
 		case AST_TYPEDEF_STRUCT: {
-			this->fold(reinterpret_cast<Ast_Struct_Type**>(tydef));
+			auto _struct = reinterpret_cast<Ast_Struct_Type*>(*tydef);
+			for (auto decl : _struct->attributes) this->fold(decl);
 			break;
 		}
 		default: break;
-	}
-}
-
-void Constant_Folding::fold (Ast_Struct_Type** _struct) {
-	for (auto decl : (*_struct)->attributes) {
-		this->fold(decl);
-	}
-}
-
-void Constant_Folding::fold (Ast_Function_Type** fn_type) {
-	for (auto exp : (*fn_type)->parameter_decls) {
-		this->fold(exp);
 	}
 }
