@@ -4,7 +4,6 @@
 #include "bytecode/interpreter.hpp"
 #include "back/coff/coff_object.hpp"
 #include "compiler.hpp"
-#include "timer.hpp"
 
 using namespace std;
 
