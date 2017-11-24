@@ -125,11 +125,28 @@ void Type_Checking::check_type (Ast_Function_Type* ty) {
 	}
 }
 
-void Type_Checking::check_type (Ast_Struct_Type* ty) {
-    ty->inferred_type = Light_Compiler::inst->type_def_type;
-	for (auto decl : ty->attributes) {
+void compute_struct_size (Ast_Struct_Type* _struct) {
+	if (_struct->byte_size == 0) {
+		uint16_t size = 0;
+		for (int i = 0; i < _struct->attributes.size(); i++) {
+			auto decl = _struct->attributes[i];
+			decl->struct_byte_offset = size;
+			decl->struct_index = i;
+
+			assert (decl->type->exp_type == AST_EXPRESSION_TYPE_DEFINITION);
+			auto defn_ty = static_cast<Ast_Type_Definition*>(decl->type);
+			size += defn_ty->byte_size;
+		}
+		_struct->byte_size = size;
+	}
+}
+
+void Type_Checking::check_type (Ast_Struct_Type* _struct) {
+    _struct->inferred_type = Light_Compiler::inst->type_def_type;
+	for (auto decl : _struct->attributes) {
 		check_type(decl);
 	}
+    compute_struct_size(_struct);
 }
 
 void Type_Checking::check_type (Ast_Pointer_Type* ty) {

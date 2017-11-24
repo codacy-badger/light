@@ -3,6 +3,7 @@ import! "examples/win_api.li"
 Vec3 :: struct {
 	x : s32;
 	y : s32;
+	z : s32;
 }
 
 NUM :: VAL + 10;
