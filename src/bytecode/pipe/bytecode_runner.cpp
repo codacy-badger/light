@@ -1,8 +1,5 @@
 #include "bytecode/pipe/bytecode_runner.hpp"
 
-#include <stdio.h>
-#include <windows.h>
-
 #include "compiler.hpp"
 
 Ast_Note* remove_run_note (Ast_Declaration* decl) {
@@ -19,51 +16,10 @@ Ast_Note* remove_run_note (Ast_Declaration* decl) {
 	return NULL;
 }
 
-void push_parameter (DCCallVM* vm, Ast_Literal* lit) {
-	switch (lit->literal_type) {
-		case AST_LITERAL_UNSIGNED_INT:
-		case AST_LITERAL_SIGNED_INT: {
-			switch (lit->inferred_type->byte_size) {
-				case 1: dcArgChar(vm, lit->int_value); break;
-				case 2: dcArgShort(vm, lit->int_value); break;
-				case 4: dcArgInt(vm, lit->int_value); break;
-				case 8: dcArgLongLong(vm, lit->int_value); break;
-			}
-		}
-		case AST_LITERAL_DECIMAL: {
-			switch (lit->inferred_type->byte_size) {
-				case 4: dcArgFloat(vm, lit->decimal_value); break;
-				case 8: dcArgDouble(vm, lit->decimal_value); break;
-			}
-		}
-		case AST_LITERAL_STRING: {
-			dcArgPointer(vm, lit->string_value); break;
-		}
-	}
-}
-
-size_t run_function (DCCallVM* vm, Ast_Function* func, Ast_Note* run_note) {
+size_t run_function (Ast_Function* func, Ast_Note* run_note) {
 	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
-	// TODO: this part of the code shouldn't care if the function is foreign or not
 	if (func->foreign_module_name) {
-		// TODO: have some notion of calling convention options
-		dcMode(vm, DC_CALL_C_X64_WIN64);
-		dcReset(vm);
-		if (run_note->arguments) {
-			for (auto exp : run_note->arguments->values) {
-				if (exp->exp_type == AST_EXPRESSION_LITERAL) {
-					auto lit = static_cast<Ast_Literal*>(exp);
-					push_parameter(vm, lit);
-				} else {
-					// TODO: passing complex expression should trigger more bytecode execution
-					Light_Compiler::inst->error_stop(run_note, "#run can only have literal arguments!");
-				}
-			}
-		}
-		// TODO: make platform layer to load functions from (#ifdef _WIN32)
-		HMODULE module = LoadLibrary(func->foreign_module_name);
-		DCpointer fn_ptr = (DCpointer) GetProcAddress(module, func->name);
-		return reinterpret_cast<size_t>(dcCallPointer(vm, fn_ptr));
+		Light_Compiler::inst->error_stop(run_note, "#run can't go on foreign functions (for now)");
 	} else {
 		if (run_note->arguments) {
 			for (size_t i = 0; i < run_note->arguments->values.size(); i++) {
@@ -90,93 +46,24 @@ void Bytecode_Runner::on_statement (Ast_Statement* stm) {
 
 void Bytecode_Runner::run (Ast_Statement* stm) {
 	switch (stm->stm_type) {
-		case AST_STATEMENT_BLOCK: {
-			this->run(static_cast<Ast_Block*>(stm));
-			return;
-		}
 		case AST_STATEMENT_DECLARATION: {
 			this->run(static_cast<Ast_Declaration*>(stm));
-			return;
-		}
-		case AST_STATEMENT_RETURN: {
-			this->run(static_cast<Ast_Return*>(stm));
-			return;
+			break;
 		}
 		case AST_STATEMENT_EXPRESSION: {
-			this->run(static_cast<Ast_Expression*>(stm));
-			return;
+			// TODO: allow #run on expressions, replace expression by result
+			break;
 		}
+		default: break;
 	}
-}
-
-void Bytecode_Runner::run (Ast_Block* block) {
 }
 
 void Bytecode_Runner::run (Ast_Declaration* decl) {
 	if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 		auto func = static_cast<Ast_Function*>(decl->expression);
 		auto run_note = remove_run_note(decl);
-		if (run_note) run_function(this->vm, func, run_note);
+		if (run_note) run_function(func, run_note);
 	}
 	this->run(decl->type);
 	if (decl->expression) this->run(decl->expression);
-}
-
-void Bytecode_Runner::run (Ast_Return* ret) {
-}
-
-void Bytecode_Runner::run (Ast_Expression* exp) {
-	switch (exp->exp_type) {
-		case AST_EXPRESSION_FUNCTION: {
-			this->run(static_cast<Ast_Function*>(exp));
-			return;
-		}
-		case AST_EXPRESSION_TYPE_DEFINITION: {
-			//this->run(static_cast<Ast_Type_Definition*>(exp));
-			return;
-		}
-		case AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS: {
-			//this->run(static_cast<Ast_Comma_Separated_Arguments*>(exp));
-			return;
-		}
-		case AST_EXPRESSION_CALL: {
-			this->run(static_cast<Ast_Function_Call*>(exp));
-			return;
-		}
-		case AST_EXPRESSION_BINARY: {
-			this->run(static_cast<Ast_Binary*>(exp));
-			return;
-		}
-		case AST_EXPRESSION_UNARY: {
-			this->run(static_cast<Ast_Unary*>(exp));
-			return;
-		}
-		case AST_EXPRESSION_IDENT: {
-			this->run(static_cast<Ast_Ident*>(exp));
-			return;
-		}
-		case AST_EXPRESSION_LITERAL: {
-			this->run(static_cast<Ast_Literal*>(exp));
-			return;
-		}
-		default: return;
-	}
-}
-
-void Bytecode_Runner::run (Ast_Function* fn) {
-}
-
-void Bytecode_Runner::run (Ast_Function_Call* call) {
-}
-
-void Bytecode_Runner::run (Ast_Binary* binop) {
-}
-
-void Bytecode_Runner::run (Ast_Unary* unop) {
-}
-
-void Bytecode_Runner::run (Ast_Ident* ident) {
-}
-
-void Bytecode_Runner::run (Ast_Literal* lit) {
 }

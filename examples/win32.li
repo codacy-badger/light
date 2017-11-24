@@ -4,7 +4,6 @@ STD_OUTPUT_HANDLE :: -11;
 STD_ERROR_HANDLE  :: -12;
 
 #foreign("kernel32")
-#run(STD_OUTPUT_HANDLE)
 GetStdHandle : fn (code: s32) -> *void :;
 
 #foreign("kernel32")

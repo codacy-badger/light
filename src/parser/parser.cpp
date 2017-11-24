@@ -62,7 +62,7 @@ void Parser::block (Ast_Block* insert_block) {
 				this->lexer = this->lexer->push(imp->filepath);
 				if (this->lexer->buffer->is_valid()) {
 					this->block(this->current_block);
-				} else this->compiler->error(imp,
+				} else this->compiler->error_stop(imp,
 					"Can't open import file: '%s'", imp->filepath);
 				this->lexer = this->lexer->pop();
 			}

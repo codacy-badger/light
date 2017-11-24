@@ -1,4 +1,4 @@
-import! "examples/win_api.li"
+import! "examples/win32.li"
 
 Vec3 :: struct {
 	x : s32;
