@@ -3,7 +3,10 @@
 #include <vector>
 
 struct Bytecode_Constants {
-    std::vector<uint8_t*> allocated;
+    std::vector<void*> allocated;
 
-    size_t add (char* string);
+    size_t add (char* string) {
+        this->allocated.push_back((void*) string);
+    	return this->allocated.size() - 1;
+    }
 };
