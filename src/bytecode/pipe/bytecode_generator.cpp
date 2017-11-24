@@ -1,4 +1,4 @@
-#include "bytecode/bytecode_generator.hpp"
+#include "bytecode/pipe/bytecode_generator.hpp"
 
 #include "compiler.hpp"
 

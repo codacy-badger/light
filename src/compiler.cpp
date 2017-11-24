@@ -14,8 +14,8 @@
 #include "parser/pipe/print_pipe.hpp"
 
 #include "parser/pipe/struct_sizer.hpp"
-#include "bytecode/bytecode_generator.hpp"
-#include "bytecode/bytecode_runner.hpp"
+#include "bytecode/pipe/bytecode_generator.hpp"
+#include "bytecode/pipe/bytecode_runner.hpp"
 
 Light_Compiler* Light_Compiler::inst = NULL;
 
