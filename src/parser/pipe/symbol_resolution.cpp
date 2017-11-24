@@ -208,8 +208,8 @@ void Symbol_Resolution::check_symbols (Ast_Function_Type** fn_type, vector<Ast_I
 }
 
 void Symbol_Resolution::check_symbols (Ast_Comma_Separated_Arguments** args, vector<Ast_Ident**>* sym) {
-	for (int i = 0; i < (*args)->args.size(); i++) {
-		check_symbols(&(*args)->args[i], sym);
+	for (int i = 0; i < (*args)->values.size(); i++) {
+		check_symbols(&(*args)->values[i], sym);
 	}
 }
 

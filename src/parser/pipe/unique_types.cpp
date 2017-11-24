@@ -76,6 +76,8 @@ bool func_type_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func
     for (int i = 0; i < func_type1->parameter_decls.size(); i++) {
         auto decl_1 = func_type1->parameter_decls[i];
         auto decl_2 = func_type2->parameter_decls[i];
+        // since we've already "uniqued" the parameter types, we can
+        // check if they're the same using pointers
         if (decl_1->type != decl_2->type) return false;
     }
     return true;

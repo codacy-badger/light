@@ -269,7 +269,7 @@ Ast_Comma_Separated_Arguments* Parser::comma_separated_arguments (Ast_Expression
 
 	auto arguments = AST_NEW(Ast_Comma_Separated_Arguments);
 	while (exp != NULL) {
-		arguments->args.push_back(exp);
+		arguments->values.push_back(exp);
 		exp = this->expression();
 	}
 	return arguments;

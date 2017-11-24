@@ -50,7 +50,7 @@ size_t run_function (DCCallVM* vm, Ast_Function* func, Ast_Note* run_note) {
 		dcMode(vm, DC_CALL_C_X64_WIN64);
 		dcReset(vm);
 		if (run_note->arguments) {
-			for (auto exp : run_note->arguments->args) {
+			for (auto exp : run_note->arguments->values) {
 				if (exp->exp_type == AST_EXPRESSION_LITERAL) {
 					auto lit = static_cast<Ast_Literal*>(exp);
 					push_parameter(vm, lit);
@@ -66,8 +66,8 @@ size_t run_function (DCCallVM* vm, Ast_Function* func, Ast_Note* run_note) {
 		return reinterpret_cast<size_t>(dcCallPointer(vm, fn_ptr));
 	} else {
 		if (run_note->arguments) {
-			for (size_t i = 0; i < run_note->arguments->args.size(); i++) {
-				auto exp = run_note->arguments->args[i];
+			for (size_t i = 0; i < run_note->arguments->values.size(); i++) {
+				auto exp = run_note->arguments->values[i];
 				if (exp->exp_type == AST_EXPRESSION_LITERAL) {
 					auto lit = static_cast<Ast_Literal*>(exp);
 					auto reg = Light_Compiler::inst->interp->registers[i];

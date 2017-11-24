@@ -4,7 +4,6 @@
 
 #include <vector>
 
-struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
@@ -124,7 +123,7 @@ struct Ast_Expression : Ast_Statement {
 };
 
 struct Ast_Comma_Separated_Arguments : Ast_Expression {
-	vector<Ast_Expression*> args;
+	vector<Ast_Expression*> values;
 
 	Ast_Comma_Separated_Arguments() { this->exp_type = AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS; }
 };

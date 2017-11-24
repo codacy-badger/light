@@ -34,11 +34,11 @@ void Foreign_Function::on_statement(Ast_Statement* stm) {
 						fn->name = decl->name;
 						fn->type = fn_type;
 
-						if (!note->arguments || note->arguments->args.size() != 1) {
+						if (!note->arguments || note->arguments->values.size() != 1) {
 							Light_Compiler::inst->error_stop(note, "foreign notes must have 1 (string) parameter!");
 						}
 
-						auto exp = note->arguments->args[0];
+						auto exp = note->arguments->values[0];
 						if (exp->exp_type == AST_EXPRESSION_LITERAL) {
 							auto lit = static_cast<Ast_Literal*>(exp);
 							if (lit->literal_type == AST_LITERAL_STRING) {

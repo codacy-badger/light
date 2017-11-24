@@ -175,8 +175,8 @@ void Constant_Folding::fold (Ast_Function_Call** call) {
 }
 
 void Constant_Folding::fold (Ast_Comma_Separated_Arguments** args) {
-	for (int i = 0; i < (*args)->args.size(); i++) {
-		this->fold(&(*args)->args[i]);
+	for (int i = 0; i < (*args)->values.size(); i++) {
+		this->fold(&(*args)->values[i]);
 	}
 }
 
