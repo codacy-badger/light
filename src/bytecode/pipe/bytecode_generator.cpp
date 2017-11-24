@@ -242,7 +242,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	}
 
 	this->current_register = 0;
-	for (auto exp : call->parameters) {
+	for (auto exp : call->args->values) {
 		this->gen(exp);
 	}
 
@@ -251,8 +251,8 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	this->bytecode->push_back(inst1);
 
 	auto bytecode_type = BYTECODE_TYPE_VOID;
-	for (int i = 0; i < call->parameters.size(); i++) {
-		auto exp = call->parameters[i];
+	for (int i = 0; i < call->args->values.size(); i++) {
+		auto exp = call->args->values[i];
 		bytecode_type = bytecode_get_type(exp->inferred_type);
         auto inst2 = new Inst_Call_Param(i, bytecode_type);
         this->bytecode->push_back(copy_location_info(inst2, call));
@@ -260,6 +260,8 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 
 	auto func = static_cast<Ast_Function*>(call->fn);
 	if (func->foreign_module_name) {
+        // We only get the function pointer if there's an
+        // actual call to the foreign function
 		Light_Compiler::inst->interp->foreign_functions->store(func->foreign_module_name, func->name);
 	}
 

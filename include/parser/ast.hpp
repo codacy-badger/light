@@ -237,7 +237,7 @@ struct Ast_Unary : Ast_Expression {
 
 struct Ast_Function_Call : Ast_Expression {
 	Ast_Expression* fn;
-	vector<Ast_Expression*> parameters;
+	Ast_Comma_Separated_Arguments* args = NULL;
 
 	Ast_Function_Call() { this->exp_type = AST_EXPRESSION_CALL; }
 };

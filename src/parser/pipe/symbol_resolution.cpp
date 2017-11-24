@@ -215,8 +215,8 @@ void Symbol_Resolution::check_symbols (Ast_Comma_Separated_Arguments** args, vec
 
 void Symbol_Resolution::check_symbols (Ast_Function_Call** call, vector<Ast_Ident**>* sym) {
     check_symbols(&(*call)->fn, sym);
-	for (int i = 0; i < (*call)->parameters.size(); i++) {
-		check_symbols(&(*call)->parameters[i], sym);
+	for (int i = 0; i < (*call)->args->values.size(); i++) {
+		check_symbols(&(*call)->args->values[i], sym);
 	}
 }
 

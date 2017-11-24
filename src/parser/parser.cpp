@@ -270,6 +270,7 @@ Ast_Comma_Separated_Arguments* Parser::comma_separated_arguments (Ast_Expression
 	auto arguments = AST_NEW(Ast_Comma_Separated_Arguments);
 	while (exp != NULL) {
 		arguments->values.push_back(exp);
+		this->lexer->optional_skip(TOKEN_COMMA);
 		exp = this->expression();
 	}
 	return arguments;
@@ -413,13 +414,7 @@ Ast_Function_Call* Parser::call (Ast_Expression* callee) {
 
 		output = AST_NEW(Ast_Function_Call);
 		output->fn = callee;
-
-		Ast_Expression* exp = NULL;
-		while (exp = this->expression()) {
-			output->parameters.push_back(exp);
-			if (this->lexer->isNextType(TOKEN_COMMA))
-				this->lexer->skip(1);
-		}
+		output->args = this->comma_separated_arguments();
 
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 	}

@@ -86,8 +86,8 @@ void Constant_Folding::fold (Ast_Expression** exp) {
 		}
 		case AST_EXPRESSION_CALL: {
 			auto call = reinterpret_cast<Ast_Function_Call*>(*exp);
-			for (int i = 0; i < call->parameters.size(); i++) {
-				this->fold(&call->parameters[i]);
+			for (int i = 0; i < call->args->values.size(); i++) {
+				this->fold(&call->args->values[i]);
 			}
 			break;
 		}

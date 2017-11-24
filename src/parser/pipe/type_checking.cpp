@@ -173,7 +173,7 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
 	call->inferred_type = ret_ty;
 
-	for (auto exp : call->parameters)
+	for (auto exp : call->args->values)
 		check_type(exp);
 }
 
