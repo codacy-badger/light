@@ -405,7 +405,7 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
 			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
-			printf("CALL %p (%s", func, func->name);
+			printf("CALL %p (%s", func, func->foreign_function_name);
 			if (func->foreign_module_name) printf("@%s", func->foreign_module_name);
 			printf(")");
 			break;
