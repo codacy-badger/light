@@ -220,6 +220,13 @@ void Bytecode_Generator::gen (Ast_Function* fn) {
 		this->current_register = 0;
 		this->bytecode = &fn->bytecode;
 		this->gen(fn->scope);
+		if (fn->type->return_type == Light_Compiler::inst->type_def_void) {
+			auto last_inst = this->bytecode->back();
+			if (last_inst->bytecode != BYTECODE_RETURN) {
+			    auto inst2 = new Inst_Return();
+			    this->bytecode->push_back(copy_location_info(inst2, fn->scope));
+			}
+		}
 	}
 }
 

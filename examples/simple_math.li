@@ -1,23 +1,11 @@
 import! "examples/win32.li"
 
-Vec3 :: struct {
-	x : s32;
-	y : s32;
-	z : s32;
-}
-
-NUM :: VAL + 10;
-
-WIN_CALL : type : fn (val: s32) -> s32;
-
 #run
 main :: fn {
 	number := factorial(5);
 	name : string = "This text comes from bytecode!!\n\n";
 
 	WriteConsoleA(GetStdHandle(STD_ERROR_HANDLE), name, strlen(name), 0, 0);
-
-	return;
 }
 
 factorial :: fn (number: s32) -> s32 {
@@ -28,7 +16,3 @@ strlen :: fn (str: string) -> s32 {
 	result : s32 = 33;
 	return result;
 }
-
-a :: 50;
-
-VAL : s32 : -2;
