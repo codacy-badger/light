@@ -13,9 +13,6 @@
 #include "parser/pipe/foreign_function.hpp"
 #include "parser/pipe/print_pipe.hpp"
 
-#include "bytecode/pipe/bytecode_generator.hpp"
-#include "bytecode/pipe/bytecode_runner.hpp"
-
 Light_Compiler* Light_Compiler::inst = NULL;
 
 void link (std::string output) {
@@ -81,14 +78,12 @@ void Light_Compiler::run () {
 		parser->append(new Foreign_Function());
 
 		// Optimizations
-		// NONE
 
 		// Bytecode
-		parser->append(new Bytecode_Generator());
-		parser->append(new Bytecode_Runner());
+		parser->append(this->interp->generator);
+		parser->append(this->interp->runner);
 
 		// Bytecode Optimizations
-		// NONE
 
 		// Ouput
 		//parser->append(new PrintPipe());
