@@ -27,13 +27,12 @@ void Bytecode_Types::add (Ast_Type_Definition* type_def) {
             }
             default: break;
         }
-        this->print(stdout, type_def);
-        fprintf(stdout, "\n");
         this->all_types.push_back(type_def);
     }
 }
 
-void Bytecode_Types::print (FILE* out, Ast_Type_Definition* type_def) {
+void Bytecode_Types::print (Ast_Type_Definition* type_def, FILE* out) {
+    if (out == NULL) out = stdout;
     switch (type_def->typedef_type) {
         case AST_TYPEDEF_FUNCTION: {
             auto func_type = static_cast<Ast_Function_Type*>(type_def);
@@ -41,16 +40,16 @@ void Bytecode_Types::print (FILE* out, Ast_Type_Definition* type_def) {
             Ast_Type_Definition* _ty = NULL;
             if (func_type->parameter_decls.size() > 0) {
                 _ty = static_cast<Ast_Type_Definition*>(func_type->parameter_decls[0]->type);
-                this->print(out, _ty);
+                this->print(_ty, out);
                 for (int i = 1; i < func_type->parameter_decls.size(); i++) {
                     fprintf(out, ", ");
                     _ty = static_cast<Ast_Type_Definition*>(func_type->parameter_decls[i]->type);
-                    this->print(out, _ty);
+                    this->print(_ty, out);
                 }
             }
             fprintf(out, " ) -> ");
             _ty = static_cast<Ast_Type_Definition*>(func_type->return_type);
-            this->print(out, _ty);
+            this->print(_ty, out);
             break;
         }
     	case AST_TYPEDEF_STRUCT: {
@@ -62,7 +61,7 @@ void Bytecode_Types::print (FILE* out, Ast_Type_Definition* type_def) {
             auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
             fprintf(out, "*");
             auto _ty = static_cast<Ast_Type_Definition*>(ptr_type->base);
-            this->print(out, _ty);
+            this->print(_ty, out);
             break;
         }
     }

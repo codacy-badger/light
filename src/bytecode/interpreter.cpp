@@ -194,8 +194,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 
 			if (func->foreign_module_name) {
 				auto ffunctions = Light_Compiler::inst->interp->foreign_functions;
-				auto module_name = func->foreign_module_name;
-				DCpointer function_pointer = ffunctions->function_pointers[module_name][func->name];
+				DCpointer function_pointer = ffunctions->get(func->foreign_module_name, func->name);
 
 				size_t result = 0;
 				auto instance = Light_Compiler::inst;

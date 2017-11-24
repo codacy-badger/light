@@ -69,15 +69,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
     } else {
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 		if (decl->scope->is_global()) {
-            auto ty_defn = static_cast<Ast_Type_Definition*>(decl->type);
-			decl->stack_offset = this->global_offset;
-            this->global_offset += ty_defn->byte_size;
-
-			if (decl->expression) {
-				this->gen(decl->expression);
-				printf("\tBYTECODE_GLOBAL_OFFSET %d, %lld\n", 1, decl->stack_offset);
-				printf("\tBYTECODE_STORE %d, %d, %lld\n", 1, 0, ty_decl->byte_size);
-			}
+            Light_Compiler::inst->error_stop(decl, "Global variables not yet supported");
 		} else {
             auto inst = new Inst_Stack_Allocate(ty_decl->byte_size);
             this->bytecode->push_back(copy_location_info(inst, decl));
@@ -186,6 +178,7 @@ void Bytecode_Generator::gen (Ast_Unary* unop) {
 void Bytecode_Generator::gen (Ast_Ident* ident, bool address) {
 	auto reg = this->current_register++;
 	if (ident->declaration->is_global()) {
+        Light_Compiler::inst->error_stop(ident, "Global identifiers not yet supported!");
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
 			printf("\tBYTECODE_LOAD_GLOBAL %zd, %zd, %zd (%s)\n", reg, ident->declaration->stack_offset, ident->inferred_type->byte_size, ident->name);
 		} else {
@@ -200,6 +193,7 @@ void Bytecode_Generator::gen (Ast_Ident* ident, bool address) {
                 this->bytecode->push_back(copy_location_info(inst2, ident));
             }
 		} else {
+            Light_Compiler::inst->error_stop(ident, "Value of identifier is bigger than a register!");
 			printf("\tBYTECODE_STACK_OFFSET %zd, %zd\n", reg, ident->declaration->stack_offset);
 		}
 	}

@@ -12,7 +12,7 @@ struct Bytecode_Types {
 
     bool contains (Ast_Type_Definition* type_def);
     void add (Ast_Type_Definition* type_def);
-    void print (FILE* out, Ast_Type_Definition* type_def);
+    void print (Ast_Type_Definition* type_def, FILE* out = NULL);
 
     Ast_Type_Definition* get_struct_type (const char* name);
     Ast_Type_Definition* get_pointer_type (Ast_Type_Definition* base);
