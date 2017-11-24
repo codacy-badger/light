@@ -205,8 +205,19 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
 
 			if (func->foreign_module_name) {
+				DCpointer function_pointer = NULL;
+
 				auto ffunctions = Light_Compiler::inst->interp->foreign_functions;
-				DCpointer function_pointer = ffunctions->get(func->foreign_module_name, func->name);
+				auto module = ffunctions->get_or_add_module(func->foreign_module_name);
+				if (module) {
+					function_pointer = ffunctions->get_or_add_function(module, func->name);
+					if (!function_pointer) {
+						Light_Compiler::inst->error_stop(func, "Function '%s' not found (module '%s')!",
+							func->name, func->foreign_module_name);
+					}
+				} else {
+					Light_Compiler::inst->error_stop(func, "Module '%s' not found!", func->foreign_module_name);
+				}
 
 				size_t result = 0;
 				auto instance = Light_Compiler::inst;
