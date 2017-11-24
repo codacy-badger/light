@@ -60,9 +60,10 @@ void Unique_Types::unique (Ast_Type_Definition** type_def) {
 
 void Unique_Types::unique (Ast_Pointer_Type** ptr_type) {
     this->unique(&(*ptr_type)->base);
-    // ensure that the pointer type we have is unique
+
     auto it = this->ptr_types.find((*ptr_type)->base);
     if (it != this->ptr_types.end()) {
+        delete *ptr_type;
         (*ptr_type) = this->ptr_types[(*ptr_type)->base];
     } else {
         this->ptr_types[(*ptr_type)->base] = (*ptr_type);
@@ -88,6 +89,7 @@ void Unique_Types::unique (Ast_Function_Type** func_type) {
 
     for (auto _func_type : this->func_types) {
         if (func_type_are_equal(*func_type, _func_type)) {
+            delete *func_type;
             (*func_type) = _func_type;
             return;
         }
