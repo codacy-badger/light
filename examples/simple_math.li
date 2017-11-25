@@ -12,7 +12,8 @@ main :: fn {
 	if number > 10 {
 		WriteConsole(std_handle, name1, strlen(name1), 0, 0);
 	} else {
-		WriteConsole(std_handle, "Name2\n\n", 7, 0, 0);
+		name2 := "Name2\n\n";
+		WriteConsole(std_handle, name2, 7, 0, 0);
 	}
 }
 

@@ -19,10 +19,7 @@ void Bytecode_Generator::gen (Ast_Statement* stm) {
 	this->current_register = 0;
     switch (stm->stm_type) {
 		case AST_STATEMENT_BLOCK: {
-			auto _tmp = this->stack_offset;
-			this->stack_offset = 0;
 			this->gen(static_cast<Ast_Block*>(stm));
-			this->stack_offset = _tmp;
 			break;
 		}
         case AST_STATEMENT_DECLARATION: {
