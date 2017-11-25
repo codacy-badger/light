@@ -32,6 +32,13 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_MUL,
 	BYTECODE_DIV,
 
+	BYTECODE_EQ,
+	BYTECODE_NEQ,
+	BYTECODE_LT,
+	BYTECODE_LTE,
+	BYTECODE_GT,
+	BYTECODE_GTE,
+
 	BYTECODE_JUMP,
 	BYTECODE_JUMP_IF_FALSE,
 
@@ -176,6 +183,25 @@ struct Inst_Store : Instruction {
 		this->src = src;
 		this->size = size;
 	}
+};
+
+struct Inst_Unary : Instruction {
+	uint8_t reg = 0;
+
+	Inst_Unary (uint8_t bytecode, uint8_t reg) {
+		this->bytecode = bytecode;
+		this->reg = reg;
+	}
+};
+
+struct Inst_Neg : Inst_Unary {
+	Inst_Neg (uint8_t reg) : Inst_Unary (BYTECODE_NEG, reg)
+	{/* empty */}
+};
+
+struct Inst_Not : Inst_Unary {
+	Inst_Not (uint8_t reg) : Inst_Unary (BYTECODE_NOT, reg)
+	{/* empty */}
 };
 
 struct Inst_Binary : Instruction {

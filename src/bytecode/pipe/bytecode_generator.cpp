@@ -153,10 +153,17 @@ void Bytecode_Generator::gen (Ast_Literal* lit) {
 
 uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
 	switch (binop) {
-		case AST_BINARY_ADD: return BYTECODE_ADD;
-		case AST_BINARY_SUB: return BYTECODE_SUB;
-		case AST_BINARY_MUL: return BYTECODE_MUL;
-		case AST_BINARY_DIV: return BYTECODE_DIV;
+		case AST_BINARY_ADD: 	return BYTECODE_ADD;
+		case AST_BINARY_SUB: 	return BYTECODE_SUB;
+		case AST_BINARY_MUL: 	return BYTECODE_MUL;
+		case AST_BINARY_DIV: 	return BYTECODE_DIV;
+
+		case AST_BINARY_EQ:		return BYTECODE_EQ;
+		case AST_BINARY_NEQ:	return BYTECODE_NEQ;
+		case AST_BINARY_LT:		return BYTECODE_LT;
+		case AST_BINARY_LTE:	return BYTECODE_LTE;
+		case AST_BINARY_GT:		return BYTECODE_GT;
+		case AST_BINARY_GTE:	return BYTECODE_GTE;
 	}
 	return BYTECODE_NOOP;
 }
@@ -173,10 +180,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop) {
             this->bytecode->push_back(copy_location_info(inst2, binop));
 			break;
 		}
-		case AST_BINARY_ADD:
-		case AST_BINARY_SUB:
-		case AST_BINARY_MUL:
-		case AST_BINARY_DIV: {
+		default: {
 			this->gen(binop->lhs);
 			this->gen(binop->rhs);
             this->current_register--;
@@ -187,19 +191,27 @@ void Bytecode_Generator::gen (Ast_Binary* binop) {
 
 			break;
 		}
-		default: return;
 	}
+}
+
+uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {
+	switch (unop) {
+		//AST_UNARY_DEREFERENCE,
+		//AST_UNARY_REFERENCE,
+		case AST_UNARY_NOT:		return BYTECODE_NOT;
+		case AST_UNARY_NEGATE:	return BYTECODE_NEG;
+	}
+	return BYTECODE_NOOP;
 }
 
 void Bytecode_Generator::gen (Ast_Unary* unop) {
 	this->gen(unop->exp);
 	switch (unop->unary_op) {
+		case AST_UNARY_NOT:
 		case AST_UNARY_NEGATE: {
-			printf("\tBYTECODE_NEG %zd\n", this->current_register);
-			break;
-		}
-		case AST_UNARY_NOT: {
-			printf("\tBYTECODE_NOT %zd\n", this->current_register);
+			auto unop_type = get_bytecode_from_unop(unop->unary_op);
+            auto inst = new Inst_Unary(unop_type, this->current_register - 1);
+            this->bytecode->push_back(copy_location_info(inst, unop));
 			break;
 		}
 		default: return;

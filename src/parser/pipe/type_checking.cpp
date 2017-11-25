@@ -193,10 +193,28 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 void Type_Checking::check_type (Ast_Binary* binop) {
 	check_type(binop->lhs);
 	check_type(binop->rhs);
-	if (binop->lhs->inferred_type == binop->rhs->inferred_type) {
-		binop->inferred_type = binop->lhs->inferred_type;
-	} else {
-		Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression");
+	switch (binop->binary_op) {
+		case AST_BINARY_EQ:
+		case AST_BINARY_NEQ:
+		case AST_BINARY_LT:
+		case AST_BINARY_LTE:
+		case AST_BINARY_GT:
+		case AST_BINARY_GTE: {
+			binop->inferred_type = Light_Compiler::inst->type_def_bool;
+			break;
+		}
+		case AST_BINARY_ASSIGN:
+		case AST_BINARY_ADD:
+		case AST_BINARY_SUB:
+		case AST_BINARY_MUL:
+		case AST_BINARY_DIV: {
+			if (binop->lhs->inferred_type == binop->rhs->inferred_type) {
+				binop->inferred_type = binop->lhs->inferred_type;
+			} else {
+				Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression");
+			}
+			break;
+		}
 	}
 }
 

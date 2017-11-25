@@ -205,6 +205,12 @@ enum Ast_Binary_Type {
 	AST_BINARY_SUB,
 	AST_BINARY_MUL,
 	AST_BINARY_DIV,
+	AST_BINARY_EQ,
+	AST_BINARY_NEQ,
+	AST_BINARY_LT,
+	AST_BINARY_LTE,
+	AST_BINARY_GT,
+	AST_BINARY_GTE,
 };
 
 struct Ast_Binary : Ast_Expression {
