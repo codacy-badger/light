@@ -47,6 +47,7 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 
 	create_new_native_type(&this->type_def_type, "type");
 	create_new_native_type(&this->type_def_void, "void");
+	create_new_native_type(&this->type_def_bool, "bool", 1);
 	create_new_native_type(&this->type_def_s8, "s8", 1);
 	create_new_native_type(&this->type_def_s16, "s16", 2);
 	create_new_native_type(&this->type_def_s32, "s32", 4);

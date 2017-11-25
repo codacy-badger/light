@@ -73,7 +73,13 @@ void Bytecode_Generator::gen (Ast_If* _if) {
 	this->gen(_if->then_statement);
 	inst->offset = this->bytecode->size() - index1;
 	if (_if->else_statement) {
+		inst->offset += 1;
+		auto inst2 = new Inst_Jump(0);
+		this->bytecode->push_back(copy_location_info(inst2, _if));
+
+		index1 = this->bytecode->size();
 		this->gen(_if->else_statement);
+		inst2->offset = this->bytecode->size() - index1;
 	}
 }
 
@@ -203,12 +209,12 @@ void Bytecode_Generator::gen (Ast_Unary* unop) {
 void Bytecode_Generator::gen (Ast_Ident* ident, bool address) {
 	auto reg = this->current_register++;
 	if (ident->declaration->is_global()) {
-        Light_Compiler::inst->error_stop(ident, "Global identifiers not yet supported!");
-		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+        Light_Compiler::inst->warning(ident, "Global identifiers not yet supported!");
+		/*if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
 			printf("\tBYTECODE_LOAD_GLOBAL %zd, %zd, %zd (%s)\n", reg, ident->declaration->stack_offset, ident->inferred_type->byte_size, ident->name);
 		} else {
 			printf("\tBYTECODE_LOAD_GLOBAL_POINTER %zd, %zd (%s)\n", reg, ident->declaration->stack_offset, ident->name);
-		}
+		}*/
 	} else {
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
             auto inst1 = new Inst_Stack_Offset(reg, ident->declaration->stack_offset);

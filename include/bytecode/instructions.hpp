@@ -32,6 +32,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_MUL,
 	BYTECODE_DIV,
 
+	BYTECODE_JUMP,
 	BYTECODE_JUMP_IF_FALSE,
 
 	BYTECODE_CALL_SETUP,
@@ -210,6 +211,15 @@ struct Inst_Div : Inst_Binary {
 	Inst_Div (uint8_t reg1, uint8_t reg2)
 		: Inst_Binary (BYTECODE_DIV, reg1, reg2)
 	{/* empty */}
+};
+
+struct Inst_Jump : Instruction {
+	int32_t offset;
+
+	Inst_Jump (int32_t offset = 0) {
+		this->bytecode = BYTECODE_JUMP;
+		this->offset = offset;
+	}
 };
 
 struct Inst_Jump_If_False : Instruction {

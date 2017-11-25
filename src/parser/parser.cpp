@@ -33,6 +33,7 @@ Ast_Block* Parser::top_level_block () {
 
 	push_new_type(this, _block, Light_Compiler::inst->type_def_type);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_void);
+	push_new_type(this, _block, Light_Compiler::inst->type_def_bool);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_s8);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_s16);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_s32);

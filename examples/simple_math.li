@@ -1,12 +1,18 @@
 import! "examples/win32.li"
 
+false : bool : 0;
+true  : bool : 1;
+
 #run
 main :: fn {
 	number := factorial(5);
 	name1 : string = "This text comes from bytecode!!\n\n";
+	std_handle := GetStdHandle(STD_OUTPUT_HANDLE);
 
-	if name1 {
-		WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), name1, strlen(name1), 0, 0);
+	if true {
+		WriteConsole(std_handle, name1, strlen(name1), 0, 0);
+	} else {
+		WriteConsole(std_handle, "Aleix\n\n", 7, 0, 0);
 	}
 }
 

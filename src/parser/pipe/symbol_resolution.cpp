@@ -125,7 +125,7 @@ void Symbol_Resolution::check_symbols (Ast_Declaration* decl, vector<Ast_Ident**
 }
 
 void Symbol_Resolution::check_symbols (Ast_If* _if, vector<Ast_Ident**>* sym) {
-	check_symbols(_if->condition, sym);
+	check_symbols(&_if->condition, sym);
 	check_symbols(_if->then_statement, sym);
 	if (_if->else_statement) check_symbols(_if->else_statement, sym);
 }

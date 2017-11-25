@@ -167,6 +167,11 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(this->registers[add->reg1], &a, INTERP_REGISTER_SIZE);
 			return;
 		}
+		case BYTECODE_JUMP: {
+			auto jump = static_cast<Inst_Jump*>(inst);
+			instruction_index += jump->offset;
+			return;
+		}
 		case BYTECODE_JUMP_IF_FALSE: {
 			auto jump_if_true = static_cast<Inst_Jump_If_False*>(inst);
 			size_t value;
@@ -395,6 +400,11 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		case BYTECODE_DIV: {
 			auto div = static_cast<Inst_Div*>(inst);
 			printf("DIV %d, %d", div->reg1, div->reg2);
+			break;
+		}
+		case BYTECODE_JUMP: {
+			auto jump = static_cast<Inst_Jump*>(inst);
+			printf("JUMP %d", jump->offset);
 			break;
 		}
 		case BYTECODE_JUMP_IF_FALSE: {
