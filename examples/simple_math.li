@@ -3,9 +3,11 @@ import! "examples/win32.li"
 #run
 main :: fn {
 	number := factorial(5);
-	name : string = "This text comes from bytecode!!\n\n";
+	name1 : string = "This text comes from bytecode!!\n\n";
 
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), name, strlen(name), 0, 0);
+	if name1 {
+		WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), name1, strlen(name1), 0, 0);
+	}
 }
 
 factorial :: fn (number: s32) -> s32 {

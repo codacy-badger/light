@@ -18,12 +18,23 @@ void Bytecode_Generator::on_statement (Ast_Statement* stm) {
 void Bytecode_Generator::gen (Ast_Statement* stm) {
 	this->current_register = 0;
     switch (stm->stm_type) {
+		case AST_STATEMENT_BLOCK: {
+			auto _tmp = this->stack_offset;
+			this->stack_offset = 0;
+			this->gen(static_cast<Ast_Block*>(stm));
+			this->stack_offset = _tmp;
+			break;
+		}
         case AST_STATEMENT_DECLARATION: {
             this->gen(static_cast<Ast_Declaration*>(stm));
             break;
         }
 		case AST_STATEMENT_RETURN: {
 			this->gen(static_cast<Ast_Return*>(stm));
+			break;
+		}
+		case AST_STATEMENT_IF: {
+			this->gen(static_cast<Ast_If*>(stm));
 			break;
 		}
 		case AST_STATEMENT_EXPRESSION: {
@@ -37,7 +48,7 @@ void Bytecode_Generator::gen (Ast_Statement* stm) {
 void Bytecode_Generator::gen (Ast_Block* block) {
     for (auto stm : block->list) {
 		this->gen(stm);
-	};
+	}
 }
 
 void Bytecode_Generator::gen (Ast_Return* ret) {
@@ -50,6 +61,20 @@ void Bytecode_Generator::gen (Ast_Return* ret) {
 	}
     auto inst2 = new Inst_Return();
     this->bytecode->push_back(copy_location_info(inst2, ret));
+}
+
+void Bytecode_Generator::gen (Ast_If* _if) {
+	this->gen(_if->condition);
+
+	auto inst = new Inst_Jump_If_False(0);
+	this->bytecode->push_back(copy_location_info(inst, _if));
+
+	auto index1 = this->bytecode->size();
+	this->gen(_if->then_statement);
+	inst->offset = this->bytecode->size() - index1;
+	if (_if->else_statement) {
+		this->gen(_if->else_statement);
+	}
 }
 
 void Bytecode_Generator::gen (Ast_Declaration* decl) {

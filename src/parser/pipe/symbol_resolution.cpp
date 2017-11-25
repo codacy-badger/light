@@ -102,6 +102,10 @@ void Symbol_Resolution::check_symbols (Ast_Statement* stm, vector<Ast_Ident**>* 
             check_symbols(static_cast<Ast_Block*>(stm), sym);
 			break;
         }
+        case AST_STATEMENT_IF: {
+            check_symbols(static_cast<Ast_If*>(stm), sym);
+			break;
+        }
         case AST_STATEMENT_RETURN: {
             check_symbols(static_cast<Ast_Return*>(stm), sym);
 			break;
@@ -118,6 +122,12 @@ void Symbol_Resolution::check_symbols (Ast_Statement* stm, vector<Ast_Ident**>* 
 void Symbol_Resolution::check_symbols (Ast_Declaration* decl, vector<Ast_Ident**>* sym) {
     if (decl->type)         check_symbols(&decl->type, sym);
     if (decl->expression)   check_symbols(&decl->expression, sym);
+}
+
+void Symbol_Resolution::check_symbols (Ast_If* _if, vector<Ast_Ident**>* sym) {
+	check_symbols(_if->condition, sym);
+	check_symbols(_if->then_statement, sym);
+	if (_if->else_statement) check_symbols(_if->else_statement, sym);
 }
 
 void Symbol_Resolution::check_symbols (Ast_Block* block, vector<Ast_Ident**>* sym) {

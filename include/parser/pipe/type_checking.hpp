@@ -7,6 +7,7 @@ struct Type_Checking : Pipe {
 
     void check_type (Ast_Statement* stm);
     void check_type (Ast_Block* block);
+    void check_type (Ast_If* _if);
     void check_type (Ast_Declaration* decl);
     void check_type (Ast_Return* ret);
     void check_type (Ast_Expression* exp);

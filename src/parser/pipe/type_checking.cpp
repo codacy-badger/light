@@ -14,6 +14,9 @@ void Type_Checking::check_type (Ast_Statement* stm) {
         case AST_STATEMENT_BLOCK:
             check_type(static_cast<Ast_Block*>(stm));
             break;
+        case AST_STATEMENT_IF:
+            check_type(static_cast<Ast_If*>(stm));
+            break;
         case AST_STATEMENT_DECLARATION:
             check_type(static_cast<Ast_Declaration*>(stm));
             break;
@@ -29,6 +32,12 @@ void Type_Checking::check_type (Ast_Statement* stm) {
 
 void Type_Checking::check_type (Ast_Block* block) {
     for (auto stm : block->list) check_type(stm);
+}
+
+void Type_Checking::check_type (Ast_If* _if) {
+	check_type(_if->condition);
+	check_type(_if->then_statement);
+	if (_if->else_statement) check_type(_if->else_statement);
 }
 
 void Type_Checking::check_type (Ast_Declaration* decl) {

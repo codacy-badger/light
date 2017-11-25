@@ -143,6 +143,9 @@ Ast_Statement* Parser::statement () {
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 			return _block;
 		}
+		case TOKEN_IF: {
+			return this->statement_if();
+		}
 		case TOKEN_RETURN: {
 			this->lexer->skip(1);
 			auto output = AST_NEW(Ast_Return);
@@ -184,6 +187,22 @@ Ast_Statement* Parser::statement () {
 			} else return NULL;
 		}
 	}
+}
+
+Ast_Statement* Parser::statement_if () {
+	if (this->lexer->isNextType(TOKEN_IF)) {
+		this->lexer->skip(1);
+		auto stm_if = AST_NEW(Ast_If);
+
+		stm_if->condition = this->expression();
+		stm_if->then_statement = this->statement();
+		if (this->lexer->isNextType(TOKEN_ELSE)) {
+			this->lexer->skip(1);
+			stm_if->else_statement = this->statement();
+		}
+
+		return stm_if;
+	} else return NULL;
 }
 
 Ast_Declaration* Parser::declaration (Ast_Ident* ident) {

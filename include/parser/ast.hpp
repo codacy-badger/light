@@ -30,6 +30,7 @@ struct Ast_Note : Ast {
 enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
 	AST_STATEMENT_BLOCK,
+	AST_STATEMENT_IF,
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
 	AST_STATEMENT_IMPORT,
@@ -59,6 +60,14 @@ struct Ast_Block : Ast_Statement {
 	Ast_Declaration* find_declaration (const char* name, bool recurse = true);
 	Ast_Type_Definition* find_type_definition (const char* name, bool recurse = true);
 	Ast_Function* find_function (bool recurse = true);
+};
+
+struct Ast_If : Ast_Statement {
+	Ast_Expression* condition = NULL;
+	Ast_Statement* then_statement = NULL;
+	Ast_Statement* else_statement = NULL;
+
+	Ast_If () { this->stm_type = AST_STATEMENT_IF; }
 };
 
 const uint8_t DECL_FLAG_CONSTANT = 0x1;

@@ -15,7 +15,7 @@
 
 #define INTERP_REGISTER_SIZE  sizeof(size_t)
 #define INTERP_REGISTER_COUNT 16
-#define INTERP_STACK_SIZE 	  255
+#define INTERP_STACK_SIZE 	  64
 
 #define INTERP_STACK_REGISTER INTERP_REGISTER_COUNT - 1
 
@@ -33,6 +33,7 @@ struct Bytecode_Interpreter {
 
 	Bytecode_Register registers[INTERP_REGISTER_COUNT];
 	uint8_t stack[INTERP_STACK_SIZE];
+	size_t instruction_index = 0;
 	size_t stack_index = 0;
 	size_t stack_base = 0;
 

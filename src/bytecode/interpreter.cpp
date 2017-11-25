@@ -37,21 +37,18 @@ void Bytecode_Interpreter::set (Ast_Comma_Separated_Arguments* args) {
 
 void Bytecode_Interpreter::run (Ast_Function* func) {
 	auto _tmp = this->stack_index;
-	for (size_t i = 0; i < func->bytecode.size(); i++) {
-		auto inst = func->bytecode[i];
+	for (instruction_index = 0; instruction_index < func->bytecode.size(); instruction_index++) {
+		auto inst = func->bytecode[instruction_index];
 
 		if (DEBUG) {
-			Light_Compiler::inst->interp->print(i, inst);
+			Light_Compiler::inst->interp->print(instruction_index, inst);
 			if (inst->bytecode == BYTECODE_RETURN
 				|| inst->bytecode == BYTECODE_CALL)
 				printf("\n");
 		}
 		Light_Compiler::inst->interp->run(inst);
 		if (inst->bytecode == BYTECODE_RETURN) break;
-
-		//Light_Compiler::inst->interp->dump();
 	}
-	//Light_Compiler::inst->interp->dump();
 	this->stack_index = _tmp;
 }
 
@@ -170,6 +167,13 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(this->registers[add->reg1], &a, INTERP_REGISTER_SIZE);
 			return;
 		}
+		case BYTECODE_JUMP_IF_FALSE: {
+			auto jump_if_true = static_cast<Inst_Jump_If_False*>(inst);
+			size_t value;
+			memcpy(&value, this->registers[jump_if_true->reg], INTERP_REGISTER_SIZE);
+			if (value == 0) instruction_index += jump_if_true->offset;
+			return;
+		}
 		case BYTECODE_CALL_SETUP: {
 			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
 			dcMode(vm, call_setup->calling_convention);
@@ -242,9 +246,11 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 				memcpy(this->registers[0], &result, INTERP_REGISTER_SIZE);
 			}else {
 				auto _base = this->stack_base;
+				auto _inst = this->instruction_index;
 				this->stack_base = this->stack_index;
 				this->run(func);
 				this->stack_index = this->stack_base;
+				this->instruction_index = _inst;
 				this->stack_base = _base;
 			}
 			return;
@@ -389,6 +395,11 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		case BYTECODE_DIV: {
 			auto div = static_cast<Inst_Div*>(inst);
 			printf("DIV %d, %d", div->reg1, div->reg2);
+			break;
+		}
+		case BYTECODE_JUMP_IF_FALSE: {
+			auto jump_if_true = static_cast<Inst_Jump_If_False*>(inst);
+			printf("JUMP_IF_FALSE %d, %d", jump_if_true->reg, jump_if_true->offset);
 			break;
 		}
 		case BYTECODE_CALL_SETUP: {
