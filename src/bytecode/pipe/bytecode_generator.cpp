@@ -244,7 +244,7 @@ void Bytecode_Generator::gen (Ast_Function* fn) {
         fn->bytecode.push_back(copy_location_info(inst, decl));
         auto inst1 = new Inst_Stack_Offset(free_reg, decl->stack_offset);
         fn->bytecode.push_back(copy_location_info(inst1, decl));
-        auto inst2 = new Inst_Store(free_reg, i + 1, size);
+        auto inst2 = new Inst_Store(free_reg, i, size);
         fn->bytecode.push_back(copy_location_info(inst2, decl));
     }
 	if (fn->scope) {

@@ -5,7 +5,7 @@ true  : bool : 1;
 
 #run
 main :: fn {
-	number := factorial(5);
+	number := factorial(0);
 	name1 : string = "This text comes from bytecode!!\n\n";
 	std_handle := GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -17,8 +17,8 @@ main :: fn {
 }
 
 factorial :: fn (number: s32) -> s32 {
-	asd := 123;
-    return number * 2;
+	if number return 2;
+	else return 12;
 }
 
 strlen :: fn (str: string) -> s32 {
