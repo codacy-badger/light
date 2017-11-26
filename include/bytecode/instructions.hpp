@@ -27,6 +27,18 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_NOT,
 	BYTECODE_NEG,
 
+	BYTECODE_BINARY,
+
+	BYTECODE_JUMP,
+	BYTECODE_JUMP_IF_FALSE,
+
+	BYTECODE_CALL_SETUP,
+	BYTECODE_CALL_PARAM,
+	BYTECODE_CALL,
+	BYTECODE_RETURN,
+};
+
+enum Inst_Binop : uint8_t {
 	BYTECODE_ADD,
 	BYTECODE_SUB,
 	BYTECODE_MUL,
@@ -38,14 +50,6 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_LTE,
 	BYTECODE_GT,
 	BYTECODE_GTE,
-
-	BYTECODE_JUMP,
-	BYTECODE_JUMP_IF_FALSE,
-
-	BYTECODE_CALL_SETUP,
-	BYTECODE_CALL_PARAM,
-	BYTECODE_CALL,
-	BYTECODE_RETURN,
 };
 
 const uint8_t BYTECODE_TYPE_VOID 	= 0x0;
@@ -205,38 +209,16 @@ struct Inst_Not : Inst_Unary {
 };
 
 struct Inst_Binary : Instruction {
+	uint8_t binop = 0;
 	uint8_t reg1 = 0;
 	uint8_t reg2 = 0;
 
-	Inst_Binary (uint8_t bytecode, uint8_t reg1, uint8_t reg2) {
-		this->bytecode = bytecode;
+	Inst_Binary (uint8_t binop, uint8_t reg1, uint8_t reg2) {
+		this->bytecode = BYTECODE_BINARY;
+		this->binop = binop;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
 	}
-};
-
-struct Inst_Add : Inst_Binary {
-	Inst_Add (uint8_t reg1, uint8_t reg2)
-		: Inst_Binary (BYTECODE_ADD, reg1, reg2)
-	{/* empty */}
-};
-
-struct Inst_Sub : Inst_Binary {
-	Inst_Sub (uint8_t reg1, uint8_t reg2)
-		: Inst_Binary (BYTECODE_SUB, reg1, reg2)
-	{/* empty */}
-};
-
-struct Inst_Mul : Inst_Binary {
-	Inst_Mul (uint8_t reg1, uint8_t reg2)
-		: Inst_Binary (BYTECODE_MUL, reg1, reg2)
-	{/* empty */}
-};
-
-struct Inst_Div : Inst_Binary {
-	Inst_Div (uint8_t reg1, uint8_t reg2)
-		: Inst_Binary (BYTECODE_DIV, reg1, reg2)
-	{/* empty */}
 };
 
 struct Inst_Jump : Instruction {

@@ -139,105 +139,27 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(this->registers[unary->reg], &a, INTERP_REGISTER_SIZE);
 			return;
 		}
-		case BYTECODE_ADD: {
-			auto add = static_cast<Inst_Add*>(inst);
+		case BYTECODE_BINARY: {
+			auto binary = static_cast<Inst_Binary*>(inst);
 
 			size_t a, b;
-			memcpy(&a, this->registers[add->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[add->reg2], INTERP_REGISTER_SIZE);
-			a = a + b;
-			memcpy(this->registers[add->reg1], &a, INTERP_REGISTER_SIZE);
+			memcpy(&a, this->registers[binary->reg1], INTERP_REGISTER_SIZE);
+			memcpy(&b, this->registers[binary->reg2], INTERP_REGISTER_SIZE);
+			switch (binary->binop) {
+				case BYTECODE_ADD: 		a = a + b; break;
+				case BYTECODE_SUB: 		a = a - b; break;
+				case BYTECODE_MUL: 		a = a * b; break;
+				case BYTECODE_DIV: 		a = a / b; break;
+
+				case BYTECODE_EQ: 		a = a == b; break;
+				case BYTECODE_NEQ: 		a = a != b; break;
+				case BYTECODE_LT: 		a = a < b; break;
+				case BYTECODE_LTE: 		a = a <= b; break;
+				case BYTECODE_GT: 		a = a > b; break;
+				case BYTECODE_GTE: 		a = a >= b; break;
+			}
+			memcpy(this->registers[binary->reg1], &a, INTERP_REGISTER_SIZE);
 			return;
-		}
-		case BYTECODE_SUB: {
-			auto add = static_cast<Inst_Sub*>(inst);
-
-			size_t a, b;
-			memcpy(&a, this->registers[add->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[add->reg2], INTERP_REGISTER_SIZE);
-			a = a - b;
-			memcpy(this->registers[add->reg1], &a, INTERP_REGISTER_SIZE);
-			return;
-		}
-		case BYTECODE_MUL: {
-			auto add = static_cast<Inst_Mul*>(inst);
-
-			size_t a, b;
-			memcpy(&a, this->registers[add->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[add->reg2], INTERP_REGISTER_SIZE);
-			a = a * b;
-			memcpy(this->registers[add->reg1], &a, INTERP_REGISTER_SIZE);
-			return;
-		}
-		case BYTECODE_DIV: {
-			auto add = static_cast<Inst_Div*>(inst);
-
-			size_t a, b;
-			memcpy(&a, this->registers[add->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[add->reg2], INTERP_REGISTER_SIZE);
-			a = a / b;
-			memcpy(this->registers[add->reg1], &a, INTERP_REGISTER_SIZE);
-			return;
-		}
-		case BYTECODE_EQ: {
-			auto bin = static_cast<Inst_Binary*>(inst);
-
-			size_t a, b;
-			memcpy(&a, this->registers[bin->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[bin->reg2], INTERP_REGISTER_SIZE);
-			a = a == b;
-			memcpy(this->registers[bin->reg1], &a, INTERP_REGISTER_SIZE);
-			break;
-		}
-		case BYTECODE_NEQ: {
-			auto bin = static_cast<Inst_Binary*>(inst);
-
-			size_t a, b;
-			memcpy(&a, this->registers[bin->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[bin->reg2], INTERP_REGISTER_SIZE);
-			a = a != b;
-			memcpy(this->registers[bin->reg1], &a, INTERP_REGISTER_SIZE);
-			break;
-		}
-		case BYTECODE_LT: {
-			auto bin = static_cast<Inst_Binary*>(inst);
-
-			size_t a, b;
-			memcpy(&a, this->registers[bin->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[bin->reg2], INTERP_REGISTER_SIZE);
-			a = a < b;
-			memcpy(this->registers[bin->reg1], &a, INTERP_REGISTER_SIZE);
-			break;
-		}
-		case BYTECODE_LTE: {
-			auto bin = static_cast<Inst_Binary*>(inst);
-
-			size_t a, b;
-			memcpy(&a, this->registers[bin->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[bin->reg2], INTERP_REGISTER_SIZE);
-			a = a <= b;
-			memcpy(this->registers[bin->reg1], &a, INTERP_REGISTER_SIZE);
-			break;
-		}
-		case BYTECODE_GT: {
-			auto bin = static_cast<Inst_Binary*>(inst);
-
-			size_t a, b;
-			memcpy(&a, this->registers[bin->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[bin->reg2], INTERP_REGISTER_SIZE);
-			a = a > b;
-			memcpy(this->registers[bin->reg1], &a, INTERP_REGISTER_SIZE);
-			break;
-		}
-		case BYTECODE_GTE: {
-			auto bin = static_cast<Inst_Binary*>(inst);
-
-			size_t a, b;
-			memcpy(&a, this->registers[bin->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[bin->reg2], INTERP_REGISTER_SIZE);
-			a = a >= b;
-			memcpy(this->registers[bin->reg1], &a, INTERP_REGISTER_SIZE);
-			break;
 		}
 		case BYTECODE_JUMP: {
 			auto jump = static_cast<Inst_Jump*>(inst);
@@ -454,54 +376,22 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 			printf("NEG %d", unary->reg);
 			break;
 		}
-		case BYTECODE_ADD: {
-			auto add = static_cast<Inst_Add*>(inst);
-			printf("ADD %d, %d", add->reg1, add->reg2);
-			break;
-		}
-		case BYTECODE_SUB: {
-			auto sub = static_cast<Inst_Sub*>(inst);
-			printf("SUB %d, %d", sub->reg1, sub->reg2);
-			break;
-		}
-		case BYTECODE_MUL: {
-			auto mul = static_cast<Inst_Mul*>(inst);
-			printf("MUL %d, %d", mul->reg1, mul->reg2);
-			break;
-		}
-		case BYTECODE_DIV: {
-			auto div = static_cast<Inst_Div*>(inst);
-			printf("DIV %d, %d", div->reg1, div->reg2);
-			break;
-		}
-		case BYTECODE_EQ: {
-			auto div = static_cast<Inst_Div*>(inst);
-			printf("EQ %d, %d", div->reg1, div->reg2);
-			break;
-		}
-		case BYTECODE_NEQ: {
-			auto div = static_cast<Inst_Div*>(inst);
-			printf("NEQ %d, %d", div->reg1, div->reg2);
-			break;
-		}
-		case BYTECODE_LT: {
-			auto div = static_cast<Inst_Div*>(inst);
-			printf("LT %d, %d", div->reg1, div->reg2);
-			break;
-		}
-		case BYTECODE_LTE: {
-			auto div = static_cast<Inst_Div*>(inst);
-			printf("LTE %d, %d", div->reg1, div->reg2);
-			break;
-		}
-		case BYTECODE_GT: {
-			auto div = static_cast<Inst_Div*>(inst);
-			printf("GT %d, %d", div->reg1, div->reg2);
-			break;
-		}
-		case BYTECODE_GTE: {
-			auto div = static_cast<Inst_Div*>(inst);
-			printf("GTE %d, %d", div->reg1, div->reg2);
+		case BYTECODE_BINARY: {
+			auto binary = static_cast<Inst_Binary*>(inst);
+			switch (binary->binop) {
+				case BYTECODE_ADD: 		printf("ADD"); break;
+				case BYTECODE_SUB: 		printf("SUB"); break;
+				case BYTECODE_MUL: 		printf("MUL"); break;
+				case BYTECODE_DIV: 		printf("DIV"); break;
+
+				case BYTECODE_EQ: 		printf("EQ"); break;
+				case BYTECODE_NEQ: 		printf("NEQ"); break;
+				case BYTECODE_LT: 		printf("LT"); break;
+				case BYTECODE_LTE: 		printf("LTE"); break;
+				case BYTECODE_GT: 		printf("GT"); break;
+				case BYTECODE_GTE: 		printf("GTE"); break;
+			}
+			printf(" %d, %d", binary->reg1, binary->reg2);
 			break;
 		}
 		case BYTECODE_JUMP: {
