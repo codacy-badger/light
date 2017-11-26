@@ -73,10 +73,7 @@ Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 
 		case TOKEN_DOUBLE_AMP:		return AST_BINARY_LOGICAL_AND;
 		case TOKEN_DOUBLE_PIPE:		return AST_BINARY_LOGICAL_OR;
-		case TOKEN_EXCLAMATION:		return AST_BINARY_LOGICAL_NOT;
 
-		case TOKEN_DOUBLE_ADD: 		return AST_BINARY_INCREMENT;
-		case TOKEN_DOUBLE_SUB: 		return AST_BINARY_DECREMENT;
 		case TOKEN_ADD: 			return AST_BINARY_ADD;
 		case TOKEN_SUB: 			return AST_BINARY_SUB;
 		case TOKEN_MUL: 			return AST_BINARY_MUL;
@@ -85,7 +82,6 @@ Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 		case TOKEN_AMP:				return AST_BINARY_BITWISE_AND;
 		case TOKEN_PIPE:			return AST_BINARY_BITWISE_OR;
 		case TOKEN_HAT:				return AST_BINARY_BITWISE_XOR;
-		case TOKEN_TILDE:			return AST_BINARY_BITWISE_NOT;
 		case TOKEN_RIGHT_SHIFT:		return AST_BINARY_BITWISE_RIGHT_SHIFT;
 		case TOKEN_LEFT_SHIFT:		return AST_BINARY_BITWISE_LEFT_SHIFT;
 
@@ -104,9 +100,9 @@ short Ast_Binary::getPrecedence (Token_Type opToken) {
 		case TOKEN_EQUAL: 			return 1;
 		case TOKEN_DOT:   			return 1;
 
-		case TOKEN_DOUBLE_AMP:		return 4;
-		case TOKEN_DOUBLE_PIPE:		return 4;
-		case TOKEN_EXCLAMATION:		return 4;
+		case TOKEN_DOUBLE_AMP:		return 1;
+		case TOKEN_DOUBLE_PIPE:		return 1;
+		case TOKEN_EXCLAMATION:		return 1;
 
 		case TOKEN_DOUBLE_ADD: 		return 2;
 		case TOKEN_DOUBLE_SUB: 		return 2;

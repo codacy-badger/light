@@ -168,6 +168,7 @@ Ast_Statement* Parser::statement () {
 						return exp;
 					} else {
 						auto output = AST_NEW(Ast_Return);
+						output->block = this->current_block;
 						output->exp = exp;
 						return output;
 					}
@@ -182,6 +183,7 @@ Ast_Statement* Parser::statement () {
 					return exp;
 				} else {
 					auto output = AST_NEW(Ast_Return);
+					output->block = this->current_block;
 					output->exp = exp;
 					return output;
 				}

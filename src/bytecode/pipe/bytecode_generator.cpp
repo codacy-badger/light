@@ -150,19 +150,29 @@ void Bytecode_Generator::gen (Ast_Literal* lit) {
 
 uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
 	switch (binop) {
-		case AST_BINARY_ADD: 	return BYTECODE_ADD;
-		case AST_BINARY_SUB: 	return BYTECODE_SUB;
-		case AST_BINARY_MUL: 	return BYTECODE_MUL;
-		case AST_BINARY_DIV: 	return BYTECODE_DIV;
+		case AST_BINARY_LOGICAL_AND: 			return BYTECODE_LOGICAL_AND;
+		case AST_BINARY_LOGICAL_OR: 			return BYTECODE_LOGICAL_OR;
 
-		case AST_BINARY_EQ:		return BYTECODE_EQ;
-		case AST_BINARY_NEQ:	return BYTECODE_NEQ;
-		case AST_BINARY_LT:		return BYTECODE_LT;
-		case AST_BINARY_LTE:	return BYTECODE_LTE;
-		case AST_BINARY_GT:		return BYTECODE_GT;
-		case AST_BINARY_GTE:	return BYTECODE_GTE;
+		case AST_BINARY_ADD: 					return BYTECODE_ADD;
+		case AST_BINARY_SUB: 					return BYTECODE_SUB;
+		case AST_BINARY_MUL: 					return BYTECODE_MUL;
+		case AST_BINARY_DIV: 					return BYTECODE_DIV;
+
+		case AST_BINARY_BITWISE_AND: 			return BYTECODE_BITWISE_AND;
+		case AST_BINARY_BITWISE_OR: 			return BYTECODE_BITWISE_OR;
+		case AST_BINARY_BITWISE_XOR: 			return BYTECODE_BITWISE_XOR;
+		case AST_BINARY_BITWISE_RIGHT_SHIFT: 	return BYTECODE_BITWISE_RIGHT_SHIFT;
+		case AST_BINARY_BITWISE_LEFT_SHIFT: 	return BYTECODE_BITWISE_LEFT_SHIFT;
+
+		case AST_BINARY_EQ:						return BYTECODE_EQ;
+		case AST_BINARY_NEQ:					return BYTECODE_NEQ;
+		case AST_BINARY_LT:						return BYTECODE_LT;
+		case AST_BINARY_LTE:					return BYTECODE_LTE;
+		case AST_BINARY_GT:						return BYTECODE_GT;
+		case AST_BINARY_GTE:					return BYTECODE_GTE;
+
+		default: 								return BYTECODE_NOOP;
 	}
-	return BYTECODE_NOOP;
 }
 
 void Bytecode_Generator::gen (Ast_Binary* binop) {
