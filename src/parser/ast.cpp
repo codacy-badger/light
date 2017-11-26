@@ -70,10 +70,25 @@ Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 	switch (tType) {
 		case TOKEN_EQUAL: 			return AST_BINARY_ASSIGN;
 		case TOKEN_DOT: 			return AST_BINARY_ATTRIBUTE;
+
+		case TOKEN_DOUBLE_AMP:		return AST_BINARY_LOGICAL_AND;
+		case TOKEN_DOUBLE_PIPE:		return AST_BINARY_LOGICAL_OR;
+		case TOKEN_EXCLAMATION:		return AST_BINARY_LOGICAL_NOT;
+
+		case TOKEN_DOUBLE_ADD: 		return AST_BINARY_INCREMENT;
+		case TOKEN_DOUBLE_SUB: 		return AST_BINARY_DECREMENT;
 		case TOKEN_ADD: 			return AST_BINARY_ADD;
 		case TOKEN_SUB: 			return AST_BINARY_SUB;
 		case TOKEN_MUL: 			return AST_BINARY_MUL;
 		case TOKEN_DIV: 			return AST_BINARY_DIV;
+
+		case TOKEN_AMP:				return AST_BINARY_BITWISE_AND;
+		case TOKEN_PIPE:			return AST_BINARY_BITWISE_OR;
+		case TOKEN_HAT:				return AST_BINARY_BITWISE_XOR;
+		case TOKEN_TILDE:			return AST_BINARY_BITWISE_NOT;
+		case TOKEN_RIGHT_SHIFT:		return AST_BINARY_BITWISE_RIGHT_SHIFT;
+		case TOKEN_LEFT_SHIFT:		return AST_BINARY_BITWISE_LEFT_SHIFT;
+
 		case TOKEN_DOUBLE_EQUAL:	return AST_BINARY_EQ;
 		case TOKEN_NOT_EQUAL:		return AST_BINARY_NEQ;
 		case TOKEN_GREATER_EQUAL:	return AST_BINARY_GTE;
@@ -88,16 +103,32 @@ short Ast_Binary::getPrecedence (Token_Type opToken) {
 	switch (opToken) {
 		case TOKEN_EQUAL: 			return 1;
 		case TOKEN_DOT:   			return 1;
+
+		case TOKEN_DOUBLE_AMP:		return 4;
+		case TOKEN_DOUBLE_PIPE:		return 4;
+		case TOKEN_EXCLAMATION:		return 4;
+
+		case TOKEN_DOUBLE_ADD: 		return 2;
+		case TOKEN_DOUBLE_SUB: 		return 2;
 		case TOKEN_ADD:   			return 2;
 		case TOKEN_SUB:   			return 2;
 		case TOKEN_MUL:   			return 3;
 		case TOKEN_DIV:   			return 3;
+
+		case TOKEN_AMP:				return 3;
+		case TOKEN_PIPE:			return 3;
+		case TOKEN_HAT:				return 3;
+		case TOKEN_TILDE:			return 3;
+		case TOKEN_RIGHT_SHIFT:		return 3;
+		case TOKEN_LEFT_SHIFT:		return 3;
+
 		case TOKEN_DOUBLE_EQUAL:	return 4;
 		case TOKEN_NOT_EQUAL:		return 4;
 		case TOKEN_GREATER_EQUAL:	return 4;
 		case TOKEN_LESSER_EQUAL:	return 4;
 		case TOKEN_GREATER:			return 4;
 		case TOKEN_LESSER:			return 4;
+
 		default: 		  			return 0;
 	}
 }
@@ -106,10 +137,25 @@ bool Ast_Binary::getLeftAssociativity (Token_Type opToken) {
 	switch (opToken) {
 		case TOKEN_EQUAL: 			return false;
 		case TOKEN_DOT:   			return false;
+
+		case TOKEN_DOUBLE_AMP:		return false;
+		case TOKEN_DOUBLE_PIPE:		return false;
+		case TOKEN_EXCLAMATION:		return false;
+
+		case TOKEN_DOUBLE_ADD: 		return false;
+		case TOKEN_DOUBLE_SUB: 		return false;
 		case TOKEN_ADD:   			return false;
 		case TOKEN_SUB:   			return false;
 		case TOKEN_MUL:   			return false;
 		case TOKEN_DIV:   			return false;
+
+		case TOKEN_AMP:				return false;
+		case TOKEN_PIPE:			return false;
+		case TOKEN_HAT:				return false;
+		case TOKEN_TILDE:			return false;
+		case TOKEN_RIGHT_SHIFT:		return false;
+		case TOKEN_LEFT_SHIFT:		return false;
+
 		case TOKEN_DOUBLE_EQUAL:	return false;
 		case TOKEN_NOT_EQUAL:		return false;
 		case TOKEN_GREATER_EQUAL:	return false;
