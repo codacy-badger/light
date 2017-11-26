@@ -5,11 +5,11 @@ true  : bool : 1;
 
 #run
 main :: fn {
-	number := factorial(3);
+	number := factorial(5);
 
 	std_handle := GetStdHandle(STD_OUTPUT_HANDLE);
 	name1 : string = "This text comes from bytecode!!\n\n";
-	if number < 10 && name1 {
+	if number == 120 && name1 {
 		WriteConsole(std_handle, name1, strlen(name1), 0, 0);
 	} else {
 		name2 := "Name2\n\n";
@@ -18,9 +18,10 @@ main :: fn {
 }
 
 factorial :: fn (number: s32) -> s32 {
-	if number > 1 {
-		2
-	} else 0
+	if (number == 0) 1
+	else {
+		number * factorial(number - 1)
+	}
 }
 
 strlen :: fn (str: string) -> s32 {

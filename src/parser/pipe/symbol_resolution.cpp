@@ -13,6 +13,24 @@ void replace_ident_by_const (Ast_Ident** addr, Ast_Expression* expression) {
 void Symbol_Resolution::on_statement(Ast_Statement* stm) {
     vector<Ast_Ident**> unresolved_idents;
     check_symbols(stm, &unresolved_idents);
+
+	if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+		auto decl = static_cast<Ast_Declaration*>(stm);
+
+		auto it = unresolved_idents.begin();
+		while (it != unresolved_idents.end()) {
+			auto ident_ptr = (*it);
+			if (strcmp((*ident_ptr)->name, decl->name) == 0) {
+				if (decl->decl_flags & DECL_FLAG_CONSTANT) {
+					replace_ident_by_const(ident_ptr, decl->expression);
+				} else {
+					(*ident_ptr)->declaration = decl;
+				}
+				it = unresolved_idents.erase(it);
+			} else it++;
+		}
+	}
+
     if (unresolved_idents.size() > 0) {
         auto stm_deps = new Ast_Statement_Dependency();
         stm_deps->unresolved_symbols = unresolved_idents;
