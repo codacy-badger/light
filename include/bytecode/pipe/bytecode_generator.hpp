@@ -15,6 +15,7 @@ struct Bytecode_Generator : Pipe {
 	void gen (Ast_Block* block);
 	void gen (Ast_Return* ret);
 	void gen (Ast_If* _if);
+	void gen (Ast_While* _while);
     void gen (Ast_Declaration* decl);
 
     void gen (Ast_Expression* exp, bool address = false);

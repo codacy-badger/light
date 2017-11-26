@@ -34,6 +34,10 @@ void Bytecode_Generator::gen (Ast_Statement* stm) {
 			this->gen(static_cast<Ast_If*>(stm));
 			break;
 		}
+		case AST_STATEMENT_WHILE: {
+			this->gen(static_cast<Ast_While*>(stm));
+			break;
+		}
 		case AST_STATEMENT_EXPRESSION: {
 			this->gen(static_cast<Ast_Expression*>(stm));
 			break;
@@ -78,6 +82,23 @@ void Bytecode_Generator::gen (Ast_If* _if) {
 		this->gen(_if->else_statement);
 		inst2->offset = this->bytecode->size() - index1;
 	}
+}
+
+void Bytecode_Generator::gen (Ast_While* _while) {
+	auto index1 = this->bytecode->size();
+
+	this->gen(_while->condition);
+
+	auto index2 = this->bytecode->size();
+	auto jmp1 = new Inst_Jump_If_False(0);
+	this->bytecode->push_back(copy_location_info(jmp1, _while));
+
+	this->gen(_while->statement);
+
+	auto jmp2 = new Inst_Jump();
+	this->bytecode->push_back(copy_location_info(jmp2, _while));
+	jmp2->offset = index1 - this->bytecode->size();
+	jmp1->offset = this->bytecode->size() - index2;
 }
 
 void Bytecode_Generator::gen (Ast_Declaration* decl) {

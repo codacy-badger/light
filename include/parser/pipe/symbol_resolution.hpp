@@ -32,6 +32,7 @@ struct Symbol_Resolution : Pipe {
     void check_symbols (Ast_Statement* stm, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Declaration* stm, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_If* _if, vector<Ast_Ident**>* sym);
+    void check_symbols (Ast_While* _while, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Block* stm, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Return* ret, vector<Ast_Ident**>* sym);
 

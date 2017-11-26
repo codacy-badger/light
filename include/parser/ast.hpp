@@ -31,6 +31,7 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
 	AST_STATEMENT_BLOCK,
 	AST_STATEMENT_IF,
+	AST_STATEMENT_WHILE,
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
 	AST_STATEMENT_IMPORT,
@@ -68,6 +69,13 @@ struct Ast_If : Ast_Statement {
 	Ast_Statement* else_statement = NULL;
 
 	Ast_If () { this->stm_type = AST_STATEMENT_IF; }
+};
+
+struct Ast_While : Ast_Statement {
+	Ast_Expression* condition = NULL;
+	Ast_Statement* statement = NULL;
+
+	Ast_While () { this->stm_type = AST_STATEMENT_WHILE; }
 };
 
 const uint8_t DECL_FLAG_CONSTANT = 0x1;

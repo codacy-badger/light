@@ -17,6 +17,9 @@ void Type_Checking::check_type (Ast_Statement* stm) {
         case AST_STATEMENT_IF:
             check_type(static_cast<Ast_If*>(stm));
             break;
+        case AST_STATEMENT_WHILE:
+            check_type(static_cast<Ast_While*>(stm));
+            break;
         case AST_STATEMENT_DECLARATION:
             check_type(static_cast<Ast_Declaration*>(stm));
             break;
@@ -38,6 +41,11 @@ void Type_Checking::check_type (Ast_If* _if) {
 	check_type(_if->condition);
 	check_type(_if->then_statement);
 	if (_if->else_statement) check_type(_if->else_statement);
+}
+
+void Type_Checking::check_type (Ast_While* _while) {
+	check_type(_while->condition);
+	check_type(_while->statement);
 }
 
 void Type_Checking::check_type (Ast_Declaration* decl) {

@@ -147,6 +147,9 @@ Ast_Statement* Parser::statement () {
 		case TOKEN_IF: {
 			return this->statement_if();
 		}
+		case TOKEN_WHILE: {
+			return this->statement_while();
+		}
 		case TOKEN_RETURN: {
 			this->lexer->skip(1);
 			auto output = AST_NEW(Ast_Return);
@@ -205,6 +208,17 @@ Ast_Statement* Parser::statement_if () {
 		}
 
 		return stm_if;
+	} else return NULL;
+}
+
+Ast_Statement* Parser::statement_while () {
+	if (this->lexer->isNextType(TOKEN_WHILE)) {
+		this->lexer->skip(1);
+		auto stm_while = AST_NEW(Ast_While);
+		stm_while->condition = this->expression();
+		stm_while->statement = this->statement();
+
+		return stm_while;
 	} else return NULL;
 }
 
