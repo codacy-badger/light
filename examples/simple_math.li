@@ -9,7 +9,7 @@ main :: fn {
 
 	std_handle := GetStdHandle(STD_OUTPUT_HANDLE);
 	name1 : string = "This text comes from bytecode!!\n\n";
-	if number > 10 {
+	if number < 10 {
 		WriteConsole(std_handle, name1, strlen(name1), 0, 0);
 	} else {
 		name2 := "Name2\n\n";

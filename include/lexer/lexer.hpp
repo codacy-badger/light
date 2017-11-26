@@ -2,24 +2,34 @@
 
 #include "lexer/buffer.hpp"
 
+#include <stdint.h>
 #include <string>
 #include <deque>
 
-enum Token_Type {
+enum Token_Type : uint8_t {
 	TOKEN_UNDEFINED = 0,
 
 	TOKEN_EOF,
-
-	TOKEN_EXCLAMATION,
 	TOKEN_AT,
 
+	TOKEN_DOUBLE_AMP,
+	TOKEN_DOUBLE_PIPE,
+	TOKEN_EXCLAMATION,
+
+	TOKEN_AMP,
+	TOKEN_PIPE,
+	TOKEN_HAT,
+	TOKEN_TILDE,
 	TOKEN_RIGHT_SHIFT,
 	TOKEN_LEFT_SHIFT,
 
+	TOKEN_DOUBLE_ADD,
+	TOKEN_DOUBLE_SUB,
 	TOKEN_ADD,
 	TOKEN_SUB,
 	TOKEN_DIV,
 	TOKEN_MUL,
+	TOKEN_PERCENT,
 
 	TOKEN_DOUBLE_EQUAL,
 	TOKEN_NOT_EQUAL,
@@ -31,7 +41,6 @@ enum Token_Type {
 	TOKEN_EQUAL,
 	TOKEN_HASH,
 	TOKEN_LET,
-	TOKEN_AMP,
 	TOKEN_IF,
 	TOKEN_ELSE,
 	TOKEN_ARROW,
