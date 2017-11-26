@@ -47,7 +47,10 @@ void Bytecode_Interpreter::run (Ast_Function* func) {
 				printf("\n");
 		}
 		Light_Compiler::inst->interp->run(inst);
-		if (inst->bytecode == BYTECODE_RETURN) break;
+		if (inst->bytecode == BYTECODE_RETURN) {
+			//Light_Compiler::inst->interp->dump();
+			break;
+		}
 	}
 	this->stack_index = _tmp;
 }

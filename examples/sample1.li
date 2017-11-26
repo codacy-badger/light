@@ -1,26 +1,23 @@
-import! "examples/win32.li"
-
-false : bool : 0;
-true  : bool : 1;
+import! "examples/print.li"
 
 #run
 main :: fn {
 	number := factorial(5);
 
 	std_handle := GetStdHandle(STD_OUTPUT_HANDLE);
-	name1 : string = "This text comes from bytecode!!\n\n";
+	name1 := "This text comes from bytecode!!\n\n";
 	if number == 120 && name1 {
-		WriteConsole(std_handle, name1, strlen(name1), 0, 0);
+		print(name1, strlen(name1));
 	} else {
 		name2 := "Name2\n\n";
-		WriteConsole(std_handle, name2, 7, 0, 0);
+		print(name2, 7);
 	}
 }
 
 factorial :: fn (number: s32) -> s32 {
 	if (number == 0) 1
 	else {
-		number * factorial(number - 1)
+		factorial(number - 1) * number
 	}
 }
 

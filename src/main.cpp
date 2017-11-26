@@ -13,8 +13,8 @@ using namespace std;
 int main (int argc, char** argv) {
 	Light_Compiler* compiler = new Light_Compiler();
 
-	compiler->settings->input_files.push_back("examples/simple_math.li");
-	compiler->settings->output_file = "bin/simple_math.obj";
+	compiler->settings->input_files.push_back("examples/sample1.li");
+	compiler->settings->output_file = "bin/sample1.obj";
 
 	compiler->run();
 	delete compiler;
