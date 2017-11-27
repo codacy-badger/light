@@ -392,17 +392,26 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		case BYTECODE_BINARY: {
 			auto binary = static_cast<Inst_Binary*>(inst);
 			switch (binary->binop) {
-				case BYTECODE_ADD: 		printf("ADD"); break;
-				case BYTECODE_SUB: 		printf("SUB"); break;
-				case BYTECODE_MUL: 		printf("MUL"); break;
-				case BYTECODE_DIV: 		printf("DIV"); break;
+				case BYTECODE_LOGICAL_AND: 			printf("LOGICAL_AND"); break;
+				case BYTECODE_LOGICAL_OR: 			printf("LOGICAL_OR"); break;
 
-				case BYTECODE_EQ: 		printf("EQ"); break;
-				case BYTECODE_NEQ: 		printf("NEQ"); break;
-				case BYTECODE_LT: 		printf("LT"); break;
-				case BYTECODE_LTE: 		printf("LTE"); break;
-				case BYTECODE_GT: 		printf("GT"); break;
-				case BYTECODE_GTE: 		printf("GTE"); break;
+				case BYTECODE_ADD: 					printf("ADD"); break;
+				case BYTECODE_SUB: 					printf("SUB"); break;
+				case BYTECODE_MUL: 					printf("MUL"); break;
+				case BYTECODE_DIV: 					printf("DIV"); break;
+
+				case BYTECODE_BITWISE_AND: 			printf("BITWISE_AND"); break;
+				case BYTECODE_BITWISE_OR: 			printf("BITWISE_OR"); break;
+				case BYTECODE_BITWISE_XOR: 			printf("BITWISE_XOR"); break;
+				case BYTECODE_BITWISE_RIGHT_SHIFT: 	printf("BITWISE_RIGHT_SHIFT"); break;
+				case BYTECODE_BITWISE_LEFT_SHIFT: 	printf("BITWISE_LEFT_SHIFT"); break;
+
+				case BYTECODE_EQ: 					printf("EQ"); break;
+				case BYTECODE_NEQ: 					printf("NEQ"); break;
+				case BYTECODE_LT: 					printf("LT"); break;
+				case BYTECODE_LTE: 					printf("LTE"); break;
+				case BYTECODE_GT: 					printf("GT"); break;
+				case BYTECODE_GTE: 					printf("GTE"); break;
 			}
 			printf(" %d, %d", binary->reg1, binary->reg2);
 			break;

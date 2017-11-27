@@ -89,7 +89,7 @@ void Bytecode_Generator::gen (Ast_While* _while) {
 
 	this->gen(_while->condition);
 
-	auto index2 = this->bytecode->size();
+	auto index2 = this->bytecode->size() + 1;
 	auto jmp1 = new Inst_Jump_If_False(0);
 	this->bytecode->push_back(copy_location_info(jmp1, _while));
 

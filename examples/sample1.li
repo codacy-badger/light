@@ -2,11 +2,12 @@ import! "examples/print.li"
 
 #run
 main :: fn {
-	number := factorial(0);
+	number := factorial(5);
 
 	std_handle := GetStdHandle(STD_OUTPUT_HANDLE);
 	name1 := "This text comes from bytecode!!\n\n";
-	length := strlen(number);
+	length := strlen(name1);
+
 	if number == 120 && name1 {
 		print(name1, length);
 	} else {
@@ -25,7 +26,6 @@ main :: fn {
 strlen :: fn (str: string) -> s32 {
 	result : s32 = 0;
 	while (result < 3) {
-		print("Not Zero!\n", 10);
 		result = result + 1;
 	}
 	return 33;
