@@ -419,6 +419,15 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		auto unop = AST_NEW(Ast_Unary, TOKEN_AMP);
 		unop->exp = this->_atom();
 		return unop;
+	} else if (this->lexer->isNextType(TOKEN_CAST)) {
+		this->lexer->skip(1);
+		auto cast = AST_NEW(Ast_Cast);
+		this->lexer->check_skip(TOKEN_PAR_OPEN);
+		cast->value = this->expression();
+		this->lexer->check_skip(TOKEN_COMMA);
+		cast->cast_to = this->_atom();
+		this->lexer->check_skip(TOKEN_PAR_CLOSE);
+		return cast;
 	} else return this->literal();
 }
 

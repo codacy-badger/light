@@ -65,6 +65,16 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(this->registers[cpy->reg1], this->registers[cpy->reg2], INTERP_REGISTER_SIZE);
 			return;
 		}
+		case BYTECODE_CAST: {
+			auto cast = static_cast<Inst_Cast*>(inst);
+
+			size_t value;
+			auto size_from = bytecode_get_size(cast->type_from);
+			memcpy(&value, this->registers[cast->reg], size_from);
+			auto size_to = bytecode_get_size(cast->type_to);
+			memcpy(this->registers[cast->reg], &value, size_to);
+			return;
+		}
 		case BYTECODE_SET: {
 			auto set = static_cast<Inst_Set*>(inst);
 			auto size = bytecode_get_size(set->bytecode_type);
@@ -285,6 +295,11 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 			if (cpy->reg1 == cpy->reg2) {
 				printf(" [WARNING: instruction has no effect]");
 			}
+			break;
+		}
+		case BYTECODE_CAST: {
+			auto cast = static_cast<Inst_Cast*>(inst);
+			printf("CAST %d, %d, %d", cast->reg, cast->type_from, cast->type_to);
 			break;
 		}
 		case BYTECODE_SET: {

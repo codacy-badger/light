@@ -127,6 +127,7 @@ enum Ast_Expression_Type {
 	AST_EXPRESSION_CALL,
 	AST_EXPRESSION_IDENT,
 	AST_EXPRESSION_LITERAL,
+	AST_EXPRESSION_CAST,
 };
 
 struct Ast_Expression : Ast_Statement {
@@ -134,6 +135,13 @@ struct Ast_Expression : Ast_Statement {
 	Ast_Type_Definition* inferred_type = NULL;
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
+};
+
+struct Ast_Cast : Ast_Expression {
+	Ast_Expression* value = NULL;
+	Ast_Expression* cast_to = NULL;
+
+	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
 };
 
 struct Ast_Comma_Separated_Arguments : Ast_Expression {

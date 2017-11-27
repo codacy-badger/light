@@ -12,6 +12,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_NOOP,
 
 	BYTECODE_COPY,
+	BYTECODE_CAST,
 
 	BYTECODE_SET,
 
@@ -93,6 +94,19 @@ struct Inst_Copy : Instruction {
 		this->bytecode = BYTECODE_COPY;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
+	}
+};
+
+struct Inst_Cast : Instruction {
+	uint8_t reg = 0;
+	uint8_t type_from = 0;
+	uint8_t type_to = 0;
+
+	Inst_Cast (uint8_t reg, uint8_t type_from, uint8_t type_to) {
+		this->bytecode = BYTECODE_CAST;
+		this->reg = reg;
+		this->type_from = type_from;
+		this->type_to = type_to;
 	}
 };
 

@@ -104,6 +104,9 @@ void Type_Checking::check_type (Ast_Expression* exp) {
         case AST_EXPRESSION_CALL:
             check_type(static_cast<Ast_Function_Call*>(exp));
             break;
+        case AST_EXPRESSION_CAST:
+            check_type(static_cast<Ast_Cast*>(exp));
+            break;
         case AST_EXPRESSION_BINARY:
             check_type(static_cast<Ast_Binary*>(exp));
             break;
@@ -118,6 +121,14 @@ void Type_Checking::check_type (Ast_Expression* exp) {
             break;
         default: break;
     }
+}
+
+void Type_Checking::check_type (Ast_Cast* cast) {
+	check_type(cast->value);
+	check_type(cast->cast_to);
+	if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
+		cast->inferred_type = static_cast<Ast_Type_Definition*>(cast->cast_to);
+	}
 }
 
 void Type_Checking::check_type (Ast_Type_Definition* tydef) {
@@ -208,7 +219,11 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 		case AST_BINARY_LTE:
 		case AST_BINARY_GT:
 		case AST_BINARY_GTE: {
-			binop->inferred_type = Light_Compiler::inst->type_def_bool;
+			if (binop->lhs->inferred_type == binop->rhs->inferred_type) {
+				binop->inferred_type = Light_Compiler::inst->type_def_bool;
+			} else {
+				Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression");
+			}
 			break;
 		}
 		case AST_BINARY_ASSIGN:

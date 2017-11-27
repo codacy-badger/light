@@ -136,6 +136,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
 
 void Bytecode_Generator::gen (Ast_Expression* exp, bool address) {
     switch (exp->exp_type) {
+        case AST_EXPRESSION_CAST: return this->gen(static_cast<Ast_Cast*>(exp));
         case AST_EXPRESSION_LITERAL: return this->gen(static_cast<Ast_Literal*>(exp));
 		case AST_EXPRESSION_UNARY: return this->gen(static_cast<Ast_Unary*>(exp));
         case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp));
@@ -143,6 +144,16 @@ void Bytecode_Generator::gen (Ast_Expression* exp, bool address) {
         case AST_EXPRESSION_CALL: return this->gen(static_cast<Ast_Function_Call*>(exp));
         default: return;
     }
+}
+
+void Bytecode_Generator::gen (Ast_Cast* cast) {
+	// TODO: handle custom casts? Maybe this is not the place...
+	// A pipe that replaces custom casts by function calls would be cleaner
+	this->gen(cast->value);
+	auto type_from = bytecode_get_type(cast->value->inferred_type);
+	auto type_to = bytecode_get_type(cast->inferred_type);
+	auto inst = new Inst_Cast(this->current_register - 1, type_from, type_to);
+	this->bytecode->push_back(copy_location_info(inst, cast));
 }
 
 void Bytecode_Generator::gen (Ast_Literal* lit) {

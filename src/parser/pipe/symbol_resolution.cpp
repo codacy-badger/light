@@ -179,6 +179,9 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
 		case AST_EXPRESSION_CALL:
 			check_symbols(reinterpret_cast<Ast_Function_Call**>(exp), sym);
 			break;
+		case AST_EXPRESSION_CAST:
+			check_symbols(reinterpret_cast<Ast_Cast**>(exp), sym);
+			break;
         case AST_EXPRESSION_BINARY:
             check_symbols(reinterpret_cast<Ast_Binary**>(exp), sym);
 			break;
@@ -205,6 +208,11 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
         case AST_EXPRESSION_LITERAL: break;
         default: break;
     }
+}
+
+void Symbol_Resolution::check_symbols (Ast_Cast** cast, vector<Ast_Ident**>* sym) {
+	check_symbols(&(*cast)->value, sym);
+	check_symbols(&(*cast)->cast_to, sym);
 }
 
 void Symbol_Resolution::check_symbols (Ast_Function** fn, vector<Ast_Ident**>* sym) {

@@ -12,15 +12,15 @@ uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty) {
 		case AST_TYPEDEF_STRUCT: {
 				 if (decl_ty == Light_Compiler::inst->type_def_void) return BYTECODE_TYPE_VOID;
 
-			else if (decl_ty == Light_Compiler::inst->type_def_u8)  return BYTECODE_TYPE_U32;
-			else if (decl_ty == Light_Compiler::inst->type_def_u16) return BYTECODE_TYPE_U32;
+			else if (decl_ty == Light_Compiler::inst->type_def_u8)  return BYTECODE_TYPE_U8;
+			else if (decl_ty == Light_Compiler::inst->type_def_u16) return BYTECODE_TYPE_U16;
 	  		else if (decl_ty == Light_Compiler::inst->type_def_u32) return BYTECODE_TYPE_U32;
-	  		else if (decl_ty == Light_Compiler::inst->type_def_u64) return BYTECODE_TYPE_U32;
+	  		else if (decl_ty == Light_Compiler::inst->type_def_u64) return BYTECODE_TYPE_U64;
 
-			else if (decl_ty == Light_Compiler::inst->type_def_s8)  return BYTECODE_TYPE_S32;
-			else if (decl_ty == Light_Compiler::inst->type_def_s16) return BYTECODE_TYPE_S32;
+			else if (decl_ty == Light_Compiler::inst->type_def_s8)  return BYTECODE_TYPE_S8;
+			else if (decl_ty == Light_Compiler::inst->type_def_s16) return BYTECODE_TYPE_S16;
 			else if (decl_ty == Light_Compiler::inst->type_def_s32) return BYTECODE_TYPE_S32;
-			else if (decl_ty == Light_Compiler::inst->type_def_s64) return BYTECODE_TYPE_S32;
+			else if (decl_ty == Light_Compiler::inst->type_def_s64) return BYTECODE_TYPE_S64;
 
 			else if (decl_ty == Light_Compiler::inst->type_def_s32) return BYTECODE_TYPE_F32;
 			else if (decl_ty == Light_Compiler::inst->type_def_s64) return BYTECODE_TYPE_F64;
