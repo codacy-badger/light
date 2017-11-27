@@ -78,17 +78,34 @@ bool Lexer::parse_next () {
     LITERAL_TOKEN("}", TOKEN_BRAC_CLOSE);
     LITERAL_TOKEN("[", TOKEN_SQ_BRAC_OPEN);
     LITERAL_TOKEN("]", TOKEN_SQ_BRAC_CLOSE);
-	LITERAL_TOKEN("if", TOKEN_IF);
-	LITERAL_TOKEN("else", TOKEN_ELSE);
-	LITERAL_TOKEN("while", TOKEN_WHILE);
-    LITERAL_TOKEN("struct", TOKEN_STRUCT);
-    LITERAL_TOKEN("fn", TOKEN_FUNCTION);
-    LITERAL_TOKEN("return", TOKEN_RETURN);
-    LITERAL_TOKEN("import", TOKEN_IMPORT);
+
+	if (id()) {
+		if (strcmp(nextText, "if") == 0) {
+			this->nextType = TOKEN_IF;
+			return true;
+		} else if (strcmp(nextText, "else") == 0) {
+			this->nextType = TOKEN_ELSE;
+			return true;
+		} else if (strcmp(nextText, "while") == 0) {
+			this->nextType = TOKEN_WHILE;
+			return true;
+		} else if (strcmp(nextText, "struct") == 0) {
+			this->nextType = TOKEN_STRUCT;
+			return true;
+		} else if (strcmp(nextText, "fn") == 0) {
+			this->nextType = TOKEN_FUNCTION;
+			return true;
+		} else if (strcmp(nextText, "return") == 0) {
+			this->nextType = TOKEN_RETURN;
+			return true;
+		} else if (strcmp(nextText, "import") == 0) {
+			this->nextType = TOKEN_IMPORT;
+			return true;
+		} else return true;
+	}
 
 	FUNCTION_TOKEN(number);
 	FUNCTION_TOKEN(string);
-	FUNCTION_TOKEN(id);
 
 	fprintf(stderr, "Unrecognized token!\n");
 	fprintf(stderr, " -> '%d'\n", this->buffer->peek(0));

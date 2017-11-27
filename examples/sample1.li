@@ -29,16 +29,16 @@ test_strlen :: fn {
 
 	first_letter := &name1;
 
-	/*if name1 {
+	if name1 {
 		print(name1, length);
 	} else {
 		name2 := "Name2\n\n";
 		print(name2, 7);
-	}*/
+	}
 
 	strlen :: fn (str: string) -> s32 {
 		result : s32 = 0;
-		_letter := &str;
+		while_ := &str;
 		while (result < 3) {
 			result = result + 1;
 		}
