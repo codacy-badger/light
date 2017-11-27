@@ -2,8 +2,6 @@
 
 #include "compiler.hpp"
 
-#include "dyncall/dyncall.h"
-
 Instruction* copy_location_info (Instruction* intruction, Ast* node) {
     intruction->filename = node->filename;
     intruction->line = node->line;
