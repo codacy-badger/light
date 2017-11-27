@@ -81,7 +81,6 @@ bool Lexer::parse_next () {
 	LITERAL_TOKEN("if", TOKEN_IF);
 	LITERAL_TOKEN("else", TOKEN_ELSE);
 	LITERAL_TOKEN("while", TOKEN_WHILE);
-	LITERAL_TOKEN("let", TOKEN_LET);
     LITERAL_TOKEN("struct", TOKEN_STRUCT);
     LITERAL_TOKEN("fn", TOKEN_FUNCTION);
     LITERAL_TOKEN("return", TOKEN_RETURN);
@@ -144,7 +143,6 @@ const char* Lexer::get_name (Token_Type type) {
 		CASE_ENUM_TEXT(TOKEN_IF, "if")
 		CASE_ENUM_TEXT(TOKEN_ELSE, "else")
 		CASE_ENUM_TEXT(TOKEN_WHILE, "while")
-		CASE_ENUM_TEXT(TOKEN_LET, "let")
 		CASE_ENUM_TEXT(TOKEN_STRUCT, "struct")
 		CASE_ENUM_TEXT(TOKEN_FUNCTION, "fn")
 		CASE_ENUM_TEXT(TOKEN_STM_END, ";")

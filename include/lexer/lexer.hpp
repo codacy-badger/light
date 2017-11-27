@@ -40,7 +40,6 @@ enum Token_Type : uint8_t {
 
 	TOKEN_EQUAL,
 	TOKEN_HASH,
-	TOKEN_LET,
 	TOKEN_IF,
 	TOKEN_ELSE,
 	TOKEN_WHILE,
