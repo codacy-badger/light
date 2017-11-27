@@ -228,7 +228,29 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 
 void Type_Checking::check_type (Ast_Unary* unop) {
 	check_type(unop->exp);
-	unop->inferred_type = unop->exp->inferred_type;
+	switch (unop->unary_op) {
+		case AST_UNARY_NOT: {
+            unop->inferred_type = unop->exp->inferred_type;
+            break;
+		}
+		case AST_UNARY_REFERENCE: {
+            auto ptr_to = new Ast_Pointer_Type();
+            ptr_to->base = unop->exp->inferred_type;
+            unop->inferred_type = ptr_to;
+            break;
+        }
+		case AST_UNARY_DEREFERENCE: {
+            auto inf_type = unop->exp->inferred_type;
+            if (inf_type->typedef_type == AST_TYPEDEF_POINTER) {
+                auto ptr_type = static_cast<Ast_Pointer_Type*>(inf_type);
+                auto base_type = static_cast<Ast_Type_Definition*>(ptr_type->base);
+                unop->inferred_type = base_type;
+            } else {
+                Light_Compiler::inst->error_stop(unop, "Can't dereference a non-pointer type expression!");
+            }
+            break;
+		}
+	}
 }
 
 void Type_Checking::check_type (Ast_Ident* ident) {

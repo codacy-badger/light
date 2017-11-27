@@ -112,7 +112,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(&reg_value, this->registers[deref->src], INTERP_REGISTER_SIZE);
 			auto mem_ptr = reinterpret_cast<void*>(reg_value);
 			memset(this->registers[deref->dest], 0, INTERP_REGISTER_SIZE);
-			memcpy(this->registers[deref->dest], mem_ptr, deref->size - 1);
+			memcpy(this->registers[deref->dest], mem_ptr, deref->size);
 			return;
 		}
 		case BYTECODE_STORE: {

@@ -16,10 +16,10 @@ test_factorial :: fn {
 	}
 
 	factorial :: fn (number: s32) -> s32 {
-		if (number == 0) 1
-		else {
+		if (number == 0)
+			1
+		else
 			factorial(number - 1) * number
-		}
 	}
 }
 
@@ -27,15 +27,18 @@ test_strlen :: fn {
 	name1 := "This text comes from bytecode!!\n\n";
 	length := strlen(name1);
 
-	if name1 && length > 0 {
+	first_letter := &name1;
+
+	/*if name1 {
 		print(name1, length);
 	} else {
 		name2 := "Name2\n\n";
 		print(name2, 7);
-	}
+	}*/
 
 	strlen :: fn (str: string) -> s32 {
 		result : s32 = 0;
+		_letter := &str;
 		while (result < 3) {
 			result = result + 1;
 		}
