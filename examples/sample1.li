@@ -3,8 +3,8 @@ import! "examples/print.li"
 #run
 main :: fn {
 	//test_factorial();
-	test_cast();
-	//test_strlen();
+	//test_cast();
+	test_strlen();
 }
 
 test_factorial :: fn {
@@ -33,24 +33,21 @@ test_cast :: fn {
 }
 
 test_strlen :: fn {
-	name1 := "This text comes from bytecode!!\n\n";
-	length := strlen(name1);
+	text := "Small Text\n\n";
+	length := string_length(text);
 
-	first_letter := &name1;
-
-	if name1 {
-		print(name1, length);
-	} else {
-		name2 := "Name2\n\n";
-		print(name2, 7);
+	if length > 0 {
+		print(text, length);
 	}
 
-	strlen :: fn (str: string) -> s32 {
+	string_length :: fn (str: string) -> s32 {
 		result : s32 = 0;
-		while_ := &str;
-		while (result < 3) {
+		char : u8 = &str;
+		while (char != cast(0, u8)) {
 			result = result + 1;
+			str = str + cast(1, *u8);
+			char = &str;
 		}
-		return 33;
+		return result;
 	}
 }

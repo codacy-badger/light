@@ -13,10 +13,34 @@ void Unique_Types::unique (Ast_Statement* stm) {
                 this->unique(_stm);
             break;
         }
+        case AST_STATEMENT_IF: {
+            auto _if = static_cast<Ast_If*>(stm);
+			this->unique(&_if->condition);
+			this->unique(_if->then_statement);
+			if (_if->else_statement) this->unique(_if->else_statement);
+			break;
+        }
+        case AST_STATEMENT_WHILE: {
+            auto _while = static_cast<Ast_While*>(stm);
+			this->unique(&_while->condition);
+			this->unique(_while->statement);
+			break;
+        }
         case AST_STATEMENT_DECLARATION: {
             auto decl = static_cast<Ast_Declaration*>(stm);
             if (decl->type) this->unique(&decl->type);
 			if (decl->expression) this->unique(&decl->expression);
+			break;
+        }
+        case AST_STATEMENT_RETURN: {
+            auto ret = static_cast<Ast_Return*>(stm);
+            if (ret->exp) this->unique(&ret->exp);
+			break;
+        }
+        case AST_STATEMENT_EXPRESSION: {
+            auto exp = static_cast<Ast_Expression*>(stm);
+			this->unique(&exp);
+			break;
         }
         default: break;
     }
@@ -27,10 +51,27 @@ void Unique_Types::unique (Ast_Expression** exp) {
         case AST_EXPRESSION_FUNCTION: {
             auto func = static_cast<Ast_Function*>(*exp);
             this->unique(&func->type);
+			this->unique(func->scope);
             break;
         }
 		case AST_EXPRESSION_TYPE_DEFINITION: {
 			this->unique(reinterpret_cast<Ast_Type_Definition**>(exp));
+			break;
+		}
+		case AST_EXPRESSION_CAST: {
+			auto cast = reinterpret_cast<Ast_Cast*>(*exp);
+			this->unique(&cast->cast_to);
+			break;
+		}
+		case AST_EXPRESSION_BINARY: {
+			auto binary = reinterpret_cast<Ast_Binary*>(*exp);
+			this->unique(&binary->lhs);
+			this->unique(&binary->rhs);
+			break;
+		}
+		case AST_EXPRESSION_UNARY: {
+			auto unary = reinterpret_cast<Ast_Unary*>(*exp);
+			this->unique(&unary->exp);
 			break;
 		}
         default: break;
@@ -91,8 +132,9 @@ void Unique_Types::unique (Ast_Function_Type** func_type) {
 
     for (auto _func_type : this->func_types) {
         if (func_type_are_equal(*func_type, _func_type)) {
-            delete *func_type;
+			auto _old_func_type = *func_type;
             (*func_type) = _func_type;
+			//delete _old_func_type;
             return;
         }
     }
