@@ -10,10 +10,6 @@ void ast_copy_location_info (Ast* destination, Ast* source) {
 	destination->col = source->col;
 }
 
-bool Ast_Block::is_global () {
-	return !this->parent;
-}
-
 void Ast_Block::find_declarations (std::vector<Ast_Declaration*>* decls, bool recurse) {
 	if (this->scope_of) {
 		for (auto decl : this->scope_of->type->parameter_decls) {
@@ -41,10 +37,6 @@ Ast_Declaration* Ast_Block::find_declaration (const char* name, bool recurse) {
     if (recurse && this->parent)
         return this->parent->find_declaration(name, recurse);
     else return NULL;
-}
-
-bool Ast_Declaration::is_global () {
-	return this->scope->is_global();
 }
 
 Ast_Type_Definition* Ast_Block::find_type_definition (const char* name, bool recurse) {

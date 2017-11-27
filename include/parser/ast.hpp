@@ -48,6 +48,7 @@ struct Ast_Block : Ast_Statement {
 	const char* name = NULL;
 	vector<Ast_Statement*> list;
 
+	bool is_global = false;
 	Ast_Block* parent = NULL;
 	Ast_Function* scope_of = NULL;
 
@@ -56,7 +57,6 @@ struct Ast_Block : Ast_Statement {
 		this->parent = parent;
 	}
 
-	bool is_global();
 	void find_declarations (std::vector<Ast_Declaration*>* decls, bool recurse = true);
 	Ast_Declaration* find_declaration (const char* name, bool recurse = true);
 	Ast_Type_Definition* find_type_definition (const char* name, bool recurse = true);
@@ -79,6 +79,7 @@ struct Ast_While : Ast_Statement {
 };
 
 const uint8_t DECL_FLAG_CONSTANT = 0x1;
+const uint8_t DECL_FLAG_GLOBAL	 = 0x2;
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
@@ -86,8 +87,6 @@ struct Ast_Declaration : Ast_Statement {
 	Ast_Expression* expression = NULL;
 
 	uint8_t decl_flags = 0;
-
-	Ast_Block* scope = NULL;
 
 	// for bytecode
 	size_t stack_offset = 0;
@@ -98,8 +97,6 @@ struct Ast_Declaration : Ast_Statement {
 	uint16_t struct_byte_offset = 0;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
-
-	bool is_global();
 };
 
 struct Ast_Return : Ast_Statement {
@@ -303,9 +300,14 @@ struct Ast_Literal : Ast_Expression {
 
 struct Ast_Ident : Ast_Expression {
 	const char* name = NULL;
+
+	Ast_Block* scope = NULL;
 	Ast_Declaration* declaration = NULL;
 
-	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
+	Ast_Ident (Ast_Block* scope = NULL) {
+		this->exp_type = AST_EXPRESSION_IDENT;
+		this->scope = scope;
+	}
 
 	bool operator ==(const Ast_Ident* other) const;
 };

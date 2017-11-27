@@ -187,15 +187,18 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
 			break;
         case AST_EXPRESSION_IDENT: {
             auto ident_ptr = reinterpret_cast<Ast_Ident**>(exp);
-            if (!(*ident_ptr)->declaration || this->is_unresolved((*ident_ptr)->name)) {
-                sym->push_back(ident_ptr);
-            } else {
-				if ((*ident_ptr)->declaration) {
-					auto decl = (*ident_ptr)->declaration;
+            auto ident = (*ident_ptr);
+            if (!ident->declaration) {
+                ident->declaration = ident->scope->find_declaration(ident->name);
+
+                if (!ident->declaration || this->is_unresolved(ident->name)) {
+                    sym->push_back(ident_ptr);
+                } else if (ident->declaration) {
+					auto decl = ident->declaration;
 					if (decl->decl_flags & DECL_FLAG_CONSTANT) {
                         replace_ident_by_const(ident_ptr, decl->expression);
 					}
-				}
+                }
             }
 			break;
         }
@@ -251,7 +254,9 @@ void Symbol_Resolution::check_symbols (Ast_Comma_Separated_Arguments** args, vec
 }
 
 void Symbol_Resolution::check_symbols (Ast_Function_Call** call, vector<Ast_Ident**>* sym) {
-    check_symbols(&(*call)->fn, sym);
+	if ((*call)->fn->exp_type != AST_EXPRESSION_FUNCTION) {
+        check_symbols(&(*call)->fn, sym);
+	}
 	if ((*call)->args) {
 		for (int i = 0; i < (*call)->args->values.size(); i++) {
 			check_symbols(&(*call)->args->values[i], sym);

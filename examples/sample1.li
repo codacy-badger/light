@@ -13,12 +13,12 @@ main :: fn {
 		name2 := "Name2\n\n";
 		print(name2, 7);
 	}
-}
 
-factorial :: fn (number: s32) -> s32 {
-	if (number == 0) 1
-	else {
-		factorial(number - 1) * number
+	factorial :: fn (number: s32) -> s32 {
+		if (number == 0) 1
+		else {
+			factorial(number - 1) * number
+		}
 	}
 }
 

@@ -29,7 +29,8 @@ void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def)
 }
 
 Ast_Block* Parser::top_level_block () {
-	auto _block = AST_NEW(Ast_Block, this->current_block);
+	auto _block = AST_NEW(Ast_Block);
+	_block->is_global = true;
 
 	push_new_type(this, _block, Light_Compiler::inst->type_def_type);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_void);
@@ -230,15 +231,11 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	}
 
 	auto decl = AST_NEW(Ast_Declaration);
-	decl->scope = this->current_block;
+	if (this->current_block->is_global) {
+		decl->decl_flags |= DECL_FLAG_GLOBAL;
+	}
 	decl->name = ident->name;
 	delete ident;
-
-	auto _decl = this->current_block->find_declaration(decl->name);
-	if (_decl) {
-		Light_Compiler::inst->error(decl, "'%s' is already declared in this scope!", decl->name);
-		Light_Compiler::inst->error_stop(_decl, "Here is the initial declaration");
-	}
 
 	if (this->lexer->isNextType(TOKEN_COLON)) {
 		this->lexer->skip(1);
@@ -333,6 +330,7 @@ Ast_Function_Type* Parser::function_type () {
 		this->lexer->skip(1);
 		Ast_Declaration* decl;
 		while (decl = this->declaration()) {
+			decl->decl_flags &= ~DECL_FLAG_GLOBAL;
 			fn_type->parameter_decls.push_back(decl);
 			this->lexer->optional_skip(TOKEN_COMMA);
 		}
@@ -378,11 +376,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 		auto fn_type = this->function_type();
 		if (this->lexer->isNextType(TOKEN_BRAC_OPEN)) {
-			auto func = this->function(fn_type);
-			for (auto decl : fn_type->parameter_decls) {
-				decl->scope = func->scope;
-			}
-			return func;
+			return this->function(fn_type);
 		} else return fn_type;
 
 	} else if (this->lexer->isNextType(TOKEN_STRUCT)) {
@@ -459,14 +453,12 @@ Ast_Function_Call* Parser::call (Ast_Expression* callee) {
 
 Ast_Ident* Parser::ident (const char* name) {
 	if (name) {
-		Ast_Ident* output = AST_NEW(Ast_Ident);
+		Ast_Ident* output = AST_NEW(Ast_Ident, this->current_block);
 		output->name = name;
-		output->declaration = this->current_block->find_declaration(name);
 		return output;
 	} else if (this->lexer->isNextType(TOKEN_ID)) {
-		Ast_Ident* output = AST_NEW(Ast_Ident);
+		Ast_Ident* output = AST_NEW(Ast_Ident, this->current_block);
 		output->name = this->lexer->text();
-		output->declaration = this->current_block->find_declaration(output->name);
 		return output;
 	} else return NULL;
 }
