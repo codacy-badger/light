@@ -17,10 +17,10 @@ test_factorial :: fn {
 	}
 
 	factorial :: fn (number: s32) -> s32 {
-		if (number == 0)
-			1
-		else
+		if (number == 0) 1
+		else {
 			factorial(number - 1) * number
+		}
 	}
 }
 
@@ -33,7 +33,7 @@ test_cast :: fn {
 }
 
 test_strlen :: fn {
-	text := "Small Text\n\n";
+	text := "Auto Length\n\n";
 	length := string_length(text);
 
 	if length > 0 {
