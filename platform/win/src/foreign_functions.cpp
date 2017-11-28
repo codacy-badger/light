@@ -30,3 +30,7 @@ void* Foreign_Functions::get_or_add_function (void* module, string function_name
 		return function_pointers[function_name];
 	}
 }
+
+int64_t Foreign_Functions::get_last_error () {
+	return GetLastError();
+}

@@ -11,4 +11,5 @@ struct Foreign_Functions {
 
 	void* get_or_add_module (string module_name);
 	void* get_or_add_function (void* module, string function_name);
+	int64_t get_last_error ();
 };
