@@ -8,7 +8,7 @@ for /R "../platform/win/src" %%i in (*.cpp) do @call set SOURCES=%%SOURCES%% "%%
 
 cl /nologo /Od /c /MD /Zi /Gm /EHsc -I"../include" -I"../dyncall" %SOURCES%
 
-link /nologo /INCREMENTAL /ENTRY:mainCRTStartup ^
+link /nologo /INCREMENTAL /ENTRY:mainCRTStartup /subsystem:console ^
     /OUT:"..\bin\light.exe" /DEBUG /NODEFAULTLIB:LIBCMT *.obj ^
     ..\dyncall\dyncall\libdyncall_s.lib
 
