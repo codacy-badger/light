@@ -10,7 +10,7 @@
 
 #include "compiler.hpp"
 
-#define DEBUG true
+#define DEBUG false
 
 #define INST_OFFSET(offset) buffer[offset]
 
@@ -359,11 +359,6 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 					result = (size_t) dcCallPointer(vm, function_pointer);
 				}
 				memcpy(this->registers[0], &result, INTERP_REGISTER_SIZE);
-
-				auto last_error = ffunctions->get_last_error();
-				if (last_error) {
-					printf("Foreign function call '%s' error -> %lld\n", func->name, last_error);
-				}
 			}else {
 				auto _base = this->stack_base;
 				auto _inst = this->instruction_index;

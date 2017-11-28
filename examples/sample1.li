@@ -33,7 +33,7 @@ test_cast :: fn {
 }
 
 test_strlen :: fn {
-	text := "Auto Length\n\n";
+	text := "\nAuto Length\n\n";
 	length := string_length(text);
 
 	if length > 0 {
