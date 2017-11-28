@@ -27,7 +27,7 @@ test_factorial :: fn {
 test_cast :: fn {
 	num1 : u16 = 62;
 	num2 : s64 = 62;
-	if (cast(num1, s64) == num2) {
+	if (cast(s64) num1 == num2) {
 		print("Match1!\n\n", 9);
 	}
 }
@@ -43,9 +43,9 @@ test_strlen :: fn {
 	string_length :: fn (str: string) -> s32 {
 		result : s32 = 0;
 		char : u8 = &str;
-		while (char != cast(0, u8)) {
+		while (char != cast(u8) 0) {
 			result = result + 1;
-			str = str + cast(1, *u8);
+			str = str + cast(*u8) 1;
 			char = &str;
 		}
 		return result;
