@@ -242,8 +242,8 @@ void Bytecode_Generator::gen (Ast_Binary* binop) {
 
 uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {
 	switch (unop) {
-		case AST_UNARY_NOT:           return BYTECODE_NOT;
-		case AST_UNARY_NEGATE:        return BYTECODE_NEG;
+		case AST_UNARY_NEGATE:        return BYTECODE_ARITHMETIC_NEGATE;
+		case AST_UNARY_NOT:           return BYTECODE_LOGICAL_NEGATE;
 	}
 	return BYTECODE_NOOP;
 }
@@ -254,7 +254,8 @@ void Bytecode_Generator::gen (Ast_Unary* unop) {
 		case AST_UNARY_NEGATE: {
         	this->gen(unop->exp);
 			auto unop_type = get_bytecode_from_unop(unop->unary_op);
-            auto inst = new Inst_Unary(unop_type, this->current_register - 1);
+            auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
+            auto inst = new Inst_Unary(unop_type, this->current_register - 1, bytecode_type);
             this->bytecode->push_back(copy_location_info(inst, unop));
 			break;
 		}

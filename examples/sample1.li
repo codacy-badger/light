@@ -3,8 +3,8 @@ import! "examples/print.li"
 #run
 main :: fn {
 	//test_factorial();
-	//test_cast();
-	test_strlen();
+	test_cast();
+	//test_strlen();
 }
 
 test_factorial :: fn {
@@ -26,8 +26,8 @@ test_factorial :: fn {
 
 test_cast :: fn {
 	num1 : u16 = 62;
-	num2 : s64 = 62;
-	if (cast(s64) num1 == num2) {
+	num2 : s64 = -62;
+	if (-(cast(s64) num1) == num2) {
 		print("Match1!\n\n", 9);
 	}
 }

@@ -10,7 +10,7 @@
 
 #include "compiler.hpp"
 
-#define DEBUG false
+#define DEBUG true
 
 #define INST_OFFSET(offset) buffer[offset]
 
@@ -227,22 +227,18 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(mem_ptr, this->registers[store->src], store->size);
 			return;
 		}
-		case BYTECODE_NOT: {
+		case BYTECODE_UNARY: {
 			auto unary = static_cast<Inst_Unary*>(inst);
 
 			size_t a;
-			memcpy(&a, this->registers[unary->reg], INTERP_REGISTER_SIZE);
-			a = !a;
-			memcpy(this->registers[unary->reg], &a, INTERP_REGISTER_SIZE);
-			return;
-		}
-		case BYTECODE_NEG: {
-			auto unary = static_cast<Inst_Unary*>(inst);
-
-			size_t a;
-			memcpy(&a, this->registers[unary->reg], INTERP_REGISTER_SIZE);
-			a = -a;
-			memcpy(this->registers[unary->reg], &a, INTERP_REGISTER_SIZE);
+			auto size = bytecode_get_size(unary->bytecode_type);
+			memcpy(&a, this->registers[unary->reg], size);
+			switch (unary->unop) {
+				case BYTECODE_LOGICAL_NEGATE: 		a = !a; break;
+				case BYTECODE_ARITHMETIC_NEGATE: 	a = -a; break;
+				case BYTECODE_BITWISE_NEGATE: 		a = ~a; break;
+			}
+			memcpy(this->registers[unary->reg], &a, size);
 			return;
 		}
 		case BYTECODE_BINARY: {
@@ -487,14 +483,14 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 			printf("STORE %d, %d, %d", store->dest, store->src, store->size);
 			break;
 		}
-		case BYTECODE_NOT: {
+		case BYTECODE_UNARY: {
 			auto unary = static_cast<Inst_Unary*>(inst);
-			printf("NOT %d", unary->reg);
-			break;
-		}
-		case BYTECODE_NEG: {
-			auto unary = static_cast<Inst_Unary*>(inst);
-			printf("NEG %d", unary->reg);
+			switch (unary->unop) {
+				case BYTECODE_LOGICAL_NEGATE: 		printf("LOGICAL_NEGATE"); break;
+				case BYTECODE_ARITHMETIC_NEGATE: 	printf("ARITHMETIC_NEGATE"); break;
+				case BYTECODE_BITWISE_NEGATE: 		printf("BITWISE_NEGATE"); break;
+			}
+			printf(" %d, %d", unary->reg, unary->bytecode_type);
 			break;
 		}
 		case BYTECODE_BINARY: {

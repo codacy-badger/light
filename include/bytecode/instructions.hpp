@@ -25,9 +25,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_LOAD,
 	BYTECODE_STORE,
 
-	BYTECODE_NOT,
-	BYTECODE_NEG,
-
+	BYTECODE_UNARY,
 	BYTECODE_BINARY,
 
 	BYTECODE_JUMP,
@@ -37,6 +35,12 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_CALL_PARAM,
 	BYTECODE_CALL,
 	BYTECODE_RETURN,
+};
+
+enum Inst_Unop : uint8_t {
+	BYTECODE_ARITHMETIC_NEGATE,
+	BYTECODE_LOGICAL_NEGATE,
+	BYTECODE_BITWISE_NEGATE,
 };
 
 enum Inst_Binop : uint8_t {
@@ -214,22 +218,16 @@ struct Inst_Store : Instruction {
 };
 
 struct Inst_Unary : Instruction {
+	uint8_t unop = 0;
 	uint8_t reg = 0;
+	uint8_t bytecode_type = 0;
 
-	Inst_Unary (uint8_t bytecode, uint8_t reg) {
-		this->bytecode = bytecode;
+	Inst_Unary (uint8_t unop, uint8_t reg, uint8_t bytecode_type) {
+		this->bytecode = BYTECODE_UNARY;
+		this->unop = unop;
 		this->reg = reg;
+		this->bytecode_type = bytecode_type;
 	}
-};
-
-struct Inst_Neg : Inst_Unary {
-	Inst_Neg (uint8_t reg) : Inst_Unary (BYTECODE_NEG, reg)
-	{/* empty */}
-};
-
-struct Inst_Not : Inst_Unary {
-	Inst_Not (uint8_t reg) : Inst_Unary (BYTECODE_NOT, reg)
-	{/* empty */}
 };
 
 struct Inst_Binary : Instruction {

@@ -254,7 +254,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 void Type_Checking::check_type (Ast_Unary* unop) {
 	check_type(unop->exp);
 	switch (unop->unary_op) {
-		case AST_UNARY_NOT: {
+		case AST_UNARY_NEGATE: {
             unop->inferred_type = unop->exp->inferred_type;
             break;
 		}
