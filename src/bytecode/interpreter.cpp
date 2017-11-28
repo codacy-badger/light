@@ -10,7 +10,7 @@
 
 #include "compiler.hpp"
 
-#define DEBUG true
+#define DEBUG false
 
 #define INST_OFFSET(offset) buffer[offset]
 
@@ -55,6 +55,116 @@ void Bytecode_Interpreter::run (Ast_Function* func) {
 	this->stack_index = _tmp;
 }
 
+template<typename F, typename T>
+T s_cast (F value) {
+	return static_cast<T>(value);
+}
+
+void bytecode_cast(void* reg_ptr, uint8_t type_from, uint8_t type_to) {
+	auto size_from = bytecode_get_size(type_from);
+	auto size_to = bytecode_get_size(type_to);
+	auto sign_from = bytecode_has_sign(type_from);
+	auto sign_to = bytecode_has_sign(type_to);
+
+	if (sign_from) {
+		switch (size_from) {
+			case 1: {
+				int8_t value;
+				memcpy(&value, reg_ptr, size_from);
+				switch (size_to) {
+					case 2: {
+						int16_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+					case 4: {
+						int32_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+					case 8: {
+						int64_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+				}
+				break;
+			}
+			case 2: {
+				int16_t value;
+				memcpy(&value, reg_ptr, size_from);
+				switch (size_to) {
+					case 1: {
+						int8_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+					case 4: {
+						int32_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+					case 8: {
+						int64_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+				}
+				break;
+			}
+			case 4: {
+				int32_t value;
+				memcpy(&value, reg_ptr, size_from);
+				switch (size_to) {
+					case 1: {
+						int8_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+					case 2: {
+						int16_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+					case 8: {
+						int64_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+				}
+				break;
+			}
+			case 8: {
+				int64_t value;
+				memcpy(&value, reg_ptr, size_from);
+				switch (size_to) {
+					case 1: {
+						int8_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+					case 2: {
+						int16_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+					case 4: {
+						int32_t value2 = value;
+						memcpy(reg_ptr, &value2, size_to);
+						break;
+					}
+				}
+				break;
+			}
+		}
+	}
+	else {
+		size_t value;
+		memcpy(&value, reg_ptr, size_from);
+		memcpy(reg_ptr, &value, size_to);
+	}
+}
+
 void Bytecode_Interpreter::run (Instruction* inst) {
 	switch (inst->bytecode) {
 		case BYTECODE_NOOP: return;
@@ -68,104 +178,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_CAST: {
 			auto cast = static_cast<Inst_Cast*>(inst);
 
-			auto size_from = bytecode_get_size(cast->type_from);
-			auto size_to = bytecode_get_size(cast->type_to);
-			if (bytecode_has_sign(cast->type_from)) {
-				switch (size_from) {
-					case 1: {
-						int8_t value;
-						memcpy(&value, this->registers[cast->reg], size_from);
-						switch (size_to) {
-							case 2: {
-								int16_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-							case 4: {
-								int32_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-							case 8: {
-								int64_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-						}
-						break;
-					}
-					case 2: {
-						int8_t value;
-						memcpy(&value, this->registers[cast->reg], size_from);
-						switch (size_to) {
-							case 1: {
-								int8_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-							case 4: {
-								int32_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-							case 8: {
-								int64_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-						}
-						break;
-					}
-					case 4: {
-						int8_t value;
-						memcpy(&value, this->registers[cast->reg], size_from);
-						switch (size_to) {
-							case 1: {
-								int8_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-							case 2: {
-								int16_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-							case 8: {
-								int64_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-						}
-						break;
-					}
-					case 8: {
-						int8_t value;
-						memcpy(&value, this->registers[cast->reg], size_from);
-						switch (size_to) {
-							case 1: {
-								int8_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-							case 2: {
-								int16_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-							case 4: {
-								int32_t value2 = value;
-								memcpy(this->registers[cast->reg], &value2, size_to);
-								break;
-							}
-						}
-						break;
-					}
-				}
-			} else {
-				size_t value;
-				memcpy(&value, this->registers[cast->reg], size_from);
-				memcpy(this->registers[cast->reg], &value, size_to);
-			}
+			bytecode_cast(this->registers[cast->reg], cast->type_from, cast->type_to);
 			return;
 		}
 		case BYTECODE_SET: {

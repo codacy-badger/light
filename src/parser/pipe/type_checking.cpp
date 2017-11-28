@@ -222,6 +222,9 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 void Type_Checking::check_type (Ast_Binary* binop) {
 	check_type(binop->lhs);
 	check_type(binop->rhs);
+	if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
+		Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression");
+	}
 	switch (binop->binary_op) {
 		case AST_BINARY_EQ:
 		case AST_BINARY_NEQ:
@@ -229,11 +232,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 		case AST_BINARY_LTE:
 		case AST_BINARY_GT:
 		case AST_BINARY_GTE: {
-			if (binop->lhs->inferred_type == binop->rhs->inferred_type) {
-				binop->inferred_type = Light_Compiler::inst->type_def_bool;
-			} else {
-				Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression");
-			}
+			binop->inferred_type = Light_Compiler::inst->type_def_bool;
 			break;
 		}
 		case AST_BINARY_ASSIGN:
@@ -241,11 +240,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 		case AST_BINARY_SUB:
 		case AST_BINARY_MUL:
 		case AST_BINARY_DIV: {
-			if (binop->lhs->inferred_type == binop->rhs->inferred_type) {
-				binop->inferred_type = binop->lhs->inferred_type;
-			} else {
-				Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression");
-			}
+			binop->inferred_type = binop->lhs->inferred_type;
 			break;
 		}
 	}
@@ -255,7 +250,18 @@ void Type_Checking::check_type (Ast_Unary* unop) {
 	check_type(unop->exp);
 	switch (unop->unary_op) {
 		case AST_UNARY_NEGATE: {
-            unop->inferred_type = unop->exp->inferred_type;
+			auto inst = Light_Compiler::inst;
+			if (unop->exp->inferred_type == inst->type_def_u8) {
+				unop->inferred_type = inst->type_def_s16;
+			} else if (unop->exp->inferred_type == inst->type_def_u16) {
+				unop->inferred_type = inst->type_def_s32;
+			} else if (unop->exp->inferred_type == inst->type_def_u32) {
+				unop->inferred_type = inst->type_def_s64;
+			} else if (unop->exp->inferred_type == inst->type_def_u64) {
+				unop->inferred_type = inst->type_def_s64;
+			} else {
+				unop->inferred_type = unop->exp->inferred_type;
+			}
             break;
 		}
 		case AST_UNARY_REFERENCE: {

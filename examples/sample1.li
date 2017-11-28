@@ -25,11 +25,15 @@ test_factorial :: fn {
 }
 
 test_cast :: fn {
-	num1 : u16 = 62;
-	num2 : s64 = -62;
-	if (-(cast(s64) num1) == num2) {
-		print("Match1!\n\n", 9);
-	}
+	num1 : u8 = 55;
+	num2 : u64 = 755;
+
+	if (55 == 55) print("\nPASS 1!\n", 10);
+	if (cast(u8) 55 == num1) print("\nPASS 2!\n", 10);
+	if (num2 == cast(u64) 755) print("\nPASS 3!\n", 10);
+
+	if (-55 == -55) print("\nPASS 4!\n", 10);
+	if (-55 == -num1) print("\nPASS 5!\n", 10);
 }
 
 test_strlen :: fn {
