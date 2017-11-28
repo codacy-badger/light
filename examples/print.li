@@ -3,12 +3,14 @@ import! "examples/win32.li"
 print :: fn (data: *u8, length: s32) {
 	handle := GetStdHandle(STD_OUTPUT_HANDLE);
 
-	console_mode : u32;
-	is_console := GetConsoleMode(handle, *console_mode);
+	if (handle != cast(INVALID_HANDLE_VALUE, *void)) {
+		console_mode : u32;
+		is_console := GetConsoleMode(handle, *console_mode);
 
-	if is_console {
-		WriteConsole(handle, data, length, 0, 0);
-	} else {
-		WriteFile(handle, data, length, 0, 0);
+		if is_console {
+			WriteConsole(handle, data, length, 0, 0);
+		} else {
+			WriteFile(handle, data, length, 0, 0);
+		}
 	}
 }

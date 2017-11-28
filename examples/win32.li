@@ -1,7 +1,9 @@
 
-STD_INPUT_HANDLE  :: -10;
-STD_OUTPUT_HANDLE :: -11;
-STD_ERROR_HANDLE  :: -12;
+STD_INPUT_HANDLE  : u32 : -10;
+STD_OUTPUT_HANDLE : u32 : -11;
+STD_ERROR_HANDLE  : u32 : -12;
+
+INVALID_HANDLE_VALUE : s64 : -1
 
 #foreign("kernel32")
 GetLastError : fn -> u16 :;
