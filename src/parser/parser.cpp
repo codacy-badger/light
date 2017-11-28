@@ -441,8 +441,9 @@ Ast_Literal* Parser::literal () {
 		}
 		case TOKEN_NUMBER: {
 			output = AST_NEW(Ast_Literal);
-			output->literal_type = AST_LITERAL_SIGNED_INT;
-			output->int_value = atoi(this->lexer->text());
+			output->literal_type = AST_LITERAL_UNSIGNED_INT;
+			auto number_str = this->lexer->text();
+			output->uint_value = strtoul(number_str, NULL, 10);
 			break;
 		}
 		default: break;

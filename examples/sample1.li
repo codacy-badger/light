@@ -10,16 +10,16 @@ main :: fn {
 test_factorial :: fn {
 	number := factorial(5);
 
-	if number == 120 {
+	if number == cast(u32) 120 {
 		print("Result is 120 :)\n\n", 18);
 	} else {
 		print("Result is WRONG :(\n\n", 20);
 	}
 
-	factorial :: fn (number: s32) -> s32 {
-		if (number == 0) 1
+	factorial :: fn (number: u32) -> u32 {
+		if (number == cast(u32) 0) cast(u32) 1
 		else {
-			factorial(number - 1) * number
+			factorial(number - cast(u32) 1) * number
 		}
 	}
 }
@@ -27,28 +27,29 @@ test_factorial :: fn {
 test_cast :: fn {
 	num1 : u8 = 55;
 	num2 : u64 = 755;
+	num3 : s32 = -num1;
 
 	if (55 == 55) print("\nPASS 1!\n", 10);
 	if (cast(u8) 55 == num1) print("\nPASS 2!\n", 10);
 	if (num2 == cast(u64) 755) print("\nPASS 3!\n", 10);
 
 	if (-55 == -55) print("\nPASS 4!\n", 10);
-	if (-55 == -num1) print("\nPASS 5!\n", 10);
+	if (-55 == cast(s16) -num1) print("\nPASS 5!\n", 10);
 }
 
 test_strlen :: fn {
 	text := "\nAuto Length\n\n";
 	length := string_length(text);
 
-	if length > 0 {
+	if length > cast(u32) 0 {
 		print(text, length);
 	}
 
-	string_length :: fn (str: string) -> s32 {
-		result : s32 = 0;
+	string_length :: fn (str: string) -> u32 {
+		result : u32 = 0;
 		char : u8 = &str;
 		while (char != cast(u8) 0) {
-			result = result + 1;
+			result = result + cast(u32) 1;
 			str = str + cast(*u8) 1;
 			char = &str;
 		}

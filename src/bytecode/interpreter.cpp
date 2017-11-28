@@ -157,11 +157,37 @@ void bytecode_cast(void* reg_ptr, uint8_t type_from, uint8_t type_to) {
 				break;
 			}
 		}
-	}
-	else {
-		size_t value;
-		memcpy(&value, reg_ptr, size_from);
-		memcpy(reg_ptr, &value, size_to);
+	} else {
+		switch (size_from) {
+			case 1: {
+				uint8_t value;
+				memcpy(&value, reg_ptr, 1);
+				size_t _tmp = value;
+				memcpy(reg_ptr, &_tmp, size_to);
+				break;
+			}
+			case 2: {
+				uint16_t value;
+				memcpy(&value, reg_ptr, 2);
+				size_t _tmp = value;
+				memcpy(reg_ptr, &_tmp, size_to);
+				break;
+			}
+			case 4: {
+				uint32_t value;
+				memcpy(&value, reg_ptr, 4);
+				size_t _tmp = value;
+				memcpy(reg_ptr, &_tmp, size_to);
+				break;
+			}
+			case 8: {
+				uint64_t value;
+				memcpy(&value, reg_ptr, 8);
+				size_t _tmp = value;
+				memcpy(reg_ptr, &_tmp, size_to);
+				break;
+			}
+		}
 	}
 }
 

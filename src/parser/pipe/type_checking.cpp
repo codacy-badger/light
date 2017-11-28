@@ -85,7 +85,9 @@ void Type_Checking::check_type (Ast_Return* ret) {
 		if (fn->type->return_type == Light_Compiler::inst->type_def_void)
 			Light_Compiler::inst->error_stop(ret, "Return statment has expression, but function returns void!");
 		else if (ret->exp->inferred_type != fn->type->return_type) {
-			Light_Compiler::inst->error_stop(ret, "Type mismatch, return expression is '---', but function expects '---'!");
+			auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->type->return_type);
+			Light_Compiler::inst->error_stop(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
+				ret->exp->inferred_type->name, ret_type_def->name);
 		}
 	} else {
 		if (fn->type->return_type != Light_Compiler::inst->type_def_void)
@@ -294,19 +296,31 @@ void Type_Checking::check_type (Ast_Ident* ident) {
 }
 
 void Type_Checking::check_type (Ast_Literal* lit) {
-    //TODO: smarter inference: use the smallest possible type
     if (!lit->inferred_type) {
+		auto inst = Light_Compiler::inst;
         switch (lit->literal_type) {
             case AST_LITERAL_UNSIGNED_INT: {
-				lit->inferred_type = Light_Compiler::inst->type_def_u32;
+				if (lit->uint_value <= UINT32_MAX) {
+					if (lit->uint_value <= UINT16_MAX) {
+						if (lit->uint_value <= UINT8_MAX) {
+							lit->inferred_type = inst->type_def_u8;
+						} else lit->inferred_type = inst->type_def_u16;
+					} else lit->inferred_type = inst->type_def_u32;
+				} else lit->inferred_type = inst->type_def_u64;
                 break;
             }
             case AST_LITERAL_SIGNED_INT: {
-				lit->inferred_type = Light_Compiler::inst->type_def_s32;
+				if (lit->int_value <= INT32_MAX && lit->int_value >= INT32_MIN) {
+					if (lit->int_value <= INT16_MAX && lit->int_value >= INT16_MIN) {
+						if (lit->int_value <= INT8_MAX && lit->int_value >= INT8_MIN) {
+							lit->inferred_type = inst->type_def_s8;
+						} else lit->inferred_type = inst->type_def_s16;
+					} else lit->inferred_type = inst->type_def_s32;
+				} else lit->inferred_type = inst->type_def_s64;
                 break;
             }
             case AST_LITERAL_DECIMAL: {
-				lit->inferred_type = Light_Compiler::inst->type_def_f32;
+				lit->inferred_type = Light_Compiler::inst->type_def_f64;
                 break;
             }
             case AST_LITERAL_STRING: {
