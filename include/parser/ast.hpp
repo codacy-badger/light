@@ -169,6 +169,7 @@ enum Ast_Type_Definition_Type {
 struct Ast_Type_Definition : Ast_Expression {
 	Ast_Type_Definition_Type typedef_type = AST_TYPEDEF_UNDEFINED;
 	size_t byte_size = 0;
+	char* name = NULL;
 
 	Ast_Type_Definition() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
 };
@@ -184,10 +185,9 @@ struct Ast_Function_Type : Ast_Type_Definition {
 };
 
 struct Ast_Struct_Type : Ast_Type_Definition {
-	const char* name = NULL;
 	vector<Ast_Declaration*> attributes;
 
-	Ast_Struct_Type(const char* name = NULL, size_t byte_size = 0) {
+	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0) {
 		this->typedef_type = AST_TYPEDEF_STRUCT;
 		this->byte_size = byte_size;
 		this->name = name;

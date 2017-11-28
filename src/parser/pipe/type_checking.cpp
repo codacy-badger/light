@@ -223,7 +223,8 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 	check_type(binop->lhs);
 	check_type(binop->rhs);
 	if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
-		Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression");
+		Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression: '%s' and '%s'",
+			binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
 	}
 	switch (binop->binary_op) {
 		case AST_BINARY_EQ:

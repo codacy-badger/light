@@ -111,6 +111,15 @@ void Unique_Types::unique (Ast_Pointer_Type** ptr_type) {
     } else {
         this->ptr_types[(*ptr_type)->base] = (*ptr_type);
     }
+
+	if ((*ptr_type)->name == NULL) {
+		auto base_type_def = static_cast<Ast_Type_Definition*>((*ptr_type)->base);
+		auto base_name_length = strlen(base_type_def->name);
+		(*ptr_type)->name = (char*) malloc(base_name_length + 2);
+		(*ptr_type)->name[0] = '*';
+		strcpy((*ptr_type)->name + 1, base_type_def->name);
+		(*ptr_type)->name[base_name_length + 2] = '\0';
+	}
 }
 
 bool func_type_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
@@ -142,4 +151,46 @@ void Unique_Types::unique (Ast_Function_Type** func_type) {
         }
     }
     this->func_types.push_back(*func_type);
+
+	if ((*func_type)->name == NULL) {
+		auto par_decls = (*func_type)->parameter_decls;
+
+		size_t name_size = strlen("fn (");
+		if (par_decls.size() > 0) {
+			auto type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
+			name_size += strlen(type_def->name);
+			for (int i = 1; i < par_decls.size(); i++) {
+				name_size += strlen(", ");
+				auto type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
+				name_size += strlen(type_def->name);
+			}
+		}
+		name_size += strlen(") -> ");
+		auto type_def = static_cast<Ast_Type_Definition*>((*func_type)->return_type);
+		name_size += strlen(type_def->name);
+		(*func_type)->name = (char*) malloc(name_size + 1);
+
+		size_t offset = 0;
+		strcpy((*func_type)->name, "fn (");
+		offset += strlen("fn (");
+
+		if (par_decls.size() > 0) {
+			auto type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
+			strcpy((*func_type)->name + offset, type_def->name);
+			offset += strlen(type_def->name);
+			for (int i = 1; i < par_decls.size(); i++) {
+				strcpy((*func_type)->name + offset, ", ");
+				offset += strlen(", ");
+				strcpy((*func_type)->name + offset, type_def->name);
+				offset += strlen(type_def->name);
+			}
+		}
+
+		strcpy((*func_type)->name + offset, ") -> ");
+		offset += strlen(") -> ");
+		type_def = static_cast<Ast_Type_Definition*>((*func_type)->return_type);
+		strcpy((*func_type)->name + offset, type_def->name);
+		offset += strlen(type_def->name);
+		(*func_type)->name[offset] = '\0';
+	}
 }

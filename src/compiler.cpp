@@ -29,7 +29,7 @@ void link (std::string output) {
 	Timer::print("  Link  ", linker);
 }
 
-void create_new_native_type (Ast_Struct_Type** target, const char* name, size_t size = 0) {
+void create_new_native_type (Ast_Struct_Type** target, char* name, size_t size = 0) {
 	(*target) = new Ast_Struct_Type(name, size);
 	(*target)->inferred_type = Light_Compiler::inst->type_def_type;
 }

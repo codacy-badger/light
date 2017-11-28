@@ -259,7 +259,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 			auto defn_ty = static_cast<Ast_Type_Definition*>(decl->expression);
 			if (defn_ty->typedef_type == AST_TYPEDEF_STRUCT) {
 				auto _struct = static_cast<Ast_Struct_Type*>(defn_ty);
-				if (!_struct->name) _struct->name = decl->name;
+				if (!_struct->name) _struct->name = strdup(decl->name);
 			}
 		}
 	}
