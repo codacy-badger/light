@@ -76,6 +76,11 @@ void Constant_Folding::fold (Ast_Expression** exp) {
 			this->fold(reinterpret_cast<Ast_Type_Definition**>(exp));
 			break;
 		}
+		case AST_EXPRESSION_CAST: {
+			auto cast = reinterpret_cast<Ast_Cast*>(*exp);
+			this->fold(&cast->value);
+			break;
+		}
 		case AST_EXPRESSION_BINARY: {
 			this->fold(reinterpret_cast<Ast_Binary**>(exp));
 			break;

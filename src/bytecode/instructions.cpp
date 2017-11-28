@@ -54,3 +54,14 @@ size_t bytecode_get_size (uint8_t bytecode_type) {
 		default: return 0;
 	}
 }
+
+bool bytecode_has_sign (uint8_t bytecode_type) {
+	switch (bytecode_type) {
+		case BYTECODE_TYPE_S8:
+		case BYTECODE_TYPE_S16:
+		case BYTECODE_TYPE_S32:
+		case BYTECODE_TYPE_S64:
+			return true;
+		default: return false;
+	}
+}

@@ -79,6 +79,7 @@ const uint8_t BYTECODE_TYPE_STRING 	= 0xC;
 uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty);
 uint8_t bytecode_get_type (Ast_Expression* exp);
 size_t bytecode_get_size (uint8_t bytecode_type);
+bool bytecode_has_sign (uint8_t bytecode_type);
 
 struct Instruction {
 	uint8_t bytecode = BYTECODE_NOOP;
