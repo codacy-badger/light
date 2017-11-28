@@ -107,6 +107,9 @@ void Type_Checking::check_type (Ast_Expression* exp) {
         case AST_EXPRESSION_CAST:
             check_type(static_cast<Ast_Cast*>(exp));
             break;
+        case AST_EXPRESSION_POINTER:
+            check_type(static_cast<Ast_Pointer*>(exp));
+            break;
         case AST_EXPRESSION_BINARY:
             check_type(static_cast<Ast_Binary*>(exp));
             break;
@@ -129,6 +132,13 @@ void Type_Checking::check_type (Ast_Cast* cast) {
 	if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
 		cast->inferred_type = static_cast<Ast_Type_Definition*>(cast->cast_to);
 	}
+}
+
+void Type_Checking::check_type (Ast_Pointer* ptr) {
+	check_type(ptr->base);
+    auto ptr_type = new Ast_Pointer_Type();
+    ptr_type->base = ptr->base->inferred_type;
+    ptr->inferred_type = ptr_type;
 }
 
 void Type_Checking::check_type (Ast_Type_Definition* tydef) {

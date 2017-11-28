@@ -10,4 +10,10 @@ GetLastError : fn -> u16 :;
 GetStdHandle : fn (code: s32) -> *void :;
 
 #foreign("kernel32", "WriteConsoleA")
-WriteConsole : fn (handle: *void, buffer: *void, bytes_to_write: s32, written_bytes: *s32, overlapped: *void) -> u8 :;
+WriteConsole : fn (handle: *void, buffer: *void, bytes_to_write: u32, written_bytes: *u32, overlapped: *void) -> u8 :;
+
+#foreign("kernel32")
+WriteFile : fn (handle: *void, buffer: *void, bytes_to_write: u32, written_bytes: *u32, overlapped: *void) -> u8 :;
+
+#foreign("kernel32")
+GetConsoleMode : fn (handle: *void, mode: *u32) -> u8 :;

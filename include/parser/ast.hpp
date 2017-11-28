@@ -122,6 +122,7 @@ enum Ast_Expression_Type {
 	AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS,
 	AST_EXPRESSION_TYPE_DEFINITION,
 	AST_EXPRESSION_FUNCTION,
+	AST_EXPRESSION_POINTER,
 	AST_EXPRESSION_BINARY,
 	AST_EXPRESSION_UNARY,
 	AST_EXPRESSION_CALL,
@@ -142,6 +143,12 @@ struct Ast_Cast : Ast_Expression {
 	Ast_Expression* cast_to = NULL;
 
 	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
+};
+
+struct Ast_Pointer : Ast_Expression {
+	Ast_Expression* base = NULL;
+
+	Ast_Pointer() { this->exp_type = AST_EXPRESSION_POINTER; }
 };
 
 struct Ast_Comma_Separated_Arguments : Ast_Expression {

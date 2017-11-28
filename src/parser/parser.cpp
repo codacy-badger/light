@@ -368,7 +368,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		return result;
 	} else if (this->lexer->isNextType(TOKEN_MUL)) {
 		this->lexer->skip(1);
-		auto ptr = AST_NEW(Ast_Pointer_Type);
+		auto ptr = AST_NEW(Ast_Pointer);
 		ptr->base = this->_atom();
 		return ptr;
 	} else if (this->lexer->isNextType(TOKEN_FUNCTION)) {

@@ -137,6 +137,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
 void Bytecode_Generator::gen (Ast_Expression* exp, bool address) {
     switch (exp->exp_type) {
         case AST_EXPRESSION_CAST: return this->gen(static_cast<Ast_Cast*>(exp));
+        case AST_EXPRESSION_POINTER: return this->gen(static_cast<Ast_Pointer*>(exp));
         case AST_EXPRESSION_LITERAL: return this->gen(static_cast<Ast_Literal*>(exp));
 		case AST_EXPRESSION_UNARY: return this->gen(static_cast<Ast_Unary*>(exp));
         case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp));
@@ -154,6 +155,14 @@ void Bytecode_Generator::gen (Ast_Cast* cast) {
 	auto type_to = bytecode_get_type(cast->inferred_type);
 	auto inst = new Inst_Cast(this->current_register - 1, type_from, type_to);
 	this->bytecode->push_back(copy_location_info(inst, cast));
+}
+
+void Bytecode_Generator::gen (Ast_Pointer* ptr) {
+    if (ptr->base->exp_type == AST_EXPRESSION_IDENT) {
+        this->gen(static_cast<Ast_Ident*>(ptr->base), true);
+    } else {
+        Light_Compiler::inst->error_stop(ptr, "Reference operator only working of identifiers!");
+    }
 }
 
 void Bytecode_Generator::gen (Ast_Literal* lit) {
@@ -240,19 +249,21 @@ uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {
 }
 
 void Bytecode_Generator::gen (Ast_Unary* unop) {
-	this->gen(unop->exp);
 	switch (unop->unary_op) {
 		case AST_UNARY_NOT:
 		case AST_UNARY_NEGATE: {
+        	this->gen(unop->exp);
 			auto unop_type = get_bytecode_from_unop(unop->unary_op);
             auto inst = new Inst_Unary(unop_type, this->current_register - 1);
             this->bytecode->push_back(copy_location_info(inst, unop));
 			break;
 		}
         case AST_UNARY_REFERENCE: {
+            assert(false);
             break;
         }
         case AST_UNARY_DEREFERENCE: {
+        	this->gen(unop->exp);
             auto reg = this->current_register - 1;
             auto inst2 = new Inst_Load(reg, reg, unop->inferred_type->byte_size);
             this->bytecode->push_back(copy_location_info(inst2, unop));
