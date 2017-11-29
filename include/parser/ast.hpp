@@ -78,8 +78,8 @@ struct Ast_While : Ast_Statement {
 	Ast_While () { this->stm_type = AST_STATEMENT_WHILE; }
 };
 
-const uint8_t DECL_FLAG_CONSTANT = 0x1;
-const uint8_t DECL_FLAG_GLOBAL	 = 0x2;
+const uint8_t AST_DECL_FLAG_CONSTANT = 0x1;
+const uint8_t AST_DECL_FLAG_GLOBAL	 = 0x2;
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
@@ -97,6 +97,9 @@ struct Ast_Declaration : Ast_Statement {
 	uint16_t struct_byte_offset = 0;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
+
+	bool is_constant () { return this->decl_flags & AST_DECL_FLAG_CONSTANT; }
+	bool is_global () { return this->decl_flags & AST_DECL_FLAG_GLOBAL; }
 };
 
 struct Ast_Return : Ast_Statement {
@@ -106,13 +109,8 @@ struct Ast_Return : Ast_Statement {
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
 };
 
-const uint8_t IMPORT_INCLUDE_CONTENT = 0x1;
-const uint8_t IMPORT_IS_NATIVE 		 = 0x2;
-
 struct Ast_Import : Ast_Statement {
 	const char* filepath = NULL;
-
-	uint8_t import_flags = 0;
 
 	Ast_Import() { this->stm_type = AST_STATEMENT_IMPORT; }
 };
@@ -148,7 +146,10 @@ struct Ast_Cast : Ast_Expression {
 struct Ast_Pointer : Ast_Expression {
 	Ast_Expression* base = NULL;
 
-	Ast_Pointer() { this->exp_type = AST_EXPRESSION_POINTER; }
+	Ast_Pointer(Ast_Expression* base = NULL) {
+		this->exp_type = AST_EXPRESSION_POINTER;
+		this->base = base;
+	}
 };
 
 struct Ast_Comma_Separated_Arguments : Ast_Expression {
@@ -273,9 +274,10 @@ struct Ast_Unary : Ast_Expression {
 	Ast_Unary_Type unary_op = AST_UNARY_UNINITIALIZED;
 	Ast_Expression* exp = NULL;
 
-	Ast_Unary (Token_Type tType) {
+	Ast_Unary (Token_Type tType, Ast_Expression* exp = NULL) {
 		this->exp_type = AST_EXPRESSION_UNARY;
 		this->setOP(tType);
+		this->exp = exp;
 	}
 
 	void setOP (Token_Type tType);

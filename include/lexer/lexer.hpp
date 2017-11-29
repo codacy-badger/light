@@ -82,7 +82,7 @@ struct Lexer {
 	char* text ();
 	const char* get_name (Token_Type type);
 
-	void check_skip (Token_Type type);
+	bool check_skip (Token_Type type);
 	bool optional_skip (Token_Type type);
 	void report_unexpected (Token_Type expect);
 	void report_unexpected ();

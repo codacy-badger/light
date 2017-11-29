@@ -21,7 +21,7 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
 		while (it != unresolved_idents.end()) {
 			auto ident_ptr = (*it);
 			if (strcmp((*ident_ptr)->name, decl->name) == 0) {
-				if (decl->decl_flags & DECL_FLAG_CONSTANT) {
+				if (decl->is_constant()) {
 					replace_ident_by_const(ident_ptr, decl->expression);
 				} else {
 					(*ident_ptr)->declaration = decl;
@@ -58,7 +58,7 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
     this->to_next(stm);
     if (stm->stm_type == AST_STATEMENT_DECLARATION) {
         auto decl = static_cast<Ast_Declaration*>(stm);
-		if (decl->decl_flags & DECL_FLAG_CONSTANT) {
+		if (decl->is_constant()) {
 	        auto it = this->unresolved_symbols.find(decl->name);
 	        if (it != this->unresolved_symbols.end()) {
 	            auto deps = it->second;
@@ -78,7 +78,7 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
 	                        // we replace the current Ident with the decl expression.
 	                        // This should remove the need to handle constants
 	                        // bytecode / executable (appart from string).
-	                        if (decl->decl_flags & DECL_FLAG_CONSTANT) {
+	                        if (decl->is_constant()) {
 	                            replace_ident_by_const(ident, decl->expression);
 	                        } else {
 	                            (*ident)->declaration = decl;
@@ -209,8 +209,8 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
                 if (!ident->declaration || this->is_unresolved(ident->name)) {
                     sym->push_back(ident_ptr);
                 } else if (ident->declaration) {
-					auto decl = ident->declaration;
-					if (decl->decl_flags & DECL_FLAG_CONSTANT) {
+                    auto decl = ident->declaration;
+					if (decl->is_constant()) {
                         replace_ident_by_const(ident_ptr, decl->expression);
 					}
                 }

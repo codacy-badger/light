@@ -1,10 +1,10 @@
-import! "examples/print.li"
+import "examples/print.li"
 
 #run
 main :: fn {
-	//test_factorial();
+	test_factorial();
 	test_cast();
-	//test_strlen();
+	test_strlen();
 }
 
 test_factorial :: fn {

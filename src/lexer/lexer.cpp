@@ -183,10 +183,14 @@ const char* Lexer::get_name (Token_Type type) {
 	return "---";
 }
 
-void Lexer::check_skip (Token_Type type) {
-	if (this->nextType != type) {
+bool Lexer::check_skip (Token_Type type) {
+	if (this->nextType == type) {
+		this->skip(1);
+		return true;
+	} else {
 		this->report_unexpected(type);
-	} else this->skip(1);
+		return false;
+	}
 }
 
 bool Lexer::optional_skip (Token_Type type) {

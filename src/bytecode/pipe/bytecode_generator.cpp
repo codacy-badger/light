@@ -100,7 +100,7 @@ void Bytecode_Generator::gen (Ast_While* _while) {
 }
 
 void Bytecode_Generator::gen (Ast_Declaration* decl) {
-    if (decl->decl_flags & DECL_FLAG_CONSTANT) {
+    if (decl->decl_flags & AST_DECL_FLAG_CONSTANT) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
             auto func = static_cast<Ast_Function*>(decl->expression);
             Light_Compiler::inst->interp->types->add(func->type);
@@ -115,7 +115,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
         }
     } else {
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
-		if (decl->decl_flags & DECL_FLAG_GLOBAL) {
+		if (decl->decl_flags & AST_DECL_FLAG_GLOBAL) {
             Light_Compiler::inst->error_stop(decl, "Global variables not yet supported");
 		} else {
             auto inst = new Inst_Stack_Allocate(ty_decl->byte_size);
@@ -276,7 +276,7 @@ void Bytecode_Generator::gen (Ast_Unary* unop) {
 
 void Bytecode_Generator::gen (Ast_Ident* ident, bool address) {
 	auto reg = this->current_register++;
-	if (ident->declaration->decl_flags && DECL_FLAG_GLOBAL) {
+	if (ident->declaration->decl_flags && AST_DECL_FLAG_GLOBAL) {
         Light_Compiler::inst->warning(ident, "Global identifiers not yet supported!");
 		/*if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
 			printf("\tBYTECODE_LOAD_GLOBAL %zd, %zd, %zd (%s)\n", reg, ident->declaration->stack_offset, ident->inferred_type->byte_size, ident->name);

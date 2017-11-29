@@ -58,10 +58,6 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 			Light_Compiler::inst->error_stop(decl->expression, "Expression type could not be inferred!");
 		}
 
-		if (decl->decl_flags & DECL_FLAG_CONSTANT) {
-			// TODO: ensure expression is constant
-		}
-
 		if (!decl->type) {
 			decl->type = decl->expression->inferred_type;
 		}
