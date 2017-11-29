@@ -74,8 +74,10 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 		}
 	}
 
-	if (decl->type->inferred_type != Light_Compiler::inst->type_def_type) {
-		Light_Compiler::inst->error_stop(decl->type, "Expression is not a type!");
+    if (!decl->type) {
+        Light_Compiler::inst->error_stop(decl, "Type could not be inferred!");
+    } else if (decl->type->inferred_type != Light_Compiler::inst->type_def_type) {
+		Light_Compiler::inst->error_stop(decl, "Expression is not a type!");
 	}
 }
 
@@ -143,6 +145,7 @@ void Type_Checking::check_type (Ast_Cast* cast) {
 void Type_Checking::check_type (Ast_Pointer* ptr) {
 	check_type(ptr->base);
     auto ptr_type = new Ast_Pointer_Type();
+    ptr_type->inferred_type = Light_Compiler::inst->type_def_type;
     ptr_type->base = ptr->base->inferred_type;
     ptr->inferred_type = ptr_type;
 }
@@ -271,12 +274,6 @@ void Type_Checking::check_type (Ast_Unary* unop) {
 			}
             break;
 		}
-		case AST_UNARY_REFERENCE: {
-            auto ptr_to = new Ast_Pointer_Type();
-            ptr_to->base = unop->exp->inferred_type;
-            unop->inferred_type = ptr_to;
-            break;
-        }
 		case AST_UNARY_DEREFERENCE: {
             auto inf_type = unop->exp->inferred_type;
             if (inf_type->typedef_type == AST_TYPEDEF_POINTER) {

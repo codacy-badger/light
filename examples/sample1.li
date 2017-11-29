@@ -5,6 +5,7 @@ main :: fn {
 	test_factorial();
 	test_cast();
 	test_strlen();
+	test_pointers();
 }
 
 test_factorial :: fn {
@@ -38,7 +39,7 @@ test_cast :: fn {
 }
 
 test_strlen :: fn {
-	text := "\nAuto Length\n\n";
+	text := "\nAuto Length";
 	length := string_length(text);
 
 	if length > cast(u32) 0 {
@@ -54,5 +55,17 @@ test_strlen :: fn {
 			char = &str;
 		}
 		return result;
+	}
+}
+
+test_pointers :: fn {
+	number : u8 = 0;
+	num_ptr := *number;
+
+	set(num_ptr);
+	if (number == 12) print("\nGOOD\n", 6);
+
+	set :: fn (ptr: *u8) {
+		&ptr = 12;
 	}
 }

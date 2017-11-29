@@ -575,7 +575,6 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_CALL_PARAM: {
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
-			// TODO: print the bytecode type in a readable way
 			printf("CALL_PARAM %d, %d", call_param->index, call_param->bytecode_type);
 			break;
 		}

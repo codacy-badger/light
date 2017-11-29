@@ -139,7 +139,7 @@ void Bytecode_Generator::gen (Ast_Expression* exp, bool address) {
         case AST_EXPRESSION_CAST: return this->gen(static_cast<Ast_Cast*>(exp));
         case AST_EXPRESSION_POINTER: return this->gen(static_cast<Ast_Pointer*>(exp));
         case AST_EXPRESSION_LITERAL: return this->gen(static_cast<Ast_Literal*>(exp));
-		case AST_EXPRESSION_UNARY: return this->gen(static_cast<Ast_Unary*>(exp));
+		case AST_EXPRESSION_UNARY: return this->gen(static_cast<Ast_Unary*>(exp), address);
         case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp));
         case AST_EXPRESSION_IDENT: return this->gen(static_cast<Ast_Ident*>(exp), address);
         case AST_EXPRESSION_CALL: return this->gen(static_cast<Ast_Function_Call*>(exp));
@@ -246,7 +246,7 @@ uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {
 	return BYTECODE_NOOP;
 }
 
-void Bytecode_Generator::gen (Ast_Unary* unop) {
+void Bytecode_Generator::gen (Ast_Unary* unop, bool address) {
 	switch (unop->unary_op) {
 		case AST_UNARY_NOT:
 		case AST_UNARY_NEGATE: {
@@ -257,15 +257,15 @@ void Bytecode_Generator::gen (Ast_Unary* unop) {
             this->bytecode->push_back(copy_location_info(inst, unop));
 			break;
 		}
-        case AST_UNARY_REFERENCE: {
-            assert(false);
-            break;
-        }
         case AST_UNARY_DEREFERENCE: {
-        	this->gen(unop->exp);
-            auto reg = this->current_register - 1;
-            auto inst2 = new Inst_Load(reg, reg, unop->inferred_type->byte_size);
-            this->bytecode->push_back(copy_location_info(inst2, unop));
+            if (unop->exp->exp_type == AST_EXPRESSION_IDENT) {
+                this->gen(static_cast<Ast_Ident*>(unop->exp), address);
+                auto reg = this->current_register - 1;
+                auto inst2 = new Inst_Load(reg, reg, unop->exp->inferred_type->byte_size);
+                this->bytecode->push_back(copy_location_info(inst2, unop));
+            } else {
+                Light_Compiler::inst->error_stop(unop, "Dereference operator only working of identifiers!");
+            }
             break;
         }
 		default: return;

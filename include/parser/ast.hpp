@@ -265,7 +265,6 @@ struct Ast_Binary : Ast_Expression {
 enum Ast_Unary_Type {
 	AST_UNARY_UNINITIALIZED,
 	AST_UNARY_DEREFERENCE,
-	AST_UNARY_REFERENCE,
 	AST_UNARY_NOT,
 	AST_UNARY_NEGATE,
 };

@@ -29,7 +29,6 @@ size_t run_function (Ast_Function* func, Ast_Note* run_note) {
 					auto reg = Light_Compiler::inst->interp->registers[i];
 					memcpy(reg, &lit->int_value, INTERP_REGISTER_SIZE);
 				} else {
-					// TODO: passing complex expression should trigger more bytecode execution
 					Light_Compiler::inst->error_stop(run_note, "#run can only have literal arguments!");
 				}
 			}

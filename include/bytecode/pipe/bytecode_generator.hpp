@@ -22,7 +22,7 @@ struct Bytecode_Generator : Pipe {
 	void gen (Ast_Cast* cast);
 	void gen (Ast_Pointer* ptr);
 	void gen (Ast_Literal* lit);
-	void gen (Ast_Unary* unop);
+	void gen (Ast_Unary* unop, bool address = false);
 	void gen (Ast_Binary* binop);
 	void gen (Ast_Ident* ident, bool address = false);
     void gen (Ast_Function* fn);
