@@ -1,5 +1,7 @@
 #include "parser/pipe/unique_types.hpp"
 
+#include "compiler.hpp"
+
 void Unique_Types::on_statement(Ast_Statement* stm) {
     this->unique(stm);
     this->to_next(stm);
@@ -81,10 +83,7 @@ void Unique_Types::unique (Ast_Expression** exp) {
 void Unique_Types::unique (Ast_Type_Definition** type_def) {
     switch ((*type_def)->typedef_type) {
         case AST_TYPEDEF_STRUCT: {
-            auto str_type = static_cast<Ast_Struct_Type*>(*type_def);
-            for (int i = 0; i < str_type->attributes.size(); i++) {
-        		this->unique(str_type->attributes[i]);
-        	}
+            this->unique(reinterpret_cast<Ast_Struct_Type**>(type_def));
             break;
         }
         case AST_TYPEDEF_POINTER: {
@@ -99,18 +98,16 @@ void Unique_Types::unique (Ast_Type_Definition** type_def) {
     }
 }
 
+void Unique_Types::unique (Ast_Struct_Type** _struct) {
+    (*_struct) = Light_Compiler::inst->types->get_unique_struct_type(*_struct);
+    for (int i = 0; i < (*_struct)->attributes.size(); i++) {
+        this->unique((*_struct)->attributes[i]);
+    }
+}
+
 void Unique_Types::unique (Ast_Pointer_Type** ptr_type) {
     this->unique(&(*ptr_type)->base);
-
-    auto it = this->ptr_types.find((*ptr_type)->base);
-    if (it != this->ptr_types.end()) {
-		if (*ptr_type != this->ptr_types[(*ptr_type)->base]) {
-			delete *ptr_type;
-			(*ptr_type) = this->ptr_types[(*ptr_type)->base];
-		}
-    } else {
-        this->ptr_types[(*ptr_type)->base] = (*ptr_type);
-    }
+    (*ptr_type) = Light_Compiler::inst->types->get_unique_pointer_type(*ptr_type);
 
 	if ((*ptr_type)->name == NULL) {
 		auto base_type_def = static_cast<Ast_Type_Definition*>((*ptr_type)->base);
@@ -122,35 +119,13 @@ void Unique_Types::unique (Ast_Pointer_Type** ptr_type) {
 	}
 }
 
-bool func_type_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
-    if (func_type1->parameter_decls.size() != func_type2->parameter_decls.size()) return false;
-    if (func_type1->return_type != func_type2->return_type) return false;
-    for (int i = 0; i < func_type1->parameter_decls.size(); i++) {
-        auto decl_1 = func_type1->parameter_decls[i];
-        auto decl_2 = func_type2->parameter_decls[i];
-        // since we've already "uniqued" the parameter types, we can
-        // check if they're the same using pointers
-        if (decl_1->type != decl_2->type) return false;
-    }
-    return true;
-}
-
 void Unique_Types::unique (Ast_Function_Type** func_type) {
     for (int i = 0; i < (*func_type)->parameter_decls.size(); i++) {
         this->unique((*func_type)->parameter_decls[i]);
     }
     this->unique(&(*func_type)->return_type);
 
-    for (auto _func_type : this->func_types) {
-        if (func_type_are_equal(*func_type, _func_type)) {
-			if (*func_type != _func_type) {
-				delete *func_type;
-				(*func_type) = _func_type;
-			}
-			return;
-        }
-    }
-    this->func_types.push_back(*func_type);
+    (*func_type) = Light_Compiler::inst->types->get_unique_function_type(*func_type);
 
 	if ((*func_type)->name == NULL) {
 		auto par_decls = (*func_type)->parameter_decls;

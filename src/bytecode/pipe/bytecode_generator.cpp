@@ -103,7 +103,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
     if (decl->decl_flags & AST_DECL_FLAG_CONSTANT) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
             auto func = static_cast<Ast_Function*>(decl->expression);
-            Light_Compiler::inst->interp->types->add(func->type);
+            //Light_Compiler::inst->types->add(func->type);
             if (!func->foreign_module_name) {
     			auto _tmp = this->stack_offset;
     			this->gen(func);
@@ -111,7 +111,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
             }
 		} else if (decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
             auto type_def = static_cast<Ast_Type_Definition*>(decl->expression);
-            Light_Compiler::inst->interp->types->add(type_def);
+            //Light_Compiler::inst->types->add(type_def);
         }
     } else {
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);

@@ -165,7 +165,7 @@ enum Ast_Type_Definition_Type {
 	AST_TYPEDEF_POINTER,
 };
 
-#define AST_PTR_SIZE sizeof(void*)
+#define AST_POINTER_SIZE sizeof(void*)
 
 struct Ast_Type_Definition : Ast_Expression {
 	Ast_Type_Definition_Type typedef_type = AST_TYPEDEF_UNDEFINED;
@@ -173,16 +173,6 @@ struct Ast_Type_Definition : Ast_Expression {
 	char* name = NULL;
 
 	Ast_Type_Definition() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
-};
-
-struct Ast_Function_Type : Ast_Type_Definition {
-	vector<Ast_Declaration*> parameter_decls;
-	Ast_Expression* return_type = NULL;
-
-	Ast_Function_Type() {
-		this->typedef_type = AST_TYPEDEF_FUNCTION;
-		this->byte_size = AST_PTR_SIZE;
-	}
 };
 
 struct Ast_Struct_Type : Ast_Type_Definition {
@@ -200,7 +190,17 @@ struct Ast_Pointer_Type : Ast_Type_Definition {
 
 	Ast_Pointer_Type() {
 		this->typedef_type = AST_TYPEDEF_POINTER;
-		this->byte_size = AST_PTR_SIZE;
+		this->byte_size = AST_POINTER_SIZE;
+	}
+};
+
+struct Ast_Function_Type : Ast_Type_Definition {
+	vector<Ast_Declaration*> parameter_decls;
+	Ast_Expression* return_type = NULL;
+
+	Ast_Function_Type() {
+		this->typedef_type = AST_TYPEDEF_FUNCTION;
+		this->byte_size = AST_POINTER_SIZE;
 	}
 };
 

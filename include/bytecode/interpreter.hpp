@@ -4,7 +4,6 @@
 #include "bytecode/foreign_functions.hpp"
 #include "bytecode/constants.hpp"
 #include "bytecode/globals.hpp"
-#include "bytecode/types.hpp"
 
 #include "bytecode/pipe/bytecode_generator.hpp"
 #include "bytecode/pipe/bytecode_runner.hpp"
@@ -28,8 +27,6 @@ struct Bytecode_Interpreter {
 	Foreign_Functions* foreign_functions = new Foreign_Functions();
 	Bytecode_Constants* constants = new Bytecode_Constants();
 	Bytecode_Globals* globals = new Bytecode_Globals();
-	Bytecode_Types* types = new Bytecode_Types();
-	bool stop_running = false;
 
 	Bytecode_Register registers[INTERP_REGISTER_COUNT];
 	uint8_t stack[INTERP_STACK_SIZE];
