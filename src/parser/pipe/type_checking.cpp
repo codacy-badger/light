@@ -176,17 +176,17 @@ void Type_Checking::check_type (Ast_Function_Type* ty) {
 
 void compute_struct_size (Ast_Struct_Type* _struct) {
 	if (_struct->byte_size == 0) {
-		uint16_t size = 0;
+		uint16_t byte_offset = 0;
 		for (int i = 0; i < _struct->attributes.size(); i++) {
 			auto decl = _struct->attributes[i];
-			decl->struct_byte_offset = size;
-			decl->struct_index = i;
+			decl->attribute_byte_offset = byte_offset;
+			decl->attribute_index = i;
 
 			assert (decl->type->exp_type == AST_EXPRESSION_TYPE_DEFINITION);
 			auto defn_ty = static_cast<Ast_Type_Definition*>(decl->type);
-			size += defn_ty->byte_size;
+			byte_offset += defn_ty->byte_size;
 		}
-		_struct->byte_size = size;
+		_struct->byte_size = byte_offset;
 	}
 }
 
@@ -229,31 +229,57 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 }
 
 void Type_Checking::check_type (Ast_Binary* binop) {
-	check_type(binop->lhs);
-	check_type(binop->rhs);
-	if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
-		Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression: '%s' and '%s'",
-			binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
-	}
-	switch (binop->binary_op) {
-		case AST_BINARY_EQ:
-		case AST_BINARY_NEQ:
-		case AST_BINARY_LT:
-		case AST_BINARY_LTE:
-		case AST_BINARY_GT:
-		case AST_BINARY_GTE: {
-			binop->inferred_type = Light_Compiler::inst->type_def_bool;
-			break;
-		}
-		case AST_BINARY_ASSIGN:
-		case AST_BINARY_ADD:
-		case AST_BINARY_SUB:
-		case AST_BINARY_MUL:
-		case AST_BINARY_DIV: {
-			binop->inferred_type = binop->lhs->inferred_type;
-			break;
-		}
-	}
+    check_type(binop->lhs);
+    if (binop->binary_op == AST_BINARY_ATTRIBUTE) {
+        // Now that we (should) know the type of the LHS,
+        // we can set all the values for the RHS
+        if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
+            auto _struct = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
+            if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
+                auto ident = static_cast<Ast_Ident*>(binop->rhs);
+                auto attribute = _struct->find_attribute(ident->name);
+                if (attribute) {
+                    auto attr_type = static_cast<Ast_Type_Definition*>(attribute->type);
+                    ident->inferred_type = attr_type;
+                    binop->inferred_type = attr_type;
+                    ident->declaration = attribute;
+                } else {
+                    Light_Compiler::inst->error_stop(binop, "The type '%s' has no attribute named '%s'",
+                        _struct->name, ident->name);
+                }
+            } else {
+                // TODO: move this check to somewhere more relevant
+                Light_Compiler::inst->error_stop(binop, "Right of attribute access is NOT an identifier!");
+            }
+        } else {
+            Light_Compiler::inst->error_stop(binop, "Left of attribute access is not of struct type!");
+        }
+    } else {
+    	check_type(binop->rhs);
+    	if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
+    		Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression: '%s' and '%s'",
+    			binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
+    	}
+    	switch (binop->binary_op) {
+    		case AST_BINARY_EQ:
+    		case AST_BINARY_NEQ:
+    		case AST_BINARY_LT:
+    		case AST_BINARY_LTE:
+    		case AST_BINARY_GT:
+    		case AST_BINARY_GTE: {
+    			binop->inferred_type = Light_Compiler::inst->type_def_bool;
+    			break;
+    		}
+    		case AST_BINARY_ASSIGN:
+    		case AST_BINARY_ADD:
+    		case AST_BINARY_SUB:
+    		case AST_BINARY_MUL:
+    		case AST_BINARY_DIV: {
+    			binop->inferred_type = binop->lhs->inferred_type;
+    			break;
+    		}
+    	}
+    }
 }
 
 void Type_Checking::check_type (Ast_Unary* unop) {

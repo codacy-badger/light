@@ -48,9 +48,9 @@ void Symbol_Resolution::on_finish () {
 				for (auto ident : dep->unresolved_symbols) {
 			        Light_Compiler::inst->error((*ident), "Unresolved symbol: '%s'", (*ident)->name);
 				}
-				Light_Compiler::inst->stop();
 			}
         }
+		Light_Compiler::inst->stop();
     } else this->try_finish();
 }
 
@@ -289,8 +289,12 @@ void Symbol_Resolution::check_symbols (Ast_Function_Call** call, vector<Ast_Iden
 }
 
 void Symbol_Resolution::check_symbols (Ast_Binary** binary, vector<Ast_Ident**>* sym) {
-    check_symbols(&(*binary)->rhs, sym);
     check_symbols(&(*binary)->lhs, sym);
+    if ((*binary)->binary_op != AST_BINARY_ATTRIBUTE) {
+		// We don't resolve symbols for struct attributes attributes here,
+		// since we still don't know the type of lhs. GOTO: type_checking
+        check_symbols(&(*binary)->rhs, sym);
+    }
 }
 
 void Symbol_Resolution::check_symbols (Ast_Unary** unary, vector<Ast_Ident**>* sym) {

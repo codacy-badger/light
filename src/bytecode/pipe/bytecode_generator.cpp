@@ -140,7 +140,7 @@ void Bytecode_Generator::gen (Ast_Expression* exp, bool left_value) {
         case AST_EXPRESSION_POINTER: return this->gen(static_cast<Ast_Pointer*>(exp));
         case AST_EXPRESSION_LITERAL: return this->gen(static_cast<Ast_Literal*>(exp));
 		case AST_EXPRESSION_UNARY: return this->gen(static_cast<Ast_Unary*>(exp), left_value);
-        case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp));
+        case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp), left_value);
         case AST_EXPRESSION_IDENT: return this->gen(static_cast<Ast_Ident*>(exp), left_value);
         case AST_EXPRESSION_CALL: return this->gen(static_cast<Ast_Function_Call*>(exp));
         default: return;
@@ -212,8 +212,35 @@ uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
 	}
 }
 
-void Bytecode_Generator::gen (Ast_Binary* binop) {
+void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 	switch (binop->binary_op) {
+		case AST_BINARY_ATTRIBUTE: {
+            auto size = binop->rhs->inferred_type->byte_size;
+            // TODO: pre-compute the stack offset instead of adding it each time
+        	this->gen(binop->lhs, true);
+
+            auto ident = static_cast<Ast_Ident*>(binop->rhs);
+			auto reg = this->current_register;
+            auto decl = ident->declaration;
+
+            //TODO: don't do this when the offset is 0
+			auto inst = new Inst_Set(reg, BYTECODE_TYPE_U16, &decl->attribute_byte_offset);
+            this->bytecode->push_back(copy_location_info(inst, binop));
+
+            auto inst1 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg);
+            this->bytecode->push_back(copy_location_info(inst1, binop));
+
+            if (!left_value) {
+                if (binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+                    auto inst2 = new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size);
+                    this->bytecode->push_back(copy_location_info(inst2, binop));
+                } else {
+                    Light_Compiler::inst->error_stop(binop, "Value of identifier is bigger than a register!");
+                }
+            }
+
+			break;
+		}
 		case AST_BINARY_ASSIGN: {
             auto size = binop->rhs->inferred_type->byte_size;
         	this->gen(binop->lhs, true);
@@ -282,17 +309,16 @@ void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 			printf("\tBYTECODE_LOAD_GLOBAL_POINTER %zd, %zd (%s)\n", reg, ident->declaration->stack_offset, ident->name);
 		}*/
 	} else {
-		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-            auto inst1 = new Inst_Stack_Offset(reg, ident->declaration->stack_offset);
-            this->bytecode->push_back(copy_location_info(inst1, ident));
-            if (!left_value) {
+        auto inst1 = new Inst_Stack_Offset(reg, ident->declaration->stack_offset);
+        this->bytecode->push_back(copy_location_info(inst1, ident));
+        if (!left_value) {
+            if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
                 auto inst2 = new Inst_Load(reg, reg, ident->inferred_type->byte_size);
                 this->bytecode->push_back(copy_location_info(inst2, ident));
+            } else {
+                Light_Compiler::inst->error_stop(ident, "Value of identifier is bigger than a register!");
             }
-		} else {
-            Light_Compiler::inst->error_stop(ident, "Value of identifier is bigger than a register!");
-			printf("\tBYTECODE_STACK_OFFSET %zd, %zd\n", reg, ident->declaration->stack_offset);
-		}
+        }
 	}
 }
 

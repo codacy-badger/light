@@ -54,6 +54,13 @@ Ast_Function* Ast_Block::find_function (bool recurse) {
 	} else return NULL;
 }
 
+Ast_Declaration* Ast_Struct_Type::find_attribute (const char* name) {
+	for (auto decl : this->attributes) {
+		if (strcmp(decl->name, name) == 0) return decl;
+	}
+	return NULL;
+}
+
 void Ast_Binary::setOP (Token_Type tType) {
 	this->binary_op = this->typeToOP(tType);
 }
@@ -90,32 +97,33 @@ Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 short Ast_Binary::getPrecedence (Token_Type opToken) {
 	switch (opToken) {
 		case TOKEN_EQUAL: 			return 1;
-		case TOKEN_DOT:   			return 1;
 
-		case TOKEN_DOUBLE_AMP:		return 1;
-		case TOKEN_DOUBLE_PIPE:		return 1;
-		case TOKEN_EXCLAMATION:		return 1;
+		case TOKEN_DOUBLE_AMP:		return 2;
+		case TOKEN_DOUBLE_PIPE:		return 2;
+		case TOKEN_EXCLAMATION:		return 2;
 
-		case TOKEN_DOUBLE_ADD: 		return 2;
-		case TOKEN_DOUBLE_SUB: 		return 2;
-		case TOKEN_ADD:   			return 2;
-		case TOKEN_SUB:   			return 2;
-		case TOKEN_MUL:   			return 3;
-		case TOKEN_DIV:   			return 3;
+		case TOKEN_DOUBLE_ADD: 		return 3;
+		case TOKEN_DOUBLE_SUB: 		return 3;
+		case TOKEN_ADD:   			return 3;
+		case TOKEN_SUB:   			return 3;
+		case TOKEN_MUL:   			return 4;
+		case TOKEN_DIV:   			return 4;
 
-		case TOKEN_AMP:				return 3;
-		case TOKEN_PIPE:			return 3;
-		case TOKEN_HAT:				return 3;
-		case TOKEN_TILDE:			return 3;
-		case TOKEN_RIGHT_SHIFT:		return 3;
-		case TOKEN_LEFT_SHIFT:		return 3;
+		case TOKEN_AMP:				return 4;
+		case TOKEN_PIPE:			return 4;
+		case TOKEN_HAT:				return 4;
+		case TOKEN_TILDE:			return 4;
+		case TOKEN_RIGHT_SHIFT:		return 4;
+		case TOKEN_LEFT_SHIFT:		return 4;
 
-		case TOKEN_DOUBLE_EQUAL:	return 4;
-		case TOKEN_NOT_EQUAL:		return 4;
-		case TOKEN_GREATER_EQUAL:	return 4;
-		case TOKEN_LESSER_EQUAL:	return 4;
-		case TOKEN_GREATER:			return 4;
-		case TOKEN_LESSER:			return 4;
+		case TOKEN_DOUBLE_EQUAL:	return 5;
+		case TOKEN_NOT_EQUAL:		return 5;
+		case TOKEN_GREATER_EQUAL:	return 5;
+		case TOKEN_LESSER_EQUAL:	return 5;
+		case TOKEN_GREATER:			return 5;
+		case TOKEN_LESSER:			return 5;
+
+		case TOKEN_DOT:   			return 8;
 
 		default: 		  			return 0;
 	}

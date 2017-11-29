@@ -6,6 +6,25 @@ main :: fn {
 	test_cast();
 	test_strlen();
 	test_pointers();
+	test_struct();
+}
+
+test_struct :: fn {
+	Vec3 :: struct {
+		x: u32;
+		y: u32;
+		z: u32;
+	}
+
+	v1 : Vec3;
+	v1.x = cast(u32) 12;
+	v1.y = cast(u32) 16;
+	v1.z = cast(u32) 22;
+
+	if (v1.x == cast(u32) 12) print("\nATTR 1!\n", 9);
+	if (v1.y == cast(u32) 16) print("\nATTR 2!\n", 9);
+	if (v1.z == cast(u32) 22) print("\nATTR 3!\n", 9);
+	if (v1.y != cast(u32) 49) print("\nATTR 4!\n", 9);
 }
 
 test_factorial :: fn {

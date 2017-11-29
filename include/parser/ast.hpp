@@ -93,8 +93,8 @@ struct Ast_Declaration : Ast_Statement {
 
 	// If struct property
 	Ast_Struct_Type* _struct = NULL;
-	uint16_t struct_index = 0;
-	uint16_t struct_byte_offset = 0;
+	uint16_t attribute_index = 0;
+	uint16_t attribute_byte_offset = 0;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 
@@ -183,6 +183,8 @@ struct Ast_Struct_Type : Ast_Type_Definition {
 		this->byte_size = byte_size;
 		this->name = name;
 	}
+
+	Ast_Declaration* find_attribute (const char* name);
 };
 
 struct Ast_Pointer_Type : Ast_Type_Definition {
