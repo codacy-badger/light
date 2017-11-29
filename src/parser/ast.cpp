@@ -27,7 +27,10 @@ Ast_Declaration* Ast_Block::find_declaration (const char* name, bool recurse) {
 		}
 	}
     for (auto stm : this->list) {
-        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+		// TODO: check why the F. do I have to check for null here
+		// there should never be null values inside this.
+		// not checking crashes in Unix build
+        if (stm && stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
             if (strcmp(decl->name, name) == 0) return decl;
         }

@@ -32,8 +32,6 @@ bool Lexer::parse_next () {
 		return false;
 	}
 
-	printf("DUH\n");
-
     LITERAL_TOKEN("->", TOKEN_ARROW);
 
 	LITERAL_TOKEN("&&", TOKEN_DOUBLE_AMP);

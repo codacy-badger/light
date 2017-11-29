@@ -88,3 +88,23 @@ test_pointers :: fn {
 		&ptr = 12;
 	}
 }
+
+/*import "examples/nix.li"
+
+#run
+main :: fn {
+	str := "This is asdqweasadsaewqeqweasdasd\tasd text!\n";
+	len := string_length(str);
+	write(stdout, str, len);
+
+	string_length :: fn (str: string) -> u32 {
+		result : u32 = 0;
+		char : u8 = &str;
+		while (char != cast(u8) 0) {
+			result = result + cast(u32) 1;
+			str = str + cast(*u8) 1;
+			char = &str;
+		}
+		return result;
+	}
+}*/

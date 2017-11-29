@@ -11,5 +11,5 @@ uint64_t Timer::getTime () {
 double Timer::clockStop (uint64_t start) {
 	struct timeval timer;
 	gettimeofday(&timer, NULL);
-    return double(timer.tv_usec - start);
+    return double(timer.tv_usec - start) / 1000000.0;
 }

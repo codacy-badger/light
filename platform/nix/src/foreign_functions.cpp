@@ -7,7 +7,7 @@
 void* Foreign_Functions::get_or_add_module (string module_name) {
 	auto module_it = this->module_pointers.find(module_name);
 	if (module_it == this->module_pointers.end()) {
-		auto module = dlopen(module_name.c_str(), 0);
+		auto module = dlopen(module_name.c_str(), RTLD_LAZY);
 		if (module) {
 			this->module_pointers[module_name] = module;
 		}
