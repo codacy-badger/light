@@ -49,8 +49,7 @@ size_t bytecode_get_size (uint8_t bytecode_type) {
 		case BYTECODE_TYPE_U64:
 		case BYTECODE_TYPE_S64:
 		case BYTECODE_TYPE_F64: return 8;
-		case BYTECODE_TYPE_POINTER:
-		case BYTECODE_TYPE_STRING: return AST_PTR_SIZE;
+		case BYTECODE_TYPE_POINTER: return AST_PTR_SIZE;
 		default: return 0;
 	}
 }

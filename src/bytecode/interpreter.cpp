@@ -350,7 +350,6 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 				case BYTECODE_TYPE_F32: dcArgFloat(vm, (float) value); break;
 				case BYTECODE_TYPE_F64: dcArgDouble(vm, (double) value); break;
 				case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (char*) value); break;
-				case BYTECODE_TYPE_STRING: dcArgPointer(vm, (void*) value); break;
 			}
 			return;
 		}

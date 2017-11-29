@@ -78,7 +78,6 @@ const uint8_t BYTECODE_TYPE_U64 	= 0x8;
 const uint8_t BYTECODE_TYPE_F32 	= 0x9;
 const uint8_t BYTECODE_TYPE_F64 	= 0xA;
 const uint8_t BYTECODE_TYPE_POINTER	= 0xB;
-const uint8_t BYTECODE_TYPE_STRING 	= 0xC;
 
 uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty);
 uint8_t bytecode_get_type (Ast_Expression* exp);
