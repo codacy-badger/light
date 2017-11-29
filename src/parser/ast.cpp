@@ -1,5 +1,3 @@
-#pragma once
-
 #include "parser/ast.hpp"
 
 #include <string.h>

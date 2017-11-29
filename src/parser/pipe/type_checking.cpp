@@ -1,6 +1,4 @@
-#pragma once
-
-#include "parser/pipe/Type_Checking.hpp"
+#include "parser/pipe/type_checking.hpp"
 
 #include "compiler.hpp"
 

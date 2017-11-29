@@ -1,5 +1,3 @@
-#pragma once
-
 #include "bytecode/interpreter.hpp"
 
 #include <stdio.h>
@@ -10,7 +8,7 @@
 
 #include "compiler.hpp"
 
-#define DEBUG false
+#define DEBUG true
 
 #define INST_OFFSET(offset) buffer[offset]
 

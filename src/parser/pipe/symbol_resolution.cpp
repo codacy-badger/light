@@ -1,5 +1,3 @@
-#pragma once
-
 #include "parser/pipe/symbol_resolution.hpp"
 
 #include "compiler.hpp"

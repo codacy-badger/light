@@ -1,5 +1,3 @@
-#pragma once
-
 #include "lexer/lexer.hpp"
 
 #include "compiler.hpp"
@@ -33,6 +31,8 @@ bool Lexer::parse_next () {
 		this->nextType = TOKEN_EOF;
 		return false;
 	}
+
+	printf("DUH\n");
 
     LITERAL_TOKEN("->", TOKEN_ARROW);
 

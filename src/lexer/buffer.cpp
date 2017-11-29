@@ -1,6 +1,7 @@
-#pragma once
-
 #include "lexer/buffer.hpp"
+
+#include <stdio.h>
+#include <string.h>
 
 Buffer::Buffer (const char* filename) {
 	this->stream = fopen(filename, "r");

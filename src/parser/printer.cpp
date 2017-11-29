@@ -1,5 +1,3 @@
-#pragma once
-
 #include "parser/printer.hpp"
 
 #include <stdio.h>
@@ -35,7 +33,7 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 			printf(";\n");
 			break;
 		}
-		default: printf("-???-");
+		default: printf("-STM?-");
 	}
 }
 
@@ -112,7 +110,7 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs, bool name_only) {
 			print(static_cast<Ast_Literal*>(exp), tabs);
 			break;
 		}
-		default: printf("-???-");
+		default: printf("-EXP?-");
 	}
 }
 

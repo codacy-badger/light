@@ -1,5 +1,3 @@
-#pragma once
-
 #include "compiler.hpp"
 
 #include <assert.h>

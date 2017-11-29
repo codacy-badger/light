@@ -1,5 +1,3 @@
-#pragma once
-
 #include "parser/parser.hpp"
 
 #include "compiler.hpp"
