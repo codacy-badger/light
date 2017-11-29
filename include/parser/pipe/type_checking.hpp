@@ -6,6 +6,7 @@ struct Type_Checking : Pipe {
     void on_statement(Ast_Statement* stm);
 
     void check_type (Ast_Statement* stm);
+    void check_type (Ast_Note* note);
     void check_type (Ast_Block* block);
     void check_type (Ast_If* _if);
     void check_type (Ast_While* _while);

@@ -148,8 +148,6 @@ void Bytecode_Generator::gen (Ast_Expression* exp, bool address) {
 }
 
 void Bytecode_Generator::gen (Ast_Cast* cast) {
-	// TODO: handle custom casts? Maybe this is not the place...
-	// A pipe that replaces custom casts by function calls would be cleaner
 	this->gen(cast->value);
 	auto type_from = bytecode_get_type(cast->value->inferred_type);
 	auto type_to = bytecode_get_type(cast->inferred_type);

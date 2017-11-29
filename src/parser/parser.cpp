@@ -46,7 +46,6 @@ Ast_Block* Parser::top_level_block () {
 	push_new_type(this, _block, Light_Compiler::inst->type_def_u64);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_f32);
 	push_new_type(this, _block, Light_Compiler::inst->type_def_f64);
-	// TODO: add array type, it should also replace string type as []*u8
 	push_new_type(this, _block, "string", Light_Compiler::inst->type_def_string);
 
 	this->block(_block);

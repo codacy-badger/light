@@ -186,8 +186,8 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
             auto ptr = reinterpret_cast<Ast_Pointer**>(exp);
 			check_symbols(ptr, sym);
             if ((*ptr)->base->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-                // TODO: copy location info
                 auto ptr_type = new Ast_Pointer_Type();
+                ast_copy_location_info(ptr_type, (*ptr));
                 ptr_type->base = (*ptr)->base;
                 delete *exp;
                 (*exp) = ptr_type;

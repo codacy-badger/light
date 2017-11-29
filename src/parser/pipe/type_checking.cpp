@@ -10,7 +10,7 @@ void Type_Checking::on_statement(Ast_Statement* stm) {
 }
 
 void Type_Checking::check_type (Ast_Statement* stm) {
-    // TODO: note params should also be type checked & inferred
+    for (auto note : stm->notes) check_type(note);
     switch (stm->stm_type) {
         case AST_STATEMENT_BLOCK:
             check_type(static_cast<Ast_Block*>(stm));
@@ -32,6 +32,13 @@ void Type_Checking::check_type (Ast_Statement* stm) {
             break;
         default: break;
     }
+}
+
+void Type_Checking::check_type (Ast_Note* note) {
+    if (note->arguments) {
+		for (auto exp : note->arguments->values)
+			check_type(exp);
+	}
 }
 
 void Type_Checking::check_type (Ast_Block* block) {
