@@ -134,14 +134,14 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
 	}
 }
 
-void Bytecode_Generator::gen (Ast_Expression* exp, bool address) {
+void Bytecode_Generator::gen (Ast_Expression* exp, bool left_value) {
     switch (exp->exp_type) {
         case AST_EXPRESSION_CAST: return this->gen(static_cast<Ast_Cast*>(exp));
         case AST_EXPRESSION_POINTER: return this->gen(static_cast<Ast_Pointer*>(exp));
         case AST_EXPRESSION_LITERAL: return this->gen(static_cast<Ast_Literal*>(exp));
-		case AST_EXPRESSION_UNARY: return this->gen(static_cast<Ast_Unary*>(exp), address);
+		case AST_EXPRESSION_UNARY: return this->gen(static_cast<Ast_Unary*>(exp), left_value);
         case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp));
-        case AST_EXPRESSION_IDENT: return this->gen(static_cast<Ast_Ident*>(exp), address);
+        case AST_EXPRESSION_IDENT: return this->gen(static_cast<Ast_Ident*>(exp), left_value);
         case AST_EXPRESSION_CALL: return this->gen(static_cast<Ast_Function_Call*>(exp));
         default: return;
     }
@@ -246,7 +246,7 @@ uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {
 	return BYTECODE_NOOP;
 }
 
-void Bytecode_Generator::gen (Ast_Unary* unop, bool address) {
+void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
 	switch (unop->unary_op) {
 		case AST_UNARY_NOT:
 		case AST_UNARY_NEGATE: {
@@ -259,7 +259,7 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool address) {
 		}
         case AST_UNARY_DEREFERENCE: {
             if (unop->exp->exp_type == AST_EXPRESSION_IDENT) {
-                this->gen(static_cast<Ast_Ident*>(unop->exp), address);
+                this->gen(static_cast<Ast_Ident*>(unop->exp), left_value);
                 auto reg = this->current_register - 1;
                 auto inst2 = new Inst_Load(reg, reg, unop->exp->inferred_type->byte_size);
                 this->bytecode->push_back(copy_location_info(inst2, unop));
@@ -272,7 +272,7 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool address) {
 	}
 }
 
-void Bytecode_Generator::gen (Ast_Ident* ident, bool address) {
+void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 	auto reg = this->current_register++;
 	if (ident->declaration->decl_flags && AST_DECL_FLAG_GLOBAL) {
         Light_Compiler::inst->warning(ident, "Global identifiers not yet supported!");
@@ -285,7 +285,7 @@ void Bytecode_Generator::gen (Ast_Ident* ident, bool address) {
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
             auto inst1 = new Inst_Stack_Offset(reg, ident->declaration->stack_offset);
             this->bytecode->push_back(copy_location_info(inst1, ident));
-            if (!address) {
+            if (!left_value) {
                 auto inst2 = new Inst_Load(reg, reg, ident->inferred_type->byte_size);
                 this->bytecode->push_back(copy_location_info(inst2, ident));
             }
