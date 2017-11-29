@@ -16,10 +16,9 @@ bool Buffer::is_valid () {
 }
 
 char Buffer::next () {
-	char output = 0;
+	char output;
 	if (this->pushback_buffer.empty()) {
-		auto result = fgets(&output, 2, this->stream);
-		if (!result) output = -1;
+		output = fgetc(this->stream);
 	} else {
 		output = this->pushback_buffer.front();
 		this->pushback_buffer.pop_front();
@@ -90,9 +89,8 @@ void Buffer::printLocation () {
 
 void Buffer::fillPushbackBuffer (unsigned int limit) {
 	for (unsigned int i = this->pushback_buffer.size(); i < limit; i++) {
-		char c;
-		auto result = fgets(&c, 2, this->stream);
-		if (result) this->pushback_buffer.push_back(c);
+		char c = fgetc(this->stream);
+		if (c != EOF) this->pushback_buffer.push_back(c);
 	}
 }
 

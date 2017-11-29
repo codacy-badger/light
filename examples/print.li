@@ -1,6 +1,6 @@
 import "examples/win32.li"
 
-print :: fn (data: *u8, length: s32) {
+print :: fn (data: *u8, length: u32) {
 	handle := GetStdHandle(STD_OUTPUT_HANDLE);
 
 	if (handle != cast(*void) INVALID_HANDLE_VALUE) {
