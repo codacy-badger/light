@@ -5,6 +5,7 @@
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
     if (Light_Compiler::inst->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
+        ast_copy_location_info(cast, *exp_ptr);
         cast->value = (*exp_ptr);
         cast->cast_to = type_to;
         cast->inferred_type = type_to;
@@ -365,7 +366,7 @@ void Type_Checking::check_type (Ast_Literal* lit) {
                 break;
             }
             case AST_LITERAL_DECIMAL: {
-				lit->inferred_type = Light_Compiler::inst->type_def_f64;
+				lit->inferred_type = Light_Compiler::inst->type_def_f32;
                 break;
             }
             case AST_LITERAL_STRING: {

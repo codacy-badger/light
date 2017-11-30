@@ -71,8 +71,24 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	this->types->add_cast(this->type_def_s16, this->type_def_s32, NULL, true);
 	this->types->add_cast(this->type_def_s16, this->type_def_s64, NULL, true);
 	this->types->add_cast(this->type_def_s32, this->type_def_s64, NULL, true);
-	
+
 	this->types->add_cast(this->type_def_f32, this->type_def_f64, NULL, true);
+	this->types->add_cast(this->type_def_u8, this->type_def_f32, NULL, true);
+	this->types->add_cast(this->type_def_u16, this->type_def_f32, NULL, true);
+	this->types->add_cast(this->type_def_u32, this->type_def_f32, NULL, true);
+	this->types->add_cast(this->type_def_u64, this->type_def_f32, NULL, true);
+	this->types->add_cast(this->type_def_s8, this->type_def_f32, NULL, true);
+	this->types->add_cast(this->type_def_s16, this->type_def_f32, NULL, true);
+	this->types->add_cast(this->type_def_s32, this->type_def_f32, NULL, true);
+	this->types->add_cast(this->type_def_s64, this->type_def_f32, NULL, true);
+	this->types->add_cast(this->type_def_u8, this->type_def_f64, NULL, true);
+	this->types->add_cast(this->type_def_u16, this->type_def_f64, NULL, true);
+	this->types->add_cast(this->type_def_u32, this->type_def_f64, NULL, true);
+	this->types->add_cast(this->type_def_u64, this->type_def_f64, NULL, true);
+	this->types->add_cast(this->type_def_s8, this->type_def_f64, NULL, true);
+	this->types->add_cast(this->type_def_s16, this->type_def_f64, NULL, true);
+	this->types->add_cast(this->type_def_s32, this->type_def_f64, NULL, true);
+	this->types->add_cast(this->type_def_s64, this->type_def_f64, NULL, true);
 
 	// TODO: add array structure (length, data?)
 	// TODO: improve string representation in the language (array?)

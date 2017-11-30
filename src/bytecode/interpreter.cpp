@@ -334,6 +334,13 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 	}
 }
 
+template<typename T>
+void _print (void* ptr, const char* printf_format) {
+	T value;
+	memcpy(&value, ptr, sizeof(T));
+	printf(printf_format, value);
+}
+
 void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 	printf(" #%-4zd ( %s @ %zd ) ", index, inst->filename, inst->line);
 	switch (inst->bytecode) {
@@ -354,58 +361,18 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_SET: {
 			auto set = static_cast<Inst_Set*>(inst);
-			uint64_t value = 0;
+			printf("SET %d, ", set->reg);
 			switch (set->bytecode_type) {
-				case BYTECODE_TYPE_U8: {
-					memcpy(&value, set->data, 1);
-					printf("SET %d, %u", set->reg, (uint8_t) value);
-					break;
-				}
-				case BYTECODE_TYPE_U16: {
-					memcpy(&value, set->data, 2);
-					printf("SET %d, %u", set->reg, (uint16_t) value);
-					break;
-				}
-				case BYTECODE_TYPE_U32: {
-					memcpy(&value, set->data, 4);
-					printf("SET %d, %u", set->reg, (uint32_t) value);
-					break;
-				}
-				case BYTECODE_TYPE_U64: {
-					memcpy(&value, set->data, 8);
-					printf("SET %d, %llu", set->reg, (uint64_t) value);
-					break;
-				}
-				case BYTECODE_TYPE_S8: {
-					memcpy(&value, set->data, 1);
-					printf("SET %d, %d", set->reg, (int8_t) value);
-					break;
-				}
-				case BYTECODE_TYPE_S16: {
-					memcpy(&value, set->data, 2);
-					printf("SET %d, %d", set->reg, (int16_t) value);
-					break;
-				}
-				case BYTECODE_TYPE_S32: {
-					memcpy(&value, set->data, 4);
-					printf("SET %d, %d", set->reg, (int32_t) value);
-					break;
-				}
-				case BYTECODE_TYPE_S64: {
-					memcpy(&value, set->data, 8);
-					printf("SET %d, %lld", set->reg, (int64_t) value);
-					break;
-				}
-				case BYTECODE_TYPE_F32: {
-					memcpy(&value, set->data, 4);
-					printf("SET %d, %f", set->reg, (float) value);
-					break;
-				}
-				case BYTECODE_TYPE_F64: {
-					memcpy(&value, set->data, 8);
-					printf("SET %d, %lf", set->reg, (double) value);
-					break;
-				}
+				case BYTECODE_TYPE_U8:  _print<uint8_t>(set->data, "%d"); break;
+				case BYTECODE_TYPE_U16: _print<uint16_t>(set->data, "%d"); break;
+				case BYTECODE_TYPE_U32: _print<uint32_t>(set->data, "%d"); break;
+				case BYTECODE_TYPE_U64: _print<uint64_t>(set->data, "%ld"); break;
+				case BYTECODE_TYPE_S8:  _print<int8_t>(set->data, "%u"); break;
+				case BYTECODE_TYPE_S16: _print<int16_t>(set->data, "%u"); break;
+				case BYTECODE_TYPE_S32: _print<int32_t>(set->data, "%u"); break;
+				case BYTECODE_TYPE_S64: _print<int64_t>(set->data, "%lu"); break;
+				case BYTECODE_TYPE_F32: _print<float>(set->data, "%f"); break;
+				case BYTECODE_TYPE_F64: _print<double>(set->data, "%lf"); break;
 			}
 			break;
 		}

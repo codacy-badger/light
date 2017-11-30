@@ -355,9 +355,14 @@ Ast_Literal* Parser::literal () {
 		}
 		case TOKEN_NUMBER: {
 			output = AST_NEW(Ast_Literal);
-			output->literal_type = AST_LITERAL_UNSIGNED_INT;
 			auto number_str = this->lexer->text();
-			output->uint_value = strtoul(number_str, NULL, 10);
+			if (strstr(number_str, ".") == NULL) {
+				output->literal_type = AST_LITERAL_UNSIGNED_INT;
+				output->uint_value = strtoul(number_str, NULL, 10);
+			} else {
+				output->literal_type = AST_LITERAL_DECIMAL;
+				output->decimal_value = atof(number_str);
+			}
 			break;
 		}
 		default: break;

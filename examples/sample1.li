@@ -7,6 +7,14 @@ main :: fn {
 	test_strlen();
 	test_pointers();
 	test_struct();
+	test_decimals();
+}
+
+test_decimals :: fn {
+	dec1 : f64 = 1.23;
+
+	if (dec1 == 1.23) print("\nDEC 1!\n", 8);
+	if (dec1 != 1.20) print("\nDEC 2!\n", 8);
 }
 
 test_struct :: fn {

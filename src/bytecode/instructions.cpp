@@ -22,8 +22,8 @@ uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty) {
 			else if (decl_ty == Light_Compiler::inst->type_def_s32) return BYTECODE_TYPE_S32;
 			else if (decl_ty == Light_Compiler::inst->type_def_s64) return BYTECODE_TYPE_S64;
 
-			else if (decl_ty == Light_Compiler::inst->type_def_s32) return BYTECODE_TYPE_F32;
-			else if (decl_ty == Light_Compiler::inst->type_def_s64) return BYTECODE_TYPE_F64;
+			else if (decl_ty == Light_Compiler::inst->type_def_f32) return BYTECODE_TYPE_F32;
+			else if (decl_ty == Light_Compiler::inst->type_def_f64) return BYTECODE_TYPE_F64;
 
 	  		else if (decl_ty == Light_Compiler::inst->type_def_string) return BYTECODE_TYPE_POINTER;
 		}

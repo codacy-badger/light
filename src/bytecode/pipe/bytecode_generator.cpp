@@ -166,13 +166,24 @@ void Bytecode_Generator::gen (Ast_Pointer* ptr) {
 void Bytecode_Generator::gen (Ast_Literal* lit) {
 	switch (lit->literal_type) {
 		case AST_LITERAL_SIGNED_INT:
-		case AST_LITERAL_UNSIGNED_INT:
-		case AST_LITERAL_DECIMAL: {
+		case AST_LITERAL_UNSIGNED_INT: {
 			auto bytecode_type = bytecode_get_type(lit->inferred_type);
 			auto inst = new Inst_Set(this->current_register++, bytecode_type, &lit->int_value);
             this->bytecode->push_back(copy_location_info(inst, lit));
 			break;
 		}
+		case AST_LITERAL_DECIMAL: {
+			auto bytecode_type = bytecode_get_type(lit->inferred_type);
+            if (bytecode_type == BYTECODE_TYPE_F32) {
+                float _tmp = lit->decimal_value;
+    			auto inst = new Inst_Set(this->current_register++, bytecode_type, &_tmp);
+                this->bytecode->push_back(copy_location_info(inst, lit));
+            } else {
+                auto inst = new Inst_Set(this->current_register++, bytecode_type, &lit->int_value);
+                this->bytecode->push_back(copy_location_info(inst, lit));
+            }
+            break;
+        }
 		case AST_LITERAL_STRING: {
 			lit->data_offset = Light_Compiler::inst->interp->constants->add(lit->string_value);
             auto inst = new Inst_Constant_Offset(this->current_register++, lit->data_offset);
