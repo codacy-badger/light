@@ -17,29 +17,29 @@ test_struct :: fn {
 	}
 
 	v1 : Vec3;
-	v1.x = cast(u32) 12;
-	v1.y = cast(u32) 16;
-	v1.z = cast(u32) 22;
+	v1.x = 12;
+	v1.y = 16;
+	v1.z = 22;
 
-	if (v1.x == cast(u32) 12) print("\nATTR 1!\n", 9);
-	if (v1.y == cast(u32) 16) print("\nATTR 2!\n", 9);
-	if (v1.z == cast(u32) 22) print("\nATTR 3!\n", 9);
-	if (v1.y != cast(u32) 49) print("\nATTR 4!\n", 9);
+	if (v1.x == 12) print("\nATTR 1!\n", 9);
+	if (v1.y == 16) print("\nATTR 2!\n", 9);
+	if (v1.z == 22) print("\nATTR 3!\n", 9);
+	if (v1.y != 49) print("\nATTR 4!\n", 9);
 }
 
 test_factorial :: fn {
 	number := factorial(5);
 
-	if number == cast(u32) 120 {
+	if number == 120 {
 		print("Result is 120 :)\n\n", 18);
 	} else {
 		print("Result is WRONG :(\n\n", 20);
 	}
 
 	factorial :: fn (number: u32) -> u32 {
-		if (number == cast(u32) 0) cast(u32) 1
+		if (number == 0) 1
 		else {
-			factorial(number - cast(u32) 1) * number
+			factorial(number - 1) * number
 		}
 	}
 }
@@ -50,27 +50,27 @@ test_cast :: fn {
 	num3 : s32 = -num1;
 
 	if (55 == 55) print("\nPASS 1!\n", 10);
-	if (cast(u8) 55 == num1) print("\nPASS 2!\n", 10);
-	if (num2 == cast(u64) 755) print("\nPASS 3!\n", 10);
+	if (55 == num1) print("\nPASS 2!\n", 10);
+	if (num2 == 755) print("\nPASS 3!\n", 10);
 
 	if (-55 == -55) print("\nPASS 4!\n", 10);
-	if (-55 == cast(s16) -num1) print("\nPASS 5!\n", 10);
+	if (-55 == -num1) print("\nPASS 5!\n", 10);
 }
 
 test_strlen :: fn {
 	text := "\nAuto Length";
 	length := string_length(text);
 
-	if length > cast(u32) 0 {
+	if length > 0 {
 		print(text, length);
 	}
 
 	string_length :: fn (str: string) -> u32 {
 		result : u32 = 0;
 		char : u8 = &str;
-		while (char != cast(u8) 0) {
-			result = result + cast(u32) 1;
-			str = str + cast(*u8) 1;
+		while (char != 0) {
+			result = result + 1;
+			str = str + 1;
 			char = &str;
 		}
 		return result;
@@ -100,9 +100,9 @@ main :: fn {
 	string_length :: fn (str: string) -> u32 {
 		result : u32 = 0;
 		char : u8 = &str;
-		while (char != cast(u8) 0) {
-			result = result + cast(u32) 1;
-			str = str + cast(*u8) 1;
+		while (char != 0) {
+			result = result + 1;
+			str = str + 1;
 			char = &str;
 		}
 		return result;

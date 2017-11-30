@@ -13,10 +13,17 @@ struct cmp_str_types {
     }
 };
 
+struct Cast_Instance {
+    Ast_Function* function = NULL;
+    bool is_implicid = false;
+};
+
 struct Types {
     map<char*, Ast_Struct_Type*, cmp_str_types> struct_types;
     map<Ast_Expression*, Ast_Pointer_Type*> ptr_types;
     vector<Ast_Function_Type*> func_types;
+
+    map<Ast_Type_Definition*, map<Ast_Type_Definition*, Cast_Instance*>> casts;
 
     Ast_Type_Definition* get_unique_type (Ast_Type_Definition* type_def) {
         switch (type_def->typedef_type) {
@@ -86,5 +93,36 @@ struct Types {
         }
         this->func_types.push_back(func_type);
         return func_type;
+    }
+
+    void add_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to, Ast_Function* func, bool is_implicid = false) {
+        auto cast_instance = new Cast_Instance();
+        cast_instance->function = func;
+        cast_instance->is_implicid = is_implicid;
+        this->casts[type_from][type_to] = cast_instance;
+    }
+
+    Cast_Instance* get_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
+        auto it = this->casts.find(type_from);
+        if (it != this->casts.end()) {
+            auto it2 = it->second.find(type_to);
+            if (it2 != it->second.end()) {
+                return it2->second;
+            } else return NULL;
+        } else return NULL;
+    }
+
+    bool is_implicid_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
+        // If the target type is a pointer and the source type is smaller or
+        // equally large than a pointer, the cast is implicid (really?)
+        // TODO: is this really the best way to do this? research
+        if (type_to->typedef_type == AST_TYPEDEF_POINTER) {
+            return type_from->byte_size <= AST_POINTER_SIZE;
+        }
+
+        auto cast_instance = this->get_cast(type_from, type_to);
+        if (cast_instance) {
+            return cast_instance->is_implicid;
+        } else return false;
     }
 };

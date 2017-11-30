@@ -2,6 +2,17 @@
 
 #include "compiler.hpp"
 
+bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
+    if (Light_Compiler::inst->types->is_implicid_cast(type_from, type_to)) {
+        auto cast = new Ast_Cast();
+        cast->value = (*exp_ptr);
+        cast->cast_to = type_to;
+        cast->inferred_type = type_to;
+        (*exp_ptr) = cast;
+        return true;
+    } else return false;
+}
+
 void Type_Checking::on_statement(Ast_Statement* stm) {
     this->check_type(stm);
     this->to_next(stm);
@@ -89,9 +100,11 @@ void Type_Checking::check_type (Ast_Return* ret) {
 		if (fn->type->return_type == Light_Compiler::inst->type_def_void)
 			Light_Compiler::inst->error_stop(ret, "Return statment has expression, but function returns void!");
 		else if (ret->exp->inferred_type != fn->type->return_type) {
-			auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->type->return_type);
-			Light_Compiler::inst->error_stop(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
-				ret->exp->inferred_type->name, ret_type_def->name);
+            auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->type->return_type);
+            if (!cast_if_possible(&ret->exp, ret->exp->inferred_type, ret_type_def)) {
+    			Light_Compiler::inst->error_stop(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
+    				ret->exp->inferred_type->name, ret_type_def->name);
+            }
 		}
 	} else {
 		if (fn->type->return_type != Light_Compiler::inst->type_def_void)
@@ -254,9 +267,16 @@ void Type_Checking::check_type (Ast_Binary* binop) {
         }
     } else {
     	check_type(binop->rhs);
+        auto types = Light_Compiler::inst->types;
     	if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
-    		Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression: '%s' and '%s'",
-    			binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
+            // Types don't match, but maybe we can add an implicid cast
+            // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...
+            if (!cast_if_possible(&binop->lhs, binop->lhs->inferred_type, binop->rhs->inferred_type)) {
+                if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, binop->lhs->inferred_type)) {
+                    Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression: '%s' and '%s'",
+                        binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
+                }
+            }
     	}
     	switch (binop->binary_op) {
     		case AST_BINARY_EQ:
