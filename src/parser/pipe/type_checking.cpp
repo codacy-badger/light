@@ -2,6 +2,8 @@
 
 #include "compiler.hpp"
 
+/* asd */
+
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
     if (Light_Compiler::inst->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();

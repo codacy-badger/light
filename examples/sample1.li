@@ -1,5 +1,10 @@
 import "examples/print.li"
 
+/* multi
+	line */
+
+// single line comment
+
 #run
 main :: fn {
 	test_factorial();
@@ -13,7 +18,7 @@ main :: fn {
 test_decimals :: fn {
 	dec1 : f64 = 1.23;
 
-	if (dec1 == 1.23) print("\nDEC 1!\n", 8);
+	if (dec1 == 1.23) print("\nDEC = 1!\n", 8);
 	if (dec1 != 1.20) print("\nDEC 2!\n", 8);
 }
 

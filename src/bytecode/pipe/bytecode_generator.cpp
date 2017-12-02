@@ -116,6 +116,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
     } else {
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 		if (decl->decl_flags & AST_DECL_FLAG_GLOBAL) {
+            // TODO: generate code for global variables
             Light_Compiler::inst->error_stop(decl, "Global variables not yet supported");
 		} else {
             auto inst = new Inst_Stack_Allocate(ty_decl->byte_size);
@@ -234,7 +235,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 			auto reg = this->current_register;
             auto decl = ident->declaration;
 
-            //TODO: don't do this when the offset is 0
+            // TODO: don't do this when the offset is 0
 			auto inst = new Inst_Set(reg, BYTECODE_TYPE_U16, &decl->attribute_byte_offset);
             this->bytecode->push_back(copy_location_info(inst, binop));
 
@@ -246,6 +247,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
                     auto inst2 = new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size);
                     this->bytecode->push_back(copy_location_info(inst2, binop));
                 } else {
+                    // TODO: this value should be hidden into a reg by pointer
                     Light_Compiler::inst->error_stop(binop, "Value of identifier is bigger than a register!");
                 }
             }
@@ -302,6 +304,7 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
                 auto inst2 = new Inst_Load(reg, reg, unop->exp->inferred_type->byte_size);
                 this->bytecode->push_back(copy_location_info(inst2, unop));
             } else {
+                // TODO: upgrade this for when we have subscript binary operator
                 Light_Compiler::inst->error_stop(unop, "Dereference operator only working of identifiers!");
             }
             break;
@@ -313,12 +316,8 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
 void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 	auto reg = this->current_register++;
 	if (ident->declaration->decl_flags && AST_DECL_FLAG_GLOBAL) {
+        // TODO: get offset of global variable (BSS?)
         Light_Compiler::inst->warning(ident, "Global identifiers not yet supported!");
-		/*if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			printf("\tBYTECODE_LOAD_GLOBAL %zd, %zd, %zd (%s)\n", reg, ident->declaration->stack_offset, ident->inferred_type->byte_size, ident->name);
-		} else {
-			printf("\tBYTECODE_LOAD_GLOBAL_POINTER %zd, %zd (%s)\n", reg, ident->declaration->stack_offset, ident->name);
-		}*/
 	} else {
         auto inst1 = new Inst_Stack_Offset(reg, ident->declaration->stack_offset);
         this->bytecode->push_back(copy_location_info(inst1, ident));
@@ -374,6 +373,12 @@ void Bytecode_Generator::gen (Ast_Function* fn) {
 	}
 }
 
+// TODO: we should try to solve this in a better way...
+// let's see how clang & gcc solve this, maybe we could
+// scan the parameters for different patterns:
+// start from left
+// start from right
+// start at index
 void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	// If we're not the 1st argument in an expression or argument list,
 	// we're overriding the values in previous registers, so we have to

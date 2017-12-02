@@ -1,7 +1,7 @@
 cd dyncall
 
-sudo ./configure --target=x64
-sudo make
-sudo make install
+./configure --target=x64
+make
+make install
 
 cd ..
