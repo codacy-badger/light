@@ -147,7 +147,8 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_GLOBAL_OFFSET: {
 			auto gloff = static_cast<Inst_Global_Offset*>(inst);
 
-			// TODO: get address of global variable (size is irrelevant)
+			auto ptr = Light_Compiler::inst->interp->globals->get(gloff->offset);
+			memcpy(this->registers[gloff->reg], &ptr, INTERP_REGISTER_SIZE);
 			return;
 		}
 		case BYTECODE_STACK_ALLOCATE: {

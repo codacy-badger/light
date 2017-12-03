@@ -1,16 +1,18 @@
 import "examples/win32.li"
 
-print :: fn (data: *u8, length: u32) {
-	handle := GetStdHandle(STD_OUTPUT_HANDLE);
+std_handle_out : *void;
 
-	if (handle != cast(*void) INVALID_HANDLE_VALUE) {
+print :: fn (data: *u8, length: u32) {
+	std_handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	if (std_handle_out != INVALID_HANDLE_VALUE) {
 		console_mode : u32;
-		is_console := GetConsoleMode(handle, *console_mode);
+		is_console := GetConsoleMode(std_handle_out, *console_mode);
 
 		if is_console {
-			WriteConsole(handle, data, length, 0, 0);
+			WriteConsole(std_handle_out, data, length, 0, 0);
 		} else {
-			WriteFile(handle, data, length, 0, 0);
+			WriteFile(std_handle_out, data, length, 0, 0);
 		}
 	}
 }

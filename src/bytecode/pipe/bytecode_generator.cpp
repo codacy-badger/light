@@ -103,21 +103,16 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
     if (decl->decl_flags & AST_DECL_FLAG_CONSTANT) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
             auto func = static_cast<Ast_Function*>(decl->expression);
-            //Light_Compiler::inst->types->add(func->type);
             if (!func->foreign_module_name) {
     			auto _tmp = this->stack_offset;
     			this->gen(func);
                 this->stack_offset = _tmp;
             }
-		} else if (decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-            auto type_def = static_cast<Ast_Type_Definition*>(decl->expression);
-            //Light_Compiler::inst->types->add(type_def);
-        }
+		}
     } else {
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 		if (decl->decl_flags & AST_DECL_FLAG_GLOBAL) {
-            // TODO: generate code for global variables
-            Light_Compiler::inst->error_stop(decl, "Global variables not yet supported");
+			decl->global_offset = Light_Compiler::inst->interp->globals->add(ty_decl->byte_size);
 		} else {
             auto inst = new Inst_Stack_Allocate(ty_decl->byte_size);
             this->bytecode->push_back(copy_location_info(inst, decl));
@@ -316,19 +311,19 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
 void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 	auto reg = this->current_register++;
 	if (ident->declaration->decl_flags && AST_DECL_FLAG_GLOBAL) {
-        // TODO: get offset of global variable (BSS?)
-        Light_Compiler::inst->warning(ident, "Global identifiers not yet supported!");
+        auto inst1 = new Inst_Global_Offset(reg, ident->declaration->global_offset);
+		this->bytecode->push_back(copy_location_info(inst1, ident));
 	} else {
         auto inst1 = new Inst_Stack_Offset(reg, ident->declaration->stack_offset);
-        this->bytecode->push_back(copy_location_info(inst1, ident));
-        if (!left_value) {
-            if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-                auto inst2 = new Inst_Load(reg, reg, ident->inferred_type->byte_size);
-                this->bytecode->push_back(copy_location_info(inst2, ident));
-            } else {
-                Light_Compiler::inst->error_stop(ident, "Value of identifier is bigger than a register!");
-            }
-        }
+		this->bytecode->push_back(copy_location_info(inst1, ident));
+	}
+	if (!left_value) {
+		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+			auto inst2 = new Inst_Load(reg, reg, ident->inferred_type->byte_size);
+			this->bytecode->push_back(copy_location_info(inst2, ident));
+		} else {
+			Light_Compiler::inst->error_stop(ident, "Value of identifier is bigger than a register!");
+		}
 	}
 }
 

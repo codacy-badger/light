@@ -90,6 +90,7 @@ struct Ast_Declaration : Ast_Statement {
 
 	// for bytecode
 	size_t stack_offset = 0;
+	size_t global_offset = 0;
 
 	// If struct property
 	Ast_Struct_Type* _struct = NULL;
