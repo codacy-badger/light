@@ -223,19 +223,19 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 	switch (binop->binary_op) {
 		case AST_BINARY_ATTRIBUTE: {
             auto size = binop->rhs->inferred_type->byte_size;
-            // TODO: pre-compute the offset instead of adding it each time
         	this->gen(binop->lhs, true);
 
             auto ident = static_cast<Ast_Ident*>(binop->rhs);
 			auto reg = this->current_register;
             auto decl = ident->declaration;
 
-            // TODO: don't do this when the offset is 0
-			auto inst = new Inst_Set(reg, BYTECODE_TYPE_U16, &decl->attribute_byte_offset);
-            this->bytecode->push_back(copy_location_info(inst, binop));
+			if (decl->attribute_byte_offset != 0) {
+				auto inst = new Inst_Set(reg, BYTECODE_TYPE_U16, &decl->attribute_byte_offset);
+	            this->bytecode->push_back(copy_location_info(inst, binop));
 
-            auto inst1 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg);
-            this->bytecode->push_back(copy_location_info(inst1, binop));
+	            auto inst1 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg);
+	            this->bytecode->push_back(copy_location_info(inst1, binop));
+			}
 
             if (!left_value) {
                 if (binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
@@ -251,7 +251,6 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 		}
 		case AST_BINARY_SUBSCRIPT: {
             auto size = binop->rhs->inferred_type->byte_size;
-            // TODO: pre-compute the offset instead of adding it each time
         	this->gen(binop->lhs, true);
 			this->gen(binop->rhs);
 
