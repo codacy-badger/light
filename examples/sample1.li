@@ -2,30 +2,27 @@ import "examples/print.li"
 
 #run
 main :: fn {
-	//test_factorial();
-	//test_cast();
-	//test_pointers();
-	//test_struct();
-	//test_decimals();
+	test_factorial();
+	test_cast();
+	test_pointers();
+	test_struct();
+	test_decimals();
 	test_arrays();
 }
 
 test_arrays :: fn () {
-	buffer : [30] u8;
-	ascii_zero := 48;
+	buffer : [4] s16;
 
-	buffer[0] = ascii_zero + 1;
-	buffer[1] = ascii_zero + 2;
-	buffer[2] = ascii_zero + 3;
-	buffer[3] = ascii_zero + 4;
-	buffer[4] = 0;
+	buffer[0] = 5;
+	buffer[1] = 240;
+	buffer[2] = 33;
+	buffer[3] = 0;
 
-	print(*buffer);
-
-	u32_to_string :: fn (number : u32, buffer : *u8) {
-		div := number / 10;
-		print("DIV!\n\n");
-	}
+	if (buffer[0] == 5) 	print("\nARRAY 1!\n");
+	if (buffer[1] == 240) 	print("\nARRAY 2!\n");
+	if (buffer[2] == 33) 	print("\nARRAY 3!\n");
+	if (buffer[3] == 0) 	print("\nARRAY 4!\n");
+	if (buffer[3] != 2) 	print("\nARRAY 5!\n");
 }
 
 test_decimals :: fn {

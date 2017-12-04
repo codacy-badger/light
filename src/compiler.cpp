@@ -65,6 +65,13 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	this->types->add_cast(this->type_def_u16, this->type_def_u64, NULL, true);
 	this->types->add_cast(this->type_def_u32, this->type_def_u64, NULL, true);
 
+	this->types->add_cast(this->type_def_u8, this->type_def_s16, NULL, true);
+	this->types->add_cast(this->type_def_u8, this->type_def_s32, NULL, true);
+	this->types->add_cast(this->type_def_u8, this->type_def_s64, NULL, true);
+	this->types->add_cast(this->type_def_u16, this->type_def_s32, NULL, true);
+	this->types->add_cast(this->type_def_u16, this->type_def_s64, NULL, true);
+	this->types->add_cast(this->type_def_u32, this->type_def_s64, NULL, true);
+
 	this->types->add_cast(this->type_def_s8, this->type_def_s16, NULL, true);
 	this->types->add_cast(this->type_def_s8, this->type_def_s32, NULL, true);
 	this->types->add_cast(this->type_def_s8, this->type_def_s64, NULL, true);

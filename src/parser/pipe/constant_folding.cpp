@@ -18,8 +18,8 @@ T binary_fold (Ast_Binary_Type binary_op, T a, T b) {
 template<typename T>
 T unary_fold (Ast_Unary_Type unary_op, T a) {
 	switch (unary_op) {
-		case AST_UNARY_NEGATE: return -a;
-		case AST_UNARY_NOT: return !a;
+		case AST_UNARY_NEGATE: 	return -a;
+		case AST_UNARY_NOT: 	return !a;
 		default: return 0;
 	}
 }
@@ -149,21 +149,20 @@ void Constant_Folding::fold (Ast_Unary** unary) {
 	if ((*unary)->exp->exp_type == AST_EXPRESSION_LITERAL) {
 		auto lit = reinterpret_cast<Ast_Literal*>((*unary)->exp);
 
-		auto tmp = new Ast_Literal();
-		ast_copy_location_info(tmp, *unary);
-		tmp->literal_type = lit->literal_type;
 		Ast_Unary_Type unop = (*unary)->unary_op;
 		switch (lit->literal_type) {
 			case AST_LITERAL_UNSIGNED_INT: {
-				tmp->uint_value = unary_fold(unop, lit->uint_value);
+				lit->uint_value = unary_fold(unop, lit->uint_value);
+				if (unop == AST_UNARY_NEGATE)
+					lit->literal_type = AST_LITERAL_SIGNED_INT;
 				break;
 			}
 			case AST_LITERAL_SIGNED_INT: {
-				tmp->int_value = unary_fold(unop, lit->int_value);
+				lit->int_value = unary_fold(unop, lit->int_value);
 				break;
 			}
 			case AST_LITERAL_DECIMAL: {
-				tmp->decimal_value = unary_fold(unop, lit->decimal_value);
+				lit->decimal_value = unary_fold(unop, lit->decimal_value);
 				break;
 			}
 			case AST_LITERAL_STRING: {
@@ -172,7 +171,7 @@ void Constant_Folding::fold (Ast_Unary** unary) {
 			}
 		}
 		delete *unary;
-		*unary = reinterpret_cast<Ast_Unary*>(tmp);
+		*unary = reinterpret_cast<Ast_Unary*>(lit);
 	}
 }
 

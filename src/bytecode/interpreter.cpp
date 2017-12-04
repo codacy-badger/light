@@ -364,14 +364,14 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 			auto set = static_cast<Inst_Set*>(inst);
 			printf("SET %d, ", set->reg);
 			switch (set->bytecode_type) {
-				case BYTECODE_TYPE_U8:  _print<uint8_t>(set->data, "%d"); break;
-				case BYTECODE_TYPE_U16: _print<uint16_t>(set->data, "%d"); break;
-				case BYTECODE_TYPE_U32: _print<uint32_t>(set->data, "%d"); break;
-				case BYTECODE_TYPE_U64: _print<uint64_t>(set->data, "%ld"); break;
-				case BYTECODE_TYPE_S8:  _print<int8_t>(set->data, "%u"); break;
-				case BYTECODE_TYPE_S16: _print<int16_t>(set->data, "%u"); break;
-				case BYTECODE_TYPE_S32: _print<int32_t>(set->data, "%u"); break;
-				case BYTECODE_TYPE_S64: _print<int64_t>(set->data, "%lu"); break;
+				case BYTECODE_TYPE_U8:  _print<uint8_t>(set->data, "%u"); break;
+				case BYTECODE_TYPE_U16: _print<uint16_t>(set->data, "%u"); break;
+				case BYTECODE_TYPE_U32: _print<uint32_t>(set->data, "%u"); break;
+				case BYTECODE_TYPE_U64: _print<uint64_t>(set->data, "%lu"); break;
+				case BYTECODE_TYPE_S8:  _print<int8_t>(set->data, "%d"); break;
+				case BYTECODE_TYPE_S16: _print<int16_t>(set->data, "%d"); break;
+				case BYTECODE_TYPE_S32: _print<int32_t>(set->data, "%d"); break;
+				case BYTECODE_TYPE_S64: _print<int64_t>(set->data, "%ld"); break;
 				case BYTECODE_TYPE_F32: _print<float>(set->data, "%f"); break;
 				case BYTECODE_TYPE_F64: _print<double>(set->data, "%lf"); break;
 			}

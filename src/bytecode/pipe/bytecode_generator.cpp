@@ -250,19 +250,27 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 			break;
 		}
 		case AST_BINARY_SUBSCRIPT: {
-            auto size = binop->rhs->inferred_type->byte_size;
+			auto array_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
+			auto array_base_type = static_cast<Ast_Type_Definition*>(array_type->base);
+            auto element_size = array_base_type->byte_size;
+
         	this->gen(binop->lhs, true);
 			this->gen(binop->rhs);
 
-			this->current_register--;
 			auto reg = this->current_register;
-			auto inst1 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg);
+			auto inst = new Inst_Set(this->current_register, BYTECODE_TYPE_U64, &element_size);
+            this->bytecode->push_back(copy_location_info(inst, binop));
+			auto inst1 = new Inst_Binary(BYTECODE_MUL, reg - 1, reg);
             this->bytecode->push_back(copy_location_info(inst1, binop));
+
+			reg = --this->current_register;
+			auto inst2 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg);
+            this->bytecode->push_back(copy_location_info(inst2, binop));
 
             if (!left_value) {
                 if (binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-                    auto inst2 = new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size);
-                    this->bytecode->push_back(copy_location_info(inst2, binop));
+                    auto inst3 = new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size);
+                    this->bytecode->push_back(copy_location_info(inst3, binop));
                 } else {
                     // TODO: this value should be hidden into a reg by pointer
                     Light_Compiler::inst->error_stop(binop, "Value of identifier is bigger than a register!");
