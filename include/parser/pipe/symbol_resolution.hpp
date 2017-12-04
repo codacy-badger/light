@@ -50,4 +50,5 @@ struct Symbol_Resolution : Pipe {
 	void check_symbols (Ast_Struct_Type** _struct, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Pointer_Type** ptr_type, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Function_Type** fn_type, vector<Ast_Ident**>* sym);
+    void check_symbols (Ast_Array_Type** arr_type, vector<Ast_Ident**>* sym);
 };

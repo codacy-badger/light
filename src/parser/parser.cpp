@@ -189,7 +189,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	}
 
 	if (this->lexer->check_skip(TOKEN_COLON)) {
-		decl->type = this->_atom();
+		decl->type = this->type_definition();
 	}
 
 	if (this->lexer->optional_skip(TOKEN_COLON)) {
@@ -265,32 +265,13 @@ Ast_Function* Parser::function (Ast_Function_Type* fn_type) {
 	} else return NULL;
 }
 
-Ast_Function_Type* Parser::function_type () {
-	auto fn_type = AST_NEW(Ast_Function_Type);
-
-	if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-		Ast_Declaration* decl;
-		while (decl = this->declaration()) {
-			decl->decl_flags &= ~AST_DECL_FLAG_GLOBAL;
-			fn_type->parameter_decls.push_back(decl);
-
-			if (!this->lexer->optional_skip(TOKEN_COMMA)) break;
-		}
-		this->lexer->check_skip(TOKEN_PAR_CLOSE);
-	}
-
-	if (this->lexer->optional_skip(TOKEN_ARROW)) {
-		fn_type->return_type = this->expression();
-	} else fn_type->return_type = Light_Compiler::inst->type_def_void;
-
-	return fn_type;
-}
-
 Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	if (this->lexer->isNextType(TOKEN_ID) || initial) {
 		auto output = initial ? initial : this->ident();
-		if (this->lexer->isNextType(TOKEN_PAR_OPEN)) {
+		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			return this->call(output);
+		} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
+			return this->subscript(output);
 		} else return output;
 	} else if (this->lexer->optional_skip(TOKEN_STRUCT)) {
 		auto _struct = AST_NEW(Ast_Struct_Type);
@@ -324,15 +305,12 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		cast->value = this->_atom();
 		return cast;
-	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
-		auto fn_type = this->function_type();
-		if (this->lexer->isNextType(TOKEN_BRAC_OPEN)) {
-			return this->function(fn_type);
-		} else return fn_type;
 	} else if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 		auto result = this->expression();
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		return result;
+	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
+		return this->function(this->function_type());
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		return AST_NEW(Ast_Pointer, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_SUB)) {
@@ -342,6 +320,43 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->lexer->optional_skip(TOKEN_ADD)) {
 		return this->expression();
 	} else return this->literal();
+}
+
+Ast_Expression* Parser::type_definition () {
+	if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
+		auto array = AST_NEW(Ast_Array_Type);
+		array->count = this->_atom();
+		this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
+		array->base = this->type_definition();
+		return array;
+	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
+		auto ptr = AST_NEW(Ast_Pointer_Type);
+		ptr->base = this->type_definition();
+		return ptr;
+	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
+		return this->function_type();
+	} else return this->ident();
+}
+
+Ast_Function_Type* Parser::function_type () {
+	auto fn_type = AST_NEW(Ast_Function_Type);
+
+	if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
+		Ast_Declaration* decl;
+		while (decl = this->declaration()) {
+			decl->decl_flags &= ~AST_DECL_FLAG_GLOBAL;
+			fn_type->parameter_decls.push_back(decl);
+
+			if (!this->lexer->optional_skip(TOKEN_COMMA)) break;
+		}
+		this->lexer->check_skip(TOKEN_PAR_CLOSE);
+	}
+
+	if (this->lexer->optional_skip(TOKEN_ARROW)) {
+		fn_type->return_type = this->type_definition();
+	} else fn_type->return_type = Light_Compiler::inst->type_def_void;
+
+	return fn_type;
 }
 
 Ast_Literal* Parser::literal () {
@@ -358,7 +373,7 @@ Ast_Literal* Parser::literal () {
 			auto number_str = this->lexer->text();
 			if (strstr(number_str, ".") == NULL) {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
-				output->uint_value = strtoul(number_str, NULL, 10);
+				output->uint_value = strtoull(number_str, NULL, 10);
 			} else {
 				output->literal_type = AST_LITERAL_DECIMAL;
 				output->decimal_value = atof(number_str);
@@ -371,14 +386,18 @@ Ast_Literal* Parser::literal () {
 }
 
 Ast_Function_Call* Parser::call (Ast_Expression* callee) {
-	Ast_Function_Call* output = NULL;
-	if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-		output = AST_NEW(Ast_Function_Call);
-		output->fn = callee;
-		output->args = this->comma_separated_arguments();
+	auto output = AST_NEW(Ast_Function_Call);
+	output->fn = callee;
+	output->args = this->comma_separated_arguments();
+	this->lexer->check_skip(TOKEN_PAR_CLOSE);
+	return output;
+}
 
-		this->lexer->check_skip(TOKEN_PAR_CLOSE);
-	}
+Ast_Binary* Parser::subscript (Ast_Expression* left) {
+	auto output = AST_NEW(Ast_Binary, TOKEN_SQ_BRAC_OPEN);
+	output->lhs = left;
+	output->rhs = this->expression();
+	this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 	return output;
 }
 

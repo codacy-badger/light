@@ -164,6 +164,7 @@ enum Ast_Type_Definition_Type {
 	AST_TYPEDEF_FUNCTION,
 	AST_TYPEDEF_STRUCT,
 	AST_TYPEDEF_POINTER,
+	AST_TYPEDEF_ARRAY,
 };
 
 #define AST_POINTER_SIZE sizeof(void*)
@@ -195,6 +196,17 @@ struct Ast_Pointer_Type : Ast_Type_Definition {
 		this->typedef_type = AST_TYPEDEF_POINTER;
 		this->byte_size = AST_POINTER_SIZE;
 	}
+};
+
+struct Ast_Array_Type : Ast_Type_Definition {
+	Ast_Expression* base = NULL;
+	Ast_Expression* count = NULL;
+
+	Ast_Array_Type() {
+		this->typedef_type = AST_TYPEDEF_ARRAY;
+	}
+
+	uint64_t get_count ();
 };
 
 struct Ast_Function_Type : Ast_Type_Definition {

@@ -172,6 +172,9 @@ void Type_Checking::check_type (Ast_Type_Definition* tydef) {
         case AST_TYPEDEF_STRUCT:
             check_type(static_cast<Ast_Struct_Type*>(tydef));
             break;
+        case AST_TYPEDEF_ARRAY:
+            check_type(static_cast<Ast_Array_Type*>(tydef));
+            break;
         case AST_TYPEDEF_POINTER:
             check_type(static_cast<Ast_Pointer_Type*>(tydef));
             break;
@@ -210,6 +213,22 @@ void Type_Checking::check_type (Ast_Struct_Type* _struct) {
 		check_type(decl);
 	}
     compute_struct_size(_struct);
+}
+
+void Type_Checking::check_type (Ast_Array_Type* arr) {
+    arr->inferred_type = Light_Compiler::inst->type_def_type;
+	check_type(arr->base);
+	if (arr->count->exp_type == AST_EXPRESSION_LITERAL) {
+		auto lit = static_cast<Ast_Literal*>(arr->count);
+		if (lit->literal_type == AST_LITERAL_UNSIGNED_INT) {
+			auto type_def = static_cast<Ast_Type_Definition*>(arr->base);
+			arr->byte_size = arr->get_count() * type_def->byte_size;
+		} else {
+			Light_Compiler::inst->error_stop(arr, "Arrays size must be an unsigned integer!");
+		}
+	} else {
+		Light_Compiler::inst->error_stop(arr, "Arrays can only have constant size!");
+	}
 }
 
 void Type_Checking::check_type (Ast_Pointer_Type* ty) {
@@ -268,7 +287,19 @@ void Type_Checking::check_type (Ast_Binary* binop) {
         } else {
             Light_Compiler::inst->error_stop(binop, "Left of attribute access is not of struct type!");
         }
-    } else {
+    } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
+		if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
+			auto arr_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
+			binop->inferred_type = static_cast<Ast_Type_Definition*>(arr_type->base);
+
+			check_type(binop->rhs);
+			if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, Light_Compiler::inst->type_def_u64)) {
+				Light_Compiler::inst->error_stop(binop, "Array index must be an unsigned integer!");
+			}
+		} else {
+			Light_Compiler::inst->error_stop(binop, "Left of array access is not of array type!");
+		}
+	} else {
     	check_type(binop->rhs);
         auto types = Light_Compiler::inst->types;
     	if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
@@ -339,7 +370,7 @@ void Type_Checking::check_type (Ast_Ident* ident) {
 	if (ident->declaration) {
 		ident->inferred_type = static_cast<Ast_Type_Definition*>(ident->declaration->type);
 	} else {
-		Light_Compiler::inst->error_stop(ident, "Ident has no declaration!");
+		Light_Compiler::inst->error_stop(ident, "Indetifier '%s' has no declaration!", ident->name);
 	}
 }
 

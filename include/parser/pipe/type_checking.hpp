@@ -20,6 +20,7 @@ struct Type_Checking : Pipe {
 	void check_type (Ast_Function_Type* ty);
 	void check_type (Ast_Struct_Type* ty);
 	void check_type (Ast_Pointer_Type* ty);
+	void check_type (Ast_Array_Type* arr);
 
     void check_type (Ast_Function* func);
 	void check_type (Ast_Function_Call* call);

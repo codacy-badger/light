@@ -26,7 +26,6 @@ struct Bytecode_Globals {
         if (it == this->allocated.end()) return NULL;
         else {
 			if (it->second->pointer == NULL) {
-	            printf("Allocating global variable at %zd (size %zd)\n", offset, it->second->size);
 	            auto ptr = malloc(it->second->size);
 	            this->allocated[offset]->pointer = ptr;
 				return ptr;

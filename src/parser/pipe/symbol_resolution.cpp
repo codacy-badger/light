@@ -248,6 +248,10 @@ void Symbol_Resolution::check_symbols (Ast_Type_Definition** tydef, vector<Ast_I
             check_symbols(reinterpret_cast<Ast_Function_Type**>(tydef), sym);
 			break;
 		}
+        case AST_TYPEDEF_ARRAY: {
+            check_symbols(reinterpret_cast<Ast_Array_Type**>(tydef), sym);
+			break;
+		}
         default: break;
     }
 }
@@ -267,6 +271,10 @@ void Symbol_Resolution::check_symbols (Ast_Function_Type** fn_type, vector<Ast_I
 	for (int i = 0; i < (*fn_type)->parameter_decls.size(); i++) {
 		check_symbols((*fn_type)->parameter_decls[i], sym);
 	}
+}
+
+void Symbol_Resolution::check_symbols (Ast_Array_Type** arr_type, vector<Ast_Ident**>* sym) {
+	check_symbols(&(*arr_type)->base, sym);
 }
 
 void Symbol_Resolution::check_symbols (Ast_Comma_Separated_Arguments** args, vector<Ast_Ident**>* sym) {

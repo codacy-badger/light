@@ -1,25 +1,38 @@
 import "examples/print.li"
 
-/* multi
-	line */
-
-// single line comment
-
 #run
 main :: fn {
-	test_factorial();
-	test_cast();
-	test_strlen();
-	test_pointers();
-	test_struct();
-	test_decimals();
+	//test_factorial();
+	//test_cast();
+	//test_pointers();
+	//test_struct();
+	//test_decimals();
+	test_arrays();
+}
+
+test_arrays :: fn () {
+	buffer : [30] u8;
+	ascii_zero := 48;
+
+	buffer[0] = ascii_zero + 1;
+	buffer[1] = ascii_zero + 2;
+	buffer[2] = ascii_zero + 3;
+	buffer[3] = ascii_zero + 4;
+	buffer[4] = 0;
+
+	print(*buffer);
+
+	u32_to_string :: fn (number : u32, buffer : *u8) {
+		div := number / 10;
+		print("DIV!\n\n");
+	}
 }
 
 test_decimals :: fn {
 	dec1 : f64 = 1.23;
 
-	if (dec1 == 1.23) print("\nDEC 1!\n", 8);
-	if (dec1 != 1.20) print("\nDEC 2!\n", 8);
+	if (dec1 == 1.23) print("\nDEC 1!\n");
+	if (dec1 != 1.20) print("\nDEC 2!\n");
 }
 
 test_struct :: fn {
@@ -34,19 +47,19 @@ test_struct :: fn {
 	v1.y = 16;
 	v1.z = 22;
 
-	if (v1.x == 12) print("\nATTR 1!\n", 9);
-	if (v1.y == 16) print("\nATTR 2!\n", 9);
-	if (v1.z == 22) print("\nATTR 3!\n", 9);
-	if (v1.y != 49) print("\nATTR 4!\n", 9);
+	if (v1.x == 12) print("\nATTR 1!\n");
+	if (v1.y == 16) print("\nATTR 2!\n");
+	if (v1.z == 22) print("\nATTR 3!\n");
+	if (v1.y != 49) print("\nATTR 4!\n");
 }
 
 test_factorial :: fn {
 	number := factorial(5);
 
 	if number == 120 {
-		print("Result is 120 :)\n\n", 18);
+		print("Result is 120 :)\n\n");
 	} else {
-		print("Result is WRONG :(\n\n", 20);
+		print("Result is WRONG :(\n\n");
 	}
 
 	factorial :: fn (number: u32) -> u32 {
@@ -62,32 +75,12 @@ test_cast :: fn {
 	num2 : u64 = 755;
 	num3 : s32 = -num1;
 
-	if (55 == 55) print("\nPASS 1!\n", 10);
-	if (55 == num1) print("\nPASS 2!\n", 10);
-	if (num2 == 755) print("\nPASS 3!\n", 10);
+	if (55 == 55) print("\nPASS 1!\n");
+	if (55 == num1) print("\nPASS 2!\n");
+	if (num2 == 755) print("\nPASS 3!\n");
 
-	if (-55 == -55) print("\nPASS 4!\n", 10);
-	if (-55 == -num1) print("\nPASS 5!\n", 10);
-}
-
-test_strlen :: fn {
-	text := "\nAuto Length";
-	length := string_length(text);
-
-	if length > 0 {
-		print(text, length);
-	}
-
-	string_length :: fn (str: string) -> u32 {
-		result : u32 = 0;
-		char : u8 = &str;
-		while (char != 0) {
-			result = result + 1;
-			str = str + 1;
-			char = &str;
-		}
-		return result;
-	}
+	if (-55 == -55) print("\nPASS 4!\n");
+	if (-55 == -num1) print("\nPASS 5!\n");
 }
 
 test_pointers :: fn {
@@ -95,7 +88,7 @@ test_pointers :: fn {
 	num_ptr := *number;
 
 	set(num_ptr);
-	if (number == 12) print("\nGOOD\n", 6);
+	if (number == 12) print("\nGOOD\n");
 
 	set :: fn (ptr: *u8) {
 		&ptr = 12;

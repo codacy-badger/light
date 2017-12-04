@@ -62,6 +62,13 @@ Ast_Declaration* Ast_Struct_Type::find_attribute (const char* name) {
 	return NULL;
 }
 
+uint64_t Ast_Array_Type::get_count () {
+   if (this->count->exp_type == AST_EXPRESSION_LITERAL) {
+	   auto lit = static_cast<Ast_Literal*>(this->count);
+	   return lit->uint_value;
+   } else return 0;
+}
+
 void Ast_Binary::setOP (Token_Type tType) {
 	this->binary_op = this->typeToOP(tType);
 }
@@ -70,6 +77,7 @@ Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 	switch (tType) {
 		case TOKEN_EQUAL: 			return AST_BINARY_ASSIGN;
 		case TOKEN_DOT: 			return AST_BINARY_ATTRIBUTE;
+		case TOKEN_SQ_BRAC_OPEN: 	return AST_BINARY_SUBSCRIPT;
 
 		case TOKEN_DOUBLE_AMP:		return AST_BINARY_LOGICAL_AND;
 		case TOKEN_DOUBLE_PIPE:		return AST_BINARY_LOGICAL_OR;
