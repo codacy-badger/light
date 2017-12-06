@@ -27,9 +27,10 @@ void link (std::string output) {
 	Timer::print("  Link  ", linker);
 }
 
-Ast_Struct_Type* create_new_native_type (char* name, size_t size = 0) {
+Ast_Struct_Type* create_new_primitive_type (char* name, size_t size = 0) {
 	auto output = new Ast_Struct_Type(name, size);
 	output->inferred_type = Light_Compiler::inst->type_def_type;
+	output->is_primitive = true;
 	return output;
 }
 
@@ -44,19 +45,21 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 		this->byte_order = BYTEORDER_LITTLE_ENDIAN;
 	} else this->byte_order = BYTEORDER_BIG_ENDIAN;
 
-	this->type_def_type = 	create_new_native_type("type");
-	this->type_def_void = 	create_new_native_type("void");
-	this->type_def_bool = 	create_new_native_type("bool", 1);
-	this->type_def_s8 = 	create_new_native_type("s8", 1);
-	this->type_def_s16 = 	create_new_native_type("s16", 2);
-	this->type_def_s32 = 	create_new_native_type("s32", 4);
-	this->type_def_s64 = 	create_new_native_type("s64", 8);
-	this->type_def_u8 = 	create_new_native_type("u8", 1);
-	this->type_def_u16 = 	create_new_native_type("u16", 2);
-	this->type_def_u32 = 	create_new_native_type("u32", 4);
-	this->type_def_u64 = 	create_new_native_type("u64", 8);
-	this->type_def_f32 = 	create_new_native_type("f32", 4);
-	this->type_def_f64 = 	create_new_native_type("f64", 8);
+	this->type_def_type = 	create_new_primitive_type("type");
+	this->type_def_void = 	create_new_primitive_type("void");
+	this->type_def_bool = 	create_new_primitive_type("bool", 1);
+	this->type_def_s8 = 	create_new_primitive_type("s8", 1);
+	this->type_def_s16 = 	create_new_primitive_type("s16", 2);
+	this->type_def_s32 = 	create_new_primitive_type("s32", 4);
+	this->type_def_s64 = 	create_new_primitive_type("s64", 8);
+	this->type_def_u8 = 	create_new_primitive_type("u8", 1);
+	this->type_def_u16 = 	create_new_primitive_type("u16", 2);
+	this->type_def_u32 = 	create_new_primitive_type("u32", 4);
+	this->type_def_u64 = 	create_new_primitive_type("u64", 8);
+	this->type_def_f32 = 	create_new_primitive_type("f32", 4);
+	this->type_def_f64 = 	create_new_primitive_type("f64", 8);
+
+	this->types->add_cast(this->type_def_u8, this->type_def_bool, NULL, true);
 
 	this->types->add_cast(this->type_def_u8, this->type_def_u16, NULL, true);
 	this->types->add_cast(this->type_def_u8, this->type_def_u32, NULL, true);

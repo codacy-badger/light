@@ -97,13 +97,13 @@ void Type_Checking::check_type (Ast_Return* ret) {
 	if (ret->exp) check_type(ret->exp);
 
 	auto fn = ret->block->find_function();
+	auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->type->return_type);
 	if (!fn) {
 		Light_Compiler::inst->error_stop(ret, "Return statement must be inside a function!");
 	} else if (ret->exp) {
 		if (fn->type->return_type == Light_Compiler::inst->type_def_void)
 			Light_Compiler::inst->error_stop(ret, "Return statment has expression, but function returns void!");
 		else if (ret->exp->inferred_type != fn->type->return_type) {
-            auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->type->return_type);
             if (!cast_if_possible(&ret->exp, ret->exp->inferred_type, ret_type_def)) {
     			Light_Compiler::inst->error_stop(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
     				ret->exp->inferred_type->name, ret_type_def->name);
@@ -111,7 +111,8 @@ void Type_Checking::check_type (Ast_Return* ret) {
 		}
 	} else {
 		if (fn->type->return_type != Light_Compiler::inst->type_def_void)
-			Light_Compiler::inst->error_stop(ret, "Return statment has no expression, but function returns '---'!");
+			Light_Compiler::inst->error_stop(ret, "Return statment has no expression, but function returns '%s'!",
+				ret_type_def->name);
 	}
 }
 

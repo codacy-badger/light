@@ -10,7 +10,7 @@ main :: fn {
 	test_arrays();
 }
 
-test_arrays :: fn () {
+test_arrays :: fn {
 	buffer : [4] s16;
 
 	buffer[0] = 5;
