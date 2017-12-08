@@ -9,23 +9,10 @@
 #include "parser/pipe/unique_types.hpp"
 #include "parser/pipe/type_checking.hpp"
 #include "parser/pipe/foreign_function.hpp"
+#include "parser/pipe/compile_constants.hpp"
 #include "parser/pipe/print_pipe.hpp"
 
 Light_Compiler* Light_Compiler::inst = NULL;
-
-void link (std::string output) {
-	auto linker = Timer::getTime();
-	std::string linkerCommand = "link /nologo /ENTRY:main ";
-
-	linkerCommand += "/OUT:\"" + output + "\" ";
-
-	linkerCommand += "_tmp_.obj ";
-	linkerCommand += "build\\std_li.lib";
-
-	system(linkerCommand.c_str());
-	system("del _tmp_.obj");
-	Timer::print("  Link  ", linker);
-}
 
 Ast_Struct_Type* create_new_primitive_type (char* name, size_t size = 0) {
 	auto output = new Ast_Struct_Type(name, size);
@@ -35,9 +22,7 @@ Ast_Struct_Type* create_new_primitive_type (char* name, size_t size = 0) {
 }
 
 Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
-	if (!settings) this->settings = new Light_Compiler_Settings();
-	else this->settings = settings;
-	assert(Light_Compiler::inst == NULL);
+	this->settings = settings ? settings : new Light_Compiler_Settings();
 	Light_Compiler::inst = this;
 
 	int16_t i = 1;
@@ -112,8 +97,9 @@ void Light_Compiler::run () {
 	for (auto filename : this->settings->input_files) {
 		printf("%s\n", filename);
 
-		auto parser = new Parser(this, filename);
+		this->parser = new Parser(this, filename);
 		// Mandatory
+		parser->append(new Compile_Constants());
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Unique_Types());

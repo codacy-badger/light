@@ -187,6 +187,20 @@ bool Ast_Ident::operator ==(const Ast_Ident* other) const {
 	return strcmp(this->name, other->name) == 0;
 }
 
+Ast_Literal* ast_make_literal (const char* value) {
+	auto lit = new Ast_Literal();
+	lit->literal_type = AST_LITERAL_STRING;
+	lit->string_value = strdup(value);
+	return lit;
+}
+
+Ast_Literal* ast_make_literal (unsigned long long value) {
+	auto lit = new Ast_Literal();
+	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
+	lit->uint_value = value;
+	return lit;
+}
+
 Ast_Ident* ast_make_ident (const char* name) {
 	auto out = new Ast_Ident();
 	out->name = name;

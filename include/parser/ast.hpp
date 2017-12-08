@@ -345,5 +345,7 @@ struct Ast_Ident : Ast_Expression {
 	bool operator ==(const Ast_Ident* other) const;
 };
 
+Ast_Literal* ast_make_literal (const char* value);
+Ast_Literal* ast_make_literal (unsigned long long value);
 Ast_Ident* ast_make_ident (const char* name);
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const = true);
