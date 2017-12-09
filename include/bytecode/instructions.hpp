@@ -66,23 +66,25 @@ enum Inst_Binop : uint8_t {
 	BYTECODE_GTE,
 };
 
-const uint8_t BYTECODE_TYPE_VOID 	= 0x0;
-const uint8_t BYTECODE_TYPE_S8 		= 0x1;
-const uint8_t BYTECODE_TYPE_S16 	= 0x2;
-const uint8_t BYTECODE_TYPE_S32 	= 0x3;
-const uint8_t BYTECODE_TYPE_S64 	= 0x4;
-const uint8_t BYTECODE_TYPE_U8 		= 0x5;
-const uint8_t BYTECODE_TYPE_U16 	= 0x6;
-const uint8_t BYTECODE_TYPE_U32 	= 0x7;
-const uint8_t BYTECODE_TYPE_U64 	= 0x8;
-const uint8_t BYTECODE_TYPE_F32 	= 0x9;
-const uint8_t BYTECODE_TYPE_F64 	= 0xA;
-const uint8_t BYTECODE_TYPE_POINTER	= 0xB;
+const uint8_t BYTECODE_TYPE_VOID 	= 0x00;
+const uint8_t BYTECODE_TYPE_BOOL	= 0x01;
+const uint8_t BYTECODE_TYPE_S8 		= 0x02;
+const uint8_t BYTECODE_TYPE_S16 	= 0x03;
+const uint8_t BYTECODE_TYPE_S32 	= 0x04;
+const uint8_t BYTECODE_TYPE_S64 	= 0x05;
+const uint8_t BYTECODE_TYPE_U8 		= 0x06;
+const uint8_t BYTECODE_TYPE_U16 	= 0x07;
+const uint8_t BYTECODE_TYPE_U32 	= 0x08;
+const uint8_t BYTECODE_TYPE_U64 	= 0x09;
+const uint8_t BYTECODE_TYPE_F32 	= 0x0A;
+const uint8_t BYTECODE_TYPE_F64 	= 0x0B;
+const uint8_t BYTECODE_TYPE_POINTER	= 0x0C;
 
 uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty);
 uint8_t bytecode_get_type (Ast_Expression* exp);
 size_t bytecode_get_size (uint8_t bytecode_type);
 bool bytecode_has_sign (uint8_t bytecode_type);
+uint8_t bytecode_unsigned_to_signed (uint8_t bytecode_type);
 
 struct Instruction {
 	uint8_t bytecode = BYTECODE_NOOP;
@@ -233,12 +235,14 @@ struct Inst_Binary : Instruction {
 	uint8_t binop = 0;
 	uint8_t reg1 = 0;
 	uint8_t reg2 = 0;
+	uint8_t bytecode_type = 0;
 
-	Inst_Binary (uint8_t binop, uint8_t reg1, uint8_t reg2) {
+	Inst_Binary (uint8_t binop, uint8_t reg1, uint8_t reg2, uint8_t bytecode_type) {
 		this->bytecode = BYTECODE_BINARY;
 		this->binop = binop;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
+		this->bytecode_type = bytecode_type;
 	}
 };
 

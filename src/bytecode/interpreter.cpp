@@ -7,6 +7,9 @@
 #include <vector>
 
 #include "compiler.hpp"
+#include "bytecode/primitive_cast.hpp"
+#include "bytecode/primitive_unary.hpp"
+#include "bytecode/primitive_binary.hpp"
 
 #define DEBUG false
 
@@ -40,9 +43,9 @@ void Bytecode_Interpreter::run (Ast_Function* func) {
 
 		if (DEBUG) {
 			Light_Compiler::inst->interp->print(instruction_index, inst);
-			if (inst->bytecode == BYTECODE_RETURN
-				|| inst->bytecode == BYTECODE_CALL)
+			if (inst->bytecode == BYTECODE_RETURN || inst->bytecode == BYTECODE_CALL) {
 				printf("\n");
+			}
 		}
 		Light_Compiler::inst->interp->run(inst);
 		if (inst->bytecode == BYTECODE_RETURN) {
@@ -51,67 +54,6 @@ void Bytecode_Interpreter::run (Ast_Function* func) {
 		}
 	}
 	this->stack_index = _tmp;
-}
-
-template<typename F>
-void _cast_signed (void* ptr, size_t size_to) {
-	F value;
-	memcpy(&value, ptr, sizeof(F));
-	// We have to do this, since the cast for signed numbers
-	// has to mantain the sign bit,
-	// TODO: maybe we could simplify this by using bitmasks?
-	switch (size_to) {
-		case 1: {
-			auto new_value = static_cast<int8_t>(value);
-			memcpy(ptr, &new_value, size_to);
-			break;
-		}
-		case 2: {
-			auto new_value = static_cast<int16_t>(value);
-			memcpy(ptr, &new_value, size_to);
-			break;
-		}
-		case 4: {
-			auto new_value = static_cast<int32_t>(value);
-			memcpy(ptr, &new_value, size_to);
-			break;
-		}
-		case 8: {
-			auto new_value = static_cast<int64_t>(value);
-			memcpy(ptr, &new_value, size_to);
-			break;
-		}
-	}
-}
-
-template<typename F>
-void _cast_unsigned (void* ptr, size_t size_to) {
-	F value;
-	memcpy(&value, ptr, sizeof(F));
-	auto new_value = static_cast<size_t>(value);
-	memcpy(ptr, &new_value, size_to);
-}
-
-void bytecode_cast(void* reg_ptr, uint8_t type_from, uint8_t type_to) {
-	auto size_from = bytecode_get_size(type_from);
-	auto size_to = bytecode_get_size(type_to);
-	auto sign_from = bytecode_has_sign(type_from);
-
-	if (sign_from) {
-		switch (size_from) {
-			case 1: _cast_signed<int8_t>(reg_ptr, size_to); break;
-			case 2: _cast_signed<int16_t>(reg_ptr, size_to); break;
-			case 4: _cast_signed<int32_t>(reg_ptr, size_to); break;
-			case 8: _cast_signed<int64_t>(reg_ptr, size_to); break;
-		}
-	} else {
-		switch (size_from) {
-			case 1: _cast_unsigned<uint8_t>(reg_ptr, size_to); break;
-			case 2: _cast_unsigned<uint16_t>(reg_ptr, size_to); break;
-			case 4: _cast_unsigned<uint32_t>(reg_ptr, size_to); break;
-			case 8: _cast_unsigned<uint64_t>(reg_ptr, size_to); break;
-		}
-	}
 }
 
 void Bytecode_Interpreter::run (Instruction* inst) {
@@ -193,7 +135,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_UNARY: {
 			auto unary = static_cast<Inst_Unary*>(inst);
 
-			size_t a;
+			size_t a = 0;
 			auto size = bytecode_get_size(unary->bytecode_type);
 			memcpy(&a, this->registers[unary->reg], size);
 			switch (unary->unop) {
@@ -207,9 +149,10 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_BINARY: {
 			auto binary = static_cast<Inst_Binary*>(inst);
 
-			size_t a, b;
-			memcpy(&a, this->registers[binary->reg1], INTERP_REGISTER_SIZE);
-			memcpy(&b, this->registers[binary->reg2], INTERP_REGISTER_SIZE);
+			size_t a = 0, b = 0;
+			auto size = bytecode_get_size(binary->bytecode_type);
+			memcpy(&a, this->registers[binary->reg1], size);
+			memcpy(&b, this->registers[binary->reg2], size);
 			switch (binary->binop) {
 				case BYTECODE_LOGICAL_AND: 			a = a && b; break;
 				case BYTECODE_LOGICAL_OR: 			a = a || b; break;
@@ -281,6 +224,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			auto call = static_cast<Inst_Call*>(inst);
 			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
 
+			//printf("\t ++ Call: %s\n", func->name);
 			if (func->foreign_module_name) {
 				DCpointer function_pointer = NULL;
 

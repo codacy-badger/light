@@ -233,7 +233,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 				auto inst = new Inst_Set(reg, BYTECODE_TYPE_U16, &decl->attribute_byte_offset);
 	            this->bytecode->push_back(copy_location_info(inst, binop));
 
-	            auto inst1 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg);
+	            auto inst1 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64);
 	            this->bytecode->push_back(copy_location_info(inst1, binop));
 			}
 
@@ -260,11 +260,11 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 			auto reg = this->current_register;
 			auto inst = new Inst_Set(this->current_register, BYTECODE_TYPE_U64, &element_size);
             this->bytecode->push_back(copy_location_info(inst, binop));
-			auto inst1 = new Inst_Binary(BYTECODE_MUL, reg - 1, reg);
+			auto inst1 = new Inst_Binary(BYTECODE_MUL, reg - 1, reg, BYTECODE_TYPE_U64);
             this->bytecode->push_back(copy_location_info(inst1, binop));
 
 			reg = --this->current_register;
-			auto inst2 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg);
+			auto inst2 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64);
             this->bytecode->push_back(copy_location_info(inst2, binop));
 
             if (!left_value) {
@@ -295,7 +295,8 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
             this->current_register--;
 			auto reg = this->current_register;
 			auto binop_type = get_bytecode_from_binop(binop->binary_op);
-            auto inst1 = new Inst_Binary(binop_type, reg - 1, reg);
+            auto bytecode_type = bytecode_get_type(binop->lhs->inferred_type);
+            auto inst1 = new Inst_Binary(binop_type, reg - 1, reg, bytecode_type);
             this->bytecode->push_back(copy_location_info(inst1, binop));
 
 			break;
@@ -313,12 +314,24 @@ uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {
 
 void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
 	switch (unop->unary_op) {
-		case AST_UNARY_NOT:
-		case AST_UNARY_NEGATE: {
+		case AST_UNARY_NOT: {
         	this->gen(unop->exp);
 			auto unop_type = get_bytecode_from_unop(unop->unary_op);
             auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
             auto inst = new Inst_Unary(unop_type, this->current_register - 1, bytecode_type);
+            this->bytecode->push_back(copy_location_info(inst, unop));
+			break;
+		}
+		case AST_UNARY_NEGATE: {
+        	this->gen(unop->exp);
+			auto unop_type = get_bytecode_from_unop(unop->unary_op);
+            auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
+			auto result_type = bytecode_unsigned_to_signed(bytecode_type);
+			if (bytecode_type != result_type) {
+				auto inst2 = new Inst_Cast(this->current_register - 1, bytecode_type, result_type);
+				this->bytecode->push_back(copy_location_info(inst2, unop));
+			}
+            auto inst = new Inst_Unary(unop_type, this->current_register - 1, result_type);
             this->bytecode->push_back(copy_location_info(inst, unop));
 			break;
 		}

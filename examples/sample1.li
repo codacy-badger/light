@@ -1,20 +1,22 @@
 import "examples/print.li"
 
+#run
+main :: fn {
+	test_factorial();
+	test_cast();
+	test_pointers();
+	test_struct();
+	test_decimals();
+	test_arrays();
+}
+
 assert :: fn (condition: bool) {
 	if !condition {
 		print("ASSERT: ");
 		print(__FILE__);
+		print("\n");
+		// TODO: add exit function here, we should not continue
 	}
-}
-
-#run
-main :: fn {
-	//test_factorial();
-	//test_cast();
-	//test_pointers();
-	//test_struct();
-	//test_decimals();
-	test_arrays();
 }
 
 test_arrays :: fn {
@@ -25,18 +27,18 @@ test_arrays :: fn {
 	buffer[2] = 33;
 	buffer[3] = 0;
 
-	if (buffer[0] == 5) 	print("\nARRAY 1!\n");
-	if (buffer[1] == 240) 	print("\nARRAY 2!\n");
-	if (buffer[2] == 33) 	print("\nARRAY 3!\n");
-	if (buffer[3] == 0) 	print("\nARRAY 4!\n");
-	if (buffer[3] != 2) 	print("\nARRAY 5!\n");
+	assert(buffer[0] == 5);
+	assert(buffer[1] == 240);
+	assert(buffer[2] == 33);
+	assert(buffer[3] == 0);
+	assert(buffer[3] != 2);
 }
 
 test_decimals :: fn {
 	dec1 : f64 = 1.23;
 
-	if (dec1 == 1.23) print("\nDEC 1!\n");
-	if (dec1 != 1.20) print("\nDEC 2!\n");
+	assert(dec1 == 1.23);
+	assert(dec1 != 1.20);
 }
 
 test_struct :: fn {
@@ -51,20 +53,16 @@ test_struct :: fn {
 	v1.y = 16;
 	v1.z = 22;
 
-	if (v1.x == 12) print("\nATTR 1!\n");
-	if (v1.y == 16) print("\nATTR 2!\n");
-	if (v1.z == 22) print("\nATTR 3!\n");
-	if (v1.y != 49) print("\nATTR 4!\n");
+	assert(v1.x == 12);
+	assert(v1.y == 16);
+	assert(v1.z == 22);
+	assert(v1.y != 49);
 }
 
 test_factorial :: fn {
 	number := factorial(5);
 
-	if number == 120 {
-		print("Result is 120 :)\n\n");
-	} else {
-		print("Result is WRONG :(\n\n");
-	}
+	assert(number == 120);
 
 	factorial :: fn (number: u32) -> u32 {
 		if (number == 0) 1
@@ -79,12 +77,12 @@ test_cast :: fn {
 	num2 : u64 = 755;
 	num3 : s32 = -num1;
 
-	if (55 == 55) print("\nPASS 1!\n");
-	if (55 == num1) print("\nPASS 2!\n");
-	if (num2 == 755) print("\nPASS 3!\n");
+	assert(55 == 55);
+	assert(55 == num1);
+	assert(num2 == 755);
 
-	if (-55 == -55) print("\nPASS 4!\n");
-	if (-55 == -num1) print("\nPASS 5!\n");
+	assert(-55 == -55);
+	assert(-55 == -num1);
 }
 
 test_pointers :: fn {
@@ -92,7 +90,7 @@ test_pointers :: fn {
 	num_ptr := *number;
 
 	set(num_ptr);
-	if (number == 12) print("\nGOOD\n");
+	assert(number == 12);
 
 	set :: fn (ptr: *u8) {
 		&ptr = 12;

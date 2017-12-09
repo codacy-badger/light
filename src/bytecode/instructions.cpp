@@ -12,10 +12,11 @@ uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty) {
 		case AST_TYPEDEF_STRUCT: {
 				 if (decl_ty == Light_Compiler::inst->type_def_void) return BYTECODE_TYPE_VOID;
 
-			else if (decl_ty == Light_Compiler::inst->type_def_u8)  return BYTECODE_TYPE_U8;
+			else if (decl_ty == Light_Compiler::inst->type_def_bool) return BYTECODE_TYPE_BOOL;
+			else if (decl_ty == Light_Compiler::inst->type_def_u8) return BYTECODE_TYPE_U8;
 			else if (decl_ty == Light_Compiler::inst->type_def_u16) return BYTECODE_TYPE_U16;
-	  		else if (decl_ty == Light_Compiler::inst->type_def_u32) return BYTECODE_TYPE_U32;
-	  		else if (decl_ty == Light_Compiler::inst->type_def_u64) return BYTECODE_TYPE_U64;
+			else if (decl_ty == Light_Compiler::inst->type_def_u32) return BYTECODE_TYPE_U32;
+			else if (decl_ty == Light_Compiler::inst->type_def_u64) return BYTECODE_TYPE_U64;
 
 			else if (decl_ty == Light_Compiler::inst->type_def_s8)  return BYTECODE_TYPE_S8;
 			else if (decl_ty == Light_Compiler::inst->type_def_s16) return BYTECODE_TYPE_S16;
@@ -25,7 +26,7 @@ uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty) {
 			else if (decl_ty == Light_Compiler::inst->type_def_f32) return BYTECODE_TYPE_F32;
 			else if (decl_ty == Light_Compiler::inst->type_def_f64) return BYTECODE_TYPE_F64;
 
-	  		else if (decl_ty == Light_Compiler::inst->type_def_string) return BYTECODE_TYPE_POINTER;
+			else if (decl_ty == Light_Compiler::inst->type_def_string) return BYTECODE_TYPE_POINTER;
 		}
 	}
 	return BYTECODE_TYPE_VOID;
@@ -39,6 +40,7 @@ uint8_t bytecode_get_type (Ast_Expression* exp) {
 
 size_t bytecode_get_size (uint8_t bytecode_type) {
 	switch (bytecode_type) {
+		case BYTECODE_TYPE_BOOL:
 		case BYTECODE_TYPE_U8:
 		case BYTECODE_TYPE_S8:  return 1;
 		case BYTECODE_TYPE_U16:
@@ -62,5 +64,15 @@ bool bytecode_has_sign (uint8_t bytecode_type) {
 		case BYTECODE_TYPE_S64:
 			return true;
 		default: return false;
+	}
+}
+
+uint8_t bytecode_unsigned_to_signed (uint8_t bytecode_type) {
+	switch (bytecode_type) {
+		case BYTECODE_TYPE_U8: 	return BYTECODE_TYPE_S16;
+		case BYTECODE_TYPE_U16: return BYTECODE_TYPE_S32;
+		case BYTECODE_TYPE_U32: return BYTECODE_TYPE_S64;
+		case BYTECODE_TYPE_U64: return BYTECODE_TYPE_S64;
+		default: 				return bytecode_type;
 	}
 }

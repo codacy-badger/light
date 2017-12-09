@@ -7,11 +7,33 @@
 template<typename T>
 T binary_fold (Ast_Binary_Type binary_op, T a, T b) {
 	switch (binary_op) {
+		case AST_BINARY_LOGICAL_AND: 	return a && b;
+		case AST_BINARY_LOGICAL_OR: 	return a || b;
+
 		case AST_BINARY_ADD: return a + b;
 		case AST_BINARY_SUB: return a - b;
 		case AST_BINARY_MUL: return a * b;
 		case AST_BINARY_DIV: return a / b;
+
+		case AST_BINARY_EQ: 	return a == b;
+		case AST_BINARY_NEQ: 	return a != b;
+		case AST_BINARY_LT: 	return a < b;
+		case AST_BINARY_LTE: 	return a <= b;
+		case AST_BINARY_GT: 	return a > b;
+		case AST_BINARY_GTE: 	return a >= b;
 		default: return 0;
+	}
+}
+
+template<typename T>
+T binary_fold_logic (Ast_Binary_Type binary_op, T a, T b) {
+	switch (binary_op) {
+		case AST_BINARY_BITWISE_AND: 			return a & b;
+		case AST_BINARY_BITWISE_OR: 			return a | b;
+		case AST_BINARY_BITWISE_XOR: 			return a ^ b;
+		case AST_BINARY_BITWISE_RIGHT_SHIFT: 	return a >> b;
+		case AST_BINARY_BITWISE_LEFT_SHIFT: 	return a << b;
+		default: 								return binary_fold(binary_op, a, b);
 	}
 }
 
@@ -123,11 +145,11 @@ void Constant_Folding::fold (Ast_Binary** binary) {
 		Ast_Binary_Type binop = (*binary)->binary_op;
 		switch (litL->literal_type) {
 			case AST_LITERAL_UNSIGNED_INT: {
-				tmp->uint_value = binary_fold(binop, litL->uint_value, litR->uint_value);
+				tmp->uint_value = binary_fold_logic(binop, litL->uint_value, litR->uint_value);
 				break;
 			}
 			case AST_LITERAL_SIGNED_INT: {
-				tmp->int_value = binary_fold(binop, litL->int_value, litR->int_value);
+				tmp->int_value = binary_fold_logic(binop, litL->int_value, litR->int_value);
 				break;
 			}
 			case AST_LITERAL_DECIMAL: {
