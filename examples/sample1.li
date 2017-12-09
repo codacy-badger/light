@@ -1,5 +1,12 @@
 import "examples/print.li"
 
+assert :: fn (condition: bool) {
+	if !condition {
+		print("ASSERT: ");
+		print(__FILE__);
+	}
+}
+
 #run
 main :: fn {
 	//test_factorial();
@@ -7,7 +14,7 @@ main :: fn {
 	//test_pointers();
 	//test_struct();
 	//test_decimals();
-	//test_arrays();
+	test_arrays();
 }
 
 test_arrays :: fn {

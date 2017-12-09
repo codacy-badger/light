@@ -76,8 +76,10 @@ struct Compile_Constants : Pipe {
 			}
 			case AST_EXPRESSION_CALL: {
 				auto call = static_cast<Ast_Function_Call*>(*exp);
-				for (int i = 0; i < call->args->values.size(); i++) {
-					this->replace(&call->args->values[i]);
+				if (call->args) {
+					for (int i = 0; i < call->args->values.size(); i++) {
+						this->replace(&call->args->values[i]);
+					}
 				}
 				break;
 			}

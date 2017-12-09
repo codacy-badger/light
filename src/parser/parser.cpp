@@ -313,6 +313,8 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		return this->function(this->function_type());
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		return AST_NEW(Ast_Pointer, this->_atom());
+	} else if (this->lexer->optional_skip(TOKEN_EXCLAMATION)) {
+		return AST_NEW(Ast_Unary, TOKEN_EXCLAMATION, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_SUB)) {
 		return AST_NEW(Ast_Unary, TOKEN_SUB, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_AMP)) {
