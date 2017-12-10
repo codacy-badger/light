@@ -2,13 +2,13 @@ import "examples/print.li"
 
 #run
 main :: fn {
-	test_factorial();
-	test_cast();
+	//test_factorial();
+	//test_cast();
 	test_pointers();
-	test_struct();
-	test_decimals();
-	test_arrays();
-	test_division();
+	//test_struct();
+	//test_decimals();
+	//test_arrays();
+	//test_division();
 
 	print_u32(123);
 }
@@ -16,8 +16,8 @@ main :: fn {
 assert :: fn (condition: bool) {
 	if !condition {
 		print("ASSERT: ");
-		print(__FILE__);
-		print("\n");
+		//print(__FILE__);
+		//print("\n");
 		// TODO: add exit function here, we should not continue
 	}
 }

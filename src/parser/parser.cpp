@@ -233,6 +233,8 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
 			_tmp->lhs = output;
 			output = _tmp;
 
+			if (tt == TOKEN_SQ_BRAC_OPEN) this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
+
 			tt = this->lexer->nextType;
 			precedence = Ast_Binary::getPrecedence(tt);
 		}
@@ -270,8 +272,6 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		auto output = initial ? initial : this->ident();
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			return this->call(output);
-		} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
-			return this->subscript(output);
 		} else return output;
 	} else if (this->lexer->optional_skip(TOKEN_STRUCT)) {
 		auto _struct = AST_NEW(Ast_Struct_Type);
@@ -392,14 +392,6 @@ Ast_Function_Call* Parser::call (Ast_Expression* callee) {
 	output->fn = callee;
 	output->args = this->comma_separated_arguments();
 	this->lexer->check_skip(TOKEN_PAR_CLOSE);
-	return output;
-}
-
-Ast_Binary* Parser::subscript (Ast_Expression* left) {
-	auto output = AST_NEW(Ast_Binary, TOKEN_SQ_BRAC_OPEN);
-	output->lhs = left;
-	output->rhs = this->expression();
-	this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 	return output;
 }
 

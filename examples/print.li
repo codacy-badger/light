@@ -33,8 +33,21 @@ print_u32 :: fn (number: u32) {
 		number = number / 10;
 	}
 	buffer[buffer_count] = 0;
+	swap_buffer(*buffer, buffer_count);
 
 	print(*buffer);
+}
+
+swap_buffer :: fn (buffer: **u8, length: u32) {
+	_tmp : u8;
+	count : u32 = 0;
+	half_length := length / 2;
+	while (count < half_length) {
+		_tmp = &buffer[count];
+		&buffer[count] = &buffer[length - 1 - count];
+		&buffer[length - 1 - count] = _tmp;
+		count = count + 1;
+	}
 }
 
 string_length :: fn (str: string) -> u32 {

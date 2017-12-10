@@ -107,6 +107,7 @@ Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 short Ast_Binary::getPrecedence (Token_Type opToken) {
 	switch (opToken) {
 		case TOKEN_EQUAL: 			return 1;
+		case TOKEN_SQ_BRAC_OPEN:	return 2;
 
 		case TOKEN_DOUBLE_AMP:		return 2;
 		case TOKEN_DOUBLE_PIPE:		return 2;
@@ -144,6 +145,7 @@ bool Ast_Binary::getLeftAssociativity (Token_Type opToken) {
 	switch (opToken) {
 		case TOKEN_EQUAL: 			return false;
 		case TOKEN_DOT:   			return false;
+		case TOKEN_SQ_BRAC_OPEN:	return false;
 
 		case TOKEN_DOUBLE_AMP:		return false;
 		case TOKEN_DOUBLE_PIPE:		return false;

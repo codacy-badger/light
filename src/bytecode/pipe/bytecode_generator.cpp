@@ -256,7 +256,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
             auto element_size = array_base_type->byte_size;
 
         	this->gen(binop->lhs, true);
-			this->gen(binop->rhs);
+			this->gen(binop->rhs, left_value);
 
 			auto reg = this->current_register;
 			auto inst = new Inst_Set(this->current_register, BYTECODE_TYPE_U64, &element_size);
@@ -283,7 +283,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 		case AST_BINARY_ASSIGN: {
             auto size = binop->rhs->inferred_type->byte_size;
         	this->gen(binop->lhs, true);
-        	this->gen(binop->rhs);
+        	this->gen(binop->rhs, left_value);
             this->current_register--;
 			auto reg = this->current_register;
             auto inst2 = new Inst_Store(reg - 1, reg, size);
@@ -291,8 +291,8 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 			break;
 		}
 		default: {
-			this->gen(binop->lhs);
-			this->gen(binop->rhs);
+			this->gen(binop->lhs, left_value);
+			this->gen(binop->rhs, left_value);
             this->current_register--;
 			auto reg = this->current_register;
 			auto binop_type = get_bytecode_from_binop(binop->binary_op);
