@@ -23,13 +23,13 @@ print_u32 :: fn (number: u32) {
 	buffer : [15] u8;
 	buffer_count := 0;
 
-	tmp : u8 = number % 10;
+	tmp := number % 10;
 	number = number / 10;
 	while (tmp > 0) {
-		buffer[buffer_count] = ASCII_ZERO + tmp;
+		buffer[buffer_count] = ASCII_ZERO + cast(u8) tmp;
 		buffer_count = buffer_count + 1;
 
-		tmp = cast(u8) number % 10;
+		tmp = number % 10;
 		number = number / 10;
 	}
 	buffer[buffer_count] = 0;
@@ -44,8 +44,8 @@ swap_buffer :: fn (buffer: **u8, length: u32) {
 	half_length := length / 2;
 	while (count < half_length) {
 		_tmp = &buffer[count];
-		&buffer[count] = &buffer[length - 1 - count];
-		&buffer[length - 1 - count] = _tmp;
+		&buffer[count] = &buffer[length - (count + 1)];
+		&buffer[length - (count + 1)] = _tmp;
 		count = count + 1;
 	}
 }

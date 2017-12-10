@@ -10,7 +10,7 @@ main :: fn {
 	//test_arrays();
 	//test_division();
 
-	print_u32(123);
+	print_u32(123456);
 }
 
 assert :: fn (condition: bool) {
