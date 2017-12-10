@@ -99,13 +99,54 @@ void Bytecode_Generator::gen (Ast_While* _while) {
 	jmp1->offset = this->bytecode->size() - index2;
 }
 
+void Bytecode_Generator::fill (Ast_Function* fn) {
+    auto free_reg = fn->type->parameter_decls.size();
+    for (int i = 0; i < fn->type->parameter_decls.size(); i++) {
+        auto decl = fn->type->parameter_decls[i];
+
+        auto decl_type = static_cast<Ast_Type_Definition*>(decl->type);
+        auto size = decl_type->byte_size;
+        decl->stack_offset = this->stack_offset;
+        this->stack_offset += size;
+
+        auto inst = new Inst_Stack_Allocate(size);
+        fn->bytecode.push_back(copy_location_info(inst, decl));
+        auto inst1 = new Inst_Stack_Offset(free_reg, decl->stack_offset);
+        fn->bytecode.push_back(copy_location_info(inst1, decl));
+        auto inst2 = new Inst_Store(free_reg, i, size);
+        fn->bytecode.push_back(copy_location_info(inst2, decl));
+    }
+	if (fn->scope) {
+        auto _tmp = this->bytecode;
+		this->bytecode = &fn->bytecode;
+
+		this->current_register = 0;
+		this->gen(fn->scope);
+
+		if (fn->type->return_type == Light_Compiler::inst->type_def_void) {
+			if (this->bytecode->size() == 0) {
+				auto inst2 = new Inst_Return();
+				this->bytecode->push_back(copy_location_info(inst2, fn->scope));
+			} else {
+				auto last_inst = this->bytecode->back();
+				if (last_inst->bytecode != BYTECODE_RETURN) {
+					auto inst2 = new Inst_Return();
+					this->bytecode->push_back(copy_location_info(inst2, fn->scope));
+				}
+			}
+		}
+
+        this->bytecode = _tmp;
+	}
+}
+
 void Bytecode_Generator::gen (Ast_Declaration* decl) {
     if (decl->decl_flags & AST_DECL_FLAG_CONSTANT) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
             auto func = static_cast<Ast_Function*>(decl->expression);
             if (!func->foreign_module_name) {
     			auto _tmp = this->stack_offset;
-    			this->gen(func);
+    			this->fill(func);
                 this->stack_offset = _tmp;
             }
 		}
@@ -139,6 +180,7 @@ void Bytecode_Generator::gen (Ast_Expression* exp, bool left_value) {
         case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp), left_value);
         case AST_EXPRESSION_IDENT: return this->gen(static_cast<Ast_Ident*>(exp), left_value);
         case AST_EXPRESSION_CALL: return this->gen(static_cast<Ast_Function_Call*>(exp));
+        case AST_EXPRESSION_FUNCTION: return this->gen(static_cast<Ast_Function*>(exp));
         default: return;
     }
 }
@@ -366,44 +408,22 @@ void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 	}
 }
 
-void Bytecode_Generator::gen (Ast_Function* fn) {
-    auto free_reg = fn->type->parameter_decls.size();
-    for (int i = 0; i < fn->type->parameter_decls.size(); i++) {
-        auto decl = fn->type->parameter_decls[i];
-
-        auto decl_type = static_cast<Ast_Type_Definition*>(decl->type);
-        auto size = decl_type->byte_size;
-        decl->stack_offset = this->stack_offset;
-        this->stack_offset += size;
-
-        auto inst = new Inst_Stack_Allocate(size);
-        fn->bytecode.push_back(copy_location_info(inst, decl));
-        auto inst1 = new Inst_Stack_Offset(free_reg, decl->stack_offset);
-        fn->bytecode.push_back(copy_location_info(inst1, decl));
-        auto inst2 = new Inst_Store(free_reg, i, size);
-        fn->bytecode.push_back(copy_location_info(inst2, decl));
-    }
-	if (fn->scope) {
-        auto _tmp = this->bytecode;
-		this->bytecode = &fn->bytecode;
-
-		this->current_register = 0;
-		this->gen(fn->scope);
-
-		if (fn->type->return_type == Light_Compiler::inst->type_def_void) {
-			if (this->bytecode->size() == 0) {
-				auto inst2 = new Inst_Return();
-				this->bytecode->push_back(copy_location_info(inst2, fn->scope));
-			} else {
-				auto last_inst = this->bytecode->back();
-				if (last_inst->bytecode != BYTECODE_RETURN) {
-					auto inst2 = new Inst_Return();
-					this->bytecode->push_back(copy_location_info(inst2, fn->scope));
-				}
+void Bytecode_Generator::gen (Ast_Function* func) {
+    if (func->foreign_module_name) {
+		auto ffunctions = Light_Compiler::inst->interp->foreign_functions;
+		auto module = ffunctions->get_or_add_module(func->foreign_module_name);
+		if (module) {
+			auto function_pointer = ffunctions->get_or_add_function(module, func->foreign_function_name);
+			if (function_pointer) {
+				auto inst = new Inst_Set(this->current_register, BYTECODE_TYPE_POINTER, &function_pointer);
+	            this->bytecode->push_back(copy_location_info(inst, func));
+				this->current_register++;
 			}
+		} else {
+			Light_Compiler::inst->error_stop(func, "Module '%s' not found!", func->foreign_module_name);
 		}
-
-        this->bytecode = _tmp;
+	} else {
+		Light_Compiler::inst->error_stop(func, "Internal functions cannot be referenced...");
 	}
 }
 

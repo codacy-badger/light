@@ -3,7 +3,21 @@ import "examples/windows/user32.li"
 
 #run
 main :: fn {
-	//MessageBox(0, "asd", "qwe", MB_CANCELTRYCONTINUE);
+	//MessageBox(0, "This is a sample message", "Title", MB_RETRYCANCEL | MB_ICONINFORMATION);
+
+	WindowClass: WNDCLASS;
+	WindowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+	WindowClass.lpfnWndProc = DefWindowProc;
+	WindowClass.cbClsExtra = 0;
+	WindowClass.cbWndExtra = 0;
+	WindowClass.hInstance = GetModuleHandle(0);
+	WindowClass.hIcon = 0;
+	WindowClass.hCursor = 0;
+	WindowClass.hbrBackground = 0;
+	WindowClass.lpszMenuName = 0;
+	WindowClass.lpszClassName = "DemoWindowClass";
+
+	//RegisterClass(*WindowClass);
 
 	test_factorial();
 	test_cast();

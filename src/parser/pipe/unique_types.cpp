@@ -58,7 +58,7 @@ void Unique_Types::unique (Ast_Expression** exp) {
         case AST_EXPRESSION_FUNCTION: {
             auto func = static_cast<Ast_Function*>(*exp);
             this->unique(&func->type);
-			this->unique(func->scope);
+			if (func->scope) this->unique(func->scope);
             break;
         }
 		case AST_EXPRESSION_TYPE_DEFINITION: {

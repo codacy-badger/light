@@ -292,6 +292,7 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 				case BYTECODE_TYPE_S64: _print<int64_t>(set->data, "%ld"); break;
 				case BYTECODE_TYPE_F32: _print<float>(set->data, "%f"); break;
 				case BYTECODE_TYPE_F64: _print<double>(set->data, "%lf"); break;
+				case BYTECODE_TYPE_POINTER: _print<double>(set->data, "0x%llX"); break;
 			}
 			break;
 		}

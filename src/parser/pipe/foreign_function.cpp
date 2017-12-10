@@ -41,6 +41,7 @@ void Foreign_Function::on_statement(Ast_Statement* stm) {
 					auto note = remove_foreign_note(decl);
 					if (note) {
 						auto fn = new Ast_Function();
+						ast_copy_location_info(fn, stm);
 						fn->name = decl->name;
 						fn->type = fn_type;
 

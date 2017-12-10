@@ -244,7 +244,7 @@ void Type_Checking::check_type (Ast_Pointer_Type* ty) {
 void Type_Checking::check_type (Ast_Function* func) {
     func->inferred_type = func->type;
 	check_type(func->type);
-	check_type(func->scope);
+	if (func->scope) check_type(func->scope);
 }
 
 void Type_Checking::check_type (Ast_Function_Call* call) {
