@@ -149,34 +149,8 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_BINARY: {
 			auto binary = static_cast<Inst_Binary*>(inst);
 
-			size_t a = 0, b = 0;
-			auto size = bytecode_get_size(binary->bytecode_type);
-			memcpy(&a, this->registers[binary->reg1], size);
-			memcpy(&b, this->registers[binary->reg2], size);
-			switch (binary->binop) {
-				case BYTECODE_LOGICAL_AND: 			a = a && b; break;
-				case BYTECODE_LOGICAL_OR: 			a = a || b; break;
-
-				case BYTECODE_ADD: 					a = a + b; break;
-				case BYTECODE_SUB: 					a = a - b; break;
-				case BYTECODE_MUL: 					a = a * b; break;
-				case BYTECODE_DIV: 					a = a / b; break;
-
-				case BYTECODE_BITWISE_AND: 			a = a & b; break;
-				case BYTECODE_BITWISE_OR: 			a = a | b; break;
-				case BYTECODE_BITWISE_XOR: 			a = a ^ b; break;
-				case BYTECODE_BITWISE_RIGHT_SHIFT: 	a = a >> b; break;
-				case BYTECODE_BITWISE_LEFT_SHIFT: 	a = a << b; break;
-
-				case BYTECODE_EQ: 					a = a == b; break;
-				case BYTECODE_NEQ: 					a = a != b; break;
-				case BYTECODE_LT: 					a = a < b; break;
-				case BYTECODE_LTE: 					a = a <= b; break;
-				case BYTECODE_GT: 					a = a > b; break;
-				case BYTECODE_GTE: 					a = a >= b; break;
-				default:							break;
-			}
-			memcpy(this->registers[binary->reg1], &a, INTERP_REGISTER_SIZE);
+			bytecode_binary(binary->binop, this->registers[binary->reg1],
+				this->registers[binary->reg2], binary->bytecode_type);
 			return;
 		}
 		case BYTECODE_JUMP: {

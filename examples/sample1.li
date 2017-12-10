@@ -8,6 +8,7 @@ main :: fn {
 	test_struct();
 	test_decimals();
 	test_arrays();
+	test_division();
 }
 
 assert :: fn (condition: bool) {
@@ -17,6 +18,15 @@ assert :: fn (condition: bool) {
 		print("\n");
 		// TODO: add exit function here, we should not continue
 	}
+}
+
+test_division :: fn {
+	num1 := 10;
+	num2 := 9;
+	assert((num1 / 5) == 2);
+	assert((num2 / 2) == 4);
+	num3 := 9.;
+	assert((num3 / 2.) == 4.5);
 }
 
 test_arrays :: fn {

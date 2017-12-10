@@ -92,10 +92,12 @@ struct Compile_Constants : Pipe {
 				auto ident = static_cast<Ast_Ident*>(*exp);
 				if (strcmp(ident->name, "__FILE__") == 0) {
 					auto file_literal = ast_make_literal(ident->filename);
+					ast_copy_location_info(file_literal, *exp);
 					delete *exp;
 					(*exp) = file_literal;
 				} else if (strcmp(ident->name, "__LINE__") == 0) {
 					auto line_literal = ast_make_literal(ident->line);
+					ast_copy_location_info(line_literal, *exp);
 					delete *exp;
 					(*exp) = line_literal;
 				}
