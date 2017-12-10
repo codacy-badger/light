@@ -17,6 +17,26 @@ print :: fn (str: *u8) {
 	}
 }
 
+ASCII_ZERO :: 48;
+
+print_u32 :: fn (number: u32) {
+	buffer : [15] u8;
+	buffer_count := 0;
+
+	tmp : u8 = number % 10;
+	number = number / 10;
+	while (tmp > 0) {
+		buffer[buffer_count] = ASCII_ZERO + tmp;
+		buffer_count = buffer_count + 1;
+
+		tmp = cast(u8) number % 10;
+		number = number / 10;
+	}
+	buffer[buffer_count] = 0;
+
+	print(*buffer);
+}
+
 string_length :: fn (str: string) -> u32 {
 	result : u32 = 0;
 	char : u8 = &str;

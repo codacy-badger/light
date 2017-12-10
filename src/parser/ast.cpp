@@ -86,6 +86,7 @@ Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 		case TOKEN_SUB: 			return AST_BINARY_SUB;
 		case TOKEN_MUL: 			return AST_BINARY_MUL;
 		case TOKEN_DIV: 			return AST_BINARY_DIV;
+		case TOKEN_PERCENT:			return AST_BINARY_REM;
 
 		case TOKEN_AMP:				return AST_BINARY_BITWISE_AND;
 		case TOKEN_PIPE:			return AST_BINARY_BITWISE_OR;
@@ -117,6 +118,7 @@ short Ast_Binary::getPrecedence (Token_Type opToken) {
 		case TOKEN_SUB:   			return 3;
 		case TOKEN_MUL:   			return 4;
 		case TOKEN_DIV:   			return 4;
+		case TOKEN_PERCENT:			return 4;
 
 		case TOKEN_AMP:				return 4;
 		case TOKEN_PIPE:			return 4;
@@ -153,6 +155,7 @@ bool Ast_Binary::getLeftAssociativity (Token_Type opToken) {
 		case TOKEN_SUB:   			return false;
 		case TOKEN_MUL:   			return false;
 		case TOKEN_DIV:   			return false;
+		case TOKEN_PERCENT:   		return false;
 
 		case TOKEN_AMP:				return false;
 		case TOKEN_PIPE:			return false;

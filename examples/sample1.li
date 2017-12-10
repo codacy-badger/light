@@ -9,6 +9,8 @@ main :: fn {
 	test_decimals();
 	test_arrays();
 	test_division();
+
+	print_u32(123);
 }
 
 assert :: fn (condition: bool) {
@@ -114,15 +116,4 @@ main :: fn {
 	str := "This is asdqweasadsaewqeqweasdasd\tasd text!\n";
 	len := string_length(str);
 	write(stdout, str, len);
-
-	string_length :: fn (str: string) -> u32 {
-		result : u32 = 0;
-		char : u8 = &str;
-		while (char != 0) {
-			result = result + 1;
-			str = str + 1;
-			char = &str;
-		}
-		return result;
-	}
 }*/

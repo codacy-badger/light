@@ -350,6 +350,7 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 				case BYTECODE_SUB: 					printf("SUB"); break;
 				case BYTECODE_MUL: 					printf("MUL"); break;
 				case BYTECODE_DIV: 					printf("DIV"); break;
+				case BYTECODE_REM: 					printf("REM"); break;
 
 				case BYTECODE_BITWISE_AND: 			printf("BITWISE_AND"); break;
 				case BYTECODE_BITWISE_OR: 			printf("BITWISE_OR"); break;

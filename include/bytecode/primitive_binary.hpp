@@ -39,6 +39,7 @@ void binary_result_logic (uint8_t binop, void* a_ptr, void* b_ptr) {
 		case BYTECODE_SUB: 					a = a - b; break;
 		case BYTECODE_MUL: 					a = a * b; break;
 		case BYTECODE_DIV: 					a = a / b; break;
+		case BYTECODE_REM: 					a = a % b; break;
 
 		case BYTECODE_BITWISE_AND: 			a = a & b; break;
 		case BYTECODE_BITWISE_OR: 			a = a | b; break;

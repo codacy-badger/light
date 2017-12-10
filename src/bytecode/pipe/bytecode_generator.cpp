@@ -201,6 +201,7 @@ uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
 		case AST_BINARY_SUB: 					return BYTECODE_SUB;
 		case AST_BINARY_MUL: 					return BYTECODE_MUL;
 		case AST_BINARY_DIV: 					return BYTECODE_DIV;
+		case AST_BINARY_REM: 					return BYTECODE_REM;
 
 		case AST_BINARY_BITWISE_AND: 			return BYTECODE_BITWISE_AND;
 		case AST_BINARY_BITWISE_OR: 			return BYTECODE_BITWISE_OR;
@@ -336,15 +337,10 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
 			break;
 		}
         case AST_UNARY_DEREFERENCE: {
-            if (unop->exp->exp_type == AST_EXPRESSION_IDENT) {
-                this->gen(static_cast<Ast_Ident*>(unop->exp), left_value);
-                auto reg = this->current_register - 1;
-                auto inst2 = new Inst_Load(reg, reg, unop->exp->inferred_type->byte_size);
-                this->bytecode->push_back(copy_location_info(inst2, unop));
-            } else {
-                // TODO: upgrade this for when we have subscript binary operator
-                Light_Compiler::inst->error_stop(unop, "Dereference operator only working of identifiers!");
-            }
+            this->gen(unop->exp, left_value);
+            auto reg = this->current_register - 1;
+            auto inst2 = new Inst_Load(reg, reg, unop->exp->inferred_type->byte_size);
+            this->bytecode->push_back(copy_location_info(inst2, unop));
             break;
         }
 		default: return;

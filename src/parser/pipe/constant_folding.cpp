@@ -33,6 +33,7 @@ T binary_fold_logic (Ast_Binary_Type binary_op, T a, T b) {
 		case AST_BINARY_BITWISE_XOR: 			return a ^ b;
 		case AST_BINARY_BITWISE_RIGHT_SHIFT: 	return a >> b;
 		case AST_BINARY_BITWISE_LEFT_SHIFT: 	return a << b;
+		case AST_BINARY_REM: 					return a % b;
 		default: 								return binary_fold(binary_op, a, b);
 	}
 }
