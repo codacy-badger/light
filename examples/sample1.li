@@ -1,5 +1,5 @@
 import "examples/print.li"
-import "examples/user32.li"
+import "examples/windows/user32.li"
 
 #run
 main :: fn {
