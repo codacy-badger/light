@@ -1,4 +1,4 @@
-import "examples/win32.li"
+import "examples/kernel32.li"
 
 std_handle_out : *void;
 
@@ -20,22 +20,25 @@ print :: fn (str: *u8) {
 ASCII_ZERO :: 48;
 
 print_u32 :: fn (number: u32) {
-	buffer : [15] u8;
-	buffer_count := 0;
+	if (number == 0) print("0");
+	else {
+		buffer : [15] u8;
+		buffer_count := 0;
 
-	tmp := number % 10;
-	number = number / 10;
-	while (tmp > 0) {
-		buffer[buffer_count] = ASCII_ZERO + cast(u8) tmp;
-		buffer_count = buffer_count + 1;
-
-		tmp = number % 10;
+		tmp := number % 10;
 		number = number / 10;
-	}
-	buffer[buffer_count] = 0;
-	swap_buffer(*buffer, buffer_count);
+		while (tmp > 0) {
+			buffer[buffer_count] = ASCII_ZERO + cast(u8) tmp;
+			buffer_count = buffer_count + 1;
 
-	print(*buffer);
+			tmp = number % 10;
+			number = number / 10;
+		}
+		buffer[buffer_count] = 0;
+		swap_buffer(*buffer, buffer_count);
+
+		print(*buffer);
+	}
 }
 
 swap_buffer :: fn (buffer: **u8, length: u32) {

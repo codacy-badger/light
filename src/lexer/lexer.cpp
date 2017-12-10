@@ -262,31 +262,42 @@ bool Lexer::string () {
 bool Lexer::number () {
 	std::string _buff;
 	char c = this->buffer->peek(0);
-    if (c == '+' || c == '-') {
-        _buff.push_back(c);
-		this->buffer->skip(1);
-        c = this->buffer->peek(0);
-    }
-    if (DIGIT(c) || c == '.') {
-        while (DIGIT(c)) {
+	if (c == '0' && this->buffer->peek(1) == 'x') {
+		while (DIGIT(c) || c == 'x') {
 			_buff.push_back(c);
 			this->buffer->skip(1);
+			c = this->buffer->peek(0);
+		}
+		this->nextType = TOKEN_NUMBER;
+		this->nextText = copyString(_buff);
+		return true;
+	} else {
+	    if (c == '+' || c == '-') {
+	        _buff.push_back(c);
+			this->buffer->skip(1);
 	        c = this->buffer->peek(0);
-        }
-        if (c == '.') {
-            _buff.push_back(c);
-            this->buffer->skip(1);
-            c = this->buffer->peek(0);
-            while (DIGIT(c)) {
+	    }
+	    if (DIGIT(c) || c == '.') {
+	        while (DIGIT(c)) {
+				_buff.push_back(c);
+				this->buffer->skip(1);
+		        c = this->buffer->peek(0);
+	        }
+	        if (c == '.') {
 	            _buff.push_back(c);
 	            this->buffer->skip(1);
 	            c = this->buffer->peek(0);
-            }
-        }
-        this->nextType = TOKEN_NUMBER;
-		this->nextText = copyString(_buff);
-        return true;
-    }
+	            while (DIGIT(c)) {
+		            _buff.push_back(c);
+		            this->buffer->skip(1);
+		            c = this->buffer->peek(0);
+	            }
+	        }
+	        this->nextType = TOKEN_NUMBER;
+			this->nextText = copyString(_buff);
+	        return true;
+	    }
+	}
     return false;
 }
 

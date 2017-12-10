@@ -1,23 +1,24 @@
 import "examples/print.li"
+import "examples/user32.li"
 
 #run
 main :: fn {
-	//test_factorial();
-	//test_cast();
-	test_pointers();
-	//test_struct();
-	//test_decimals();
-	//test_arrays();
-	//test_division();
+	//MessageBox(0, "asd", "qwe", MB_CANCELTRYCONTINUE);
 
-	print_u32(123456);
+	test_factorial();
+	test_cast();
+	test_pointers();
+	test_struct();
+	test_decimals();
+	test_arrays();
+	test_division();
 }
 
 assert :: fn (condition: bool) {
 	if !condition {
 		print("ASSERT: ");
-		//print(__FILE__);
-		//print("\n");
+		print(__FILE__);
+		print("\n");
 		// TODO: add exit function here, we should not continue
 	}
 }

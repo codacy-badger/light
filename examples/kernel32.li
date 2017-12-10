@@ -8,6 +8,9 @@ INVALID_HANDLE_VALUE : s64 : -1
 #foreign("kernel32")
 GetLastError : fn -> u16 :;
 
+#foreign("kernel32", "GetModuleHandleA")
+GetModuleHandle : fn (lpModuleName: string) -> *void :;
+
 #foreign("kernel32")
 GetStdHandle : fn (code: s32) -> *void :;
 
