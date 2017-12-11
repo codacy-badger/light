@@ -53,10 +53,26 @@ WNDCLASS :: struct {
 	hbrBackground: 	*void;
 	lpszMenuName: 	*u8;
 	lpszClassName: 	*u8;
-};
+}
 
 #foreign("user32", "DefWindowProcA")
 DefWindowProc : fn (hwnd: *void, uMsg: u32, wParam: s64, lParam: s64) -> s64 :;
 
-#foreign("user32", "RegisterClassA")
+#foreign("user32", "CreateWindowExA")
 RegisterClass : fn (lpWndClass: *WNDCLASS) -> u16 :;
+
+#foreign("user32", "CreateWindowExA")
+CreateWindow : fn (
+	dwExStyle: s32,
+	lpClassName: *u8,
+	lpWindowName: *u8,
+	dwStyle: s32,
+	x: s32,
+	y: s32,
+	nWidth: s32,
+	nHeight: s32,
+	hWndParent: *void,
+	hMenu: *void,
+	hInstance: *void,
+	lpParam: *void
+) -> *void :;

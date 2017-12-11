@@ -5,22 +5,12 @@ import "examples/windows/user32.li"
 main :: fn {
 	//MessageBox(0, "This is a sample message", "Title", MB_RETRYCANCEL | MB_ICONINFORMATION);
 
-	WindowClass: WNDCLASS;
-	WindowClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-	WindowClass.lpfnWndProc = DefWindowProc;
-	WindowClass.cbClsExtra = 0;
-	WindowClass.cbWndExtra = 0;
-	WindowClass.hInstance = GetModuleHandle(0);
-	WindowClass.hIcon = 0;
-	WindowClass.hCursor = 0;
-	WindowClass.hbrBackground = 0;
-	WindowClass.lpszMenuName = 0;
-	WindowClass.lpszClassName = "DemoWindowClass";
-
-	//RegisterClass(*WindowClass);
-
-	print("Dummy\n");
-	print_u64(123456789);
+	/*hndl := CreateWindow(0, "Button", "Title", 0, 0, 0, 200, 200, 0, 0, 0, 0);
+	if (hndl == 0) {
+		print_u64(GetLastError());
+	} else {
+		print_u64_hex(cast(u64) hndl);
+	}*/
 
 	test_factorial();
 	test_cast();

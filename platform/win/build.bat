@@ -10,7 +10,7 @@ cl /nologo /Od /c /MD /Zi /Gm /EHsc -I"../include" -I"../dyncall" %SOURCES%
 
 link /nologo /INCREMENTAL /ENTRY:mainCRTStartup /subsystem:console ^
     /OUT:"..\bin\light.exe" /DEBUG /NODEFAULTLIB:LIBCMT *.obj ^
-    ..\dyncall\dyncall\libdyncall_s.lib
+    ..\dyncall\dyncall\libdyncall_s.lib user32.lib
 
 set "SOURCES="
 popd

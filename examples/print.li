@@ -25,14 +25,45 @@ print_u64 :: fn (number: u64) {
 	else {
 		buffer_count := 0;
 
-		tmp := number % 10;
-		number = number / 10;
-		while (tmp > 0) {
-			_number_buffer[buffer_count] = ASCII_ZERO + cast(u8) tmp;
-			buffer_count = buffer_count + 1;
-
+		tmp : u64;
+		while (number > 0) {
 			tmp = number % 10;
 			number = number / 10;
+
+			_number_buffer[buffer_count] = ASCII_ZERO + cast(u8) tmp;
+			buffer_count = buffer_count + 1;
+		}
+		_number_buffer[buffer_count] = 0;
+
+		_tmp : u8;
+		count : u32 = 0;
+		half_length := buffer_count / 2;
+		while (count < half_length) {
+			_tmp = _number_buffer[count];
+			_number_buffer[count] = _number_buffer[buffer_count - (count + 1)];
+			_number_buffer[buffer_count - (count + 1)] = _tmp;
+			count = count + 1;
+		}
+
+		print(*_number_buffer);
+	}
+}
+
+print_u64_hex :: fn (number: u64) {
+	print("0x");
+	if (number == 0) print("0");
+	else {
+		buffer_count := 0;
+
+		tmp : u64;
+		while (number > 0) {
+			tmp = number % 16;
+			number = number / 16;
+
+			if (tmp > 9) tmp = tmp + 7;
+
+			_number_buffer[buffer_count] = ASCII_ZERO + cast(u8) tmp;
+			buffer_count = buffer_count + 1;
 		}
 		_number_buffer[buffer_count] = 0;
 
