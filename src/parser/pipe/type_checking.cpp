@@ -252,8 +252,10 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 			check_type(param_exp);
 
 			if (param_decl_type != param_exp->inferred_type) {
-				/*Light_Compiler::inst->error(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
-					i, param_decl_type->name, param_exp->inferred_type->name);*/
+				if (!cast_if_possible(&param_exp, param_exp->inferred_type, param_decl_type)) {
+					Light_Compiler::inst->error(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
+						i, param_decl_type->name, param_exp->inferred_type->name);
+				}
 			}
 		}
 	} else {

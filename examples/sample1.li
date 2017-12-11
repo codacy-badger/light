@@ -19,6 +19,8 @@ main :: fn {
 
 	//RegisterClass(*WindowClass);
 
+	print_u32(123456);
+
 	test_factorial();
 	test_cast();
 	test_pointers();
@@ -107,8 +109,6 @@ test_cast :: fn {
 	assert(55 == 55);
 	assert(55 == num1);
 	assert(num2 == 755);
-
-	assert(-55 == -55);
 	assert(-55 == -num1);
 }
 
