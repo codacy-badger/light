@@ -326,12 +326,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
     			binop->inferred_type = Light_Compiler::inst->type_def_bool;
     			break;
     		}
-    		case AST_BINARY_ASSIGN:
-    		case AST_BINARY_ADD:
-    		case AST_BINARY_SUB:
-    		case AST_BINARY_MUL:
-    		case AST_BINARY_DIV:
-    		case AST_BINARY_REM: {
+    		default: {
     			binop->inferred_type = binop->lhs->inferred_type;
     			break;
     		}

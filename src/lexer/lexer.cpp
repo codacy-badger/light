@@ -263,7 +263,7 @@ bool Lexer::number () {
 	std::string _buff;
 	char c = this->buffer->peek(0);
 	if (c == '0' && this->buffer->peek(1) == 'x') {
-		while (DIGIT(c) || c == 'x') {
+		while (ALPHANUM(c) || c == 'x') {
 			_buff.push_back(c);
 			this->buffer->skip(1);
 			c = this->buffer->peek(0);
