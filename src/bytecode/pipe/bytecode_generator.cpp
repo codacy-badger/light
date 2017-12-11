@@ -292,10 +292,12 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 			this->gen(binop->rhs, left_value);
 
 			auto reg = this->current_register;
-			auto inst = new Inst_Set(this->current_register, BYTECODE_TYPE_U64, &element_size);
-            this->bytecode->push_back(copy_location_info(inst, binop));
-			auto inst1 = new Inst_Binary(BYTECODE_MUL, reg - 1, reg, BYTECODE_TYPE_U64);
-            this->bytecode->push_back(copy_location_info(inst1, binop));
+            if (element_size > 1) {
+    			auto inst = new Inst_Set(this->current_register, BYTECODE_TYPE_U64, &element_size);
+                this->bytecode->push_back(copy_location_info(inst, binop));
+    			auto inst1 = new Inst_Binary(BYTECODE_MUL, reg - 1, reg, BYTECODE_TYPE_U64);
+                this->bytecode->push_back(copy_location_info(inst1, binop));
+            }
 
 			reg = --this->current_register;
 			auto inst2 = new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64);

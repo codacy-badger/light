@@ -19,7 +19,8 @@ main :: fn {
 
 	//RegisterClass(*WindowClass);
 
-	print_u32(123456);
+	print("Dummy\n");
+	print_u64(123456789);
 
 	test_factorial();
 	test_cast();

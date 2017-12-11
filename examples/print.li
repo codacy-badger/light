@@ -20,7 +20,7 @@ print :: fn (str: *u8) {
 ASCII_ZERO :: 48;
 _number_buffer : [20] u8;
 
-print_u32 :: fn (number: u32) {
+print_u64 :: fn (number: u64) {
 	if (number == 0) print("0");
 	else {
 		buffer_count := 0;
@@ -35,21 +35,18 @@ print_u32 :: fn (number: u32) {
 			number = number / 10;
 		}
 		_number_buffer[buffer_count] = 0;
-		swap_buffer(*_number_buffer, buffer_count);
+
+		_tmp : u8;
+		count : u32 = 0;
+		half_length := buffer_count / 2;
+		while (count < half_length) {
+			_tmp = _number_buffer[count];
+			_number_buffer[count] = _number_buffer[buffer_count - (count + 1)];
+			_number_buffer[buffer_count - (count + 1)] = _tmp;
+			count = count + 1;
+		}
 
 		print(*_number_buffer);
-	}
-}
-
-swap_buffer :: fn (buffer: **u8, length: u32) {
-	_tmp : u8;
-	count : u32 = 0;
-	half_length := length / 2;
-	while (count < half_length) {
-		_tmp = &buffer[count];
-		&buffer[count] = &buffer[length - (count + 1)];
-		&buffer[length - (count + 1)] = _tmp;
-		count = count + 1;
 	}
 }
 
@@ -58,8 +55,7 @@ string_length :: fn (str: string) -> u32 {
 	char : u8 = &str;
 	while (char != 0) {
 		result = result + 1;
-		str = str + 1;
-		char = &str;
+		char = &(str + result);
 	}
 	return result;
 }

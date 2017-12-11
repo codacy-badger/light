@@ -291,8 +291,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
             Light_Compiler::inst->error_stop(binop, "Left of attribute access is not of struct type!");
         }
     } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
-		if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY
-			|| binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
+		if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 			auto arr_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
 			binop->inferred_type = static_cast<Ast_Type_Definition*>(arr_type->base);
 
