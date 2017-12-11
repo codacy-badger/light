@@ -15,7 +15,6 @@ struct Type_Checking : Pipe {
     void check_type (Ast_Expression* exp);
 
 	void check_type (Ast_Cast* cast);
-	void check_type (Ast_Pointer* ptr);
 	void check_type (Ast_Type_Definition* tydef);
 	void check_type (Ast_Function_Type* ty);
 	void check_type (Ast_Struct_Type* ty);

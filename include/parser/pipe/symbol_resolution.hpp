@@ -38,7 +38,6 @@ struct Symbol_Resolution : Pipe {
 
     void check_symbols (Ast_Expression** stm, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Cast** cast, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Pointer** ptr, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Ident** ident, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Binary** binary, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Unary** unary, vector<Ast_Ident**>* sym);

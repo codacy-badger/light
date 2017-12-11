@@ -21,6 +21,7 @@ struct Cast_Instance {
 struct Types {
     map<char*, Ast_Struct_Type*, cmp_str_types> struct_types;
     map<Ast_Expression*, Ast_Pointer_Type*> ptr_types;
+    map<Ast_Expression*, Ast_Array_Type*> arr_types;
     vector<Ast_Function_Type*> func_types;
 
     map<Ast_Type_Definition*, map<Ast_Type_Definition*, Cast_Instance*>> casts;
@@ -34,6 +35,10 @@ struct Types {
             case AST_TYPEDEF_POINTER: {
                 auto _ptr = static_cast<Ast_Pointer_Type*>(type_def);
                 return this->get_unique_pointer_type(_ptr);
+            }
+            case AST_TYPEDEF_ARRAY: {
+                auto _arr = static_cast<Ast_Array_Type*>(type_def);
+                return this->get_unique_array_type(_arr);
             }
             case AST_TYPEDEF_FUNCTION: {
                 auto _func = static_cast<Ast_Function_Type*>(type_def);
@@ -66,6 +71,19 @@ struct Types {
         } else {
             this->ptr_types[ptr_type->base] = ptr_type;
             return ptr_type;
+        }
+    }
+
+    Ast_Array_Type* get_unique_array_type (Ast_Array_Type* arr_type) {
+        auto it = this->arr_types.find(arr_type->base);
+        if (it != this->arr_types.end()) {
+    		if (arr_type != it->second) {
+    			delete arr_type;
+    			return it->second;
+    		} else return arr_type;
+        } else {
+            this->arr_types[arr_type->base] = arr_type;
+            return arr_type;
         }
     }
 
@@ -124,5 +142,82 @@ struct Types {
         if (cast_instance) {
             return cast_instance->is_implicid;
         } else return false;
+    }
+
+    void compute_type_name_if_needed (Ast_Type_Definition* type_def) {
+        switch (type_def->typedef_type) {
+            case AST_TYPEDEF_STRUCT: return;
+            case AST_TYPEDEF_POINTER: {
+                auto _ptr = static_cast<Ast_Pointer_Type*>(type_def);
+                if (_ptr->name == NULL) {
+            		auto base_type_def = static_cast<Ast_Type_Definition*>(_ptr->base);
+            		auto base_name_length = strlen(base_type_def->name);
+            		_ptr->name = (char*) malloc(base_name_length + 2);
+            		_ptr->name[0] = '*';
+            		strcpy(_ptr->name + 1, base_type_def->name);
+            		_ptr->name[base_name_length + 2] = '\0';
+            	}
+                return;
+            }
+            case AST_TYPEDEF_ARRAY: {
+                auto _arr = static_cast<Ast_Array_Type*>(type_def);
+                if (_arr->name == NULL) {
+            		auto base_type_def = static_cast<Ast_Type_Definition*>(_arr->base);
+            		auto base_name_length = strlen(base_type_def->name);
+            		_arr->name = (char*) malloc(base_name_length + 3);
+            		_arr->name[0] = '[';
+                    _arr->name[1] = ']';
+            		strcpy(_arr->name + 2, base_type_def->name);
+            		_arr->name[base_name_length + 3] = '\0';
+            	}
+                return;
+            }
+            case AST_TYPEDEF_FUNCTION: {
+                auto _func = static_cast<Ast_Function_Type*>(type_def);
+                if (_func->name == NULL) {
+            		auto par_decls = _func->parameter_decls;
+
+            		size_t name_size = strlen("fn (");
+            		if (par_decls.size() > 0) {
+            			auto type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
+            			name_size += strlen(type_def->name);
+            			for (int i = 1; i < par_decls.size(); i++) {
+            				name_size += strlen(", ");
+            				auto type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
+            				name_size += strlen(type_def->name);
+            			}
+            		}
+            		name_size += strlen(") -> ");
+            		auto type_def = static_cast<Ast_Type_Definition*>(_func->return_type);
+            		name_size += strlen(type_def->name);
+            		_func->name = (char*) malloc(name_size + 1);
+
+            		size_t offset = 0;
+            		strcpy(_func->name, "fn (");
+            		offset += strlen("fn (");
+
+            		if (par_decls.size() > 0) {
+            			auto type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
+            			strcpy(_func->name + offset, type_def->name);
+            			offset += strlen(type_def->name);
+            			for (int i = 1; i < par_decls.size(); i++) {
+            				strcpy(_func->name + offset, ", ");
+            				offset += strlen(", ");
+            				strcpy(_func->name + offset, type_def->name);
+            				offset += strlen(type_def->name);
+            			}
+            		}
+
+            		strcpy(_func->name + offset, ") -> ");
+            		offset += strlen(") -> ");
+            		type_def = static_cast<Ast_Type_Definition*>(_func->return_type);
+            		strcpy(_func->name + offset, type_def->name);
+            		offset += strlen(type_def->name);
+            		_func->name[offset] = '\0';
+            	}
+                return;
+            }
+            default: return;
+        }
     }
 };

@@ -182,8 +182,9 @@ void Ast_Unary::setOP (Token_Type tType) {
 
 Ast_Unary_Type Ast_Unary::typeToOP (Token_Type tType) {
 	switch (tType) {
-		case TOKEN_SUB: 		return AST_UNARY_NEGATE;
 		case TOKEN_AMP: 		return AST_UNARY_DEREFERENCE;
+		case TOKEN_MUL: 		return AST_UNARY_REFERENCE;
+		case TOKEN_SUB: 		return AST_UNARY_NEGATE;
 		case TOKEN_EXCLAMATION: return AST_UNARY_NOT;
 		default: 				return AST_UNARY_UNINITIALIZED;
 	};

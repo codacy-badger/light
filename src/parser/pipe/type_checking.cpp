@@ -129,9 +129,6 @@ void Type_Checking::check_type (Ast_Expression* exp) {
         case AST_EXPRESSION_CAST:
             check_type(static_cast<Ast_Cast*>(exp));
             break;
-        case AST_EXPRESSION_POINTER:
-            check_type(static_cast<Ast_Pointer*>(exp));
-            break;
         case AST_EXPRESSION_BINARY:
             check_type(static_cast<Ast_Binary*>(exp));
             break;
@@ -154,14 +151,6 @@ void Type_Checking::check_type (Ast_Cast* cast) {
 	if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
 		cast->inferred_type = static_cast<Ast_Type_Definition*>(cast->cast_to);
 	}
-}
-
-void Type_Checking::check_type (Ast_Pointer* ptr) {
-	check_type(ptr->base);
-    auto ptr_type = new Ast_Pointer_Type();
-    ptr_type->inferred_type = Light_Compiler::inst->type_def_type;
-    ptr_type->base = ptr->base->inferred_type;
-    ptr->inferred_type = ptr_type;
 }
 
 void Type_Checking::check_type (Ast_Type_Definition* tydef) {
@@ -249,15 +238,27 @@ void Type_Checking::check_type (Ast_Function* func) {
 
 void Type_Checking::check_type (Ast_Function_Call* call) {
     if (call->fn->exp_type != AST_EXPRESSION_FUNCTION)
-		Light_Compiler::inst->error_stop(call, "Function calls can only be performed in functions types!");
+		Light_Compiler::inst->error_stop(call, "Function calls can only be performed to functions types");
 
 	auto func = static_cast<Ast_Function*>(call->fn);
 	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
 	call->inferred_type = ret_ty;
 
-	if (call->args) {
-		for (auto exp : call->args->values)
-			check_type(exp);
+	if (call->args->values.size() == func->type->parameter_decls.size()) {
+		for (int i = 0; i < call->args->values.size(); i++) {
+			auto param_decl = func->type->parameter_decls[i];
+			auto param_decl_type = static_cast<Ast_Type_Definition*>(param_decl->type);
+			auto param_exp = call->args->values[i];
+			check_type(param_exp);
+
+			if (param_decl_type != param_exp->inferred_type) {
+				/*Light_Compiler::inst->error(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
+					i, param_decl_type->name, param_exp->inferred_type->name);*/
+			}
+		}
+	} else {
+		Light_Compiler::inst->error_stop(call, "Wrong number of arguments, function has %d, but call has %d",
+			func->type->parameter_decls.size(), call->args->values.size());
 	}
 }
 
@@ -364,6 +365,14 @@ void Type_Checking::check_type (Ast_Unary* unop) {
             } else {
                 Light_Compiler::inst->error_stop(unop, "Can't dereference a non-pointer type expression!");
             }
+            break;
+		}
+		case AST_UNARY_REFERENCE: {
+		    auto ptr_type = new Ast_Pointer_Type();
+		    ptr_type->inferred_type = Light_Compiler::inst->type_def_type;
+		    ptr_type->base = unop->exp->inferred_type;
+		    unop->inferred_type = Light_Compiler::inst->types->get_unique_pointer_type(ptr_type);
+			Light_Compiler::inst->types->compute_type_name_if_needed(unop->inferred_type);
             break;
 		}
 	}

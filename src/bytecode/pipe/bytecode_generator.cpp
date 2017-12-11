@@ -174,7 +174,6 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
 void Bytecode_Generator::gen (Ast_Expression* exp, bool left_value) {
     switch (exp->exp_type) {
         case AST_EXPRESSION_CAST: return this->gen(static_cast<Ast_Cast*>(exp));
-        case AST_EXPRESSION_POINTER: return this->gen(static_cast<Ast_Pointer*>(exp));
         case AST_EXPRESSION_LITERAL: return this->gen(static_cast<Ast_Literal*>(exp));
 		case AST_EXPRESSION_UNARY: return this->gen(static_cast<Ast_Unary*>(exp), left_value);
         case AST_EXPRESSION_BINARY: return this->gen(static_cast<Ast_Binary*>(exp), left_value);
@@ -191,14 +190,6 @@ void Bytecode_Generator::gen (Ast_Cast* cast) {
 	auto type_to = bytecode_get_type(cast->inferred_type);
 	auto inst = new Inst_Cast(this->current_register - 1, type_from, type_to);
 	this->bytecode->push_back(copy_location_info(inst, cast));
-}
-
-void Bytecode_Generator::gen (Ast_Pointer* ptr) {
-    if (ptr->base->exp_type == AST_EXPRESSION_IDENT) {
-        this->gen(static_cast<Ast_Ident*>(ptr->base), true);
-    } else {
-        Light_Compiler::inst->error_stop(ptr, "Reference operator only working of identifiers!");
-    }
 }
 
 void Bytecode_Generator::gen (Ast_Literal* lit) {
@@ -384,6 +375,13 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
             auto inst2 = new Inst_Load(reg, reg, unop->exp->inferred_type->byte_size);
             this->bytecode->push_back(copy_location_info(inst2, unop));
             break;
+        }
+        case AST_UNARY_REFERENCE: {
+            if (unop->exp->exp_type == AST_EXPRESSION_IDENT) {
+                this->gen(static_cast<Ast_Ident*>(unop->exp), true);
+            } else {
+                Light_Compiler::inst->error_stop(unop, "Reference operator only working of identifiers!");
+            }
         }
 		default: return;
 	}

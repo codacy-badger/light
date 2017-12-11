@@ -21,7 +21,6 @@ struct Bytecode_Generator : Pipe {
 
     void gen (Ast_Expression* exp, bool left_value = false);
 	void gen (Ast_Cast* cast);
-	void gen (Ast_Pointer* ptr);
 	void gen (Ast_Literal* lit);
 	void gen (Ast_Unary* unop, bool left_value = false);
 	void gen (Ast_Binary* binop, bool left_value = false);

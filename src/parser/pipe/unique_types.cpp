@@ -90,6 +90,10 @@ void Unique_Types::unique (Ast_Type_Definition** type_def) {
             this->unique(reinterpret_cast<Ast_Pointer_Type**>(type_def));
             break;
         }
+        case AST_TYPEDEF_ARRAY: {
+            this->unique(reinterpret_cast<Ast_Array_Type**>(type_def));
+            break;
+        }
         case AST_TYPEDEF_FUNCTION: {
             this->unique(reinterpret_cast<Ast_Function_Type**>(type_def));
             break;
@@ -108,15 +112,13 @@ void Unique_Types::unique (Ast_Struct_Type** _struct) {
 void Unique_Types::unique (Ast_Pointer_Type** ptr_type) {
     this->unique(&(*ptr_type)->base);
     (*ptr_type) = Light_Compiler::inst->types->get_unique_pointer_type(*ptr_type);
+    Light_Compiler::inst->types->compute_type_name_if_needed(*ptr_type);
+}
 
-	if ((*ptr_type)->name == NULL) {
-		auto base_type_def = static_cast<Ast_Type_Definition*>((*ptr_type)->base);
-		auto base_name_length = strlen(base_type_def->name);
-		(*ptr_type)->name = (char*) malloc(base_name_length + 2);
-		(*ptr_type)->name[0] = '*';
-		strcpy((*ptr_type)->name + 1, base_type_def->name);
-		(*ptr_type)->name[base_name_length + 2] = '\0';
-	}
+void Unique_Types::unique (Ast_Array_Type** arr_type) {
+    this->unique(&(*arr_type)->base);
+    (*arr_type) = Light_Compiler::inst->types->get_unique_array_type(*arr_type);
+    Light_Compiler::inst->types->compute_type_name_if_needed(*arr_type);
 }
 
 void Unique_Types::unique (Ast_Function_Type** func_type) {
@@ -126,46 +128,5 @@ void Unique_Types::unique (Ast_Function_Type** func_type) {
     this->unique(&(*func_type)->return_type);
 
     (*func_type) = Light_Compiler::inst->types->get_unique_function_type(*func_type);
-
-	if ((*func_type)->name == NULL) {
-		auto par_decls = (*func_type)->parameter_decls;
-
-		size_t name_size = strlen("fn (");
-		if (par_decls.size() > 0) {
-			auto type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
-			name_size += strlen(type_def->name);
-			for (int i = 1; i < par_decls.size(); i++) {
-				name_size += strlen(", ");
-				auto type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
-				name_size += strlen(type_def->name);
-			}
-		}
-		name_size += strlen(") -> ");
-		auto type_def = static_cast<Ast_Type_Definition*>((*func_type)->return_type);
-		name_size += strlen(type_def->name);
-		(*func_type)->name = (char*) malloc(name_size + 1);
-
-		size_t offset = 0;
-		strcpy((*func_type)->name, "fn (");
-		offset += strlen("fn (");
-
-		if (par_decls.size() > 0) {
-			auto type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
-			strcpy((*func_type)->name + offset, type_def->name);
-			offset += strlen(type_def->name);
-			for (int i = 1; i < par_decls.size(); i++) {
-				strcpy((*func_type)->name + offset, ", ");
-				offset += strlen(", ");
-				strcpy((*func_type)->name + offset, type_def->name);
-				offset += strlen(type_def->name);
-			}
-		}
-
-		strcpy((*func_type)->name + offset, ") -> ");
-		offset += strlen(") -> ");
-		type_def = static_cast<Ast_Type_Definition*>((*func_type)->return_type);
-		strcpy((*func_type)->name + offset, type_def->name);
-		offset += strlen(type_def->name);
-		(*func_type)->name[offset] = '\0';
-	}
+    Light_Compiler::inst->types->compute_type_name_if_needed(*func_type);
 }

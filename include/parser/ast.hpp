@@ -144,15 +144,6 @@ struct Ast_Cast : Ast_Expression {
 	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
 };
 
-struct Ast_Pointer : Ast_Expression {
-	Ast_Expression* base = NULL;
-
-	Ast_Pointer(Ast_Expression* base = NULL) {
-		this->exp_type = AST_EXPRESSION_POINTER;
-		this->base = base;
-	}
-};
-
 struct Ast_Comma_Separated_Arguments : Ast_Expression {
 	vector<Ast_Expression*> values;
 
@@ -283,6 +274,7 @@ struct Ast_Binary : Ast_Expression {
 enum Ast_Unary_Type {
 	AST_UNARY_UNINITIALIZED,
 	AST_UNARY_DEREFERENCE,
+	AST_UNARY_REFERENCE,
 	AST_UNARY_NOT,
 	AST_UNARY_NEGATE,
 };

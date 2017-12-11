@@ -180,18 +180,6 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
 		case AST_EXPRESSION_CAST:
 			check_symbols(reinterpret_cast<Ast_Cast**>(exp), sym);
 			break;
-		case AST_EXPRESSION_POINTER: {
-            auto ptr = reinterpret_cast<Ast_Pointer**>(exp);
-			check_symbols(ptr, sym);
-            if ((*ptr)->base->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-                auto ptr_type = new Ast_Pointer_Type();
-                ast_copy_location_info(ptr_type, (*ptr));
-                ptr_type->base = (*ptr)->base;
-                delete *exp;
-                (*exp) = ptr_type;
-            }
-			break;
-        }
         case AST_EXPRESSION_BINARY:
             check_symbols(reinterpret_cast<Ast_Binary**>(exp), sym);
 			break;
@@ -223,10 +211,6 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
 void Symbol_Resolution::check_symbols (Ast_Cast** cast, vector<Ast_Ident**>* sym) {
 	check_symbols(&(*cast)->value, sym);
 	check_symbols(&(*cast)->cast_to, sym);
-}
-
-void Symbol_Resolution::check_symbols (Ast_Pointer** ptr, vector<Ast_Ident**>* sym) {
-	check_symbols(&(*ptr)->base, sym);
 }
 
 void Symbol_Resolution::check_symbols (Ast_Function** fn, vector<Ast_Ident**>* sym) {

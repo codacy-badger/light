@@ -242,19 +242,6 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
 	return output;
 }
 
-Ast_Comma_Separated_Arguments* Parser::comma_separated_arguments (Ast_Expression* exp) {
-	if (!exp) exp = this->expression();
-	if (!exp) return NULL;
-
-	auto arguments = AST_NEW(Ast_Comma_Separated_Arguments);
-	while (exp != NULL) {
-		arguments->values.push_back(exp);
-		this->lexer->optional_skip(TOKEN_COMMA);
-		exp = this->expression();
-	}
-	return arguments;
-}
-
 Ast_Function* Parser::function (Ast_Function_Type* fn_type) {
 	if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
 		auto fn = AST_NEW(Ast_Function);
@@ -312,7 +299,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
 		return this->function(this->function_type());
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
-		return AST_NEW(Ast_Pointer, this->_atom());
+		return AST_NEW(Ast_Unary, TOKEN_MUL, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_EXCLAMATION)) {
 		return AST_NEW(Ast_Unary, TOKEN_EXCLAMATION, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_SUB)) {
@@ -388,6 +375,21 @@ Ast_Literal* Parser::literal () {
 		default: break;
 	}
 	return output;
+}
+
+Ast_Comma_Separated_Arguments* Parser::comma_separated_arguments () {
+	auto arguments = AST_NEW(Ast_Comma_Separated_Arguments);
+
+	auto exp = this->expression();
+	if (exp) {
+		while (exp != NULL) {
+			arguments->values.push_back(exp);
+			this->lexer->optional_skip(TOKEN_COMMA);
+			exp = this->expression();
+		}
+	}
+
+	return arguments;
 }
 
 Ast_Function_Call* Parser::call (Ast_Expression* callee) {

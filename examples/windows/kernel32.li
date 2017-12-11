@@ -5,11 +5,6 @@ STD_ERROR_HANDLE  : u32 : -12;
 
 INVALID_HANDLE_VALUE : s64 : -1;
 
-/* CUSTOM GLOBAL VARIABLES */
-stdin  :: 0;
-stdout :: 1;
-stderr :: 2;
-
 #foreign("kernel32")
 GetLastError : fn -> u16 :;
 
