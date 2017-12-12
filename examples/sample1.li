@@ -1,44 +1,47 @@
 import "examples/print.li"
 import "examples/windows/user32.li"
 
+#foreign("examples/window", "CustomWindowProc")
+CustomWindowProc : fn (hwnd: *void, uMsg: u32, wParam: s64, lParam: s64) -> s64 :;
+
 #run
 main :: fn {
 	//MessageBox(0, "This is a sample message", "Title", MB_RETRYCANCEL | MB_ICONINFORMATION);
 
-	instance := GetModuleHandle(0);
+	class_name := "DemoWindowClass";
 
 	WindowClass: WNDCLASSEX;
 	WindowClass.cbSize 			= 80;
-	WindowClass.style 			= CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-	WindowClass.lpfnWndProc 	= DefWindowProc;
+	WindowClass.style 			= 0;
+	WindowClass.lpfnWndProc 	= CustomWindowProc;
 	WindowClass.cbClsExtra 		= 0;
 	WindowClass.cbWndExtra 		= 0;
-	WindowClass.hInstance 		= instance;
+	WindowClass.hInstance 		= GetModuleHandle(0);
 	WindowClass.hIcon 			= 0;
 	WindowClass.hCursor 		= 0;
 	WindowClass.hbrBackground 	= 0;
 	WindowClass.lpszMenuName 	= 0;
-	WindowClass.lpszClassName 	= "DemoWindowClass";
+	WindowClass.lpszClassName 	= class_name;
 	WindowClass.hIconSm 		= 0;
 
 	atom := RegisterClassEx(*WindowClass);
 	if atom {
-		print("YAY1!\n");
+		print("RegisterClassEx success: ");
+		print_u64_hex(atom);
+		print("\n");
 
 		window_handle := CreateWindowEx(
-			0,
-			"DemoWindowClass",
-			"Finally!",
+			0, class_name, "Learn to Program Windows!",
 			WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-			50, 50,
-			800, 600,
-			0, 0, instance, 0
+			0, 0, 800, 600,
+			0, 0, GetModuleHandle(0), 0
 		);
 
-		if window_handle print("YAY2!\n");
-		else {
+		if window_handle {
+			print("YAY2!\n");
+		} else {
 			err := GetLastError();
-			print("CreateWindowEx error: ");
+			print("CreateWindowEx 2 error: ");
 			print_u64(err);
 			print("\n");
 		}
@@ -49,13 +52,13 @@ main :: fn {
 		print("\n");
 	}
 
-	test_factorial();
-	test_cast();
-	test_pointers();
-	test_struct();
-	test_decimals();
-	test_arrays();
-	test_division();
+	//test_factorial();
+	//test_cast();
+	//test_pointers();
+	//test_struct();
+	//test_decimals();
+	//test_arrays();
+	//test_division();
 }
 
 assert :: fn (condition: bool) {

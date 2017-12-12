@@ -177,7 +177,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 
 			size_t value = 0;
 			memcpy(&value, this->registers[call_param->index], size);
-			//printf("\t + Param value: %llX\n", value);
+			//printf("\t + Param #%u: %llX (%zd bytes)\n", call_param->index, value, size);
 			switch (call_param->bytecode_type) {
 				case BYTECODE_TYPE_VOID: break;
 				case BYTECODE_TYPE_S8: dcArgChar(vm, (int8_t) value); break;
@@ -190,7 +190,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 				case BYTECODE_TYPE_U64: dcArgLongLong(vm, (int64_t) value); break;
 				case BYTECODE_TYPE_F32: dcArgFloat(vm, (float) value); break;
 				case BYTECODE_TYPE_F64: dcArgDouble(vm, (double) value); break;
-				case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (char*) value); break;
+				case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (void*) value); break;
 			}
 			return;
 		}
@@ -413,8 +413,9 @@ void Bytecode_Interpreter::dump () {
 		if ((i + 1) % 4 == 0) printf("\n");
 		else printf("  ");
 	}
-	printf("\nStack [%lld / %d]\n\n\t", this->stack_index, INTERP_STACK_SIZE);
+	printf("\nStack [%lld / %d]\n\t", this->stack_index, INTERP_STACK_SIZE);
 	for (size_t i = 0; i < this->stack_index; i++) {
+		if ((i % 8) == 0) printf("\n");
 		printf("%02X ", this->stack[i]);
 		if ((i + 1) % 32 == 0) printf("\n\t");
 	}

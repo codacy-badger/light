@@ -108,3 +108,6 @@ CreateWindowEx : fn (
 	hInstance: *void,
 	lpParam: *void
 ) -> *void :;
+
+#foreign("user32")
+GetDesktopWindow : fn -> *void :;
