@@ -113,7 +113,10 @@ CreateWindowEx : fn (
 ) -> *void :;
 
 #foreign("user32")
-GetDesktopWindow : fn -> *void :;
+ShowWindow : fn (hWnd: *void, nCmdShow: s32) -> u8 :;
+
+#foreign("user32")
+DestroyWindow : fn (hWnd: *void) -> u8 :;
 
 POINT :: struct {
 	x: s32;

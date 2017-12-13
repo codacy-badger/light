@@ -1,0 +1,65 @@
+import "examples/windows/user32.li"
+
+// We're not aligning the stack memory, so declaring a 2 byte variable
+// will make all pointer to further variables not addressable
+atom : u16;
+
+window_create :: fn (name: string) -> *void {
+	window_class: WNDCLASSEXA;
+	window_class.cbSize 		= 80;
+	window_class.style 			= 0;
+	window_class.lpfnWndProc 	= DefWindowProc;
+	window_class.cbClsExtra 	= 0;
+	window_class.cbWndExtra 	= 0;
+	window_class.hInstance 		= GetModuleHandle(0);
+	window_class.hIcon 			= 0;
+	window_class.hCursor 		= 0;
+	window_class.hbrBackground 	= 0;
+	window_class.lpszMenuName 	= 0;
+	window_class.lpszClassName 	= "DemoWindowClass";
+	window_class.hIconSm 		= 0;
+
+	atom = RegisterClassEx(*window_class);
+	if !atom {
+		print("Wrong ATOM!\n");
+		return 0;
+	}
+
+	window_handle := CreateWindowEx(
+		0, window_class.lpszClassName, name,
+		WS_OVERLAPPEDWINDOW,
+		0, 0, 800, 600,
+		0, 0, window_class.hInstance, 0
+	);
+
+	if (window_handle == 0) {
+		err := GetLastError();
+		print("ERROR: CreateWindowEx -> ");
+		print_u64(err);
+		print("\n");
+	} else {
+		ShowWindow(window_handle, 5);
+		return window_handle;
+	}
+}
+
+// This blocks until windows is closed
+window_handle_events :: fn (window_handle: *void) {
+	msg: MSG;
+	while (GetMessage(*msg, window_handle, 0, 0)) {
+		if (msg.message == WM_NULL) break;
+
+		TranslateMessage(*msg);
+		DispatchMessage(*msg);
+	}
+}
+
+window_destroy :: fn (window_handle: *void) {
+	result := DestroyWindow(window_handle);
+	if !result {
+		err := GetLastError();
+		print("ERROR: DestroyWindow -> ");
+		print_u64(err);
+		print("\n");
+	}
+}

@@ -1,56 +1,12 @@
 import "examples/print.li"
-import "examples/windows/user32.li"
-
-// We're not aligning the stack memory, so declaring a 2byte variable
-// will make all pointer to further variables invalid
-atom : u16;
+import "examples/window.li"
 
 #run
 main :: fn {
 	//MessageBox(0, "This is a sample message", "Title", MB_RETRYCANCEL | MB_ICONINFORMATION);
 
-	window_class: WNDCLASSEXA;
-	window_class.cbSize 		= 80;
-	window_class.style 			= 0;
-	window_class.lpfnWndProc 	= DefWindowProc;
-	window_class.cbClsExtra 	= 0;
-	window_class.cbWndExtra 	= 0;
-	window_class.hInstance 		= GetModuleHandle(0);
-	window_class.hIcon 			= 0;
-	window_class.hCursor 		= 0;
-	window_class.hbrBackground 	= 0;
-	window_class.lpszMenuName 	= 0;
-	window_class.lpszClassName 	= "DemoWindowClass";
-	window_class.hIconSm 		= 0;
-
-	atom = RegisterClassEx(*window_class);
-	if !atom print("Wrong ATOM!\n");
-
-	window_handle := CreateWindowEx(
-		0, window_class.lpszClassName, "Window Name",
-		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-		0, 0, 800, 600,
-		0, 0, window_class.hInstance, 0
-	);
-
-	if (window_handle == 0) {
-		err := GetLastError();
-		print("ERROR: CreateWindowEx -> ");
-		print_u64(err);
-		print("\n");
-	} else {
-		/*msg: MSG;
-		while (GetMessage(*msg, window_handle, 0, 0)) {
-			if (msg.message == WM_NULL) break;
-
-			print("Message: ");
-			print_u64(msg.message);
-			print("\n");
-
-			TranslateMessage(*msg);
-			DispatchMessage(*msg);
-		}*/
-	}
+	window_handle := window_create("Light Demo");
+	//window_handle_events(window_handle);
 
 	test_factorial();
 	test_cast();
