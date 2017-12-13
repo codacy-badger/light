@@ -1,64 +1,52 @@
 import "examples/print.li"
 import "examples/windows/user32.li"
 
-#foreign("examples/window", "CustomWindowProc")
-CustomWindowProc : fn (hwnd: *void, uMsg: u32, wParam: s64, lParam: s64) -> s64 :;
+// We're not aligning the stack memory, so declaring a 2byte variable
+// will make all pointer to further variables invalid
+atom : u16;
 
 #run
 main :: fn {
 	//MessageBox(0, "This is a sample message", "Title", MB_RETRYCANCEL | MB_ICONINFORMATION);
 
-	class_name := "DemoWindowClass";
+	window_class: WNDCLASSEXA;
+	window_class.cbSize 		= 80;
+	window_class.style 			= 0;
+	window_class.lpfnWndProc 	= DefWindowProc;
+	window_class.cbClsExtra 	= 0;
+	window_class.cbWndExtra 	= 0;
+	window_class.hInstance 		= GetModuleHandle(0);
+	window_class.hIcon 			= 0;
+	window_class.hCursor 		= 0;
+	window_class.hbrBackground 	= 0;
+	window_class.lpszMenuName 	= 0;
+	window_class.lpszClassName 	= "DemoWindowClass";
+	window_class.hIconSm 		= 0;
 
-	WindowClass: WNDCLASSEX;
-	WindowClass.cbSize 			= 80;
-	WindowClass.style 			= 0;
-	WindowClass.lpfnWndProc 	= CustomWindowProc;
-	WindowClass.cbClsExtra 		= 0;
-	WindowClass.cbWndExtra 		= 0;
-	WindowClass.hInstance 		= GetModuleHandle(0);
-	WindowClass.hIcon 			= 0;
-	WindowClass.hCursor 		= 0;
-	WindowClass.hbrBackground 	= 0;
-	WindowClass.lpszMenuName 	= 0;
-	WindowClass.lpszClassName 	= class_name;
-	WindowClass.hIconSm 		= 0;
+	atom = RegisterClassEx(*window_class);
+	if !atom print("Wrong ATOM!\n");
 
-	atom := RegisterClassEx(*WindowClass);
-	if atom {
-		print("RegisterClassEx success: ");
-		print_u64_hex(atom);
-		print("\n");
+	window_handle := CreateWindowEx(
+		0, window_class.lpszClassName, "Window Name",
+		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+		0, 0, 800, 600,
+		0, 0, window_class.hInstance, 0
+	);
 
-		window_handle := CreateWindowEx(
-			0, class_name, "Learn to Program Windows!",
-			WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-			0, 0, 800, 600,
-			0, 0, GetModuleHandle(0), 0
-		);
-
-		if window_handle {
-			print("YAY2!\n");
-		} else {
-			err := GetLastError();
-			print("CreateWindowEx 2 error: ");
-			print_u64(err);
-			print("\n");
-		}
-	} else {
+	if (window_handle == 0) {
 		err := GetLastError();
-		print("RegisterClassEx error: ");
+		print("ERROR: CreateWindowEx -> ");
 		print_u64(err);
 		print("\n");
 	}
 
-	//test_factorial();
-	//test_cast();
-	//test_pointers();
-	//test_struct();
-	//test_decimals();
-	//test_arrays();
-	//test_division();
+	test_factorial();
+	test_cast();
+	test_pointers();
+	test_struct();
+	test_decimals();
+	test_arrays();
+	test_division();
 }
 
 assert :: fn (condition: bool) {

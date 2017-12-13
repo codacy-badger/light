@@ -36,7 +36,7 @@ struct Bytecode_Interpreter {
 
 	DCCallVM* vm = NULL;
 
-	Bytecode_Interpreter (size_t vm_size = 64);
+	Bytecode_Interpreter (size_t vm_size = 512);
 	~Bytecode_Interpreter ();
 
 	void set (Ast_Comma_Separated_Arguments* args);

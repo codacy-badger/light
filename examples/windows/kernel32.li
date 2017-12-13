@@ -22,3 +22,6 @@ WriteFile : fn (handle: *void, buffer: *void, bytes_to_write: u32, written_bytes
 
 #foreign("kernel32")
 GetConsoleMode : fn (handle: *void, mode: *u32) -> u8 :;
+
+#foreign("kernel32")
+IsBadReadPtr : fn (lp: *void, ucb: u64) -> u8 :;

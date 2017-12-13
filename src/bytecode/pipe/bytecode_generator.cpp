@@ -317,11 +317,11 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 		}
 		case AST_BINARY_ASSIGN: {
             auto size = binop->rhs->inferred_type->byte_size;
+			this->gen(binop->rhs, left_value);
         	this->gen(binop->lhs, true);
-        	this->gen(binop->rhs, left_value);
             this->current_register--;
 			auto reg = this->current_register;
-            auto inst2 = new Inst_Store(reg - 1, reg, size);
+            auto inst2 = new Inst_Store(reg, reg - 1, size);
             this->bytecode->push_back(copy_location_info(inst2, binop));
 			break;
 		}

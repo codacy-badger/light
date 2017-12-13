@@ -42,7 +42,7 @@ CS_PARENTDC 			:: 0x0080;
 CS_SAVEBITS				:: 0x0800;
 CS_VREDRAW				:: 0x0001;
 
-WNDCLASSEX :: struct {
+WNDCLASSEXA :: struct {
 	cbSize:			u32;
 	style: 			u32;
 	lpfnWndProc: 	fn (hwnd: *void, uMsg: u32, wParam: s64, lParam: s64) -> s64;
@@ -61,7 +61,10 @@ WNDCLASSEX :: struct {
 DefWindowProc : fn (hwnd: *void, uMsg: u32, wParam: s64, lParam: s64) -> s64 :;
 
 #foreign("user32", "RegisterClassExA")
-RegisterClassEx : fn (lpWndClass: *WNDCLASSEX) -> u16 :;
+RegisterClassEx : fn (lpWndClass: *WNDCLASSEXA) -> u16 :;
+
+#foreign("user32", "GetClassInfoExA")
+GetClassInfoEx : fn (hInstance: *void, lpClassName: *u8, lpWndClass: *WNDCLASSEXA) -> u8 :;
 
 WS_BORDER			:: 0x00800000;
 WS_CAPTION			:: 0x00C00000;

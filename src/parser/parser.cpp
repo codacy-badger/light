@@ -288,7 +288,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->lexer->optional_skip(TOKEN_CAST)) {
 		auto cast = AST_NEW(Ast_Cast);
 		this->lexer->check_skip(TOKEN_PAR_OPEN);
-		cast->cast_to = this->_atom();
+		cast->cast_to = this->type_definition();
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		cast->value = this->_atom();
 		return cast;

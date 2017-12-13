@@ -203,6 +203,7 @@ struct Types {
             			for (int i = 1; i < par_decls.size(); i++) {
             				strcpy(_func->name + offset, ", ");
             				offset += strlen(", ");
+                            type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
             				strcpy(_func->name + offset, type_def->name);
             				offset += strlen(type_def->name);
             			}
