@@ -114,3 +114,28 @@ CreateWindowEx : fn (
 
 #foreign("user32")
 GetDesktopWindow : fn -> *void :;
+
+POINT :: struct {
+	x: s32;
+	y: s32;
+}
+
+MSG :: struct {
+	hwnd: 		*void;
+	message: 	u32;
+	wParam: 	*void;
+	lParam: 	*void;
+	time: 		u32;
+	pt: 		POINT;
+}
+
+WM_NULL :: 0;
+
+#foreign("user32", "GetMessageA")
+GetMessage : fn (lpMsg: *MSG, hWnd: *void, wMsgFilterMin: u32, wMsgFilterMax: u32) -> u8 :;
+
+#foreign("user32")
+TranslateMessage : fn (lpmsg: *MSG) -> u8 :;
+
+#foreign("user32", "DispatchMessageA")
+DispatchMessage : fn (lpmsg: *MSG) -> *void :;

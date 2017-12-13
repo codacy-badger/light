@@ -32,6 +32,7 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_BLOCK,
 	AST_STATEMENT_IF,
 	AST_STATEMENT_WHILE,
+	AST_STATEMENT_BREAK,
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
 	AST_STATEMENT_IMPORT,
@@ -76,6 +77,10 @@ struct Ast_While : Ast_Statement {
 	Ast_Statement* statement = NULL;
 
 	Ast_While () { this->stm_type = AST_STATEMENT_WHILE; }
+};
+
+struct Ast_Break : Ast_Statement {
+	Ast_Break () { this->stm_type = AST_STATEMENT_BREAK; }
 };
 
 const uint8_t AST_DECL_FLAG_CONSTANT = 0x1;

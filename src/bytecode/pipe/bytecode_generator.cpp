@@ -36,6 +36,10 @@ void Bytecode_Generator::gen (Ast_Statement* stm) {
 			this->gen(static_cast<Ast_While*>(stm));
 			break;
 		}
+		case AST_STATEMENT_BREAK: {
+			this->gen(static_cast<Ast_Break*>(stm));
+			break;
+		}
 		case AST_STATEMENT_EXPRESSION: {
 			this->gen(static_cast<Ast_Expression*>(stm));
 			break;
@@ -87,9 +91,9 @@ void Bytecode_Generator::gen (Ast_While* _while) {
 
 	this->gen(_while->condition);
 
-	auto index2 = this->bytecode->size() + 1;
 	auto jmp1 = new Inst_Jump_If_False(0);
 	this->bytecode->push_back(copy_location_info(jmp1, _while));
+	auto index2 = this->bytecode->size();
 
 	this->gen(_while->statement);
 
@@ -97,6 +101,15 @@ void Bytecode_Generator::gen (Ast_While* _while) {
 	this->bytecode->push_back(copy_location_info(jmp2, _while));
 	jmp2->offset = index1 - this->bytecode->size();
 	jmp1->offset = this->bytecode->size() - index2;
+
+	this->update_pending_breaks();
+}
+
+void Bytecode_Generator::gen (Ast_Break* _break) {
+	auto jump = new Inst_Jump();
+	this->bytecode->push_back(copy_location_info(jump, _break));
+	this->pending_breaks.push_back(jump);
+	jump->offset = this->bytecode->size();
 }
 
 void Bytecode_Generator::fill (Ast_Function* fn) {
@@ -497,4 +510,12 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	}
 
 	this->current_register = _tmp + 1;
+}
+
+void Bytecode_Generator::update_pending_breaks () {
+	while (!this->pending_breaks.empty()) {
+		auto jump = this->pending_breaks.back();
+		jump->offset = this->bytecode->size() - jump->offset;
+		this->pending_breaks.pop_back();
+	}
 }

@@ -85,6 +85,9 @@ bool Lexer::parse_next () {
 		} else if (strcmp(nextText, "while") == 0) {
 			this->nextType = TOKEN_WHILE;
 			return true;
+		} else if (strcmp(nextText, "break") == 0) {
+			this->nextType = TOKEN_BREAK;
+			return true;
 		} else if (strcmp(nextText, "cast") == 0) {
 			this->nextType = TOKEN_CAST;
 			return true;
@@ -159,6 +162,7 @@ const char* Lexer::get_name (Token_Type type) {
 		CASE_ENUM_TEXT(TOKEN_IF, "if")
 		CASE_ENUM_TEXT(TOKEN_ELSE, "else")
 		CASE_ENUM_TEXT(TOKEN_WHILE, "while")
+		CASE_ENUM_TEXT(TOKEN_BREAK, "break")
 		CASE_ENUM_TEXT(TOKEN_CAST, "cast")
 		CASE_ENUM_TEXT(TOKEN_STRUCT, "struct")
 		CASE_ENUM_TEXT(TOKEN_FUNCTION, "fn")

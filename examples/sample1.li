@@ -38,6 +38,18 @@ main :: fn {
 		print("ERROR: CreateWindowEx -> ");
 		print_u64(err);
 		print("\n");
+	} else {
+		/*msg: MSG;
+		while (GetMessage(*msg, window_handle, 0, 0)) {
+			if (msg.message == WM_NULL) break;
+
+			print("Message: ");
+			print_u64(msg.message);
+			print("\n");
+
+			TranslateMessage(*msg);
+			DispatchMessage(*msg);
+		}*/
 	}
 
 	test_factorial();

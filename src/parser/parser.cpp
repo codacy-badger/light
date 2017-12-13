@@ -148,6 +148,12 @@ Ast_Statement* Parser::statement () {
 				return stm_while;
 			} else return NULL;
 		}
+		case TOKEN_BREAK: {
+			if (this->lexer->optional_skip(TOKEN_BREAK)) {
+				this->lexer->optional_skip(TOKEN_STM_END);
+				return AST_NEW(Ast_Break);
+			} else return NULL;
+		}
 		case TOKEN_RETURN: {
 			this->lexer->skip(1);
 			auto output = AST_NEW(Ast_Return);
