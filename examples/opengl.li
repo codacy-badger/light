@@ -1,0 +1,13 @@
+
+#foreign("opengl32")
+glViewport : fn (x: s32, y: s32, width: s32, height: s32) :;
+
+#foreign("opengl32")
+glClearColor : fn (red: f32, green: f32, blue: f32, alpha: f32) :;
+
+GL_DEPTH_BUFFER_BIT  	:: 0x00000100;
+GL_STENCIL_BUFFER_BIT	:: 0x00000400;
+GL_COLOR_BUFFER_BIT  	:: 0x00004000;
+
+#foreign("opengl32")
+glClear : fn (mask: u32) :;

@@ -1,6 +1,8 @@
 import "examples/print.li"
 import "examples/window.li"
+import "examples/windows/gdi32.li"
 import "examples/windows/opengl.li"
+import "examples/opengl.li"
 
 #run
 main :: fn {
@@ -11,20 +13,71 @@ main :: fn {
 	print_u64_hex(cast(u64) window_handle);
 	print("\n");
 
-	//window_handle_events(window_handle);
-
 	window_dc := GetDC(window_handle);
 	print("window_dc -> ");
 	print_u64_hex(cast(u64) window_dc);
 	print("\n");
 
-	// TODO: set pixel format for window DC
+	desired_pixel_format: PIXELFORMATDESCRIPTOR;
+	desired_pixel_format.nSize				= 40;
+	desired_pixel_format.nVersion			= 1;
+	desired_pixel_format.dwFlags			= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	desired_pixel_format.iPixelType			= PFD_TYPE_RGBA;
+	desired_pixel_format.cColorBits			= 32;
+	desired_pixel_format.cRedBits			= 0;
+	desired_pixel_format.cRedShift			= 0;
+	desired_pixel_format.cGreenBits			= 0;
+	desired_pixel_format.cGreenShift		= 0;
+	desired_pixel_format.cBlueBits			= 0;
+	desired_pixel_format.cBlueShift			= 0;
+	desired_pixel_format.cAlphaBits			= 8;
+	desired_pixel_format.cAlphaShift		= 0;
+	desired_pixel_format.cAccumBits			= 0;
+	desired_pixel_format.cAccumRedBits		= 0;
+	desired_pixel_format.cAccumGreenBits	= 0;
+	desired_pixel_format.cAccumBlueBits		= 0;
+	desired_pixel_format.cAccumAlphaBits	= 0;
+	desired_pixel_format.cDepthBits			= 0;
+	desired_pixel_format.cStencilBits		= 0;
+	desired_pixel_format.cAuxBuffers		= 0;
+	desired_pixel_format.iLayerType			= PFD_MAIN_PLANE;
+	desired_pixel_format.bReserved			= 0;
+	desired_pixel_format.dwLayerMask		= 0;
+	desired_pixel_format.dwVisibleMask		= 0;
+	desired_pixel_format.dwDamageMask		= 0;
+
+	suggested_index := ChoosePixelFormat(window_dc, *desired_pixel_format);
+	DescribePixelFormat(window_dc, suggested_index, 40, *desired_pixel_format);
+	SetPixelFormat(window_dc, suggested_index, *desired_pixel_format);
 
 	gl_context := wglCreateContext(window_dc);
 	if gl_context {
 		print("gl_context -> ");
 		print_u64_hex(cast(u64) gl_context);
 		print("\n");
+
+		if wglMakeCurrent(window_dc, gl_context) {
+			glClearColor(1, 0, 1, 1);
+
+			glClear(GL_COLOR_BUFFER_BIT);
+			SwapBuffers(window_dc);
+
+			/*msg: MSG;
+			while (GetMessage(*msg, window_handle, 0, 0)) {
+				if (msg.message == WM_NULL) break;
+
+				TranslateMessage(*msg);
+				DispatchMessage(*msg);
+
+				glClear(GL_COLOR_BUFFER_BIT);
+				SwapBuffers(window_dc);
+			}*/
+		} else {
+			err := GetLastError();
+			print("ERROR: wglCreateContext -> ");
+			print_u64(err);
+			print("\n");
+		}
 	} else {
 		err := GetLastError();
 		print("ERROR: wglCreateContext -> ");
