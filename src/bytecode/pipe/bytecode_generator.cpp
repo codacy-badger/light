@@ -221,7 +221,7 @@ void Bytecode_Generator::gen (Ast_Literal* lit) {
     			auto inst = new Inst_Set(this->current_register++, bytecode_type, &_tmp);
                 this->bytecode->push_back(copy_location_info(inst, lit));
             } else {
-                auto inst = new Inst_Set(this->current_register++, bytecode_type, &lit->int_value);
+                auto inst = new Inst_Set(this->current_register++, bytecode_type, &lit->decimal_value);
                 this->bytecode->push_back(copy_location_info(inst, lit));
             }
             break;

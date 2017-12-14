@@ -175,22 +175,40 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
 			auto size = bytecode_get_size(call_param->bytecode_type);
 
-			size_t value = 0;
-			memcpy(&value, this->registers[call_param->index], size);
 			//printf("\t + Param #%u: %llX (%zd bytes)\n", call_param->index, value, size);
 			switch (call_param->bytecode_type) {
 				case BYTECODE_TYPE_VOID: break;
-				case BYTECODE_TYPE_S8: dcArgChar(vm, (int8_t) value); break;
-				case BYTECODE_TYPE_S16: dcArgShort(vm, (int16_t) value); break;
-				case BYTECODE_TYPE_S32: dcArgInt(vm, (int32_t) value); break;
-				case BYTECODE_TYPE_S64: dcArgLongLong(vm, (int64_t) value); break;
-				case BYTECODE_TYPE_U8: dcArgChar(vm, (int8_t) value); break;
-				case BYTECODE_TYPE_U16: dcArgShort(vm, (int16_t) value); break;
-				case BYTECODE_TYPE_U32: dcArgInt(vm, (int32_t) value); break;
-				case BYTECODE_TYPE_U64: dcArgLongLong(vm, (int64_t) value); break;
-				case BYTECODE_TYPE_F32: dcArgFloat(vm, (float) value); break;
-				case BYTECODE_TYPE_F64: dcArgDouble(vm, (double) value); break;
-				case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (void*) value); break;
+				case BYTECODE_TYPE_S8:
+				case BYTECODE_TYPE_S16:
+				case BYTECODE_TYPE_S32:
+				case BYTECODE_TYPE_S64:
+				case BYTECODE_TYPE_U8:
+				case BYTECODE_TYPE_U16:
+				case BYTECODE_TYPE_U32:
+				case BYTECODE_TYPE_U64:
+				case BYTECODE_TYPE_POINTER: {
+					size_t value = 0;
+					memcpy(&value, this->registers[call_param->index], size);
+					switch (size) {
+						case 1: dcArgChar(vm, value);		break;
+						case 2: dcArgShort(vm, value);		break;
+						case 4: dcArgInt(vm, value);		break;
+						case 8: dcArgLongLong(vm, value);	break;
+					}
+					break;
+				}
+				case BYTECODE_TYPE_F32: {
+					float value = 0;
+					memcpy(&value, this->registers[call_param->index], 4);
+					dcArgFloat(vm, value);
+					break;
+				}
+				case BYTECODE_TYPE_F64: {
+					double value = 0;
+					memcpy(&value, this->registers[call_param->index], 8);
+					dcArgDouble(vm, value);
+					break;
+				}
 			}
 			return;
 		}

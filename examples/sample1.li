@@ -57,10 +57,17 @@ main :: fn {
 		print("\n");
 
 		if wglMakeCurrent(window_dc, gl_context) {
-			glClearColor(1, 0, 1, 1);
+			glClearColor(1, 0.26, 0.68, 1);
 
-			glClear(GL_COLOR_BUFFER_BIT);
-			SwapBuffers(window_dc);
+			_tmp_string := glGetString(GL_VENDOR);
+			print(_tmp_string);
+			print("\n");
+			_tmp_string = glGetString(GL_RENDERER);
+			print(_tmp_string);
+			print("\n");
+			_tmp_string = glGetString(GL_VERSION);
+			print(_tmp_string);
+			print("\n");
 
 			/*msg: MSG;
 			while (GetMessage(*msg, window_handle, 0, 0)) {
@@ -85,13 +92,13 @@ main :: fn {
 		print("\n");
 	}
 
-	test_factorial();
-	test_cast();
-	test_pointers();
-	test_struct();
-	test_decimals();
-	test_arrays();
-	test_division();
+	//test_factorial();
+	//test_cast();
+	//test_pointers();
+	//test_struct();
+	//test_decimals();
+	//test_arrays();
+	//test_division();
 }
 
 assert :: fn (condition: bool) {
