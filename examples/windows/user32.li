@@ -113,6 +113,9 @@ CreateWindowEx : fn (
 ) -> *void :;
 
 #foreign("user32")
+GetDC : fn (hWnd: *void) -> *void :;
+
+#foreign("user32")
 ShowWindow : fn (hWnd: *void, nCmdShow: s32) -> u8 :;
 
 #foreign("user32")

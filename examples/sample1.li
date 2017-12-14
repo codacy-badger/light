@@ -1,12 +1,36 @@
 import "examples/print.li"
 import "examples/window.li"
+import "examples/windows/opengl.li"
 
 #run
 main :: fn {
 	//MessageBox(0, "This is a sample message", "Title", MB_RETRYCANCEL | MB_ICONINFORMATION);
 
 	window_handle := window_create("Light Demo");
+	print("window_handle -> ");
+	print_u64_hex(cast(u64) window_handle);
+	print("\n");
+
 	//window_handle_events(window_handle);
+
+	window_dc := GetDC(window_handle);
+	print("window_dc -> ");
+	print_u64_hex(cast(u64) window_dc);
+	print("\n");
+
+	// TODO: set pixel format for window DC
+
+	gl_context := wglCreateContext(window_dc);
+	if gl_context {
+		print("gl_context -> ");
+		print_u64_hex(cast(u64) gl_context);
+		print("\n");
+	} else {
+		err := GetLastError();
+		print("ERROR: wglCreateContext -> ");
+		print_u64(err);
+		print("\n");
+	}
 
 	test_factorial();
 	test_cast();
