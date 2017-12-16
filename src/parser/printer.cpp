@@ -103,11 +103,11 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs, bool name_only) {
 			break;
 		}
 		case AST_EXPRESSION_IDENT: {
-			print(static_cast<Ast_Ident*>(exp), tabs);
+			print(static_cast<Ast_Ident*>(exp));
 			break;
 		}
 		case AST_EXPRESSION_LITERAL: {
-			print(static_cast<Ast_Literal*>(exp), tabs);
+			print(static_cast<Ast_Literal*>(exp));
 			break;
 		}
 		default: printf("-EXP?-");
@@ -148,7 +148,7 @@ void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool name_only) {
 	}
 }
 
-void ASTPrinter::print (Ast_Function_Type* type, int tabs, bool name_only) {
+void ASTPrinter::print (Ast_Function_Type* type, int tabs) {
 	printf("fn ( ");
 	if (type->parameter_decls.size() > 0) {
 		print(type->parameter_decls[0], tabs);
@@ -162,7 +162,7 @@ void ASTPrinter::print (Ast_Function_Type* type, int tabs, bool name_only) {
 	print(type->return_type, tabs, true);
 }
 
-void ASTPrinter::print (Ast_Pointer_Type* type, int tabs, bool name_only) {
+void ASTPrinter::print (Ast_Pointer_Type* type, int tabs) {
 	printf("*");
 	print(type->base, tabs, true);
 }
@@ -219,11 +219,11 @@ void ASTPrinter::print (Ast_Function_Call* call, int tabs) {
 	printf(" )");
 }
 
-void ASTPrinter::print (Ast_Ident* ident, int tabs) {
+void ASTPrinter::print (Ast_Ident* ident) {
 	printf("%s", ident->name);
 }
 
-void ASTPrinter::print (Ast_Literal* cons, int tabs) {
+void ASTPrinter::print (Ast_Literal* cons) {
 	switch (cons->literal_type) {
 		case AST_LITERAL_SIGNED_INT:	printf("%lld", cons->int_value); break;
 		case AST_LITERAL_UNSIGNED_INT:	printf("%lld", cons->uint_value); break;

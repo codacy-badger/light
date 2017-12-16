@@ -31,7 +31,7 @@ struct Lexer {
 	bool id ();
 	bool string ();
 	bool number ();
-	void handleToken (Token_Type type, const char* text);
+	void handle_token (Token_Type type, const char* text = NULL);
 	bool skip_ignored_and_comments ();
 
 	Lexer* push (const char* filepath);

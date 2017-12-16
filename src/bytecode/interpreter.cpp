@@ -138,6 +138,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			size_t a = 0;
 			auto size = bytecode_get_size(unary->bytecode_type);
 			memcpy(&a, this->registers[unary->reg], size);
+			// TODO: move this to primitive_unary.hpp file
 			switch (unary->unop) {
 				case BYTECODE_LOGICAL_NEGATE: 		a = !a; break;
 				case BYTECODE_ARITHMETIC_NEGATE: 	a = -a; break;
@@ -190,10 +191,10 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 					size_t value = 0;
 					memcpy(&value, this->registers[call_param->index], size);
 					switch (size) {
-						case 1: dcArgChar(vm, value);		break;
-						case 2: dcArgShort(vm, value);		break;
-						case 4: dcArgInt(vm, value);		break;
-						case 8: dcArgLongLong(vm, value);	break;
+						case 1: dcArgChar(vm, 		(char) 	value);		break;
+						case 2: dcArgShort(vm, 		(short) value);		break;
+						case 4: dcArgInt(vm, 		(int) 	value);		break;
+						case 8: dcArgLongLong(vm, 	(long long) value);		break;
 					}
 					break;
 				}
@@ -316,37 +317,37 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_CONSTANT_OFFSET: {
 			auto coff = static_cast<Inst_Constant_Offset*>(inst);
-			printf("CONSTANT_OFFSET, %d, %d", coff->reg, coff->offset);
+			printf("CONSTANT_OFFSET, %d, %zd", coff->reg, coff->offset);
 			break;
 		}
 		case BYTECODE_GLOBAL_OFFSET: {
 			auto gloff = static_cast<Inst_Global_Offset*>(inst);
-			printf("GLOBAL_OFFSET, %d, %d", gloff->reg, gloff->offset);
+			printf("GLOBAL_OFFSET, %d, %zd", gloff->reg, gloff->offset);
 			break;
 		}
 		case BYTECODE_STACK_ALLOCATE: {
 			auto alloca = static_cast<Inst_Stack_Allocate*>(inst);
-			printf("STACK_ALLOCATE %d", alloca->size);
+			printf("STACK_ALLOCATE %zd", alloca->size);
 			break;
 		}
 		case BYTECODE_STACK_FREE: {
 			auto _free = static_cast<Inst_Stack_Free*>(inst);
-			printf("STACK_FREE %d", _free->size);
+			printf("STACK_FREE %zd", _free->size);
 			break;
 		}
 		case BYTECODE_STACK_OFFSET: {
 			auto stoff = static_cast<Inst_Stack_Offset*>(inst);
-			printf("STACK_OFFSET %d, %d", stoff->reg, stoff->offset);
+			printf("STACK_OFFSET %d, %zd", stoff->reg, stoff->offset);
 			break;
 		}
 		case BYTECODE_LOAD: {
 			auto load = static_cast<Inst_Load*>(inst);
-			printf("LOAD %d, %d, %d", load->dest, load->src, load->size);
+			printf("LOAD %d, %d, %zd", load->dest, load->src, load->size);
 			break;
 		}
 		case BYTECODE_STORE: {
 			auto store = static_cast<Inst_Store*>(inst);
-			printf("STORE %d, %d, %d", store->dest, store->src, store->size);
+			printf("STORE %d, %d, %zd", store->dest, store->src, store->size);
 			break;
 		}
 		case BYTECODE_UNARY: {
@@ -389,12 +390,12 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_JUMP: {
 			auto jump = static_cast<Inst_Jump*>(inst);
-			printf("JUMP %d", jump->offset);
+			printf("JUMP %zd", jump->offset);
 			break;
 		}
 		case BYTECODE_JUMP_IF_FALSE: {
 			auto jump_if_true = static_cast<Inst_Jump_If_False*>(inst);
-			printf("JUMP_IF_FALSE %d, %d", jump_if_true->reg, jump_if_true->offset);
+			printf("JUMP_IF_FALSE %d, %zd", jump_if_true->reg, jump_if_true->offset);
 			break;
 		}
 		case BYTECODE_CALL_SETUP: {

@@ -18,15 +18,15 @@ void* Foreign_Functions::get_or_add_module (string module_name) {
 }
 
 void* Foreign_Functions::get_or_add_function (void* module, string function_name) {
-	auto function_pointers = this->function_pointers[module];
-	auto func_it = function_pointers.find(function_name);
-	if (func_it == function_pointers.end()) {
+	auto module_functions = this->function_pointers[module];
+	auto func_it = module_functions.find(function_name);
+	if (func_it == module_functions.end()) {
 		auto function = GetProcAddress((HMODULE)module, function_name.c_str());
 		if (function) {
 			this->function_pointers[module][function_name] = function;
 		}
 		return function;
 	} else {
-		return function_pointers[function_name];
+		return module_functions[function_name];
 	}
 }

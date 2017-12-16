@@ -17,7 +17,6 @@ Ast_Note* remove_run_note (Ast_Declaration* decl) {
 }
 
 size_t run_function (Ast_Function* func, Ast_Note* run_note) {
-	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
 	if (func->foreign_module_name) {
 		Light_Compiler::inst->error_stop(run_note, "#run can't go on foreign functions (for now)");
 	} else {

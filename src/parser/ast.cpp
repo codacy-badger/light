@@ -18,12 +18,14 @@ void Ast_Block::find_declarations (std::vector<Ast_Declaration*>* decls, bool re
         if (stm->stm_type == AST_STATEMENT_DECLARATION)
             decls->push_back(static_cast<Ast_Declaration*>(stm));
     }
+    if (recurse && this->parent)
+        this->parent->find_declarations(decls, recurse);
 }
 
-Ast_Declaration* Ast_Block::find_declaration (const char* name, bool recurse) {
+Ast_Declaration* Ast_Block::find_declaration (const char* _name, bool recurse) {
 	if (this->scope_of) {
 		for (auto decl : this->scope_of->type->parameter_decls) {
-			if (strcmp(decl->name, name) == 0) return decl;
+			if (strcmp(decl->name, _name) == 0) return decl;
 		}
 	}
     for (auto stm : this->list) {
@@ -32,16 +34,16 @@ Ast_Declaration* Ast_Block::find_declaration (const char* name, bool recurse) {
 		// not checking crashes in Unix build
         if (stm && stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            if (strcmp(decl->name, name) == 0) return decl;
+            if (strcmp(decl->name, _name) == 0) return decl;
         }
     }
     if (recurse && this->parent)
-        return this->parent->find_declaration(name, recurse);
+        return this->parent->find_declaration(_name, recurse);
     else return NULL;
 }
 
-Ast_Type_Definition* Ast_Block::find_type_definition (const char* name, bool recurse) {
-    auto decl = this->find_declaration(name, recurse);
+Ast_Type_Definition* Ast_Block::find_type_definition (const char* _name, bool recurse) {
+    auto decl = this->find_declaration(_name, recurse);
     if (decl && decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION)
         return static_cast<Ast_Type_Definition*>(decl->expression);
     else return NULL;
@@ -55,9 +57,9 @@ Ast_Function* Ast_Block::find_function (bool recurse) {
 	} else return NULL;
 }
 
-Ast_Declaration* Ast_Struct_Type::find_attribute (const char* name) {
+Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
 	for (auto decl : this->attributes) {
-		if (strcmp(decl->name, name) == 0) return decl;
+		if (strcmp(decl->name, _name) == 0) return decl;
 	}
 	return NULL;
 }
@@ -197,7 +199,7 @@ bool Ast_Ident::operator ==(const Ast_Ident* other) const {
 Ast_Literal* ast_make_literal (const char* value) {
 	auto lit = new Ast_Literal();
 	lit->literal_type = AST_LITERAL_STRING;
-	lit->string_value = strdup(value);
+	lit->string_value = _strdup(value);
 	return lit;
 }
 

@@ -54,8 +54,8 @@ void Parser::block (Ast_Block* insert_block) {
 	auto _tmp = this->current_block;
 	this->current_block = insert_block;
 
-	Ast_Statement* stm;
-	while (stm = this->statement()) {
+	Ast_Statement* stm = this->statement();
+	while (stm != NULL) {
 		if (stm->stm_type == AST_STATEMENT_IMPORT) {
 			auto imp = static_cast<Ast_Import*>(stm);
 
@@ -77,6 +77,7 @@ void Parser::block (Ast_Block* insert_block) {
 		}
 
 		if (this->lexer->is_next_type(TOKEN_EOF)) break;
+		stm = this->statement();
 	}
 
 	this->current_block = _tmp;
@@ -212,7 +213,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 			auto defn_ty = static_cast<Ast_Type_Definition*>(decl->expression);
 			if (defn_ty->typedef_type == AST_TYPEDEF_STRUCT) {
 				auto _struct = static_cast<Ast_Struct_Type*>(defn_ty);
-				if (!_struct->name) _struct->name = strdup(decl->name);
+				if (!_struct->name) _struct->name = _strdup(decl->name);
 			}
 		}
 	}
@@ -223,16 +224,15 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 }
 
 Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
-	Ast_Expression* output;
-    if (output = this->_atom(initial)) {
+	Ast_Expression* output = this->_atom(initial);
+    if (output != NULL) {
         Token_Type tt = this->lexer->nextType;
 		auto precedence = Ast_Binary::getPrecedence(tt);
 		while (precedence >= minPrecedence) {
 			this->lexer->skip(1);
 
-			int nextMinPrec = precedence;
-			if (Ast_Binary::getLeftAssociativity(tt))
-				nextMinPrec += 1;
+			short nextMinPrec = precedence;
+			if (Ast_Binary::getLeftAssociativity(tt)) nextMinPrec += 1;
 
 			Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
 			_tmp->rhs = this->expression(NULL, nextMinPrec);
@@ -337,12 +337,13 @@ Ast_Function_Type* Parser::function_type () {
 	auto fn_type = AST_NEW(Ast_Function_Type);
 
 	if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-		Ast_Declaration* decl;
-		while (decl = this->declaration()) {
+		Ast_Declaration* decl = this->declaration();
+		while (decl != NULL) {
 			decl->decl_flags &= ~AST_DECL_FLAG_GLOBAL;
 			fn_type->parameter_decls.push_back(decl);
 
 			if (!this->lexer->optional_skip(TOKEN_COMMA)) break;
+			decl = this->declaration();
 		}
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 	}

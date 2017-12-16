@@ -17,7 +17,7 @@ using namespace std;
 
 struct Ast {
 	const char* filename = NULL;
-	long line = 0, col = 0;
+	size_t line = 0, col = 0;
 };
 
 void ast_copy_location_info (Ast* destination, Ast* source);
@@ -99,8 +99,8 @@ struct Ast_Declaration : Ast_Statement {
 
 	// If struct property
 	Ast_Struct_Type* _struct = NULL;
-	uint16_t attribute_index = 0;
-	uint16_t attribute_byte_offset = 0;
+	size_t attribute_index = 0;
+	size_t attribute_byte_offset = 0;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 

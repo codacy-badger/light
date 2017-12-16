@@ -113,8 +113,8 @@ void Bytecode_Generator::gen (Ast_Break* _break) {
 }
 
 void Bytecode_Generator::fill (Ast_Function* fn) {
-    auto free_reg = fn->type->parameter_decls.size();
-    for (int i = 0; i < fn->type->parameter_decls.size(); i++) {
+    auto free_reg = (uint8_t) fn->type->parameter_decls.size();
+    for (uint8_t i = 0; i < fn->type->parameter_decls.size(); i++) {
         auto decl = fn->type->parameter_decls[i];
 
         auto decl_type = static_cast<Ast_Type_Definition*>(decl->type);
@@ -217,7 +217,7 @@ void Bytecode_Generator::gen (Ast_Literal* lit) {
 		case AST_LITERAL_DECIMAL: {
 			auto bytecode_type = bytecode_get_type(lit->inferred_type);
             if (bytecode_type == BYTECODE_TYPE_F32) {
-                float _tmp = lit->decimal_value;
+                auto _tmp = (float) lit->decimal_value;
     			auto inst = new Inst_Set(this->current_register++, bytecode_type, &_tmp);
                 this->bytecode->push_back(copy_location_info(inst, lit));
             } else {
@@ -269,7 +269,6 @@ uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
 void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 	switch (binop->binary_op) {
 		case AST_BINARY_ATTRIBUTE: {
-            auto size = binop->rhs->inferred_type->byte_size;
         	this->gen(binop->lhs, true);
 
             auto ident = static_cast<Ast_Ident*>(binop->rhs);
@@ -386,7 +385,7 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
 		}
         case AST_UNARY_DEREFERENCE: {
             this->gen(unop->exp, left_value);
-            auto reg = this->current_register - 1;
+            uint8_t reg = this->current_register - 1;
             auto inst2 = new Inst_Load(reg, reg, unop->exp->inferred_type->byte_size);
             this->bytecode->push_back(copy_location_info(inst2, unop));
             break;
@@ -454,7 +453,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	if (_tmp > 0) {
 		auto inst = new Inst_Stack_Allocate(_tmp * INTERP_REGISTER_SIZE);
 		this->bytecode->push_back(copy_location_info(inst, call));
-		for (int i = 0; i < _tmp; i++) {
+		for (uint8_t i = 0; i < _tmp; i++) {
 	        auto inst1 = new Inst_Stack_Offset(_tmp, this->stack_offset);
 	        this->bytecode->push_back(copy_location_info(inst1, call));
 	        auto inst2 = new Inst_Store(_tmp, i, INTERP_REGISTER_SIZE);
@@ -477,7 +476,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 
 	if (call->args) {
 		auto bytecode_type = BYTECODE_TYPE_VOID;
-		for (int i = 0; i < call->args->values.size(); i++) {
+		for (uint8_t i = 0; i < call->args->values.size(); i++) {
 			auto exp = call->args->values[i];
 			bytecode_type = bytecode_get_type(exp->inferred_type);
 			auto inst2 = new Inst_Call_Param(i, bytecode_type);
@@ -497,16 +496,16 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	// with the current expression
 	if (_tmp > 0) {
 		auto max_size = this->stack_offset;
-		for (int i = _tmp - 1; i >= 0; i--) {
+		for (uint8_t i = _tmp - 1; i >= 0; i--) {
 			this->stack_offset -= INTERP_REGISTER_SIZE;
 
-	        auto inst1 = new Inst_Stack_Offset(_tmp + 1, this->stack_offset);
-	        this->bytecode->push_back(copy_location_info(inst1, call));
-	        auto inst2 = new Inst_Load(i, _tmp + 1, INTERP_REGISTER_SIZE);
-	        this->bytecode->push_back(copy_location_info(inst2, call));
+	        auto inst3 = new Inst_Stack_Offset(_tmp + 1, this->stack_offset);
+	        this->bytecode->push_back(copy_location_info(inst3, call));
+	        auto inst4 = new Inst_Load(i, _tmp + 1, INTERP_REGISTER_SIZE);
+	        this->bytecode->push_back(copy_location_info(inst4, call));
 		}
-        auto inst1 = new Inst_Stack_Free(max_size - this->stack_offset);
-        this->bytecode->push_back(copy_location_info(inst1, call));
+        auto inst3 = new Inst_Stack_Free(max_size - this->stack_offset);
+        this->bytecode->push_back(copy_location_info(inst3, call));
 	}
 
 	this->current_register = _tmp + 1;

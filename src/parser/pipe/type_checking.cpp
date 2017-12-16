@@ -182,8 +182,8 @@ void Type_Checking::check_type (Ast_Function_Type* ty) {
 
 void compute_struct_size (Ast_Struct_Type* _struct) {
 	if (_struct->byte_size == 0) {
-		uint16_t byte_offset = 0;
-		for (int i = 0; i < _struct->attributes.size(); i++) {
+		size_t byte_offset = 0;
+		for (size_t i = 0; i < _struct->attributes.size(); i++) {
 			auto decl = _struct->attributes[i];
 			decl->attribute_byte_offset = byte_offset;
 			decl->attribute_index = i;
@@ -305,7 +305,6 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 		}
 	} else {
     	check_type(binop->rhs);
-        auto types = Light_Compiler::inst->types;
     	if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
             // Types don't match, but maybe we can add an implicid cast
             // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...

@@ -4,7 +4,7 @@
 #include <string.h>
 
 Buffer::Buffer (const char* filename) {
-	this->stream = fopen(filename, "r");
+	fopen_s(&this->stream, filename, "r");
 	this->source = filename;
 }
 
@@ -19,7 +19,7 @@ bool Buffer::is_valid () {
 char Buffer::next () {
 	char output;
 	if (this->pushback_buffer.empty()) {
-		output = fgetc(this->stream);
+		output = (char) fgetc(this->stream);
 	} else {
 		output = this->pushback_buffer.front();
 		this->pushback_buffer.pop_front();
@@ -36,7 +36,7 @@ bool Buffer::hasNext () {
 	return !this->pushback_buffer.empty() || !feof(this->stream);
 }
 
-char Buffer::peek (unsigned int offset) {
+char Buffer::peek (size_t offset) {
 	if (this->pushback_buffer.size() < (offset + 1))
 		this->fillPushbackBuffer(offset + 1);
 	if (this->pushback_buffer.size() > offset)
@@ -57,7 +57,7 @@ bool Buffer::is_next (const char* expected) {
     return true;
 }
 
-void Buffer::skip (unsigned int count) {
+void Buffer::skip (size_t count) {
 	unsigned int i = 0;
 	while (this->hasNext() && i < count) {
 		this->next();
@@ -85,12 +85,12 @@ void Buffer::skipUntil (const char* stopper) {
 }
 
 void Buffer::printLocation () {
-	printf("%s:%d,%d", this->source, this->line, this->col);
+	printf("%s:%zd,%zd", this->source, this->line, this->col);
 }
 
-void Buffer::fillPushbackBuffer (unsigned int limit) {
-	for (unsigned int i = this->pushback_buffer.size(); i < limit; i++) {
-		char c = fgetc(this->stream);
+void Buffer::fillPushbackBuffer (size_t limit) {
+	for (size_t i = this->pushback_buffer.size(); i < limit; i++) {
+		char c = (char) fgetc(this->stream);
 		if (c != EOF) this->pushback_buffer.push_back(c);
 	}
 }

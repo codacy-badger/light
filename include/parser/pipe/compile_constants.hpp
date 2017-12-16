@@ -12,8 +12,8 @@ struct Compile_Constants : Pipe {
 		switch (stm->stm_type) {
 			case AST_STATEMENT_BLOCK: {
 				auto block = static_cast<Ast_Block*>(stm);
-				for (auto stm : block->list) {
-					this->replace(stm);
+				for (auto _stm : block->list) {
+					this->replace(_stm);
 				}
 				break;
 			}

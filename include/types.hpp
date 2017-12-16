@@ -154,7 +154,7 @@ struct Types {
             		auto base_name_length = strlen(base_type_def->name);
             		_ptr->name = (char*) malloc(base_name_length + 2);
             		_ptr->name[0] = '*';
-            		strcpy(_ptr->name + 1, base_type_def->name);
+            		memcpy(_ptr->name + 1, base_type_def->name, base_name_length);
             		_ptr->name[base_name_length + 2] = '\0';
             	}
                 return;
@@ -167,7 +167,7 @@ struct Types {
             		_arr->name = (char*) malloc(base_name_length + 3);
             		_arr->name[0] = '[';
                     _arr->name[1] = ']';
-            		strcpy(_arr->name + 2, base_type_def->name);
+            		memcpy(_arr->name + 2, base_type_def->name, base_name_length);
             		_arr->name[base_name_length + 3] = '\0';
             	}
                 return;
@@ -177,43 +177,48 @@ struct Types {
                 if (_func->name == NULL) {
             		auto par_decls = _func->parameter_decls;
 
+					Ast_Type_Definition* par_type_def;
             		size_t name_size = strlen("fn (");
             		if (par_decls.size() > 0) {
-            			auto type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
-            			name_size += strlen(type_def->name);
+            			par_type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
+            			name_size += strlen(par_type_def->name);
             			for (int i = 1; i < par_decls.size(); i++) {
             				name_size += strlen(", ");
-            				auto type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
-            				name_size += strlen(type_def->name);
+            				par_type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
+            				name_size += strlen(par_type_def->name);
             			}
             		}
             		name_size += strlen(") -> ");
-            		auto type_def = static_cast<Ast_Type_Definition*>(_func->return_type);
-            		name_size += strlen(type_def->name);
+            		par_type_def = static_cast<Ast_Type_Definition*>(_func->return_type);
+            		name_size += strlen(par_type_def->name);
             		_func->name = (char*) malloc(name_size + 1);
 
             		size_t offset = 0;
-            		strcpy(_func->name, "fn (");
-            		offset += strlen("fn (");
+            		memcpy(_func->name, "fn (", 4);
+            		offset += 4;
 
+					size_t par_type_name_length;
             		if (par_decls.size() > 0) {
-            			auto type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
-            			strcpy(_func->name + offset, type_def->name);
-            			offset += strlen(type_def->name);
+            			par_type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
+						par_type_name_length = strlen(par_type_def->name);
+            			memcpy(_func->name + offset, par_type_def->name, par_type_name_length);
+            			offset += par_type_name_length;
             			for (int i = 1; i < par_decls.size(); i++) {
-            				strcpy(_func->name + offset, ", ");
-            				offset += strlen(", ");
-                            type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
-            				strcpy(_func->name + offset, type_def->name);
-            				offset += strlen(type_def->name);
+            				memcpy(_func->name + offset, ", ", 2);
+            				offset += 2;
+                            par_type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
+							par_type_name_length = strlen(par_type_def->name);
+            				memcpy(_func->name + offset, par_type_def->name, par_type_name_length);
+            				offset += par_type_name_length;
             			}
             		}
 
-            		strcpy(_func->name + offset, ") -> ");
-            		offset += strlen(") -> ");
-            		type_def = static_cast<Ast_Type_Definition*>(_func->return_type);
-            		strcpy(_func->name + offset, type_def->name);
-            		offset += strlen(type_def->name);
+            		memcpy(_func->name + offset, ") -> ", 5);
+            		offset += 5;
+            		par_type_def = static_cast<Ast_Type_Definition*>(_func->return_type);
+					par_type_name_length = strlen(par_type_def->name);
+            		memcpy(_func->name + offset, par_type_def->name, par_type_name_length);
+            		offset += par_type_name_length;
             		_func->name[offset] = '\0';
             	}
                 return;

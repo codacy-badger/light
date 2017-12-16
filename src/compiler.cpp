@@ -14,7 +14,7 @@
 
 Light_Compiler* Light_Compiler::inst = NULL;
 
-Ast_Struct_Type* create_new_primitive_type (char* name, size_t size = 0) {
+Ast_Struct_Type* create_new_primitive_type (char* name, uint16_t size = 0) {
 	auto output = new Ast_Struct_Type(name, size);
 	output->inferred_type = Light_Compiler::inst->type_def_type;
 	output->is_primitive = true;
@@ -127,7 +127,7 @@ void Light_Compiler::run () {
 
 void print_node_location (FILE* buffer, Ast* node) {
 	if (node && node->filename) {
-		fprintf(buffer, "@ %s:%d,%d", node->filename, node->line, node->col);
+		fprintf(buffer, "@ %s:%zd,%zd", node->filename, node->line, node->col);
 		fprintf(stdout, "\n");
 	}
 }

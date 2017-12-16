@@ -63,7 +63,7 @@ void Constant_Folding::fold (Ast_Statement* stm) {
 	switch (stm->stm_type) {
 		case AST_STATEMENT_BLOCK: {
 			auto block = static_cast<Ast_Block*>(stm);
-			for (auto stm : block->list) this->fold(stm);
+			for (auto _stm : block->list) this->fold(_stm);
 			break;
 		}
 		case AST_STATEMENT_RETURN: {
@@ -175,7 +175,7 @@ void Constant_Folding::fold (Ast_Unary** unary) {
 		Ast_Unary_Type unop = (*unary)->unary_op;
 		switch (lit->literal_type) {
 			case AST_LITERAL_UNSIGNED_INT: {
-				lit->uint_value = unary_fold(unop, lit->uint_value);
+				lit->int_value = unary_fold(unop, lit->int_value);
 				if (unop == AST_UNARY_NEGATE)
 					lit->literal_type = AST_LITERAL_SIGNED_INT;
 				break;

@@ -21,9 +21,9 @@ struct Pipe {
 		if (next) next->on_finish();
 	}
 
-	void append (Pipe* next) {
+	void append (Pipe* next_pipe) {
 		Pipe* last = this;
 		while (last->next) last = last->next;
-		last->next = next;
+		last->next = next_pipe;
 	}
 };

@@ -144,9 +144,9 @@ struct Inst_Set : Instruction {
 
 struct Inst_Constant_Offset : Instruction {
 	uint8_t reg = 0;
-	uint8_t offset = 0;
+	size_t offset = 0;
 
-	Inst_Constant_Offset (uint8_t reg, uint8_t offset) {
+	Inst_Constant_Offset (uint8_t reg, size_t offset) {
 		this->bytecode = BYTECODE_CONSTANT_OFFSET;
 		this->reg = reg;
 		this->offset = offset;
@@ -155,9 +155,9 @@ struct Inst_Constant_Offset : Instruction {
 
 struct Inst_Global_Offset : Instruction {
 	uint8_t reg = 0;
-	uint8_t offset = 0;
+	size_t offset = 0;
 
-	Inst_Global_Offset (uint8_t reg, uint8_t offset) {
+	Inst_Global_Offset (uint8_t reg, size_t offset) {
 		this->bytecode = BYTECODE_GLOBAL_OFFSET;
 		this->reg = reg;
 		this->offset = offset;
@@ -165,18 +165,18 @@ struct Inst_Global_Offset : Instruction {
 };
 
 struct Inst_Stack_Allocate : Instruction {
-	uint8_t size = 0;
+	size_t size = 0;
 
-	Inst_Stack_Allocate (uint8_t size) {
+	Inst_Stack_Allocate (size_t size) {
 		this->bytecode = BYTECODE_STACK_ALLOCATE;
 		this->size = size;
 	}
 };
 
 struct Inst_Stack_Free : Instruction {
-	uint8_t size = 0;
+	size_t size = 0;
 
-	Inst_Stack_Free (uint8_t size) {
+	Inst_Stack_Free (size_t size) {
 		this->bytecode = BYTECODE_STACK_FREE;
 		this->size = size;
 	}
@@ -184,9 +184,9 @@ struct Inst_Stack_Free : Instruction {
 
 struct Inst_Stack_Offset : Instruction {
 	uint8_t reg = 0;
-	uint8_t offset = 0;
+	size_t offset = 0;
 
-	Inst_Stack_Offset (uint8_t reg, uint8_t offset) {
+	Inst_Stack_Offset (uint8_t reg, size_t offset) {
 		this->bytecode = BYTECODE_STACK_OFFSET;
 		this->reg = reg;
 		this->offset = offset;
@@ -196,9 +196,9 @@ struct Inst_Stack_Offset : Instruction {
 struct Inst_Load : Instruction {
 	uint8_t dest = 0;
 	uint8_t src = 0;
-	uint8_t size = 0;
+	size_t size = 0;
 
-	Inst_Load (uint8_t dest, uint8_t src, uint8_t size) {
+	Inst_Load (uint8_t dest, uint8_t src, size_t size) {
 		this->bytecode = BYTECODE_LOAD;
 		this->dest = dest;
 		this->src = src;
@@ -209,9 +209,9 @@ struct Inst_Load : Instruction {
 struct Inst_Store : Instruction {
 	uint8_t dest = 0;
 	uint8_t src = 0;
-	uint8_t size = 0;
+	size_t size = 0;
 
-	Inst_Store (uint8_t dest, uint8_t src, uint8_t size) {
+	Inst_Store (uint8_t dest, uint8_t src, size_t size) {
 		this->bytecode = BYTECODE_STORE;
 		this->dest = dest;
 		this->src = src;
@@ -248,9 +248,9 @@ struct Inst_Binary : Instruction {
 };
 
 struct Inst_Jump : Instruction {
-	int32_t offset;
+	size_t offset;
 
-	Inst_Jump (int32_t offset = 0) {
+	Inst_Jump (size_t offset = 0) {
 		this->bytecode = BYTECODE_JUMP;
 		this->offset = offset;
 	}
@@ -258,9 +258,9 @@ struct Inst_Jump : Instruction {
 
 struct Inst_Jump_If_False : Instruction {
 	uint8_t reg;
-	int32_t offset;
+	size_t offset;
 
-	Inst_Jump_If_False (uint8_t reg, int32_t offset = 0) {
+	Inst_Jump_If_False (uint8_t reg, size_t offset = 0) {
 		this->bytecode = BYTECODE_JUMP_IF_FALSE;
 		this->reg = reg;
 		this->offset = offset;
