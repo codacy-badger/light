@@ -7,7 +7,7 @@
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 #define LEXER_IGNORED " \n\t"
 
-#define LITERAL_TOKEN(literal, type) if (this->buffer->isNext(literal))	{	\
+#define LITERAL_TOKEN(literal, type) if (this->buffer->is_next(literal))	{	\
 	handleToken(type, literal); return true; }
 #define FUNCTION_TOKEN(func) if (func()) return true;
 
@@ -39,7 +39,7 @@ bool Lexer::parse_next () {
 
 	LITERAL_TOKEN("&", TOKEN_AMP);
 	LITERAL_TOKEN("|", TOKEN_PIPE);
-	LITERAL_TOKEN("^", TOKEN_HAT);
+	LITERAL_TOKEN("^", TOKEN_CARET);
 	LITERAL_TOKEN("~", TOKEN_TILDE);
 	LITERAL_TOKEN(">>", TOKEN_RIGHT_SHIFT);
 	LITERAL_TOKEN("<<", TOKEN_LEFT_SHIFT);
@@ -110,14 +110,14 @@ bool Lexer::parse_next () {
 	FUNCTION_TOKEN(string);
 
 	fprintf(stderr, "Unrecognized token!\n");
-	fprintf(stderr, " -> '%d'\n", this->buffer->peek(0));
+	fprintf(stderr, " -> '%d'\n", this->buffer->peek());
 	fprintf(stderr, "\tat %s:%d,%d\n", this->buffer->source,
 		this->buffer->line, this->buffer->col);
 	exit(EXIT_FAILURE);
 	return false;
 }
 
-bool Lexer::isNextType (Token_Type type) {
+bool Lexer::is_next_type (Token_Type type) {
 	return this->nextType == type;
 }
 
@@ -130,59 +130,6 @@ char* Lexer::text () {
 	char* text = this->nextText;
 	this->skip(1);
 	return text;
-}
-
-#define CASE_ENUM_TEXT(T, str) case T: return str;
-const char* Lexer::get_name (Token_Type type) {
-	switch (type) {
-		CASE_ENUM_TEXT(TOKEN_UNDEFINED, "-UNDEFINED-")
-		CASE_ENUM_TEXT(TOKEN_EOF, "EOF")
-
-		CASE_ENUM_TEXT(TOKEN_RIGHT_SHIFT, ">>")
-		CASE_ENUM_TEXT(TOKEN_LEFT_SHIFT, "<<")
-
-		CASE_ENUM_TEXT(TOKEN_DOUBLE_EQUAL, "==")
-		CASE_ENUM_TEXT(TOKEN_NOT_EQUAL, "!=")
-		CASE_ENUM_TEXT(TOKEN_GREATER_EQUAL, ">=")
-		CASE_ENUM_TEXT(TOKEN_LESSER_EQUAL, "<=")
-		CASE_ENUM_TEXT(TOKEN_GREATER, ">")
-		CASE_ENUM_TEXT(TOKEN_LESSER, "<")
-
-		CASE_ENUM_TEXT(TOKEN_EXCLAMATION, "!")
-		CASE_ENUM_TEXT(TOKEN_ARROW, "->")
-		CASE_ENUM_TEXT(TOKEN_AT, "@")
-		CASE_ENUM_TEXT(TOKEN_HASH, "#")
-
-		CASE_ENUM_TEXT(TOKEN_EQUAL, "=")
-		CASE_ENUM_TEXT(TOKEN_ADD, "+")
-		CASE_ENUM_TEXT(TOKEN_SUB, "-")
-		CASE_ENUM_TEXT(TOKEN_DIV, "/")
-		CASE_ENUM_TEXT(TOKEN_MUL, "*")
-		CASE_ENUM_TEXT(TOKEN_AMP, "&")
-		CASE_ENUM_TEXT(TOKEN_IF, "if")
-		CASE_ENUM_TEXT(TOKEN_ELSE, "else")
-		CASE_ENUM_TEXT(TOKEN_WHILE, "while")
-		CASE_ENUM_TEXT(TOKEN_BREAK, "break")
-		CASE_ENUM_TEXT(TOKEN_CAST, "cast")
-		CASE_ENUM_TEXT(TOKEN_STRUCT, "struct")
-		CASE_ENUM_TEXT(TOKEN_FUNCTION, "fn")
-		CASE_ENUM_TEXT(TOKEN_STM_END, ";")
-		CASE_ENUM_TEXT(TOKEN_RETURN, "return")
-		CASE_ENUM_TEXT(TOKEN_IMPORT, "import")
-		CASE_ENUM_TEXT(TOKEN_PAR_OPEN, "(")
-		CASE_ENUM_TEXT(TOKEN_PAR_CLOSE, ")")
-		CASE_ENUM_TEXT(TOKEN_BRAC_OPEN, "{")
-		CASE_ENUM_TEXT(TOKEN_BRAC_CLOSE, "}")
-		CASE_ENUM_TEXT(TOKEN_SQ_BRAC_OPEN, "[")
-		CASE_ENUM_TEXT(TOKEN_SQ_BRAC_CLOSE, "]")
-		CASE_ENUM_TEXT(TOKEN_COLON, ":")
-		CASE_ENUM_TEXT(TOKEN_COMMA, ",")
-		CASE_ENUM_TEXT(TOKEN_DOT, ".")
-		CASE_ENUM_TEXT(TOKEN_ID, "<id>")
-		CASE_ENUM_TEXT(TOKEN_NUMBER, "<number>")
-		CASE_ENUM_TEXT(TOKEN_STRING, "<string>")
-	}
-	return "---";
 }
 
 bool Lexer::check_skip (Token_Type type) {
@@ -205,110 +152,113 @@ bool Lexer::optional_skip (Token_Type type) {
 void Lexer::report_unexpected (Token_Type expected) {
 	// TODO: make some sort of generic location info structure to pass
 	Light_Compiler::inst->error(NULL, "Parser: Expected '%s', but got '%s'",
-		get_name(expected), get_name(this->nextType));
+		token_get_text(expected), token_get_text(this->nextType));
 	Light_Compiler::inst->error_stop(NULL, "@ %s:%d,%d", this->buffer->source,
 		this->buffer->line, this->buffer->col);
 }
 
 void Lexer::report_unexpected () {
 	Light_Compiler::inst->error(NULL, "Parser: Unexpected token '%s'",
-		get_name(this->nextType));
+		token_get_text(this->nextType));
 	Light_Compiler::inst->error_stop(NULL, "@ %s:%d,%d", this->buffer->source,
 		this->buffer->line, this->buffer->col);
 	exit(EXIT_FAILURE);
 }
 
+#define LEXER_BUFFER_SIZE 128
+char _buffer[LEXER_BUFFER_SIZE];
+unsigned char _buffer_count;
+
 bool Lexer::id () {
-	char c = this->buffer->peek(0);
+	char c = this->buffer->peek();
     if (ALPHA(c)) {
-		std::string _buff;
+		this->nextType = TOKEN_ID;
+		_buffer_count = 0;
         while (ALPHANUM(c)) {
-	        _buff.push_back(c);
-			this->buffer->skip(1);
-	        c = this->buffer->peek(0);
+			_buffer[_buffer_count++] = c;
+			assert(_buffer_count < LEXER_BUFFER_SIZE);
+			this->buffer->skip();
+	        c = this->buffer->peek();
         }
-        this->nextType = TOKEN_ID;
-		this->nextText = copyString(_buff);
+		_buffer[_buffer_count] = 0;
+		this->nextText = strdup(_buffer);
         return true;
     }
     return false;
 }
 
 bool Lexer::string () {
-	char c = this->buffer->peek(0);
+	char c = this->buffer->peek();
     if (c == '"') {
-		this->buffer->skip(1);
+		this->buffer->skip();
         this->nextType = TOKEN_STRING;
 
-		std::string _buff;
+		_buffer_count = 0;
 		c = this->buffer->next();
 		while (c != '"') {
 			if (c == '\\') {
 				c = this->buffer->next();
 				if (c == 'n') {
-					_buff.push_back('\n');
+					_buffer[_buffer_count++] = '\n';
 					c = this->buffer->next();
 					continue;
 				} else if (c == 't') {
-					_buff.push_back('\t');
+					_buffer[_buffer_count++] = '\t';
 					c = this->buffer->next();
 					continue;
 				}
 			}
-			_buff.push_back(c);
+			_buffer[_buffer_count++] = c;
 			c = this->buffer->next();
 		}
-		this->nextText = copyString(_buff);
+		_buffer[_buffer_count] = 0;
+		this->nextText = strdup(_buffer);
         return true;
     } else return false;
 }
 
 bool Lexer::number () {
-	std::string _buff;
-	char c = this->buffer->peek(0);
+	_buffer_count = 0;
+	char c = this->buffer->peek();
 	if (c == '0' && this->buffer->peek(1) == 'x') {
 		while (ALPHANUM(c) || c == 'x') {
-			_buff.push_back(c);
-			this->buffer->skip(1);
-			c = this->buffer->peek(0);
+			_buffer[_buffer_count++] = c;
+			this->buffer->skip();
+			c = this->buffer->peek();
 		}
 		this->nextType = TOKEN_NUMBER;
-		this->nextText = copyString(_buff);
+		_buffer[_buffer_count] = 0;
+		this->nextText = strdup(_buffer);
 		return true;
 	} else {
 	    if (c == '+' || c == '-') {
-	        _buff.push_back(c);
-			this->buffer->skip(1);
-	        c = this->buffer->peek(0);
+	        _buffer[_buffer_count++] = c;
+			this->buffer->skip();
+	        c = this->buffer->peek();
 	    }
 	    if (DIGIT(c) || c == '.') {
 	        while (DIGIT(c)) {
-				_buff.push_back(c);
-				this->buffer->skip(1);
-		        c = this->buffer->peek(0);
+				_buffer[_buffer_count++] = c;
+				this->buffer->skip();
+		        c = this->buffer->peek();
 	        }
 	        if (c == '.') {
-	            _buff.push_back(c);
-	            this->buffer->skip(1);
-	            c = this->buffer->peek(0);
+	            _buffer[_buffer_count++] = c;
+	            this->buffer->skip();
+	            c = this->buffer->peek();
 	            while (DIGIT(c)) {
-		            _buff.push_back(c);
-		            this->buffer->skip(1);
-		            c = this->buffer->peek(0);
+		            _buffer[_buffer_count++] = c;
+		            this->buffer->skip();
+		            c = this->buffer->peek();
 	            }
 	        }
 	        this->nextType = TOKEN_NUMBER;
-			this->nextText = copyString(_buff);
+			_buffer[_buffer_count] = 0;
+			this->nextText = strdup(_buffer);
 	        return true;
 	    }
 	}
     return false;
-}
-
-char* Lexer::copyString (std::string str) {
-	char* cstr = new char[str.length() + 1];
-	strcpy(cstr, str.c_str());
-	return cstr;
 }
 
 void Lexer::handleToken (Token_Type type, const char* text) {
@@ -319,7 +269,7 @@ void Lexer::handleToken (Token_Type type, const char* text) {
 
 bool Lexer::skip_ignored_and_comments () {
 	this->buffer->skipAny(LEXER_IGNORED);
-    if (this->buffer->peek(0) == '/') {
+    if (this->buffer->peek() == '/') {
         if (this->buffer->peek(1) == '/') {
 			this->buffer->skipUntil("\n");
 			this->buffer->skipAny(LEXER_IGNORED);

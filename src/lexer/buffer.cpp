@@ -44,11 +44,11 @@ char Buffer::peek (unsigned int offset) {
 	else return -1;
 }
 
-bool Buffer::isNext (char c) {
+bool Buffer::is_next (char c) {
 	return this->peek(0) == c;
 }
 
-bool Buffer::isNext (const char* expected) {
+bool Buffer::is_next (const char* expected) {
 	this->fillPushbackBuffer(strlen(expected));
 	for (unsigned int i = 0; i < strlen(expected); i++) {
         if (this->peek(i) != expected[i])

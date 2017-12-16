@@ -76,7 +76,7 @@ void Parser::block (Ast_Block* insert_block) {
 			}
 		}
 
-		if (this->lexer->isNextType(TOKEN_EOF)) break;
+		if (this->lexer->is_next_type(TOKEN_EOF)) break;
 	}
 
 	this->current_block = _tmp;
@@ -116,7 +116,7 @@ Ast_Statement* Parser::statement () {
 		case TOKEN_IMPORT: {
 			this->lexer->skip(1);
 			auto output = AST_NEW(Ast_Import);
-			if (this->lexer->isNextType(TOKEN_STRING))
+			if (this->lexer->is_next_type(TOKEN_STRING))
 				output->filepath = this->lexer->text();
 			else Light_Compiler::inst->error_stop(output, "Import statements must be followed by string literal!");
 			this->lexer->optional_skip(TOKEN_STM_END);
@@ -164,7 +164,7 @@ Ast_Statement* Parser::statement () {
 		}
 		default: {
 			auto ident = this->ident();
-			if (this->lexer->isNextType(TOKEN_COLON)) {
+			if (this->lexer->is_next_type(TOKEN_COLON)) {
 				return this->declaration(ident);
 			} else {
 				auto exp = this->expression(ident);
@@ -261,7 +261,7 @@ Ast_Function* Parser::function (Ast_Function_Type* fn_type) {
 }
 
 Ast_Expression* Parser::_atom (Ast_Ident* initial) {
-	if (this->lexer->isNextType(TOKEN_ID) || initial) {
+	if (this->lexer->is_next_type(TOKEN_ID) || initial) {
 		auto output = initial ? initial : this->ident();
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			return this->call(output);
@@ -269,10 +269,10 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->lexer->optional_skip(TOKEN_STRUCT)) {
 		auto _struct = AST_NEW(Ast_Struct_Type);
 
-		if (this->lexer->isNextType(TOKEN_ID))
+		if (this->lexer->is_next_type(TOKEN_ID))
 			_struct->name = this->lexer->text();
 
-		if (this->lexer->isNextType(TOKEN_BRAC_OPEN)) {
+		if (this->lexer->is_next_type(TOKEN_BRAC_OPEN)) {
 			this->lexer->skip(1);
 
 			auto _block = AST_NEW(Ast_Block, this->current_block);
@@ -407,7 +407,7 @@ Ast_Function_Call* Parser::call (Ast_Expression* callee) {
 }
 
 Ast_Ident* Parser::ident (const char* name) {
-	if (!name && !this->lexer->isNextType(TOKEN_ID)) return NULL;
+	if (!name && !this->lexer->is_next_type(TOKEN_ID)) return NULL;
 
 	auto output = AST_NEW(Ast_Ident, this->current_block);
 	output->name = name ? name : this->lexer->text();

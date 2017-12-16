@@ -90,7 +90,7 @@ Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
 
 		case TOKEN_AMP:				return AST_BINARY_BITWISE_AND;
 		case TOKEN_PIPE:			return AST_BINARY_BITWISE_OR;
-		case TOKEN_HAT:				return AST_BINARY_BITWISE_XOR;
+		case TOKEN_CARET:				return AST_BINARY_BITWISE_XOR;
 		case TOKEN_RIGHT_SHIFT:		return AST_BINARY_BITWISE_RIGHT_SHIFT;
 		case TOKEN_LEFT_SHIFT:		return AST_BINARY_BITWISE_LEFT_SHIFT;
 
@@ -123,7 +123,7 @@ short Ast_Binary::getPrecedence (Token_Type opToken) {
 
 		case TOKEN_AMP:				return 4;
 		case TOKEN_PIPE:			return 4;
-		case TOKEN_HAT:				return 4;
+		case TOKEN_CARET:			return 4;
 		case TOKEN_TILDE:			return 4;
 		case TOKEN_RIGHT_SHIFT:		return 4;
 		case TOKEN_LEFT_SHIFT:		return 4;
@@ -161,7 +161,7 @@ bool Ast_Binary::getLeftAssociativity (Token_Type opToken) {
 
 		case TOKEN_AMP:				return false;
 		case TOKEN_PIPE:			return false;
-		case TOKEN_HAT:				return false;
+		case TOKEN_CARET:			return false;
 		case TOKEN_TILDE:			return false;
 		case TOKEN_RIGHT_SHIFT:		return false;
 		case TOKEN_LEFT_SHIFT:		return false;
