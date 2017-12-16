@@ -135,16 +135,8 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_UNARY: {
 			auto unary = static_cast<Inst_Unary*>(inst);
 
-			size_t a = 0;
-			auto size = bytecode_get_size(unary->bytecode_type);
-			memcpy(&a, this->registers[unary->reg], size);
-			// TODO: move this to primitive_unary.hpp file
-			switch (unary->unop) {
-				case BYTECODE_LOGICAL_NEGATE: 		a = !a; break;
-				case BYTECODE_ARITHMETIC_NEGATE: 	a = -a; break;
-				case BYTECODE_BITWISE_NEGATE: 		a = ~a; break;
-			}
-			memcpy(this->registers[unary->reg], &a, size);
+			bytecode_unary(unary->unop, this->registers[unary->reg],
+				unary->bytecode_type);
 			return;
 		}
 		case BYTECODE_BINARY: {

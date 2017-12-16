@@ -69,7 +69,7 @@ main :: fn {
 			print(_tmp_string);
 			print("\n");
 
-			/*msg: MSG;
+			msg: MSG;
 			while (GetMessage(*msg, window_handle, 0, 0)) {
 				if (msg.message == WM_NULL) break;
 
@@ -78,7 +78,7 @@ main :: fn {
 
 				glClear(GL_COLOR_BUFFER_BIT);
 				SwapBuffers(window_dc);
-			}*/
+			}
 		} else {
 			err := GetLastError();
 			print("ERROR: wglCreateContext -> ");
