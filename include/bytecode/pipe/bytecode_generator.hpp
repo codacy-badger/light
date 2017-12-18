@@ -15,8 +15,9 @@ struct Bytecode_Generator : Pipe {
 
 	void on_statement(Ast_Statement* stm);
 
+	void add_instruction (Ast* node, Instruction* intruction);
+
     void gen (Ast_Statement* stm);
-	void gen (Ast_Block* block);
 	void gen (Ast_Return* ret);
 	void gen (Ast_If* _if);
 	void gen (Ast_While* _while);
