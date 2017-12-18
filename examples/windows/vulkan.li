@@ -43,7 +43,7 @@ VK_MAX_EXTENSION_NAME_SIZE :: 256;
 vkGetInstanceProcAddr : fn (instance: *void, pName: *u8) -> *void :;
 
 VkExtensionProperties :: struct {
-    extensionName: 	*u8;
+    extensionName: 	[VK_MAX_EXTENSION_NAME_SIZE]u8;
     specVersion: 	u32;
 }
 

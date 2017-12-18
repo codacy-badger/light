@@ -391,11 +391,8 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
             break;
         }
         case AST_UNARY_REFERENCE: {
-            if (unop->exp->exp_type == AST_EXPRESSION_IDENT) {
-                this->gen(static_cast<Ast_Ident*>(unop->exp), true);
-            } else {
-                Light_Compiler::inst->error_stop(unop, "Reference operator only working of identifiers!");
-            }
+            this->gen(unop->exp, true);
+            break;
         }
 		default: return;
 	}

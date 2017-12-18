@@ -9,53 +9,6 @@ import "examples/opengl.li"
 main :: fn {
 	//MessageBox(0, "This is a sample message", "Title", MB_RETRYCANCEL | MB_ICONINFORMATION);
 
-	print("vkEnumerateInstanceExtensionProperties -> ");
-	print_u64_hex(cast(u64) vkEnumerateInstanceExtensionProperties);
-	print("\n");
-
-	extension_count : u32 = 0;
-	vk_result := vkEnumerateInstanceExtensionProperties(0, *extension_count, 0);
-	if vk_result == VK_SUCCESS {
-		print("extension_count -> ");
-		print_u64(extension_count);
-		print("\n");
-	} else print("FAIL: vkEnumerateInstanceExtensionProperties\n");
-
-	extension_count = 0;
-	extensions_props: VkExtensionProperties;
-	vk_result := vkEnumerateInstanceExtensionProperties("VK_KHR_win32_surface", *extension_count, *extensions_props);
-	if vk_result == VK_SUCCESS {
-		print("extension_count -> ");
-		print_u64(extension_count);
-		print("\n'");
-		print(extensions_props.extensionName);
-		print("'\n");
-		print_u64(extensions_props.specVersion);
-		print("\n");
-	} else print("FAIL: vkEnumerateInstanceExtensionProperties\n");
-
-	app_info: VkApplicationInfo;
-	app_info.sType 					= VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	app_info.pNext 					= 0;
-	app_info.pApplicationName 		= "Vulkan Demo App";
-	app_info.applicationVersion 	= VK_MAKE_VERSION(1, 0, 0);
-	app_info.pEngineName 			= "No Engine";
-	app_info.engineVersion 			= VK_MAKE_VERSION(1, 0, 0);
-	app_info.apiVersion 			= VK_MAKE_VERSION(1, 0, 0); // VK_API_VERSION_1_0
-
-	create_info: VkInstanceCreateInfo;
-	create_info.sType 						= VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	create_info.pNext 						= 0;
-	create_info.flags 						= 0;
-	create_info.pApplicationInfo 			= *app_info;
-	create_info.enabledLayerCount 			= 0;
-	create_info.ppEnabledLayerNames 		= 0;
-	create_info.enabledExtensionCount 		= 0;
-	create_info.ppEnabledExtensionNames 	= 0;
-
-	instance: *void;
-	//vk_result := vkCreateInstance(*create_info, 0, instance);
-
 	window_handle := window_create("Light Demo");
 	print("window_handle -> ");
 	print_u64_hex(cast(u64) window_handle);
@@ -140,13 +93,13 @@ main :: fn {
 		print("\n");
 	}
 
-	//test_factorial();
-	//test_cast();
-	//test_pointers();
-	//test_struct();
-	//test_decimals();
-	//test_arrays();
-	//test_division();
+	test_factorial();
+	test_cast();
+	test_pointers();
+	test_struct();
+	test_decimals();
+	test_arrays();
+	test_division();
 }
 
 assert :: fn (condition: bool) {

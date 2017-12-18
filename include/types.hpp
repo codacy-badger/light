@@ -155,7 +155,7 @@ struct Types {
             		_ptr->name = (char*) malloc(base_name_length + 2);
             		_ptr->name[0] = '*';
             		memcpy(_ptr->name + 1, base_type_def->name, base_name_length);
-            		_ptr->name[base_name_length + 2] = '\0';
+            		_ptr->name[base_name_length + 1] = '\0';
             	}
                 return;
             }
@@ -168,7 +168,7 @@ struct Types {
             		_arr->name[0] = '[';
                     _arr->name[1] = ']';
             		memcpy(_arr->name + 2, base_type_def->name, base_name_length);
-            		_arr->name[base_name_length + 3] = '\0';
+            		_arr->name[base_name_length + 2] = '\0';
             	}
                 return;
             }
