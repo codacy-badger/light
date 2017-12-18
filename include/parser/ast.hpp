@@ -83,8 +83,9 @@ struct Ast_Break : Ast_Statement {
 	Ast_Break () { this->stm_type = AST_STATEMENT_BREAK; }
 };
 
-const uint8_t AST_DECL_FLAG_CONSTANT = 0x1;
-const uint8_t AST_DECL_FLAG_GLOBAL	 = 0x2;
+const uint8_t AST_DECL_FLAG_CONSTANT 	= 0x1;
+const uint8_t AST_DECL_FLAG_GLOBAL	 	= 0x2;
+const uint8_t AST_DECL_FLAG_UNINIT		= 0x3;
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;

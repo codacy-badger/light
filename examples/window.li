@@ -9,15 +9,8 @@ window_create :: fn (name: string) -> *void {
 	window_class.cbSize 		= 80;
 	window_class.style 			= CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	window_class.lpfnWndProc 	= DefWindowProc;
-	window_class.cbClsExtra 	= 0;
-	window_class.cbWndExtra 	= 0;
 	window_class.hInstance 		= GetModuleHandle(0);
-	window_class.hIcon 			= 0;
-	window_class.hCursor 		= 0;
-	window_class.hbrBackground 	= 0;
-	window_class.lpszMenuName 	= 0;
 	window_class.lpszClassName 	= "DemoWindowClass";
-	window_class.hIconSm 		= 0;
 
 	atom = RegisterClassEx(*window_class);
 	if !atom {

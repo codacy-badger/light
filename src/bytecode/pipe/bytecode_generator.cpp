@@ -168,7 +168,9 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
 		if (decl->decl_flags & AST_DECL_FLAG_GLOBAL) {
 			decl->global_offset = Light_Compiler::inst->interp->globals->add(ty_decl->byte_size);
 		} else {
-            auto inst = new Inst_Stack_Allocate(ty_decl->byte_size);
+            bool zero_init = !(decl->decl_flags & AST_DECL_FLAG_UNINIT);
+            zero_init = zero_init && !decl->expression;
+            auto inst = new Inst_Stack_Allocate(ty_decl->byte_size, zero_init);
             this->bytecode->push_back(copy_location_info(inst, decl));
 
 			decl->stack_offset = this->stack_offset;

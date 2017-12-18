@@ -15,6 +15,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_CAST,
 
 	BYTECODE_SET,
+	BYTECODE_ZERO,
 
 	BYTECODE_CONSTANT_OFFSET,
 	BYTECODE_GLOBAL_OFFSET,
@@ -166,9 +167,11 @@ struct Inst_Global_Offset : Instruction {
 
 struct Inst_Stack_Allocate : Instruction {
 	size_t size = 0;
+	bool zero_init;
 
-	Inst_Stack_Allocate (size_t size) {
+	Inst_Stack_Allocate (size_t size, bool zero_init = false) {
 		this->bytecode = BYTECODE_STACK_ALLOCATE;
+		this->zero_init = zero_init;
 		this->size = size;
 	}
 };

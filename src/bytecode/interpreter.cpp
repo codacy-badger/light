@@ -96,8 +96,12 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_STACK_ALLOCATE: {
 			auto alloca = static_cast<Inst_Stack_Allocate*>(inst);
 
+			assert((this->stack_index + alloca->size) < INTERP_STACK_SIZE);
+			if (alloca->zero_init) {
+				auto ptr = this->stack + this->stack_base + this->stack_index;
+				memset(ptr, 0, alloca->size);
+			}
 			this->stack_index += alloca->size;
-			assert(this->stack_index < INTERP_STACK_SIZE);
 			return;
 		}
 		case BYTECODE_STACK_FREE: {

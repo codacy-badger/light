@@ -18,27 +18,7 @@ main :: fn {
 	desired_pixel_format.dwFlags			= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 	desired_pixel_format.iPixelType			= PFD_TYPE_RGBA;
 	desired_pixel_format.cColorBits			= 32;
-	desired_pixel_format.cRedBits			= 0;
-	desired_pixel_format.cRedShift			= 0;
-	desired_pixel_format.cGreenBits			= 0;
-	desired_pixel_format.cGreenShift		= 0;
-	desired_pixel_format.cBlueBits			= 0;
-	desired_pixel_format.cBlueShift			= 0;
-	desired_pixel_format.cAlphaBits			= 8;
-	desired_pixel_format.cAlphaShift		= 0;
-	desired_pixel_format.cAccumBits			= 0;
-	desired_pixel_format.cAccumRedBits		= 0;
-	desired_pixel_format.cAccumGreenBits	= 0;
-	desired_pixel_format.cAccumBlueBits		= 0;
-	desired_pixel_format.cAccumAlphaBits	= 0;
-	desired_pixel_format.cDepthBits			= 0;
-	desired_pixel_format.cStencilBits		= 0;
-	desired_pixel_format.cAuxBuffers		= 0;
 	desired_pixel_format.iLayerType			= PFD_MAIN_PLANE;
-	desired_pixel_format.bReserved			= 0;
-	desired_pixel_format.dwLayerMask		= 0;
-	desired_pixel_format.dwVisibleMask		= 0;
-	desired_pixel_format.dwDamageMask		= 0;
 
 	suggested_index := ChoosePixelFormat(window_dc, *desired_pixel_format);
 	DescribePixelFormat(window_dc, suggested_index, 40, *desired_pixel_format);
