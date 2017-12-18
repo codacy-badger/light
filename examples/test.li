@@ -1,0 +1,42 @@
+import "examples/print.li"
+
+#run
+main :: fn {
+	test_struct();
+	test_array();
+}
+
+test_array :: fn {
+	data: [16] u8;
+	data[0] = ASCII_ZERO;
+	data[1] = ASCII_ZERO + 1;
+	data[2] = ASCII_ZERO + 2;
+	print(*data);
+	print("\n");
+}
+
+test_struct :: fn {
+	Vec2 :: struct {
+		// TODO: struct attributes should be able to have default values
+		x: u32;
+		y: u32;
+	}
+
+	// TODO: declarations should be able to specify no zero-init (syntax?)
+	v1: Vec2;
+	print_vec2(*v1);
+	v1.y = 12;
+	print_vec2(*v1);
+	v1.x = v1.y - 2;
+	print_vec2(*v1);
+
+	print_vec2 :: fn (vec: *Vec2) {
+		print("Vector values -> ");
+		// TODO: we shouldn't have to dereference the variable,
+		// the "." operator should follow the pointer
+		print_u64((&vec).x);
+		print(", ");
+		print_u64((&vec).y);
+		print("\n");
+	}
+}
