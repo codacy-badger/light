@@ -77,7 +77,7 @@ struct Types {
     Ast_Array_Type* get_unique_array_type (Ast_Array_Type* arr_type) {
         auto it = this->arr_types.find(arr_type->base);
         if (it != this->arr_types.end()) {
-    		if (arr_type != it->second) {
+    		if (arr_type != it->second && it->second->get_count() == arr_type->get_count()) {
     			delete arr_type;
     			return it->second;
     		} else return arr_type;

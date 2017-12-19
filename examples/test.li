@@ -10,9 +10,10 @@ main :: fn {
 	test_arrays();
 	test_division();
 	test_struct();
-	test_array();
 	test_scopes();
 	test_big_struct();
+	test_static_array();
+	test_dynamic_array();
 }
 
 assert :: fn (condition: bool) {
@@ -113,18 +114,6 @@ test_struct :: fn {
 	assert(v_ptr.y != 59);
 }
 
-test_array :: fn {
-	str: [16] u8;
-
-	str[0] = ASCII_ZERO + 0;
-	str[1] = ASCII_ZERO + 1;
-	str[2] = ASCII_ZERO + 2;
-
-	// TODO: array and pointer are 2 completely different types
-	// this line should be print(str.data), or ideally print(str)
-	print(*str);
-}
-
 var :: 12;
 func :: fn -> u8 { 13 }
 
@@ -177,4 +166,19 @@ test_big_struct :: fn {
 	handle_vec3 :: fn (vec: Vec3, number: u64) {
 		assert(vec.y == number);
 	}
+}
+
+test_static_array :: fn {
+	str: [16] u8;
+
+	str[0] = ASCII_ZERO + 0;
+	str[1] = ASCII_ZERO + 1;
+	str[2] = ASCII_ZERO + 2;
+
+	assert(str.length == 16);
+	assert(str.length != 22);
+}
+
+test_dynamic_array :: fn {
+	// TODO: implement
 }

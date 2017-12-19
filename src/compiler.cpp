@@ -10,6 +10,7 @@
 #include "parser/pipe/type_checking.hpp"
 #include "parser/pipe/foreign_function.hpp"
 #include "parser/pipe/compile_constants.hpp"
+#include "parser/pipe/array_attributes.hpp"
 #include "parser/pipe/print_pipe.hpp"
 
 Light_Compiler* Light_Compiler::inst = NULL;
@@ -105,6 +106,7 @@ void Light_Compiler::run () {
 		parser->append(new Constant_Folding());
 		parser->append(new Unique_Types());
 		parser->append(new Type_Checking());
+		parser->append(new Array_Attributes());
 		parser->append(new Foreign_Function());
 
 		// Optimizations
