@@ -48,7 +48,6 @@ print_u64 :: fn (number: u64) {
 			count = count + 1;
 		}
 
-		// TODO: conversion from []T to *t should be implicid (length info lost)
 		print(*_number_buffer);
 	}
 }

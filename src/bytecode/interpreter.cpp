@@ -66,6 +66,18 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			memcpy(this->registers[cpy->reg1], this->registers[cpy->reg2], INTERP_REGISTER_SIZE);
 			return;
 		}
+		case BYTECODE_COPY_MEMORY: {
+			auto cpy_mem = static_cast<Inst_Copy_Memory*>(inst);
+
+			size_t val_to, val_from;
+			memcpy(&val_to, this->registers[cpy_mem->reg_to], INTERP_REGISTER_SIZE);
+			memcpy(&val_from, this->registers[cpy_mem->reg_from], INTERP_REGISTER_SIZE);
+			auto ptr_to = reinterpret_cast<void*>(val_to);
+			auto ptr_from = reinterpret_cast<void*>(val_from);
+
+			memcpy(ptr_to, ptr_from, cpy_mem->size);
+			return;
+		}
 		case BYTECODE_CAST: {
 			auto cast = static_cast<Inst_Cast*>(inst);
 
@@ -286,6 +298,12 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 			if (cpy->reg1 == cpy->reg2) {
 				printf(" [WARNING: instruction has no effect]");
 			}
+			break;
+		}
+		case BYTECODE_COPY_MEMORY: {
+			auto cpy_mem = static_cast<Inst_Copy_Memory*>(inst);
+			printf("COPY_MEMORY %d, %d, %zd", cpy_mem->reg_to,
+				cpy_mem->reg_from, cpy_mem->size);
 			break;
 		}
 		case BYTECODE_CAST: {

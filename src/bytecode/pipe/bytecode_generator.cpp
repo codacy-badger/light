@@ -88,7 +88,7 @@ void Bytecode_Generator::gen (Ast_Break* _break) {
 }
 
 void Bytecode_Generator::fill (Ast_Function* fn) {
-	if (fn->scope) {
+	if (fn->scope && fn->bytecode.size() == 0) {
         auto _tmp = this->bytecode;
         this->bytecode = &fn->bytecode;
 
@@ -97,13 +97,16 @@ void Bytecode_Generator::fill (Ast_Function* fn) {
             auto decl = fn->type->parameter_decls[i];
 
             auto decl_type = static_cast<Ast_Type_Definition*>(decl->type);
-            auto size = decl_type->byte_size;
             decl->stack_offset = this->stack_offset;
-            this->stack_offset += size;
+            this->stack_offset += decl_type->byte_size;
 
-            this->add_instruction(decl, new Inst_Stack_Allocate(size));
+            this->add_instruction(decl, new Inst_Stack_Allocate(decl_type->byte_size));
             this->add_instruction(decl, new Inst_Stack_Offset(free_reg, decl->stack_offset));
-            this->add_instruction(decl, new Inst_Store(free_reg, i, size));
+            if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
+                this->add_instruction(decl, new Inst_Copy_Memory(free_reg, i, decl_type->byte_size));
+            } else {
+                this->add_instruction(decl, new Inst_Store(free_reg, i, decl_type->byte_size));
+            }
         }
 
 		this->current_register = 0;
@@ -425,7 +428,9 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	this->current_register = 0;
 	if (call->args) {
 		for (auto exp : call->args->values) {
-			this->gen(exp);
+            if (exp->inferred_type->byte_size > INTERP_REGISTER_SIZE) {
+                this->gen(exp, true);
+            } else this->gen(exp);
 		}
 	}
 

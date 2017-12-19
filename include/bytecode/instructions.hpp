@@ -12,6 +12,7 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_NOOP,
 
 	BYTECODE_COPY,
+	BYTECODE_COPY_MEMORY,
 	BYTECODE_CAST,
 
 	BYTECODE_SET,
@@ -102,6 +103,19 @@ struct Inst_Copy : Instruction {
 		this->bytecode = BYTECODE_COPY;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
+	}
+};
+
+struct Inst_Copy_Memory : Instruction {
+	uint8_t reg_to = 0;
+	uint8_t reg_from = 0;
+	size_t size = 0;
+
+	Inst_Copy_Memory (uint8_t reg_to, uint8_t reg_from, size_t size) {
+		this->bytecode = BYTECODE_COPY_MEMORY;
+		this->reg_to = reg_to;
+		this->reg_from = reg_from;
+		this->size = size;
 	}
 };
 

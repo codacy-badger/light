@@ -6,6 +6,9 @@ STD_ERROR_HANDLE  : u32 : -12;
 INVALID_HANDLE_VALUE : s64 : -1;
 
 #foreign("kernel32")
+ExitProcess : fn (uExitCode: u32) :;
+
+#foreign("kernel32")
 GetLastError : fn -> u16 :;
 
 #foreign("kernel32", "GetModuleHandleA")

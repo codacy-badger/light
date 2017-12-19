@@ -1,4 +1,5 @@
 import "examples/print.li"
+import "examples/sys.li"
 
 #run
 main :: fn {
@@ -11,6 +12,7 @@ main :: fn {
 	test_struct();
 	test_array();
 	test_scopes();
+	test_big_struct();
 }
 
 assert :: fn (condition: bool) {
@@ -18,7 +20,7 @@ assert :: fn (condition: bool) {
 		print("ASSERT: ");
 		print(__FILE__);
 		print("\n");
-		// TODO: add exit function here, we should not continue
+		sys_exit(1);
 	}
 }
 
@@ -90,12 +92,12 @@ test_pointers :: fn {
 }
 
 test_struct :: fn {
-	Vec3 :: struct {
+	Vec2 :: struct {
 		x: u32;
 		y: u32;
 	}
 
-	v1 : Vec3;
+	v1 : Vec2;
 	v1.x = 12;
 	v1.y = 16;
 
@@ -146,5 +148,31 @@ test_scopes :: fn {
 	if 1 {
 		assert(var == 1);
 		//assert(var2 == 3);
+	}
+}
+
+test_big_struct :: fn {
+	Vec3 :: struct {
+		x: u64;
+		y: u64;
+		z: u64;
+	}
+
+	vec: Vec3;
+	vec.x = 1;
+	vec.y = 2;
+	vec.z = 3;
+
+	assert(vec.x == 1);
+	assert(vec.y == 2);
+	assert(vec.z == 3);
+
+	handle_vec3(vec, 2);
+
+	vec.y = 982;
+	handle_vec3(vec, 982);
+
+	handle_vec3 :: fn (vec: Vec3, number: u64) {
+		assert(vec.y == number);
 	}
 }
