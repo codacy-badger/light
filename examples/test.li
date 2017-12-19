@@ -92,12 +92,12 @@ test_pointers :: fn {
 }
 
 test_struct :: fn {
-	Vec2 :: struct {
+	Vec3 :: struct {
 		x: u32;
 		y: u32;
 	}
 
-	v1 : Vec2;
+	v1 : Vec3;
 	v1.x = 12;
 	v1.y = 16;
 
