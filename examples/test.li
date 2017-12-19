@@ -115,12 +115,14 @@ test_struct :: fn {
 
 test_array :: fn {
 	str: [16] u8;
-	str[0] = ASCII_ZERO;
+
+	str[0] = ASCII_ZERO + 0;
 	str[1] = ASCII_ZERO + 1;
 	str[2] = ASCII_ZERO + 2;
+
 	// TODO: array and pointer are 2 completely different types
 	// this line should be print(str.data), or ideally print(str)
-	// print(*str);
+	print(*str);
 }
 
 var :: 12;

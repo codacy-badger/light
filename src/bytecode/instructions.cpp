@@ -6,7 +6,7 @@
 
 uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty) {
 	switch (decl_ty->typedef_type) {
-		default: assert(false);
+		case AST_TYPEDEF_ARRAY:
 		case AST_TYPEDEF_POINTER:
 		case AST_TYPEDEF_FUNCTION: return BYTECODE_TYPE_POINTER;
 		case AST_TYPEDEF_STRUCT: {
@@ -29,7 +29,7 @@ uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty) {
 			else if (decl_ty == Light_Compiler::inst->type_def_string) return BYTECODE_TYPE_POINTER;
 		}
 	}
-	return BYTECODE_TYPE_VOID;
+	return BYTECODE_TYPE_POINTER;
 }
 
 uint8_t bytecode_get_type (Ast_Expression* exp) {

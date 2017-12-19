@@ -440,7 +440,11 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 		auto bytecode_type = BYTECODE_TYPE_VOID;
 		for (uint8_t i = 0; i < call->args->values.size(); i++) {
 			auto exp = call->args->values[i];
-			bytecode_type = bytecode_get_type(exp->inferred_type);
+			if (exp->inferred_type->byte_size > INTERP_REGISTER_SIZE) {
+                bytecode_type = BYTECODE_TYPE_POINTER;
+            } else {
+				bytecode_type = bytecode_get_type(exp->inferred_type);
+			}
 			this->add_instruction(call, new Inst_Call_Param(i, bytecode_type));
 		}
 	}
