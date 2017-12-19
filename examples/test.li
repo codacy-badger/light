@@ -2,41 +2,149 @@ import "examples/print.li"
 
 #run
 main :: fn {
+	test_factorial();
+	test_cast();
+	test_pointers();
+	test_decimals();
+	test_arrays();
+	test_division();
 	test_struct();
 	test_array();
+	test_scopes();
 }
 
-test_array :: fn {
-	data: [16] u8;
-	data[0] = ASCII_ZERO;
-	data[1] = ASCII_ZERO + 1;
-	data[2] = ASCII_ZERO + 2;
-	print(*data);
-	print("\n");
+assert :: fn (condition: bool) {
+	if !condition {
+		print("ASSERT: ");
+		print(__FILE__);
+		print("\n");
+		// TODO: add exit function here, we should not continue
+	}
+}
+
+test_division :: fn {
+	num1 := 10;
+	num2 := 9;
+	assert((num1 / 5) == 2);
+	assert((num2 / 2) == 4);
+	num3 := 9.;
+	assert((num3 / 2.) == 4.5);
+}
+
+test_arrays :: fn {
+	buffer : [4] s16;
+
+	buffer[0] = 5;
+	buffer[1] = 240;
+	buffer[2] = 33;
+	buffer[3] = 0;
+
+	assert(buffer[0] == 5);
+	assert(buffer[1] == 240);
+	assert(buffer[2] == 33);
+	assert(buffer[3] == 0);
+	assert(buffer[3] != 2);
+}
+
+test_decimals :: fn {
+	dec1 : f64 = 1.23;
+
+	assert(dec1 == 1.23);
+	assert(dec1 != 1.20);
+}
+
+test_factorial :: fn {
+	number := factorial(5);
+
+	assert(number == 120);
+
+	factorial :: fn (number: u32) -> u32 {
+		if (number == 0) 1
+		else {
+			factorial(number - 1) * number
+		}
+	}
+}
+
+test_cast :: fn {
+	num1 : u8 = 55;
+	num2 : u64 = 755;
+	num3 : s32 = -num1;
+
+	assert(55 == 55);
+	assert(55 == num1);
+	assert(num2 == 755);
+	assert(-55 == -num1);
+}
+
+test_pointers :: fn {
+	number : u8 = 0;
+	num_ptr := *number;
+
+	set(num_ptr);
+	assert(number == 12);
+
+	set :: fn (ptr: *u8) {
+		&ptr = 12;
+	}
 }
 
 test_struct :: fn {
-	Vec2 :: struct {
-		// TODO: struct attributes should be able to have default values
+	Vec3 :: struct {
 		x: u32;
 		y: u32;
 	}
 
-	// TODO: declarations should be able to specify no zero-init (syntax?)
-	v1: Vec2;
-	print_vec2(*v1);
-	v1.y = 12;
-	print_vec2(*v1);
-	v1.x = v1.y - 2;
-	print_vec2(*v1);
+	v1 : Vec3;
+	v1.x = 12;
+	v1.y = 16;
 
-	print_vec2 :: fn (vec: *Vec2) {
-		print("Vector values -> ");
-		// TODO: we shouldn't have to dereference the variable,
-		// the "." operator should follow the pointer
-		print_u64((&vec).x);
-		print(", ");
-		print_u64((&vec).y);
-		print("\n");
+	assert(v1.x == 12);
+	assert(v1.y == 16);
+	assert(v1.y != 49);
+
+	v_ptr := *v1;
+	v_ptr.x = 14;
+
+	assert(v_ptr.x == 14);
+	assert(v_ptr.y == 16);
+	assert(v_ptr.y != 59);
+}
+
+test_array :: fn {
+	str: [16] u8;
+	str[0] = ASCII_ZERO;
+	str[1] = ASCII_ZERO + 1;
+	str[2] = ASCII_ZERO + 2;
+	// TODO: array and pointer are 2 completely different types
+	// this line should be print(str.data), or ideally print(str)
+	// print(*str);
+}
+
+var :: 12;
+func :: fn -> u8 { 13 }
+
+test_scopes :: fn {
+	var : u8 = 1;
+	assert(var == 1);
+
+	assert(func() == 13);
+
+	if 1 {
+		func();
+		func :: fn -> u8 { var }
+		assert(func() == 12);
+
+		//tmp := var2;
+
+		var : u8 = 2;
+		var2 : u8 = 3;
+		assert(var == 2);
+		assert(var2 == 3);
+	}
+
+	if 1 {
+		assert(var == 1);
+		//assert(var2 == 3);
 	}
 }

@@ -2,6 +2,8 @@
 
 #include "parser/pipes.hpp"
 
+#define WARN_MAX_DEREF_COUNT 3
+
 struct Type_Checking : Pipe {
     void on_statement(Ast_Statement* stm);
 

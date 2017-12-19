@@ -95,7 +95,7 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 void Type_Checking::check_type (Ast_Return* ret) {
 	if (ret->exp) check_type(ret->exp);
 
-	auto fn = ret->block->find_function();
+	auto fn = ret->block->get_function();
 	auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->type->return_type);
 	if (!fn) {
 		Light_Compiler::inst->error_stop(ret, "Return statement must be inside a function!");
@@ -269,8 +269,23 @@ void Type_Checking::check_type (Ast_Binary* binop) {
     if (binop->binary_op == AST_BINARY_ATTRIBUTE) {
         // Now that we (should) know the type of the LHS,
         // we can set all the values for the RHS
-        if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
-            auto _struct = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
+		auto type_def = binop->lhs->inferred_type;
+		// If we're trying to access an attribute from a pointer,
+		// we follow that pointer until we're on the actual type
+		if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
+			uint8_t deref_count = 0;
+			while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
+				auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
+				type_def = static_cast<Ast_Type_Definition*>(ptr_type->base);
+				deref_count += 1;
+			}
+			if (deref_count > WARN_MAX_DEREF_COUNT) {
+				Light_Compiler::inst->warning(binop, "Attribute access on deep pointer (%d)", deref_count);
+			}
+		}
+
+		if (type_def->typedef_type == AST_TYPEDEF_STRUCT) {
+            auto _struct = static_cast<Ast_Struct_Type*>(type_def);
             if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
                 auto ident = static_cast<Ast_Ident*>(binop->rhs);
                 auto attribute = _struct->find_attribute(ident->name);
@@ -288,7 +303,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
                 Light_Compiler::inst->error_stop(binop, "Right of attribute access is NOT an identifier!");
             }
         } else {
-            Light_Compiler::inst->error_stop(binop, "Left of attribute access is not of struct type!");
+            Light_Compiler::inst->error_stop(binop, "Left of attribute access is not of type struct or struct pointer!");
         }
     } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
 		if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {

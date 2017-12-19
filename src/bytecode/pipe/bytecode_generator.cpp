@@ -231,6 +231,16 @@ uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
 	}
 }
 
+uint8_t count_dereferences (Ast_Type_Definition* type_def) {
+    uint8_t deref_count = 0;
+    while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
+        auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
+        type_def = static_cast<Ast_Type_Definition*>(ptr_type->base);
+        deref_count += 1;
+    }
+    return deref_count;
+}
+
 void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 	switch (binop->binary_op) {
 		case AST_BINARY_ATTRIBUTE: {
@@ -239,6 +249,14 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
             auto ident = static_cast<Ast_Ident*>(binop->rhs);
 			auto reg = this->current_register;
             auto decl = ident->declaration;
+
+            // We follow the pointer until we hit a non-pointer type
+            auto type_def = binop->lhs->inferred_type;
+            while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
+                auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
+                type_def = static_cast<Ast_Type_Definition*>(ptr_type->base);
+                this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, type_def->byte_size));
+            }
 
 			if (decl->attribute_byte_offset != 0) {
 	            this->add_instruction(binop, new Inst_Set(reg, BYTECODE_TYPE_U16, &decl->attribute_byte_offset));

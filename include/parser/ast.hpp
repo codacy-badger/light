@@ -58,10 +58,8 @@ struct Ast_Block : Ast_Statement {
 		this->parent = parent;
 	}
 
-	void find_declarations (std::vector<Ast_Declaration*>* decls, bool recurse = true);
-	Ast_Declaration* find_declaration (const char* name, bool recurse = true);
-	Ast_Type_Definition* find_type_definition (const char* name, bool recurse = true);
-	Ast_Function* find_function (bool recurse = true);
+	Ast_Declaration* find_declaration (const char* name, size_t line, bool recurse = true, bool is_out_scope = false);
+	Ast_Function* get_function ();
 };
 
 struct Ast_If : Ast_Statement {

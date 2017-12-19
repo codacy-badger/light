@@ -98,7 +98,9 @@ bool Symbol_Resolution::is_unresolved (const char* name) {
         for (auto stm_deps : entry.second) {
             if (stm_deps->stm->stm_type == AST_STATEMENT_DECLARATION) {
                 auto decl = static_cast<Ast_Declaration*>(stm_deps->stm);
-                if (strcmp(decl->name, name) == 0) return true;
+                if (strcmp(decl->name, name) == 0) {
+                    return true;
+                }
             }
         }
     }
@@ -190,7 +192,7 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
             auto ident_ptr = reinterpret_cast<Ast_Ident**>(exp);
             auto ident = (*ident_ptr);
             if (!ident->declaration) {
-                ident->declaration = ident->scope->find_declaration(ident->name);
+                ident->declaration = ident->scope->find_declaration(ident->name, ident->line);
 
                 if (!ident->declaration || this->is_unresolved(ident->name)) {
                     sym->push_back(ident_ptr);
