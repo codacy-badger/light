@@ -133,7 +133,7 @@ test_scopes :: fn {
 	assert(func() == 13);
 
 	if 1 {
-		func();
+		assert(func() == 12);
 		func :: fn -> u8 { var }
 		assert(func() == 12);
 
