@@ -168,15 +168,41 @@ test_big_struct :: fn {
 	}
 }
 
+global_array: [10]u8;
+
+// this functions can receive any array type (static or dynamic)
+// the internal representation is: struct array T { length: u64; data: *T }
+print_array :: fn (array: [16]u8) {
+	print("Array data -> [ ");
+	if (array.length > 0) {
+		index := 1;
+		print_u64(array[0]);
+		while (index < array.length) {
+			print(", ");
+			print_u64(array[index]);
+			index = index + 1;
+		}
+	}
+	print(" ]\n");
+}
+
 test_static_array :: fn {
-	str: [16] u8;
+	numbers: [16] u8;
 
-	str[0] = ASCII_ZERO + 0;
-	str[1] = ASCII_ZERO + 1;
-	str[2] = ASCII_ZERO + 2;
+	numbers[0] = 200;
+	numbers[1] = 16;
+	numbers[2] = 17;
 
-	assert(str.length == 16);
-	assert(str.length != 22);
+	assert(numbers.length == 16);
+	assert(numbers.length != 22);
+
+	// Here the static_array should implicidly converted to a generic
+	// array, by default on the stack:
+	// _tmp_array: array;
+	// _tmp_array.length = numbers.length;
+	// _tmp_array.data = numbers.data;
+	// print_array(_tmp_array);
+	print_array(numbers);
 }
 
 test_dynamic_array :: fn {

@@ -60,8 +60,8 @@ Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
 	return NULL;
 }
 
-uint64_t Ast_Array_Type::get_count () {
-   if (this->count->exp_type == AST_EXPRESSION_LITERAL) {
+uint64_t Ast_Array_Type::length () {
+   if (this->count && this->count->exp_type == AST_EXPRESSION_LITERAL) {
 	   auto lit = static_cast<Ast_Literal*>(this->count);
 	   return lit->uint_value;
    } else return 0;

@@ -77,14 +77,25 @@ struct Types {
     Ast_Array_Type* get_unique_array_type (Ast_Array_Type* arr_type) {
         auto it = this->arr_types.find(arr_type->base);
         if (it != this->arr_types.end()) {
-    		if (arr_type != it->second && it->second->get_count() == arr_type->get_count()) {
-    			delete arr_type;
-    			return it->second;
-    		} else return arr_type;
-        } else {
-            this->arr_types[arr_type->base] = arr_type;
-            return arr_type;
+            if (arr_type != it->second && arr_type->kind == it->second->kind) {
+                switch (arr_type->kind) {
+                    case AST_ARRAY_KIND_DYNAMIC:
+                    case AST_ARRAY_KIND_GENERIC: {
+                        delete arr_type;
+                        return it->second;
+                    }
+                    case AST_ARRAY_KIND_STATIC: {
+                        if (it->second->length() == arr_type->length()) {
+                            delete arr_type;
+                			return it->second;
+                		}
+                        break;
+                    }
+                }
+            }
         }
+        this->arr_types[arr_type->base] = arr_type;
+        return arr_type;
     }
 
     bool func_type_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
@@ -164,11 +175,23 @@ struct Types {
                 if (_arr->name == NULL) {
             		auto base_type_def = static_cast<Ast_Type_Definition*>(_arr->base);
             		auto base_name_length = strlen(base_type_def->name);
-            		_arr->name = (char*) malloc(base_name_length + 3);
-            		_arr->name[0] = '[';
-                    _arr->name[1] = ']';
-            		memcpy(_arr->name + 2, base_type_def->name, base_name_length);
-            		_arr->name[base_name_length + 2] = '\0';
+                    switch (_arr->kind) {
+                        case AST_ARRAY_KIND_STATIC: {
+                    		_arr->name = (char*) malloc(base_name_length + 23);
+                            sprintf_s(_arr->name, base_name_length + 23, "[%lld]%s", _arr->length(), base_type_def->name);
+                            break;
+                        }
+                        case AST_ARRAY_KIND_DYNAMIC: {
+                    		_arr->name = (char*) malloc(base_name_length + 5);
+                            sprintf_s(_arr->name, base_name_length + 5, "[..]%s", base_type_def->name);
+                            break;
+                        }
+                        case AST_ARRAY_KIND_GENERIC: {
+                    		_arr->name = (char*) malloc(base_name_length + 3);
+                            sprintf_s(_arr->name, base_name_length + 3, "[]%s", base_type_def->name);
+                            break;
+                        }
+                    }
             	}
                 return;
             }

@@ -207,16 +207,18 @@ void Type_Checking::check_type (Ast_Struct_Type* _struct) {
 void Type_Checking::check_type (Ast_Array_Type* arr) {
     arr->inferred_type = Light_Compiler::inst->type_def_type;
 	check_type(arr->base);
-	if (arr->count->exp_type == AST_EXPRESSION_LITERAL) {
-		auto lit = static_cast<Ast_Literal*>(arr->count);
-		if (lit->literal_type == AST_LITERAL_UNSIGNED_INT) {
-			auto type_def = static_cast<Ast_Type_Definition*>(arr->base);
-			arr->byte_size = arr->get_count() * type_def->byte_size;
+	if (arr->is_static()) {
+		if (arr->count->exp_type == AST_EXPRESSION_LITERAL) {
+			auto lit = static_cast<Ast_Literal*>(arr->count);
+			if (lit->literal_type == AST_LITERAL_UNSIGNED_INT) {
+				auto type_def = static_cast<Ast_Type_Definition*>(arr->base);
+				arr->byte_size = arr->length() * type_def->byte_size;
+			} else {
+				Light_Compiler::inst->error_stop(arr, "Arrays size must be an unsigned integer!");
+			}
 		} else {
-			Light_Compiler::inst->error_stop(arr, "Arrays size must be an unsigned integer!");
+			Light_Compiler::inst->error_stop(arr, "Arrays can only have constant size!");
 		}
-	} else {
-		Light_Compiler::inst->error_stop(arr, "Arrays can only have constant size!");
 	}
 }
 

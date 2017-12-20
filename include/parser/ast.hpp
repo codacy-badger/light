@@ -195,15 +195,25 @@ struct Ast_Pointer_Type : Ast_Type_Definition {
 	}
 };
 
+enum Ast_Array_Kind {
+	AST_ARRAY_KIND_UNDEFINED = 0,
+	AST_ARRAY_KIND_DYNAMIC,
+	AST_ARRAY_KIND_GENERIC,
+	AST_ARRAY_KIND_STATIC,
+};
+
 struct Ast_Array_Type : Ast_Type_Definition {
+	Ast_Array_Kind kind = AST_ARRAY_KIND_UNDEFINED;
 	Ast_Expression* base = NULL;
 	Ast_Expression* count = NULL;
 
-	Ast_Array_Type() {
-		this->typedef_type = AST_TYPEDEF_ARRAY;
-	}
+	Ast_Array_Type() { this->typedef_type = AST_TYPEDEF_ARRAY; }
 
-	uint64_t get_count ();
+	uint64_t length ();
+
+	bool is_dynamic () { return this->kind == AST_ARRAY_KIND_DYNAMIC; }
+	bool is_generic () { return this->kind == AST_ARRAY_KIND_GENERIC; }
+	bool is_static ()  { return this->kind == AST_ARRAY_KIND_STATIC; }
 };
 
 struct Ast_Function_Type : Ast_Type_Definition {
