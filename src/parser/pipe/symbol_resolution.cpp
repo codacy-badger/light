@@ -261,6 +261,7 @@ void Symbol_Resolution::check_symbols (Ast_Function_Type** fn_type, vector<Ast_I
 
 void Symbol_Resolution::check_symbols (Ast_Array_Type** arr_type, vector<Ast_Ident**>* sym) {
 	check_symbols(&(*arr_type)->base, sym);
+    if ((*arr_type)->count) check_symbols(&(*arr_type)->count, sym);
 }
 
 void Symbol_Resolution::check_symbols (Ast_Comma_Separated_Arguments** args, vector<Ast_Ident**>* sym) {

@@ -56,10 +56,12 @@ struct Array_Attributes : Pipe {
 				if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
 					if (binary->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 						auto arr_type = static_cast<Ast_Array_Type*>(binary->lhs->inferred_type);
-						auto lit = ast_make_literal(arr_type->length());
-						lit->inferred_type = Light_Compiler::inst->type_def_u64;
-						delete *exp;
-						(*exp) = lit;
+						if (arr_type->kind == AST_ARRAY_KIND_STATIC) {
+							auto lit = ast_make_literal(arr_type->length());
+							lit->inferred_type = Light_Compiler::inst->type_def_u64;
+							delete *exp;
+							(*exp) = lit;
+						}
 					}
 				} else {
 					this->replace(&binary->lhs);

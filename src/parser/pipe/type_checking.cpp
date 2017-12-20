@@ -306,24 +306,31 @@ void Type_Checking::check_type (Ast_Binary* binop) {
             }
         } else if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
 			auto _array = static_cast<Ast_Array_Type*>(type_def);
-			if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
-                auto ident = static_cast<Ast_Ident*>(binop->rhs);
-                if (strcmp(ident->name, "length") == 0) {
-					binop->inferred_type = Light_Compiler::inst->type_def_u64;
-				} else if (strcmp(ident->name, "data") == 0) {
-					auto ptr_type = new Ast_Pointer_Type();
-				    ptr_type->inferred_type = Light_Compiler::inst->type_def_type;
-				    ptr_type->base = _array->base;
-				    binop->inferred_type = Light_Compiler::inst->types->get_unique_pointer_type(ptr_type);
-					Light_Compiler::inst->types->compute_type_name_if_needed(binop->inferred_type);
-				} else {
-					Light_Compiler::inst->error_stop(binop->rhs, "'%s' is not a valid attribute for array (use length or data)",
-						ident->name);
+			switch (_array->kind) {
+				case AST_ARRAY_KIND_GENERIC:
+				case AST_ARRAY_KIND_STATIC: {
+					if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
+		                auto ident = static_cast<Ast_Ident*>(binop->rhs);
+		                if (strcmp(ident->name, "length") == 0) {
+							binop->inferred_type = Light_Compiler::inst->type_def_u64;
+						} else if (strcmp(ident->name, "data") == 0) {
+							auto ptr_type = new Ast_Pointer_Type();
+						    ptr_type->inferred_type = Light_Compiler::inst->type_def_type;
+						    ptr_type->base = _array->base;
+						    binop->inferred_type = Light_Compiler::inst->types->get_unique_pointer_type(ptr_type);
+							Light_Compiler::inst->types->compute_type_name_if_needed(binop->inferred_type);
+						} else {
+							Light_Compiler::inst->error_stop(binop->rhs, "'%s' is not a valid attribute for array (use length or data)",
+								ident->name);
+						}
+		            } else {
+		                // TODO: move this check to somewhere more relevant
+		                Light_Compiler::inst->error_stop(binop, "Right of attribute access is NOT an identifier!");
+		            }
+					break;
 				}
-            } else {
-                // TODO: move this check to somewhere more relevant
-                Light_Compiler::inst->error_stop(binop, "Right of attribute access is NOT an identifier!");
-            }
+				default: assert(false);
+			}
 		} else {
             Light_Compiler::inst->error_stop(binop, "Left of attribute access has invalid type: '%s'",
 				type_def->name);
