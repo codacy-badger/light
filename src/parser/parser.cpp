@@ -189,6 +189,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	if (!ident) return NULL;
 
 	auto decl = AST_NEW(Ast_Declaration);
+	decl->scope = this->current_block;
 	decl->name = ident->name;
 	delete ident;
 	if (this->current_block->is_global) {
@@ -401,17 +402,21 @@ Ast_Comma_Separated_Arguments* Parser::comma_separated_arguments () {
 }
 
 Ast_Function_Call* Parser::call (Ast_Expression* callee) {
-	auto output = AST_NEW(Ast_Function_Call);
-	output->fn = callee;
-	output->args = this->comma_separated_arguments();
+	auto call = AST_NEW(Ast_Function_Call);
+	call->fn = callee;
+	call->args = this->comma_separated_arguments();
 	this->lexer->check_skip(TOKEN_PAR_CLOSE);
-	return output;
+	return call;
 }
 
 Ast_Ident* Parser::ident (const char* name) {
 	if (!name && !this->lexer->is_next_type(TOKEN_ID)) return NULL;
 
-	auto output = AST_NEW(Ast_Ident, this->current_block);
-	output->name = name ? name : this->lexer->text();
-	return output;
+	auto ident = AST_NEW(Ast_Ident, this->current_block);
+	ident->name = name ? name : this->lexer->text();
+
+	// this is the right time to do this, since on a non-is_constant reference
+	// the declaration should already be in the scope, even if it's still not resolved.
+	ident->declaration = this->current_block->find_declaration(ident->name);
+	return ident;
 }

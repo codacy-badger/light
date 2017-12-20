@@ -8,7 +8,7 @@ void ast_copy_location_info (Ast* destination, Ast* source) {
 	destination->col = source->col;
 }
 
-Ast_Declaration* Ast_Block::find_declaration (const char* _name, size_t max_line, bool recurse, bool is_out_scope) {
+Ast_Declaration* Ast_Block::find_declaration (const char* _name, bool recurse, bool is_out_scope) {
     for (auto stm : this->list) {
 		// TODO: check why the F. do I have to check for null here
 		// there should never be null values inside this.
@@ -20,7 +20,7 @@ Ast_Declaration* Ast_Block::find_declaration (const char* _name, size_t max_line
 					if (decl->is_constant() || decl->is_global()) return decl;
 				} else {
 					if (!decl->is_constant() && !decl->is_global()) {
-						if (decl->line <= max_line) return decl;
+						return decl;
 					} else return decl;
 				}
 			}
@@ -37,7 +37,7 @@ Ast_Declaration* Ast_Block::find_declaration (const char* _name, size_t max_line
 		is_out_scope = true;
 	}
     if (recurse && this->parent) {
-        return this->parent->find_declaration(_name, max_line, recurse, is_out_scope);
+        return this->parent->find_declaration(_name, recurse, is_out_scope);
     } else return NULL;
 }
 

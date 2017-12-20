@@ -16,12 +16,12 @@ struct cmp_str {
 };
 
 struct Ast_Statement_Dependency {
-    vector<Ast_Ident**> unresolved_symbols;
+    vector<Ast_Ident**> symbols;
     Ast_Statement* stm = NULL;
 };
 
 struct Symbol_Resolution : Pipe {
-    map<const char*, vector<Ast_Statement_Dependency*>, cmp_str> unresolved_symbols;
+    map<const char*, vector<Ast_Statement_Dependency*>, cmp_str> unresolved;
 
     void on_statement (Ast_Statement* stm);
     void on_finish ();
@@ -30,24 +30,11 @@ struct Symbol_Resolution : Pipe {
     bool is_unresolved (const char* name);
 
     void check_symbols (Ast_Statement* stm, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Declaration* stm, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_If* _if, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_While* _while, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Block* stm, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Return* ret, vector<Ast_Ident**>* sym);
 
     void check_symbols (Ast_Expression** stm, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Cast** cast, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Ident** ident, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Binary** binary, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Unary** unary, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Function** stm, vector<Ast_Ident**>* sym);
 	void check_symbols (Ast_Function_Call** call, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Comma_Separated_Arguments** args, vector<Ast_Ident**>* sym);
 
     void check_symbols (Ast_Type_Definition** tydef, vector<Ast_Ident**>* sym);
-	void check_symbols (Ast_Struct_Type** _struct, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Pointer_Type** ptr_type, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Function_Type** fn_type, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Array_Type** arr_type, vector<Ast_Ident**>* sym);
 };

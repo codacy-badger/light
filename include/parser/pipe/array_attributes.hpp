@@ -78,7 +78,7 @@ struct Array_Attributes : Pipe {
 			}
 			case AST_EXPRESSION_FUNCTION: {
 				auto func = static_cast<Ast_Function*>(*exp);
-				this->replace(func->scope);
+				if (func->scope) this->replace(func->scope);
 				break;
 			}
 			case AST_EXPRESSION_UNARY: {

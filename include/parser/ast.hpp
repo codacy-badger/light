@@ -58,7 +58,7 @@ struct Ast_Block : Ast_Statement {
 		this->parent = parent;
 	}
 
-	Ast_Declaration* find_declaration (const char* name, size_t line, bool recurse = true, bool is_out_scope = false);
+	Ast_Declaration* find_declaration (const char* name, bool recurse = true, bool is_out_scope = false);
 	Ast_Function* get_function ();
 };
 
@@ -91,6 +91,7 @@ struct Ast_Declaration : Ast_Statement {
 	Ast_Expression* expression = NULL;
 
 	uint8_t decl_flags = 0;
+	Ast_Block* scope = NULL;
 
 	// for bytecode
 	size_t stack_offset = 0;

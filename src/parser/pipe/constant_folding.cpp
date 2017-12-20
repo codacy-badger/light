@@ -91,7 +91,9 @@ void Constant_Folding::fold (Ast_Expression** exp) {
 			auto func = reinterpret_cast<Ast_Function*>(*exp);
 			this->fold(reinterpret_cast<Ast_Type_Definition**>(&func->type));
 			if (func->scope) {
-				for (auto stm : func->scope->list) this->fold(stm);
+				for (auto stm : func->scope->list) {
+					this->fold(stm);
+				}
 			}
 			break;
 		}
