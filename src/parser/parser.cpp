@@ -321,17 +321,7 @@ Ast_Expression* Parser::type_definition () {
 	if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
 		auto array = AST_NEW(Ast_Array_Type);
 		array->count = this->_atom();
-
-		if (!array->count) {
-			if (this->lexer->optional_skip(TOKEN_DOUBLE_DOT)) {
-				array->kind = AST_ARRAY_KIND_DYNAMIC;
-			} else {
-				array->kind = AST_ARRAY_KIND_GENERIC;
-			}
-		} else {
-			array->kind = AST_ARRAY_KIND_STATIC;
-		}
-
+		array->kind = array->count ? AST_ARRAY_KIND_STATIC : AST_ARRAY_KIND_GENERIC;
 		this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 		array->base = this->type_definition();
 		return array;
