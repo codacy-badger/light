@@ -177,12 +177,11 @@ test_static_array :: fn {
 	assert(numbers.length == ARRAY_SIZE);
 	assert(numbers.length != 22);
 
-	// Here the static_array should implicidly converted to a generic
-	// array, by default on the stack:
-	// _tmp_array: array;
-	// _tmp_array.length = numbers.length;
-	// _tmp_array.data = numbers.data;
-	// print_array(_tmp_array);
+	// Here the static_array should implicidly converted a slice:
+	// tmp: array;
+	// tmp.length = numbers.length;
+	// tmp.data = numbers.data;
+	// print_array(tmp);
 	print_array(numbers);
 
 	print_array :: fn (array: [ARRAY_SIZE] u8) {
