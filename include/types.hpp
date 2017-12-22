@@ -79,7 +79,7 @@ struct Types {
         if (it != this->arr_types.end()) {
             if (arr_type != it->second && arr_type->kind == it->second->kind) {
                 switch (arr_type->kind) {
-                    case AST_ARRAY_KIND_GENERIC: {
+                    case AST_ARRAY_KIND_SLICE: {
                         delete arr_type;
                         return it->second;
                     }
@@ -180,7 +180,7 @@ struct Types {
                             sprintf_s(_arr->name, base_name_length + 23, "[%lld]%s", _arr->length(), base_type_def->name);
                             break;
                         }
-                        case AST_ARRAY_KIND_GENERIC: {
+                        case AST_ARRAY_KIND_SLICE: {
                     		_arr->name = (char*) malloc(base_name_length + 3);
                             sprintf_s(_arr->name, base_name_length + 3, "[]%s", base_type_def->name);
                             break;

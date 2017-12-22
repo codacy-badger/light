@@ -255,7 +255,7 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 
 			if (param_decl_type != param_exp->inferred_type) {
 				if (!cast_if_possible(&call->args->values[i], param_exp->inferred_type, param_decl_type)) {
-					Light_Compiler::inst->error(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
+					Light_Compiler::inst->error_stop(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
 						i, param_decl_type->name, param_exp->inferred_type->name);
 				}
 			}
@@ -307,7 +307,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
         } else if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
 			auto _array = static_cast<Ast_Array_Type*>(type_def);
 			switch (_array->kind) {
-				case AST_ARRAY_KIND_GENERIC:
+				case AST_ARRAY_KIND_SLICE: assert(false);
 				case AST_ARRAY_KIND_STATIC: {
 					if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
 		                auto ident = static_cast<Ast_Ident*>(binop->rhs);

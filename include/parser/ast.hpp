@@ -201,8 +201,8 @@ struct Ast_Pointer_Type : Ast_Type_Definition {
 
 enum Ast_Array_Kind {
 	AST_ARRAY_KIND_UNDEFINED = 0,
-	AST_ARRAY_KIND_GENERIC,
 	AST_ARRAY_KIND_STATIC,
+	AST_ARRAY_KIND_SLICE,
 };
 
 struct Ast_Array_Type : Ast_Type_Definition {
@@ -214,7 +214,7 @@ struct Ast_Array_Type : Ast_Type_Definition {
 
 	uint64_t length ();
 
-	bool is_generic () { return this->kind == AST_ARRAY_KIND_GENERIC; }
+	bool is_generic () { return this->kind == AST_ARRAY_KIND_SLICE; }
 	bool is_static ()  { return this->kind == AST_ARRAY_KIND_STATIC; }
 };
 

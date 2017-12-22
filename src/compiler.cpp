@@ -44,8 +44,9 @@ Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
 	this->type_def_u64 = 	create_new_primitive_type("u64", 8);
 	this->type_def_f32 = 	create_new_primitive_type("f32", 4);
 	this->type_def_f64 = 	create_new_primitive_type("f64", 8);
+	
 	// TODO: size should be platform dependendant, since it's used for indexing
-	this->type_def_usize = 	create_new_primitive_type("usize", 8);
+	this->type_def_usize = 	this->type_def_u64;
 
 	this->types->add_cast(this->type_def_u8, this->type_def_bool, NULL, true);
 

@@ -165,27 +165,9 @@ test_big_struct :: fn {
 	}
 }
 
-// this functions can receive any array type (static or dynamic)
-// the internal representation is: struct array T { length: u64; data: *T }
-print_array :: fn (array: [ARRAY_SIZE]u8) {
-	print("Array data -> (");
-	print_u64(array.length);
-	print(") [ ");
-	if (array.length > 0) {
-		index := 1;
-		print_u64(array[0]);
-		while (index < array.length) {
-			print(", ");
-			print_u64(array[index]);
-			index = index + 1;
-		}
-	}
-	print(" ]\n");
-}
-
-ARRAY_SIZE :: 16;
 
 test_static_array :: fn {
+	ARRAY_SIZE :: 16;
 	numbers: [ARRAY_SIZE] u8;
 
 	numbers[0] = 200;
@@ -202,4 +184,20 @@ test_static_array :: fn {
 	// _tmp_array.data = numbers.data;
 	// print_array(_tmp_array);
 	print_array(numbers);
+
+	print_array :: fn (array: [ARRAY_SIZE] u8) {
+		print("Array data -> (");
+		print_u64(array.length);
+		print(") [ ");
+		if (array.length > 0) {
+			index := 1;
+			print_u64(array[0]);
+			while (index < array.length) {
+				print(", ");
+				print_u64(array[index]);
+				index = index + 1;
+			}
+		}
+		print(" ]\n");
+	}
 }
