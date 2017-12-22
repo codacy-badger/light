@@ -20,79 +20,76 @@ bool try_resolve (Ast_Ident** ident_ptr2, Ast_Declaration* decl) {
 }
 
 void Symbol_Resolution::on_statement(Ast_Statement* stm) {
-    vector<Ast_Ident**> unresolved_idents;
-    check_symbols(stm, &unresolved_idents);
+    vector<Ast_Ident**> idents;
+    check_symbols(stm, &idents);
 
 	if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 		auto decl = static_cast<Ast_Declaration*>(stm);
-		auto it = unresolved_idents.begin();
-		while (it != unresolved_idents.end()) {
+		auto it = idents.begin();
+		while (it != idents.end()) {
             if (try_resolve(*it, decl)) {
-                it = unresolved_idents.erase(it);
+                it = idents.erase(it);
             } else it++;
 		}
 	}
 
-    if (unresolved_idents.size() > 0) {
-        auto stm_deps = new Ast_Statement_Dependency();
-        stm_deps->symbols = unresolved_idents;
-        stm_deps->stm = stm;
-        for (auto ident : unresolved_idents) {
-            this->unresolved[(*ident)->name].push_back(stm_deps);
-        }
+    if (idents.size() > 0) {
+        this->unresolved[stm] = idents;
     } else this->on_resolved(stm);
 }
 
 void Symbol_Resolution::on_finish () {
+    bool have_unresolved = false;
     if (this->unresolved.size() > 0) {
 		for (auto dependencies : this->unresolved) {
-			for (auto dep : dependencies.second) {
-				for (auto ident : dep->symbols) {
-			        Light_Compiler::inst->error((*ident), "Unresolved symbol: '%s'", (*ident)->name);
-				}
+			for (auto ident_ptr2 : dependencies.second) {
+                Light_Compiler::inst->error((*ident_ptr2), "Unresolved symbol: '%s'", (*ident_ptr2)->name);
+                have_unresolved = true;
 			}
         }
-		Light_Compiler::inst->stop();
-    } else this->try_finish();
+		if (have_unresolved) {
+            Light_Compiler::inst->stop();
+            return;
+        }
+    }
+    this->try_finish();
 }
 
-void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
+size_t Symbol_Resolution::on_resolved (Ast_Statement* stm) {
     this->to_next(stm);
+    size_t count = 0;
     if (stm->stm_type == AST_STATEMENT_DECLARATION) {
         auto decl = static_cast<Ast_Declaration*>(stm);
 		if (decl->is_constant()) {
-	        auto it = this->unresolved.find(decl->name);
-	        if (it != this->unresolved.end()) {
-	            auto dependencies = it->second;
-	            auto _it = dependencies.begin();
-	            while (_it != dependencies.end()) {
-	                auto stm_deps = (*_it);
+            auto stm_idents = this->unresolved.begin();
+            while (stm_idents != this->unresolved.end()) {
+                auto ident_ptr2 = stm_idents->second.begin();
+                while (ident_ptr2 != stm_idents->second.end()) {
+                    if (try_resolve(*ident_ptr2, decl)) {
+                        ident_ptr2 = stm_idents->second.erase(ident_ptr2);
+                    } else ident_ptr2++;
+                }
 
-	                auto ident_ptr2 = stm_deps->symbols.begin();
-	                while (ident_ptr2 != stm_deps->symbols.end()) {
-                        if (try_resolve(*ident_ptr2, decl)) {
-                            ident_ptr2 = stm_deps->symbols.erase(ident_ptr2);
-                        } else ident_ptr2++;
-	                }
-	                if (stm_deps->symbols.size() == 0) {
-	                    _it = dependencies.erase(_it);
-	                    this->on_resolved(stm_deps->stm);
-	                } else _it++;
-	            }
-	            this->unresolved.erase(it);
-	        }
+                if (stm_idents->second.size() == 0) {
+                    auto _stm = stm_idents->first;
+                    stm_idents = this->unresolved.erase(stm_idents);
+
+                    auto resolved_count = this->on_resolved(_stm);
+                    for (int i = 0; i < resolved_count; i++) stm_idents++;
+                    count += resolved_count + 1;
+                } else stm_idents++;
+            }
 		}
     }
+    return count;
 }
 
 bool Symbol_Resolution::is_unresolved (const char* name) {
-    for (auto entry : this->unresolved) {
-        for (auto stm_deps : entry.second) {
-            if (stm_deps->stm->stm_type == AST_STATEMENT_DECLARATION) {
-                auto decl = static_cast<Ast_Declaration*>(stm_deps->stm);
-                if (strcmp(decl->name, name) == 0) {
-                    return true;
-                }
+    for (auto stm_idents : this->unresolved) {
+        if (stm_idents.first->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm_idents.first);
+            if (strcmp(decl->name, name) == 0) {
+                return true;
             }
         }
     }
@@ -195,9 +192,13 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
             auto ident = (*ident_ptr2);
 
             if (!ident->declaration) {
-                ident->declaration = ident->scope->find_declaration(ident->name);
+                ident->declaration = ident->scope->find_const_declaration(ident->name);
                 if (ident->declaration) {
-                    try_replace_ident_by_const(ident_ptr2);
+                    if (this->is_unresolved(ident->name)) {
+                        sym->push_back(ident_ptr2);
+                    } else {
+                        try_replace_ident_by_const(ident_ptr2);
+                    }
                 } else sym->push_back(ident_ptr2);
             } else try_replace_ident_by_const(ident_ptr2);
 			break;

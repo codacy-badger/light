@@ -41,6 +41,42 @@ Ast_Declaration* Ast_Block::find_declaration (const char* _name, bool recurse, b
     } else return NULL;
 }
 
+Ast_Declaration* Ast_Block::find_non_const_declaration (const char* _name) {
+    for (auto stm : this->list) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            if (!decl->is_constant() && strcmp(decl->name, _name) == 0) {
+				return decl;
+			}
+        }
+    }
+	if (this->scope_of) {
+		for (auto decl : this->scope_of->type->parameter_decls) {
+			if (strcmp(decl->name, _name) == 0) {
+				return decl;
+			}
+		}
+		if (!this->parent->is_global) return NULL;
+	}
+    if (this->parent) {
+        return this->parent->find_non_const_declaration(_name);
+    } else return NULL;
+}
+
+Ast_Declaration* Ast_Block::find_const_declaration (const char* _name) {
+    for (auto stm : this->list) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            if (decl->is_constant() && strcmp(decl->name, _name) == 0) {
+				return decl;
+			}
+        }
+    }
+    if (this->parent) {
+        return this->parent->find_const_declaration(_name);
+    } else return NULL;
+}
+
 Ast_Function* Ast_Block::get_function () {
 	if (this->scope_of) return this->scope_of;
 	else {

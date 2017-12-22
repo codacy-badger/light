@@ -417,6 +417,6 @@ Ast_Ident* Parser::ident (const char* name) {
 
 	// this is the right time to do this, since on a non-is_constant reference
 	// the declaration should already be in the scope, even if it's still not resolved.
-	ident->declaration = this->current_block->find_declaration(ident->name);
+	ident->declaration = this->current_block->find_non_const_declaration(ident->name);
 	return ident;
 }

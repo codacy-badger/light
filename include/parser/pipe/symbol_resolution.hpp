@@ -9,24 +9,13 @@
 
 using namespace std;
 
-struct cmp_str {
-    bool operator()(const char *a, const char *b) const {
-        return strcmp(a, b) < 0;
-    }
-};
-
-struct Ast_Statement_Dependency {
-    vector<Ast_Ident**> symbols;
-    Ast_Statement* stm = NULL;
-};
-
 struct Symbol_Resolution : Pipe {
-    map<const char*, vector<Ast_Statement_Dependency*>, cmp_str> unresolved;
+    map<Ast_Statement*, vector<Ast_Ident**>> unresolved;
 
     void on_statement (Ast_Statement* stm);
     void on_finish ();
 
-    void on_resolved (Ast_Statement* stm);
+    size_t on_resolved (Ast_Statement* stm);
     bool is_unresolved (const char* name);
 
     void check_symbols (Ast_Statement* stm, vector<Ast_Ident**>* sym);

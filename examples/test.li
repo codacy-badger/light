@@ -24,6 +24,18 @@ assert :: fn (condition: bool) {
 	}
 }
 
+test_factorial :: fn {
+	number := factorial(5);
+	assert(number == 120);
+
+	factorial :: fn (number: u32) -> u32 {
+		if (number == 0) 1
+		else {
+			factorial(number - 1) * number
+		}
+	}
+}
+
 test_division :: fn {
 	num1 := 10;
 	num2 := 9;
@@ -53,18 +65,6 @@ test_decimals :: fn {
 
 	assert(dec1 == 1.23);
 	assert(dec1 != 1.20);
-}
-
-test_factorial :: fn {
-	number := factorial(5);
-	assert(number == 120);
-
-	factorial :: fn (number: u32) -> u32 {
-		if (number == 0) 1
-		else {
-			factorial(number - 1) * number
-		}
-	}
 }
 
 test_cast :: fn {
@@ -122,7 +122,7 @@ test_scopes :: fn {
 	assert(func() == 13);
 
 	if 1 {
-		assert(func() == 13);
+		assert(func() == 12);
 		func :: fn -> u8 { var }
 		assert(func() == 12);
 
