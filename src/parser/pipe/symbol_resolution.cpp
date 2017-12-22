@@ -13,10 +13,13 @@ void try_replace_ident_by_const (Ast_Ident** ident_ptr2) {
 
 bool try_resolve (Ast_Ident** ident_ptr2, Ast_Declaration* decl) {
     if (strcmp((*ident_ptr2)->name, decl->name) == 0) {
-        (*ident_ptr2)->declaration = decl;
-        try_replace_ident_by_const(ident_ptr2);
-        return true;
-    } else return false;
+        if ((*ident_ptr2)->scope->is_ancestor(decl->scope)) {
+            (*ident_ptr2)->declaration = decl;
+            try_replace_ident_by_const(ident_ptr2);
+            return true;
+        }
+    }
+    return false;
 }
 
 void Symbol_Resolution::on_statement(Ast_Statement* stm) {

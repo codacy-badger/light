@@ -61,6 +61,7 @@ struct Ast_Block : Ast_Statement {
 	Ast_Declaration* find_declaration (const char* name, bool recurse = true, bool is_out_scope = false);
 	Ast_Declaration* find_non_const_declaration (const char* name);
 	Ast_Declaration* find_const_declaration (const char* name);
+	bool is_ancestor (Ast_Block* other);
 	Ast_Function* get_function ();
 };
 

@@ -77,12 +77,24 @@ Ast_Declaration* Ast_Block::find_const_declaration (const char* _name) {
     } else return NULL;
 }
 
+bool Ast_Block::is_ancestor (Ast_Block* other) {
+	if (this == other) return true;
+	else {
+		Ast_Block* block = this;
+		while (block->parent) {
+			block = block->parent;
+			if (block == other) return true;
+		}
+		return false;
+	}
+}
+
 Ast_Function* Ast_Block::get_function () {
 	if (this->scope_of) return this->scope_of;
 	else {
 		Ast_Block* block = this;
 		while (block->parent) {
-			block = this->parent;
+			block = block->parent;
 			if (block->scope_of) return block->scope_of;
 		}
 		return NULL;
