@@ -459,11 +459,11 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	// with the current expression
 	if (_tmp > 0) {
 		auto max_size = this->stack_offset;
-		for (uint8_t i = _tmp - 1; i >= 0; i--) {
+		for (uint8_t i = _tmp; i > 0; i--) {
 			this->stack_offset -= INTERP_REGISTER_SIZE;
 
-	        this->add_instruction(call, new Inst_Stack_Offset(_tmp + 1, this->stack_offset));
-	        this->add_instruction(call, new Inst_Load(i, _tmp + 1, INTERP_REGISTER_SIZE));
+	        this->add_instruction(call, new Inst_Stack_Offset(_tmp, this->stack_offset));
+	        this->add_instruction(call, new Inst_Load(i, _tmp, INTERP_REGISTER_SIZE));
 		}
         this->add_instruction(call, new Inst_Stack_Free(max_size - this->stack_offset));
 	}

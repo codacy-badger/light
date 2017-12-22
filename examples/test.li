@@ -25,8 +25,7 @@ assert :: fn (condition: bool) {
 }
 
 test_factorial :: fn {
-	number := factorial(5);
-	assert(number == 120);
+	assert(factorial(5) == 120);
 
 	factorial :: fn (number: u32) -> u32 {
 		if (number == 0) 1
