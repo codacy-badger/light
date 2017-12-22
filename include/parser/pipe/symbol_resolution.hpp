@@ -15,7 +15,7 @@ struct Symbol_Resolution : Pipe {
     void on_statement (Ast_Statement* stm);
     void on_finish ();
 
-    size_t on_resolved (Ast_Statement* stm);
+    void on_resolved (Ast_Statement* stm);
     bool is_unresolved (const char* name);
 
     void check_symbols (Ast_Statement* stm, vector<Ast_Ident**>* sym);

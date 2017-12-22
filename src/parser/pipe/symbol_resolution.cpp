@@ -58,33 +58,32 @@ void Symbol_Resolution::on_finish () {
     this->try_finish();
 }
 
-size_t Symbol_Resolution::on_resolved (Ast_Statement* stm) {
+void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
     this->to_next(stm);
-    size_t count = 0;
     if (stm->stm_type == AST_STATEMENT_DECLARATION) {
         auto decl = static_cast<Ast_Declaration*>(stm);
 		if (decl->is_constant()) {
-            auto stm_idents = this->unresolved.begin();
-            while (stm_idents != this->unresolved.end()) {
-                auto ident_ptr2 = stm_idents->second.begin();
-                while (ident_ptr2 != stm_idents->second.end()) {
+            vector<Ast_Statement*> resolved_stms;
+
+            for (auto &stm_idents : this->unresolved) {
+                auto ident_ptr2 = stm_idents.second.begin();
+                while (ident_ptr2 != stm_idents.second.end()) {
                     if (try_resolve(*ident_ptr2, decl)) {
-                        ident_ptr2 = stm_idents->second.erase(ident_ptr2);
+                        ident_ptr2 = stm_idents.second.erase(ident_ptr2);
                     } else ident_ptr2++;
                 }
 
-                if (stm_idents->second.size() == 0) {
-                    auto _stm = stm_idents->first;
-                    stm_idents = this->unresolved.erase(stm_idents);
+                if (stm_idents.second.size() == 0) {
+                    resolved_stms.push_back(stm_idents.first);
+                }
+            }
 
-                    auto resolved_count = this->on_resolved(_stm);
-                    for (int i = 0; i < resolved_count; i++) stm_idents++;
-                    count += resolved_count + 1;
-                } else stm_idents++;
+            for (auto resolved_stm : resolved_stms) {
+                this->unresolved.erase(resolved_stm);
+                this->on_resolved(resolved_stm);
             }
 		}
     }
-    return count;
 }
 
 bool Symbol_Resolution::is_unresolved (const char* name) {
