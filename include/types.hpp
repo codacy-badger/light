@@ -141,17 +141,19 @@ struct Types {
     }
 
     bool is_implicid_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
-        // If the target type is a pointer and the source type is smaller or
-        // equally large than a pointer, the cast is implicid (really?)
-        // TODO: is this really the best way to do this? research
-        if (type_to->typedef_type == AST_TYPEDEF_POINTER) {
-            return type_from->byte_size <= AST_POINTER_SIZE;
-        }
-
-        auto cast_instance = this->get_cast(type_from, type_to);
-        if (cast_instance) {
-            return cast_instance->is_implicid;
-        } else return false;
+		if (type_from->typedef_type == AST_TYPEDEF_POINTER && type_to->typedef_type == AST_TYPEDEF_POINTER) {
+			auto ptr_type_from = static_cast<Ast_Pointer_Type*>(type_from);
+			auto ptr_type_to = static_cast<Ast_Pointer_Type*>(type_to);
+			return ptr_type_from->base == ptr_type_to->base;
+		} else if (type_from->is_signed && type_to->is_signed) {
+			return type_to->byte_size >= type_from->byte_size;
+		} else if (!type_from->is_signed && type_to->is_signed) {
+			return type_to->byte_size > type_from->byte_size;
+		} else if (type_from->is_signed && !type_to->is_signed) {
+			return false;
+		} else {
+			return type_to->byte_size >= type_from->byte_size;
+		}
     }
 
     void compute_type_name_if_needed (Ast_Type_Definition* type_def) {

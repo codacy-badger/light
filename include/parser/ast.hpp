@@ -171,6 +171,7 @@ enum Ast_Type_Definition_Type {
 struct Ast_Type_Definition : Ast_Expression {
 	Ast_Type_Definition_Type typedef_type = AST_TYPEDEF_UNDEFINED;
 	bool is_primitive = false;
+	bool is_signed = false;
 	size_t byte_size = 0;
 	char* name = NULL;
 
