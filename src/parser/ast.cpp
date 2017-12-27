@@ -1,5 +1,7 @@
 #include "parser/ast.hpp"
 
+#include "compiler.hpp"
+
 #include <string.h>
 
 void ast_copy_location_info (Ast* destination, Ast* source) {
@@ -258,6 +260,23 @@ Ast_Ident* ast_make_ident (const char* name) {
 	auto out = new Ast_Ident();
 	out->name = name;
 	return out;
+}
+
+Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base, Ast_Struct_Type* size_type) {
+	auto slice_type = new Ast_Struct_Type();
+	slice_type->name = "slice(?)";
+
+	auto length_attr = new Ast_Declaration();
+	length_attr->name = "length";
+	length_attr->type = size_type ? size_type : Light_Compiler::inst->type_def_u64;
+	slice_type->attributes.push_back(length_attr);
+
+	auto data_attr = new Ast_Declaration();
+	data_attr->name = "data";
+	data_attr->type = Light_Compiler::inst->types->get_or_create_pointer_type(base);
+	slice_type->attributes.push_back(data_attr);
+
+	return slice_type;
 }
 
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const) {

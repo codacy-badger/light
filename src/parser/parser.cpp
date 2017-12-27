@@ -327,9 +327,7 @@ Ast_Expression* Parser::type_definition () {
 		array->base = this->type_definition();
 		return array;
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
-		auto ptr = AST_NEW(Ast_Pointer_Type);
-		ptr->base = this->type_definition();
-		return ptr;
+		return AST_NEW(Ast_Pointer_Type, this->type_definition());
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
 		return this->function_type();
 	} else {

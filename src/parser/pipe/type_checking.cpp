@@ -1,6 +1,7 @@
 #include "parser/pipe/type_checking.hpp"
 
 #include "compiler.hpp"
+#include "parser/ast.hpp"
 
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
 	if (type_from == type_to) return true;
@@ -13,6 +14,13 @@ bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from,
         (*exp_ptr) = cast;
         return true;
     } else return false;
+}
+
+void replace_slice_type (Ast_Array_Type** array_type_ptr) {
+	auto slice_type = ast_make_slice_type((*array_type_ptr)->base);
+	ast_copy_location_info(slice_type, (*array_type_ptr));
+	delete (*array_type_ptr);
+	(*array_type_ptr) = reinterpret_cast<Ast_Array_Type*>(slice_type);
 }
 
 void Type_Checking::on_statement(Ast_Statement* stm) {
@@ -96,7 +104,8 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 	if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
 		auto _array = static_cast<Ast_Array_Type*>(type_def);
 		if (_array->kind == AST_ARRAY_KIND_SLICE) {
-			printf("asdasd\n");
+			replace_slice_type(reinterpret_cast<Ast_Array_Type**>(&decl->type));
+			check_type(decl->type);
 		}
 	}
 }
@@ -158,7 +167,19 @@ void Type_Checking::check_type (Ast_Cast* cast) {
 	check_type(cast->value);
 	check_type(cast->cast_to);
 	if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-		cast->inferred_type = static_cast<Ast_Type_Definition*>(cast->cast_to);
+		auto type_def = static_cast<Ast_Type_Definition*>(cast->cast_to);
+		cast->inferred_type = type_def;
+
+		// If the type is a slice, we replace it by struct type
+		if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
+			auto _array = static_cast<Ast_Array_Type*>(type_def);
+			if (_array->kind == AST_ARRAY_KIND_SLICE) {
+				replace_slice_type(reinterpret_cast<Ast_Array_Type**>(&cast->cast_to));
+				check_type(cast->cast_to);
+			}
+		}
+	} else {
+		Light_Compiler::inst->error_stop(cast, "Cast target is not a type");
 	}
 }
 

@@ -193,10 +193,11 @@ struct Ast_Struct_Type : Ast_Type_Definition {
 struct Ast_Pointer_Type : Ast_Type_Definition {
 	Ast_Expression* base = NULL;
 
-	Ast_Pointer_Type() {
+	Ast_Pointer_Type(Ast_Expression* base = NULL) {
 		this->typedef_type = AST_TYPEDEF_POINTER;
 		this->byte_size = AST_POINTER_SIZE;
 		this->is_primitive = true;
+		this->base = base;
 	}
 };
 
@@ -358,4 +359,5 @@ struct Ast_Ident : Ast_Expression {
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);
 Ast_Ident* ast_make_ident (const char* name);
+Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base, Ast_Struct_Type* size_type = NULL);
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const = true);

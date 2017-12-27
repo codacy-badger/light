@@ -177,11 +177,6 @@ test_static_array :: fn {
 	assert(numbers.length == ARRAY_SIZE);
 	assert(numbers.length != 22);
 
-	// Here the static_array should implicidly converted a slice:
-	// tmp: array;
-	// tmp.length = numbers.length;
-	// tmp.data = numbers.data;
-	// print_array(tmp);
 	print_array(numbers);
 
 	print_array :: fn (array: [ARRAY_SIZE] u8) {
