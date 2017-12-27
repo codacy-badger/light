@@ -90,6 +90,15 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
     } else if (decl->type->inferred_type != Light_Compiler::inst->type_def_type) {
 		Light_Compiler::inst->error_stop(decl, "Expression is not a type!");
 	}
+
+	// If the type is a slice, we replace it by struct type
+	auto type_def = static_cast<Ast_Type_Definition*>(decl->type);
+	if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
+		auto _array = static_cast<Ast_Array_Type*>(type_def);
+		if (_array->kind == AST_ARRAY_KIND_SLICE) {
+			printf("asdasd\n");
+		}
+	}
 }
 
 void Type_Checking::check_type (Ast_Return* ret) {
@@ -307,7 +316,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
         } else if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
 			auto _array = static_cast<Ast_Array_Type*>(type_def);
 			switch (_array->kind) {
-				case AST_ARRAY_KIND_SLICE: assert(false);
+				case AST_ARRAY_KIND_SLICE: assert(!"--- Compiler Error ---");
 				case AST_ARRAY_KIND_STATIC: {
 					if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
 		                auto ident = static_cast<Ast_Ident*>(binop->rhs);

@@ -19,7 +19,7 @@ struct Cast_Instance {
 };
 
 struct Types {
-    map<char*, Ast_Struct_Type*, cmp_str_types> struct_types;
+    map<const char*, Ast_Struct_Type*, cmp_str_types> struct_types;
     map<Ast_Expression*, Ast_Pointer_Type*> ptr_types;
     map<Ast_Expression*, Ast_Array_Type*> arr_types;
     vector<Ast_Function_Type*> func_types;
@@ -48,6 +48,13 @@ struct Types {
         }
     }
 
+	Ast_Struct_Type* get_struct_type (const char* name) {
+		auto it = this->struct_types.find(name);
+        if (it != this->struct_types.end()) {
+    		return it->second;
+        } else return NULL;
+	}
+
     Ast_Struct_Type* get_unique_struct_type (Ast_Struct_Type* _struct) {
         auto it = this->struct_types.find(_struct->name);
         if (it != this->struct_types.end()) {
@@ -60,6 +67,13 @@ struct Types {
             return _struct;
         }
     }
+
+	Ast_Pointer_Type* get_pointer_type (Ast_Type_Definition* base_type) {
+		auto it = this->ptr_types.find(base_type);
+        if (it != this->ptr_types.end()) {
+    		return it->second;
+        } else return NULL;
+	}
 
     Ast_Pointer_Type* get_unique_pointer_type (Ast_Pointer_Type* ptr_type) {
         auto it = this->ptr_types.find(ptr_type->base);

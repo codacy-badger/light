@@ -332,7 +332,18 @@ Ast_Expression* Parser::type_definition () {
 		return ptr;
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
 		return this->function_type();
-	} else return this->ident();
+	} else {
+		auto ident = this->ident();
+		if (ident != NULL) {
+			auto _struct = Light_Compiler::inst->types->get_struct_type(ident->name);
+			if (_struct == NULL) {
+				return ident;
+			} else {
+				delete ident;
+				return _struct;
+			}
+		} else return NULL;
+	}
 }
 
 Ast_Function_Type* Parser::function_type () {
