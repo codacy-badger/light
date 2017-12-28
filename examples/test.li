@@ -197,13 +197,13 @@ test_static_array :: fn {
 }
 
 test_slice :: fn {
-	numbers: [3] u8;
+	numbers: [3]u8;
 	numbers[0] = 13;
 	numbers[1] = 14;
 	numbers[2] = 15;
 
 	_slice : []u8;
-	_slice.length = 3;
+	_slice.length = numbers.length;
 	_slice.data = cast(*u8) (*numbers);
 	print_u8_slice(_slice);
 
