@@ -278,31 +278,71 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 			break;
 		}
 		case AST_BINARY_SUBSCRIPT: {
-			auto array_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
-			auto array_base_type = static_cast<Ast_Type_Definition*>(array_type->base);
-            auto element_size = array_base_type->byte_size;
+			if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
+				auto array_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
+				auto array_base_type = static_cast<Ast_Type_Definition*>(array_type->base);
+	            auto element_size = array_base_type->byte_size;
 
-        	this->gen(binop->lhs, true);
-			this->gen(binop->rhs, left_value);
+	        	this->gen(binop->lhs, true);
+				this->gen(binop->rhs, left_value);
 
-			auto reg = this->current_register;
-            if (element_size > 1) {
-                this->add_instruction(binop, new Inst_Set(this->current_register, BYTECODE_TYPE_U64, &element_size));
-                this->add_instruction(binop, new Inst_Binary(BYTECODE_MUL, reg - 1, reg, BYTECODE_TYPE_U64));
-            }
+				auto reg = this->current_register;
+	            if (element_size > 1) {
+	                this->add_instruction(binop, new Inst_Set(this->current_register, BYTECODE_TYPE_U64, &element_size));
+	                this->add_instruction(binop, new Inst_Binary(BYTECODE_MUL, reg - 1, reg, BYTECODE_TYPE_U64));
+	            }
 
-			reg = --this->current_register;
-            this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
+				reg = --this->current_register;
+	            this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
 
-            if (!left_value) {
-                if (binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
-                } else {
-                    // TODO: this value should be hidden into a reg by pointer
-                    Light_Compiler::inst->error_stop(binop, "Value of identifier is bigger than a register!");
-                }
-            }
+	            if (!left_value) {
+	                if (binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+	                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
+	                } else {
+	                    // TODO: this value should be hidden into a reg by pointer
+	                    Light_Compiler::inst->error_stop(binop, "Value of identifier is bigger than a register!");
+	                }
+	            }
+			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
+				auto struct_type = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
+				if (struct_type->is_slice) {
+					auto data_decl = struct_type->find_attribute("data");
+					if (data_decl) {
+						auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
+						auto array_base_type = static_cast<Ast_Type_Definition*>(ptr_type->base);
+			            auto element_size = array_base_type->byte_size;
 
+			        	this->gen(binop->lhs, true);
+						auto reg = this->current_register;
+		                this->add_instruction(binop, new Inst_Set(reg, BYTECODE_TYPE_U64, &data_decl->attribute_byte_offset));
+		                this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
+						this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, ptr_type->byte_size));
+						this->gen(binop->rhs, left_value);
+
+						reg = this->current_register;
+			            if (element_size > 1) {
+			                this->add_instruction(binop, new Inst_Set(reg, BYTECODE_TYPE_U64, &element_size));
+			                this->add_instruction(binop, new Inst_Binary(BYTECODE_MUL, reg - 1, reg, BYTECODE_TYPE_U64));
+			            }
+
+						reg -= 1;
+			            this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
+
+			            if (!left_value) {
+			                if (binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+			                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
+			                } else {
+			                    // TODO: this value should be hidden into a reg by pointer
+			                    Light_Compiler::inst->error_stop(binop, "Value of identifier is bigger than a register!");
+			                }
+			            }
+					} else {
+						Light_Compiler::inst->error_stop(binop, "Slice type doesn't have data attribute");
+					}
+				} else {
+					Light_Compiler::inst->error_stop(binop->lhs, "Struct is not slice");
+				}
+			}
 			break;
 		}
 		case AST_BINARY_ASSIGN: {
@@ -381,7 +421,7 @@ void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
 			this->add_instruction(ident, new Inst_Load(reg, reg, ident->inferred_type->byte_size));
 		} else {
-			Light_Compiler::inst->error_stop(ident, "Value of identifier is bigger than a register!");
+			//Light_Compiler::inst->error_stop(ident, "Value of identifier is bigger than a register!");
 		}
 	}
 }

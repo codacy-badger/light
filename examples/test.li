@@ -13,6 +13,7 @@ main :: fn {
 	test_scopes();
 	test_big_struct();
 	test_static_array();
+	test_slice();
 }
 
 assert :: fn (condition: bool) {
@@ -165,7 +166,6 @@ test_big_struct :: fn {
 	}
 }
 
-
 test_static_array :: fn {
 	ARRAY_SIZE :: 16;
 	numbers: [ARRAY_SIZE] u8;
@@ -181,6 +181,34 @@ test_static_array :: fn {
 
 	print_array :: fn (array: [ARRAY_SIZE] u8) {
 		print("Array data -> (");
+		print_u64(array.length);
+		print(") [ ");
+		if (array.length > 0) {
+			index := 1;
+			print_u64(array[0]);
+			while (index < array.length) {
+				print(", ");
+				print_u64(array[index]);
+				index = index + 1;
+			}
+		}
+		print(" ]\n");
+	}
+}
+
+test_slice :: fn {
+	numbers: [3] u8;
+	numbers[0] = 13;
+	numbers[1] = 14;
+	numbers[2] = 15;
+
+	_slice : []u8;
+	_slice.length = 3;
+	_slice.data = cast(*u8) (*numbers);
+	print_u8_slice(_slice);
+
+	print_u8_slice :: fn (array : []u8) {
+		print("Slice data -> (");
 		print_u64(array.length);
 		print(") [ ");
 		if (array.length > 0) {

@@ -17,7 +17,7 @@ bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from,
 }
 
 void replace_slice_type (Ast_Array_Type** array_type_ptr) {
-	auto slice_type = ast_make_slice_type((*array_type_ptr)->base);
+	auto slice_type = ast_make_slice_type(*array_type_ptr);
 	ast_copy_location_info(slice_type, (*array_type_ptr));
 	delete (*array_type_ptr);
 	(*array_type_ptr) = reinterpret_cast<Ast_Array_Type*>(slice_type);
@@ -375,8 +375,22 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 				Light_Compiler::inst->error_stop(binop, "Type '%s' cannot be casted to u64 (index)",
 					binop->rhs->inferred_type->name);
 			}
+		} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
+			auto _struct = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
+			if (_struct->is_slice) {
+				auto data_decl = _struct->find_attribute("data");
+				if (data_decl) {
+					check_type(binop->rhs);
+					auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
+					binop->inferred_type = static_cast<Ast_Type_Definition*>(ptr_type->base);
+				} else {
+					Light_Compiler::inst->error_stop(binop, "Slice type doesn't have data attribute");
+				}
+			} else {
+				Light_Compiler::inst->error_stop(binop, "Left struct is not a slice");
+			}
 		} else {
-			Light_Compiler::inst->error_stop(binop, "Left of array access is not of array type!");
+			Light_Compiler::inst->error_stop(binop, "Left of array access is not of array or slice type");
 		}
 	} else {
     	check_type(binop->rhs);

@@ -262,9 +262,10 @@ Ast_Ident* ast_make_ident (const char* name) {
 	return out;
 }
 
-Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base, Ast_Struct_Type* size_type) {
+Ast_Struct_Type* ast_make_slice_type (Ast_Array_Type* array_type, Ast_Struct_Type* size_type) {
 	auto slice_type = new Ast_Struct_Type();
-	slice_type->name = "slice(?)";
+	slice_type->name = array_type->name;
+	slice_type->is_slice = true;
 
 	auto length_attr = new Ast_Declaration();
 	length_attr->name = "length";
@@ -273,7 +274,7 @@ Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base, Ast_Struct_Type* siz
 
 	auto data_attr = new Ast_Declaration();
 	data_attr->name = "data";
-	data_attr->type = Light_Compiler::inst->types->get_or_create_pointer_type(base);
+	data_attr->type = Light_Compiler::inst->types->get_or_create_pointer_type(array_type->base);
 	slice_type->attributes.push_back(data_attr);
 
 	return slice_type;
