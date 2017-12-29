@@ -320,12 +320,17 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 Ast_Expression* Parser::type_definition () {
 	if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
-		auto array = AST_NEW(Ast_Array_Type);
-		array->count = this->_atom();
-		array->kind = array->count ? AST_ARRAY_KIND_STATIC : AST_ARRAY_KIND_SLICE;
-		this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
-		array->base = this->type_definition();
-		return array;
+		auto count = this->_atom();
+		if (count) {
+			auto _array = AST_NEW(Ast_Array_Type);
+			_array->count = count;
+			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
+			_array->base = this->type_definition();
+			return _array;
+		} else {
+			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
+			return ast_make_slice_type(this->type_definition());
+		}
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		return AST_NEW(Ast_Pointer_Type, this->type_definition());
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {

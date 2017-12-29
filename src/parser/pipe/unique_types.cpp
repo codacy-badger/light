@@ -103,6 +103,7 @@ void Unique_Types::unique (Ast_Type_Definition** type_def) {
 }
 
 void Unique_Types::unique (Ast_Struct_Type** _struct) {
+    Light_Compiler::inst->types->compute_type_name_if_needed(*_struct);
 	Light_Compiler::inst->types->struct_types[(*_struct)->name] = (*_struct);
     for (int i = 0; i < (*_struct)->attributes.size(); i++) {
         this->unique((*_struct)->attributes[i]);

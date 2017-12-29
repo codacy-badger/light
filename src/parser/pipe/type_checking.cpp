@@ -98,16 +98,6 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
     } else if (decl->type->inferred_type != Light_Compiler::inst->type_def_type) {
 		Light_Compiler::inst->error_stop(decl, "Expression is not a type!");
 	}
-
-	// If the type is a slice, we replace it by struct type
-	auto type_def = static_cast<Ast_Type_Definition*>(decl->type);
-	if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
-		auto _array = static_cast<Ast_Array_Type*>(type_def);
-		if (_array->kind == AST_ARRAY_KIND_SLICE) {
-			replace_slice_type(reinterpret_cast<Ast_Array_Type**>(&decl->type));
-			check_type(decl->type);
-		}
-	}
 }
 
 void Type_Checking::check_type (Ast_Return* ret) {
@@ -169,15 +159,6 @@ void Type_Checking::check_type (Ast_Cast* cast) {
 	if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
 		auto type_def = static_cast<Ast_Type_Definition*>(cast->cast_to);
 		cast->inferred_type = type_def;
-
-		// If the type is a slice, we replace it by struct type
-		if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
-			auto _array = static_cast<Ast_Array_Type*>(type_def);
-			if (_array->kind == AST_ARRAY_KIND_SLICE) {
-				replace_slice_type(reinterpret_cast<Ast_Array_Type**>(&cast->cast_to));
-				check_type(cast->cast_to);
-			}
-		}
 	} else {
 		Light_Compiler::inst->error_stop(cast, "Cast target is not a type");
 	}
@@ -237,18 +218,16 @@ void Type_Checking::check_type (Ast_Struct_Type* _struct) {
 void Type_Checking::check_type (Ast_Array_Type* arr) {
     arr->inferred_type = Light_Compiler::inst->type_def_type;
 	check_type(arr->base);
-	if (arr->is_static()) {
-		if (arr->count->exp_type == AST_EXPRESSION_LITERAL) {
-			auto lit = static_cast<Ast_Literal*>(arr->count);
-			if (lit->literal_type == AST_LITERAL_UNSIGNED_INT) {
-				auto type_def = static_cast<Ast_Type_Definition*>(arr->base);
-				arr->byte_size = arr->length() * type_def->byte_size;
-			} else {
-				Light_Compiler::inst->error_stop(arr, "Arrays size must be an unsigned integer!");
-			}
+	if (arr->count->exp_type == AST_EXPRESSION_LITERAL) {
+		auto lit = static_cast<Ast_Literal*>(arr->count);
+		if (lit->literal_type == AST_LITERAL_UNSIGNED_INT) {
+			auto type_def = static_cast<Ast_Type_Definition*>(arr->base);
+			arr->byte_size = arr->length() * type_def->byte_size;
 		} else {
-			Light_Compiler::inst->error_stop(arr, "Arrays can only have constant size!");
+			Light_Compiler::inst->error_stop(arr, "Arrays size must be an unsigned integer!");
 		}
+	} else {
+		Light_Compiler::inst->error_stop(arr, "Arrays can only have constant size!");
 	}
 }
 
@@ -336,30 +315,23 @@ void Type_Checking::check_type (Ast_Binary* binop) {
             }
         } else if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
 			auto _array = static_cast<Ast_Array_Type*>(type_def);
-			switch (_array->kind) {
-				case AST_ARRAY_KIND_SLICE: assert(!"--- Compiler Error ---");
-				case AST_ARRAY_KIND_STATIC: {
-					if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
-		                auto ident = static_cast<Ast_Ident*>(binop->rhs);
-		                if (strcmp(ident->name, "length") == 0) {
-							binop->inferred_type = Light_Compiler::inst->type_def_u64;
-						} else if (strcmp(ident->name, "data") == 0) {
-							auto ptr_type = new Ast_Pointer_Type();
-						    ptr_type->inferred_type = Light_Compiler::inst->type_def_type;
-						    ptr_type->base = _array->base;
-						    binop->inferred_type = Light_Compiler::inst->types->get_unique_pointer_type(ptr_type);
-							Light_Compiler::inst->types->compute_type_name_if_needed(binop->inferred_type);
-						} else {
-							Light_Compiler::inst->error_stop(binop->rhs, "'%s' is not a valid attribute for array (use length or data)",
-								ident->name);
-						}
-		            } else {
-		                // TODO: move this check to somewhere more relevant
-		                Light_Compiler::inst->error_stop(binop, "Right of attribute access is NOT an identifier!");
-		            }
-					break;
+			if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
+				auto ident = static_cast<Ast_Ident*>(binop->rhs);
+				if (strcmp(ident->name, "length") == 0) {
+					binop->inferred_type = Light_Compiler::inst->type_def_u64;
+				} else if (strcmp(ident->name, "data") == 0) {
+					auto ptr_type = new Ast_Pointer_Type();
+					ptr_type->inferred_type = Light_Compiler::inst->type_def_type;
+					ptr_type->base = _array->base;
+					binop->inferred_type = Light_Compiler::inst->types->get_unique_pointer_type(ptr_type);
+					Light_Compiler::inst->types->compute_type_name_if_needed(binop->inferred_type);
+				} else {
+					Light_Compiler::inst->error_stop(binop->rhs, "'%s' is not a valid attribute for array (use length or data)",
+						ident->name);
 				}
-				default: assert(false);
+			} else {
+				// TODO: move this check to somewhere more relevant
+				Light_Compiler::inst->error_stop(binop, "Right of attribute access is NOT an identifier!");
 			}
 		} else {
             Light_Compiler::inst->error_stop(binop, "Left of attribute access has invalid type: '%s'",

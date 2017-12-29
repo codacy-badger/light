@@ -151,7 +151,11 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
 			if (decl->expression) {
 				this->gen(decl->expression);
                 this->add_instruction(decl, new Inst_Stack_Offset(1, decl->stack_offset));
-                this->add_instruction(decl, new Inst_Store(1, 0, ty_decl->byte_size));
+				if (ty_decl->byte_size > INTERP_REGISTER_SIZE) {
+	                this->add_instruction(decl, new Inst_Copy_Memory(1, 0, ty_decl->byte_size));
+	            } else {
+					this->add_instruction(decl, new Inst_Store(1, 0, ty_decl->byte_size));
+	            }
 			}
 		}
 	}
@@ -351,7 +355,11 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
         	this->gen(binop->lhs, true);
             this->current_register--;
 			auto reg = this->current_register;
-            this->add_instruction(binop, new Inst_Store(reg, reg - 1, size));
+			if (size > INTERP_REGISTER_SIZE) {
+                this->add_instruction(binop, new Inst_Copy_Memory(reg, reg - 1, size));
+            } else {
+				this->add_instruction(binop, new Inst_Store(reg, reg - 1, size));
+            }
 			break;
 		}
 		default: {

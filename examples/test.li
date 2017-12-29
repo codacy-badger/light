@@ -161,8 +161,21 @@ test_big_struct :: fn {
 	vec.y = 982;
 	handle_vec3(vec, 982);
 
+	vec2 := create_vec3(12);
+	assert(vec2.x == 13);
+	assert(vec2.y == 14);
+	assert(vec2.z == 15);
+
 	handle_vec3 :: fn (vec: Vec3, number: u64) {
 		assert(vec.y == number);
+	}
+
+	create_vec3 :: fn (num: u64) -> Vec3 {
+		vec: Vec3;
+		vec.x = num + 1;
+		vec.y = num + 2;
+		vec.z = num + 3;
+		return vec;
 	}
 }
 
@@ -202,10 +215,14 @@ test_slice :: fn {
 	numbers[1] = 14;
 	numbers[2] = 15;
 
-	_slice : []u8;
-	_slice.length = numbers.length;
-	_slice.data = cast(*u8) (*numbers);
-	print_u8_slice(_slice);
+	print_u8_slice(make_slice(numbers.length, cast(*u8) (*numbers)));
+
+	make_slice :: fn (length: u64, data: *u8) -> []u8 {
+		_slice : []u8;
+		_slice.length = length;
+		_slice.data = data;
+		return _slice;
+	}
 
 	print_u8_slice :: fn (array : []u8) {
 		print("Slice data -> (");

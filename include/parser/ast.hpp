@@ -202,23 +202,13 @@ struct Ast_Pointer_Type : Ast_Type_Definition {
 	}
 };
 
-enum Ast_Array_Kind {
-	AST_ARRAY_KIND_UNDEFINED = 0,
-	AST_ARRAY_KIND_STATIC,
-	AST_ARRAY_KIND_SLICE,
-};
-
 struct Ast_Array_Type : Ast_Type_Definition {
-	Ast_Array_Kind kind = AST_ARRAY_KIND_UNDEFINED;
 	Ast_Expression* base = NULL;
 	Ast_Expression* count = NULL;
 
 	Ast_Array_Type() { this->typedef_type = AST_TYPEDEF_ARRAY; }
 
 	uint64_t length ();
-
-	bool is_generic () { return this->kind == AST_ARRAY_KIND_SLICE; }
-	bool is_static ()  { return this->kind == AST_ARRAY_KIND_STATIC; }
 };
 
 struct Ast_Function_Type : Ast_Type_Definition {
@@ -360,5 +350,5 @@ struct Ast_Ident : Ast_Expression {
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);
 Ast_Ident* ast_make_ident (const char* name);
-Ast_Struct_Type* ast_make_slice_type (Ast_Array_Type* array_type, Ast_Struct_Type* size_type = NULL);
+Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type, Ast_Struct_Type* size_type = NULL);
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const = true);

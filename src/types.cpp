@@ -76,20 +76,11 @@ Ast_Pointer_Type* Types::get_unique_pointer_type (Ast_Pointer_Type* ptr_type) {
 Ast_Array_Type* Types::get_unique_array_type (Ast_Array_Type* arr_type) {
     auto it = this->arr_types.find(arr_type->base);
     if (it != this->arr_types.end()) {
-        if (arr_type != it->second && arr_type->kind == it->second->kind) {
-            switch (arr_type->kind) {
-                case AST_ARRAY_KIND_SLICE: {
-                    delete arr_type;
-                    return it->second;
-                }
-                case AST_ARRAY_KIND_STATIC: {
-                    if (it->second->length() == arr_type->length()) {
-                        delete arr_type;
-            			return it->second;
-            		}
-                    break;
-                }
-            }
+        if (arr_type != it->second) {
+			if (it->second->length() == arr_type->length()) {
+				delete arr_type;
+				return it->second;
+			}
         }
     }
     this->arr_types[arr_type->base] = arr_type;
@@ -157,7 +148,18 @@ bool Types::is_implicid_cast (Ast_Type_Definition* type_from, Ast_Type_Definitio
 
 void Types::compute_type_name_if_needed (Ast_Type_Definition* type_def) {
     switch (type_def->typedef_type) {
-        case AST_TYPEDEF_STRUCT: return;
+        case AST_TYPEDEF_STRUCT: {
+			auto _struct = static_cast<Ast_Struct_Type*>(type_def);
+			if (_struct->is_slice) {
+				auto data_decl = _struct->find_attribute("data");
+        		auto data_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
+        		auto base_type = static_cast<Ast_Type_Definition*>(data_type->base);
+        		auto base_name_length = strlen(base_type->name);
+				_struct->name = (char*) malloc(base_name_length + 3);
+				sprintf_s(_struct->name, base_name_length + 3, "[]%s", base_type->name);
+			}
+			break;
+		}
         case AST_TYPEDEF_POINTER: {
             auto _ptr = static_cast<Ast_Pointer_Type*>(type_def);
             if (_ptr->name == NULL) {
@@ -175,18 +177,8 @@ void Types::compute_type_name_if_needed (Ast_Type_Definition* type_def) {
             if (_arr->name == NULL) {
         		auto base_type_def = static_cast<Ast_Type_Definition*>(_arr->base);
         		auto base_name_length = strlen(base_type_def->name);
-                switch (_arr->kind) {
-                    case AST_ARRAY_KIND_STATIC: {
-                		_arr->name = (char*) malloc(base_name_length + 23);
-                        sprintf_s(_arr->name, base_name_length + 23, "[%lld]%s", _arr->length(), base_type_def->name);
-                        break;
-                    }
-                    case AST_ARRAY_KIND_SLICE: {
-                		_arr->name = (char*) malloc(base_name_length + 3);
-                        sprintf_s(_arr->name, base_name_length + 3, "[]%s", base_type_def->name);
-                        break;
-                    }
-                }
+				_arr->name = (char*) malloc(base_name_length + 23);
+				sprintf_s(_arr->name, base_name_length + 23, "[%lld]%s", _arr->length(), base_type_def->name);
         	}
             return;
         }
