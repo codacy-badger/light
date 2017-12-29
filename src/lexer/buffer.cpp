@@ -57,7 +57,7 @@ void Buffer::skip (size_t count) {
 	}
 }
 
-void Buffer::skipAny (const char* chars) {
+void Buffer::skip_any (const char* chars) {
 	while (this->has_next()) {
 		char _c = this->peek(0);
 		if (strchr(chars, _c) == NULL) {
@@ -66,7 +66,7 @@ void Buffer::skipAny (const char* chars) {
 	}
 }
 
-void Buffer::skipUntil (const char* stopper) {
+void Buffer::skip_until (const char* stopper) {
 	unsigned int i = 0;
 	while (this->has_next()) {
 		char _c = this->next();

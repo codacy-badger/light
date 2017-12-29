@@ -24,8 +24,8 @@ struct Buffer {
 	bool is_next (char c);
 	bool is_next (const char* expected);
 	void skip (size_t count = 1);
-	void skipAny (const char* chars);
-	void skipUntil (const char* stopper);
+	void skip_any (const char* chars);
+	void skip_until (const char* stopper);
 	void update_ring_buffer_if_needed ();
 	void handle_location (char character);
 };

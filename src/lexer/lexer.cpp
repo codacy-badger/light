@@ -227,15 +227,15 @@ void Lexer::handle_token (Token_Type type, const char* text) {
 }
 
 bool Lexer::skip_ignored_and_comments () {
-	this->buffer->skipAny(LEXER_IGNORED);
+	this->buffer->skip_any(LEXER_IGNORED);
     if (this->buffer->peek() == '/') {
         if (this->buffer->peek(1) == '/') {
-			this->buffer->skipUntil("\n");
-			this->buffer->skipAny(LEXER_IGNORED);
+			this->buffer->skip_until("\n");
+			this->buffer->skip_any(LEXER_IGNORED);
 			return true;
         } else if (this->buffer->peek(1) == '*') {
-			this->buffer->skipUntil("*/");
-			this->buffer->skipAny(LEXER_IGNORED);
+			this->buffer->skip_until("*/");
+			this->buffer->skip_any(LEXER_IGNORED);
 			return true;
         }
     }
