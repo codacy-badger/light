@@ -4,10 +4,6 @@
 
 #include <string.h>
 
-void ast_copy_location_info (Ast* destination, Ast* source) {
-	destination->location = source->location;
-}
-
 Ast_Declaration* Ast_Block::find_declaration (const char* _name, bool recurse, bool is_out_scope) {
     for (auto stm : this->list) {
 		// TODO: check why the F. do I have to check for null here

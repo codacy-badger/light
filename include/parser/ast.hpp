@@ -19,8 +19,6 @@ struct Ast {
 	Location location;
 };
 
-void ast_copy_location_info (Ast* destination, Ast* source);
-
 struct Ast_Note : Ast {
 	const char* name = NULL;
 	Ast_Comma_Separated_Arguments* arguments = NULL;

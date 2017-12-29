@@ -9,7 +9,7 @@ bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from,
 	if (type_from == type_to) return true;
     else if (g_compiler->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
-        ast_copy_location_info(cast, *exp_ptr);
+		cast->location = (*exp_ptr)->location;
         cast->value = (*exp_ptr);
         cast->cast_to = type_to;
         cast->inferred_type = type_to;
@@ -20,7 +20,7 @@ bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from,
 
 void replace_slice_type (Ast_Array_Type** array_type_ptr) {
 	auto slice_type = ast_make_slice_type(*array_type_ptr);
-	ast_copy_location_info(slice_type, (*array_type_ptr));
+	slice_type->location = (*array_type_ptr)->location;
 	delete (*array_type_ptr);
 	(*array_type_ptr) = reinterpret_cast<Ast_Array_Type*>(slice_type);
 }
