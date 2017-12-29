@@ -14,14 +14,12 @@
 
 const char* token_get_text (Token_Type type);
 
-Lexer::Lexer (const char* filename, Lexer* parent) {
-	this->parent = parent;
-	this->buffer = new Buffer(filename);
-	if (this->buffer->is_valid()) this->parse_next();
+Lexer::Lexer (FILE* file, const char* filename) {
+	this->buffer = new Buffer(file, filename);
+	this->parse_next();
 }
 
-Lexer::Lexer (Buffer* buffer, Lexer* parent) {
-	this->parent = parent;
+Lexer::Lexer (Buffer* buffer) {
 	this->buffer = buffer;
 	this->parse_next();
 }
@@ -29,9 +27,9 @@ Lexer::Lexer (Buffer* buffer, Lexer* parent) {
 bool Lexer::parse_next () {
 	while (this->skip_ignored_and_comments());
 
-	if (!this->buffer->hasNext()) {
-		this->nextText = NULL;
-		this->nextType = TOKEN_EOF;
+	if (!this->buffer->has_next()) {
+		this->next_text = NULL;
+		this->next_type = TOKEN_EOF;
 		return false;
 	}
 
@@ -75,15 +73,15 @@ bool Lexer::parse_next () {
     CHAR_TOKEN(']', TOKEN_SQ_BRAC_CLOSE);
 
 	if (next_is_id()) {
-			 if (STRING_EQUAL(nextText, "if")) 		this->nextType = TOKEN_IF;
-		else if (STRING_EQUAL(nextText, "else")) 	this->nextType = TOKEN_ELSE;
-		else if (STRING_EQUAL(nextText, "while")) 	this->nextType = TOKEN_WHILE;
-		else if (STRING_EQUAL(nextText, "break")) 	this->nextType = TOKEN_BREAK;
-		else if (STRING_EQUAL(nextText, "cast")) 	this->nextType = TOKEN_CAST;
-		else if (STRING_EQUAL(nextText, "struct")) 	this->nextType = TOKEN_STRUCT;
-		else if (STRING_EQUAL(nextText, "fn")) 		this->nextType = TOKEN_FUNCTION;
-		else if (STRING_EQUAL(nextText, "return")) 	this->nextType = TOKEN_RETURN;
-		else if (STRING_EQUAL(nextText, "import")) 	this->nextType = TOKEN_IMPORT;
+			 if (STRING_EQUAL(next_text, "if")) 	this->next_type = TOKEN_IF;
+		else if (STRING_EQUAL(next_text, "else")) 	this->next_type = TOKEN_ELSE;
+		else if (STRING_EQUAL(next_text, "while")) 	this->next_type = TOKEN_WHILE;
+		else if (STRING_EQUAL(next_text, "break")) 	this->next_type = TOKEN_BREAK;
+		else if (STRING_EQUAL(next_text, "cast")) 	this->next_type = TOKEN_CAST;
+		else if (STRING_EQUAL(next_text, "struct")) this->next_type = TOKEN_STRUCT;
+		else if (STRING_EQUAL(next_text, "fn")) 	this->next_type = TOKEN_FUNCTION;
+		else if (STRING_EQUAL(next_text, "return")) this->next_type = TOKEN_RETURN;
+		else if (STRING_EQUAL(next_text, "import")) this->next_type = TOKEN_IMPORT;
 		return true;
 	} else if (next_is_string() || next_is_number()) return true;
 
@@ -93,7 +91,7 @@ bool Lexer::parse_next () {
 }
 
 bool Lexer::is_next_type (Token_Type type) {
-	return this->nextType == type;
+	return this->next_type == type;
 }
 
 void Lexer::skip (unsigned int count) {
@@ -102,13 +100,13 @@ void Lexer::skip (unsigned int count) {
 }
 
 char* Lexer::text () {
-	char* text = this->nextText;
+	char* text = this->next_text;
 	this->skip(1);
 	return text;
 }
 
 bool Lexer::check_skip (Token_Type type) {
-	if (this->nextType == type) {
+	if (this->next_type == type) {
 		this->skip(1);
 		return true;
 	} else {
@@ -118,21 +116,20 @@ bool Lexer::check_skip (Token_Type type) {
 }
 
 bool Lexer::optional_skip (Token_Type type) {
-	if (this->nextType == type) {
+	if (this->next_type == type) {
 		this->skip(1);
 		return true;
 	} else return false;
 }
 
 void Lexer::report_unexpected (Token_Type expected) {
-	report_error_stop(&this->buffer->location, "Parser: Expected '%s', but got '%s'",
-		token_get_text(expected), token_get_text(this->nextType));
-}
-
-void Lexer::report_unexpected () {
-	report_error_stop(&this->buffer->location, "Parser: Unexpected token '%s'",
-		token_get_text(this->nextType));
-	exit(EXIT_FAILURE);
+	if (expected != TOKEN_EOF) {
+		report_error_stop(&this->buffer->location, "Parser: Expected '%s', but got '%s'",
+			token_get_text(expected), token_get_text(this->next_type));
+	} else {
+		report_error_stop(&this->buffer->location, "Parser: Unexpected token '%s'",
+			token_get_text(this->next_type));
+	}
 }
 
 #define LEXER_BUFFER_SIZE 128
@@ -141,7 +138,7 @@ char _buffer[LEXER_BUFFER_SIZE];
 bool Lexer::next_is_id () {
 	char c = this->buffer->peek();
     if (ALPHA(c)) {
-		this->nextType = TOKEN_ID;
+		this->next_type = TOKEN_ID;
 		size_t count = 0;
         while (ALPHANUM(c)) {
 			_buffer[count++] = c;
@@ -150,7 +147,7 @@ bool Lexer::next_is_id () {
 	        c = this->buffer->peek();
         }
 		_buffer[count] = 0;
-		this->nextText = _strdup(_buffer);
+		this->next_text = _strdup(_buffer);
         return true;
     }
     return false;
@@ -176,8 +173,8 @@ bool Lexer::next_is_string () {
 		}
 		_buffer[count] = 0;
 
-        this->nextType = TOKEN_STRING;
-		this->nextText = _strdup(_buffer);
+        this->next_type = TOKEN_STRING;
+		this->next_text = _strdup(_buffer);
         return true;
     } else return false;
 }
@@ -214,8 +211,8 @@ bool Lexer::next_is_number (size_t count) {
 	        }
 			_buffer[count] = 0;
 
-	        this->nextType = TOKEN_NUMBER;
-			this->nextText = _strdup(_buffer);
+	        this->next_type = TOKEN_NUMBER;
+			this->next_text = _strdup(_buffer);
 	        return true;
 	    }
 	}
@@ -225,8 +222,8 @@ bool Lexer::next_is_number (size_t count) {
 void Lexer::handle_token (Token_Type type, const char* text) {
 	if (text) this->buffer->skip(strlen(text));
 	else this->buffer->skip();
-	this->nextText = NULL;
-	this->nextType = type;
+	this->next_text = NULL;
+	this->next_type = type;
 }
 
 bool Lexer::skip_ignored_and_comments () {

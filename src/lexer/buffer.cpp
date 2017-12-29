@@ -3,45 +3,37 @@
 #include <stdio.h>
 #include <string.h>
 
-Buffer::Buffer (const char* filename) {
-	fopen_s(&this->stream, filename, "r");
+#include "report.hpp"
+
+size_t get_ring_index (size_t index) {
+	return index % RING_BUFFER_SIZE;
+}
+
+Buffer::Buffer (FILE* file, const char* filename) {
 	this->location.filename = filename;
-}
+	this->file = file;
 
-Buffer::~Buffer () {
-	fclose(this->stream);
-}
-
-bool Buffer::is_valid () {
-	return this->stream != NULL;
+	size_t index = 0;
+	while (index < RING_BUFFER_SIZE) {
+		this->ring_buffer[index++] = fgetc(this->file);
+	}
 }
 
 char Buffer::next () {
-	char output;
-	if (this->pushback_buffer.empty()) {
-		output = (char) fgetc(this->stream);
-	} else {
-		output = this->pushback_buffer.front();
-		this->pushback_buffer.pop_front();
-	}
-	this->handleLineCol(output);
+	char output = (char) this->ring_buffer[this->ring_buffer_index++];
+	this->ring_buffer_index = get_ring_index(this->ring_buffer_index);
+	this->update_ring_buffer_if_needed();
+	this->handle_location(output);
 	return output;
 }
 
-void Buffer::pushback (char c) {
-	this->pushback_buffer.push_back(c);
-}
-
-bool Buffer::hasNext () {
-	return !this->pushback_buffer.empty() || !feof(this->stream);
+bool Buffer::has_next () {
+	return this->ring_buffer[this->ring_buffer_index] != -1;
 }
 
 char Buffer::peek (size_t offset) {
-	if (this->pushback_buffer.size() < (offset + 1))
-		this->fillPushbackBuffer(offset + 1);
-	if (this->pushback_buffer.size() > offset)
-		return this->pushback_buffer[offset];
-	else return -1;
+	auto index = get_ring_index(this->ring_buffer_index + offset);
+	return (char) this->ring_buffer[index];
 }
 
 bool Buffer::is_next (char c) {
@@ -49,8 +41,8 @@ bool Buffer::is_next (char c) {
 }
 
 bool Buffer::is_next (const char* expected) {
-	this->fillPushbackBuffer(strlen(expected));
-	for (unsigned int i = 0; i < strlen(expected); i++) {
+	auto length = strlen(expected);
+	for (unsigned int i = 0; i < length; i++) {
         if (this->peek(i) != expected[i])
             return false;
     }
@@ -59,14 +51,14 @@ bool Buffer::is_next (const char* expected) {
 
 void Buffer::skip (size_t count) {
 	unsigned int i = 0;
-	while (this->hasNext() && i < count) {
+	while (this->has_next() && i < count) {
 		this->next();
 		i += 1;
 	}
 }
 
 void Buffer::skipAny (const char* chars) {
-	while (this->hasNext()) {
+	while (this->has_next()) {
 		char _c = this->peek(0);
 		if (strchr(chars, _c) == NULL) {
 			break;
@@ -76,21 +68,26 @@ void Buffer::skipAny (const char* chars) {
 
 void Buffer::skipUntil (const char* stopper) {
 	unsigned int i = 0;
-	while (this->hasNext()) {
+	while (this->has_next()) {
 		char _c = this->next();
 		if (_c == stopper[i]) {
 			if (++i == strlen(stopper)) return;
 		} else i = 0;
 	}
 }
-void Buffer::fillPushbackBuffer (size_t limit) {
-	for (size_t i = this->pushback_buffer.size(); i < limit; i++) {
-		char c = (char) fgetc(this->stream);
-		if (c != EOF) this->pushback_buffer.push_back(c);
+
+void Buffer::update_ring_buffer_if_needed () {
+	auto diff = this->ring_buffer_index - this->ring_buffer_last;
+	if (diff < 0) diff = -diff;
+	if (diff > (RING_BUFFER_SIZE / RING_BUFFER_SECTIONS)) {
+		while (this->ring_buffer_last != this->ring_buffer_index) {
+			this->ring_buffer[this->ring_buffer_last++] = fgetc(this->file);
+			this->ring_buffer_last = get_ring_index(this->ring_buffer_last);
+		}
 	}
 }
 
-void Buffer::handleLineCol (char character) {
+void Buffer::handle_location (char character) {
 	if (character == EOF) return;
 	if (character == '\n') {
 		this->location.line += 1;

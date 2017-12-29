@@ -1,5 +1,7 @@
 #include "parser/parser.hpp"
 
+#include <errno.h>
+
 #include "compiler.hpp"
 
 template <typename T>
@@ -10,8 +12,20 @@ T* setup_ast_node (Lexer* lexer, T* node) {
 
 #define AST_NEW(T, ...) setup_ast_node(lexer, new T(__VA_ARGS__))
 
+FILE* open_file_or_crash (const char* filename, Location* location = NULL) {
+	FILE* file_ptr = NULL;
+	auto err = fopen_s(&file_ptr, filename, "r");
+	if (err) {
+		char buf[128];
+		strerror_s(buf, sizeof buf, err);
+		report_error_stop(location, "Cannot open file '%s': %s", filename, buf);
+	}
+	return file_ptr;
+}
+
 Parser::Parser (const char* filepath) {
-	this->lexer = new Lexer(filepath);
+	auto file = open_file_or_crash(filepath);
+	this->lexer = new Lexer(file, filepath);
 }
 
 void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def) {
@@ -79,7 +93,7 @@ Ast_Note* Parser::note () {
 }
 
 Ast_Statement* Parser::statement () {
-	switch (this->lexer->nextType) {
+	switch (this->lexer->next_type) {
 		case TOKEN_EOF: this->lexer->report_unexpected();
 		case TOKEN_STM_END: {
 			this->lexer->skip();
@@ -90,12 +104,11 @@ Ast_Statement* Parser::statement () {
 
 			if (this->lexer->is_next_type(TOKEN_STRING)) {
 				auto filepath = this->lexer->text();
+				auto file = open_file_or_crash(filepath, &this->lexer->buffer->location);
 
 				auto tmp = this->lexer;
-				this->lexer = new Lexer(filepath);
-				if (this->lexer->buffer->is_valid()) {
-					this->block(this->current_block);
-				} else report_error_stop(&tmp->buffer->location, "Can't open import file: '%s'", filepath);
+				this->lexer = new Lexer(file, filepath);
+				this->block(this->current_block);
 				this->lexer = tmp;
 
 			} else report_error_stop(&this->lexer->buffer->location, "Import statements must be followed by string literal!");
@@ -217,7 +230,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
 	Ast_Expression* output = this->_atom(initial);
     if (output != NULL) {
-        Token_Type tt = this->lexer->nextType;
+        Token_Type tt = this->lexer->next_type;
 		auto precedence = Ast_Binary::getPrecedence(tt);
 		while (precedence >= min_precedence) {
 			this->lexer->skip();
@@ -232,7 +245,7 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
 
 			if (tt == TOKEN_SQ_BRAC_OPEN) this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 
-			tt = this->lexer->nextType;
+			tt = this->lexer->next_type;
 			precedence = Ast_Binary::getPrecedence(tt);
 		}
     }
@@ -359,7 +372,7 @@ Ast_Function_Type* Parser::function_type () {
 
 Ast_Literal* Parser::literal () {
 	Ast_Literal* output = NULL;
-	switch (this->lexer->nextType) {
+	switch (this->lexer->next_type) {
 		case TOKEN_STRING: {
 			output = AST_NEW(Ast_Literal);
 			output->literal_type = AST_LITERAL_STRING;

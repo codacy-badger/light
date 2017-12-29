@@ -5,25 +5,27 @@
 
 #include "report.hpp"
 
-struct Buffer {
-	FILE* stream = NULL;
-	std::deque<char> pushback_buffer;
+#define RING_BUFFER_SIZE 512
+#define RING_BUFFER_SECTIONS 2
 
+struct Buffer {
+	int ring_buffer[RING_BUFFER_SIZE];
+	int64_t ring_buffer_index = 0;
+	int64_t ring_buffer_last = 0;
+
+	FILE* file = NULL;
 	Location location;
 
-	Buffer (const char* filename);
-	~Buffer ();
+	Buffer (FILE* file, const char* filename);
 
-	bool is_valid ();
 	char next ();
-	void pushback (char c);
-	bool hasNext ();
+	bool has_next ();
 	char peek (size_t offset = 0);
 	bool is_next (char c);
 	bool is_next (const char* expected);
 	void skip (size_t count = 1);
 	void skipAny (const char* chars);
 	void skipUntil (const char* stopper);
-	void fillPushbackBuffer (size_t limit);
-	void handleLineCol (char character);
+	void update_ring_buffer_if_needed ();
+	void handle_location (char character);
 };

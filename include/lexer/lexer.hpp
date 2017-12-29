@@ -6,16 +6,13 @@
 #include "tokens.hpp"
 
 struct Lexer {
-	Lexer* parent = NULL;
-
-	std::deque<Buffer*> buffer_stack;
 	Buffer* buffer;
 
-	char* nextText;
-	Token_Type nextType;
+	char* next_text;
+	Token_Type next_type;
 
-	Lexer (const char* filename, Lexer* parent = NULL);
-	Lexer (Buffer* buffer, Lexer* parent = NULL);
+	Lexer (FILE* file, const char* filename);
+	Lexer (Buffer* buffer);
 
 	bool parse_next ();
 	bool is_next_type (Token_Type type);
@@ -25,8 +22,7 @@ struct Lexer {
 
 	bool check_skip (Token_Type type);
 	bool optional_skip (Token_Type type);
-	void report_unexpected (Token_Type expect);
-	void report_unexpected ();
+	void report_unexpected (Token_Type expect = TOKEN_EOF);
 
 	bool next_is_id ();
 	bool next_is_string ();
