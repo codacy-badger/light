@@ -28,9 +28,9 @@ struct Lexer {
 	void report_unexpected (Token_Type expect);
 	void report_unexpected ();
 
-	bool id ();
-	bool string ();
-	bool number ();
+	bool next_is_id ();
+	bool next_is_string ();
+	bool next_is_number (size_t count = 0);
 	void handle_token (Token_Type type, const char* text = NULL);
 	bool skip_ignored_and_comments ();
 };
