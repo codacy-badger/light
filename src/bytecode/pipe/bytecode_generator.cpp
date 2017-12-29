@@ -2,14 +2,16 @@
 
 #include "compiler.hpp"
 
+#define ERROR(node, ...) report_error_stop(&node->location, __VA_ARGS__)
+
 void Bytecode_Generator::on_statement (Ast_Statement* stm) {
     this->gen(stm);
     this->to_next(stm);
 }
 
 void Bytecode_Generator::add_instruction (Ast* node, Instruction* intruction) {
-    intruction->filename = node->filename;
-    intruction->line = node->line;
+    intruction->filename = node->location.filename;
+    intruction->line = node->location.line;
     this->bytecode->push_back(intruction);
 }
 
@@ -112,7 +114,7 @@ void Bytecode_Generator::fill (Ast_Function* fn) {
 		this->current_register = 0;
 		this->gen(fn->scope);
 
-		if (fn->type->return_type == Light_Compiler::inst->type_def_void) {
+		if (fn->type->return_type == g_compiler->type_def_void) {
 			if (this->bytecode->size() == 0) {
 				this->add_instruction(fn->scope, new Inst_Return());
 			} else {
@@ -140,7 +142,7 @@ void Bytecode_Generator::gen (Ast_Declaration* decl) {
     } else {
 		auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
 		if (decl->decl_flags & AST_DECL_FLAG_GLOBAL) {
-			decl->global_offset = Light_Compiler::inst->interp->globals->add(ty_decl->byte_size);
+			decl->global_offset = g_compiler->interp->globals->add(ty_decl->byte_size);
 		} else {
             bool zero_init = !(decl->decl_flags & AST_DECL_FLAG_UNINIT);
             zero_init = zero_init && !decl->expression;
@@ -200,12 +202,12 @@ void Bytecode_Generator::gen (Ast_Literal* lit) {
             break;
         }
 		case AST_LITERAL_STRING: {
-			lit->data_offset = Light_Compiler::inst->interp->constants->add(lit->string_value);
+			lit->data_offset = g_compiler->interp->constants->add(lit->string_value);
             this->add_instruction(lit, new Inst_Constant_Offset(this->current_register++, lit->data_offset));
 			break;
 		}
 		default: {
-			Light_Compiler::inst->error_stop(lit, "Literal type to bytecode conversion not supported!");
+			ERROR(lit, "Literal type to bytecode conversion not supported!");
 		}
 	}
 }
@@ -275,7 +277,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
                     this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
                 } else {
                     // TODO: this value should be hidden into a reg by pointer
-                    Light_Compiler::inst->error_stop(binop, "Value of identifier is bigger than a register!");
+                    ERROR(binop, "Value of identifier is bigger than a register!");
                 }
             }
 
@@ -304,7 +306,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 	                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
 	                } else {
 	                    // TODO: this value should be hidden into a reg by pointer
-	                    Light_Compiler::inst->error_stop(binop, "Value of identifier is bigger than a register!");
+	                    ERROR(binop, "Value of identifier is bigger than a register!");
 	                }
 	            }
 			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
@@ -337,14 +339,14 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 			                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
 			                } else {
 			                    // TODO: this value should be hidden into a reg by pointer
-			                    Light_Compiler::inst->error_stop(binop, "Value of identifier is bigger than a register!");
+			                    ERROR(binop, "Value of identifier is bigger than a register!");
 			                }
 			            }
 					} else {
-						Light_Compiler::inst->error_stop(binop, "Slice type doesn't have data attribute");
+						ERROR(binop, "Slice type doesn't have data attribute");
 					}
 				} else {
-					Light_Compiler::inst->error_stop(binop->lhs, "Struct is not slice");
+					ERROR(binop->lhs, "Struct is not slice");
 				}
 			}
 			break;
@@ -429,14 +431,14 @@ void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 		if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
 			this->add_instruction(ident, new Inst_Load(reg, reg, ident->inferred_type->byte_size));
 		} else {
-			//Light_Compiler::inst->error_stop(ident, "Value of identifier is bigger than a register!");
+			//ERROR(ident, "Value of identifier is bigger than a register!");
 		}
 	}
 }
 
 void Bytecode_Generator::gen (Ast_Function* func) {
     if (func->foreign_module_name) {
-		auto ffunctions = Light_Compiler::inst->interp->foreign_functions;
+		auto ffunctions = g_compiler->interp->foreign_functions;
 		auto module = ffunctions->get_or_add_module(func->foreign_module_name);
 		if (module) {
 			auto function_pointer = ffunctions->get_or_add_function(module, func->foreign_function_name);
@@ -445,10 +447,10 @@ void Bytecode_Generator::gen (Ast_Function* func) {
 				this->current_register++;
 			}
 		} else {
-			Light_Compiler::inst->error_stop(func, "Module '%s' not found!", func->foreign_module_name);
+			ERROR(func, "Module '%s' not found!", func->foreign_module_name);
 		}
 	} else {
-		Light_Compiler::inst->error_stop(func, "Internal functions cannot be referenced...");
+		ERROR(func, "Internal functions cannot be referenced...");
 	}
 }
 

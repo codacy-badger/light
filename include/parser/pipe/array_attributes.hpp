@@ -57,7 +57,7 @@ struct Array_Attributes : Pipe {
 					if (binary->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 						auto arr_type = static_cast<Ast_Array_Type*>(binary->lhs->inferred_type);
 						auto lit = ast_make_literal(arr_type->length());
-						lit->inferred_type = Light_Compiler::inst->type_def_u64;
+						lit->inferred_type = g_compiler->type_def_u64;
 						delete *exp;
 						(*exp) = lit;
 					}

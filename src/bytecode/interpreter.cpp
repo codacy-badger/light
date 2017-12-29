@@ -42,14 +42,14 @@ void Bytecode_Interpreter::run (Ast_Function* func) {
 		auto inst = func->bytecode[instruction_index];
 
 		if (DEBUG) {
-			Light_Compiler::inst->interp->print(instruction_index, inst);
+			g_compiler->interp->print(instruction_index, inst);
 			if (inst->bytecode == BYTECODE_RETURN || inst->bytecode == BYTECODE_CALL) {
 				printf("\n");
 			}
 		}
-		Light_Compiler::inst->interp->run(inst);
+		g_compiler->interp->run(inst);
 		if (inst->bytecode == BYTECODE_RETURN) {
-			//Light_Compiler::inst->interp->dump();
+			//g_compiler->interp->dump();
 			break;
 		}
 	}
@@ -94,14 +94,14 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_CONSTANT_OFFSET: {
 			auto coff = static_cast<Inst_Constant_Offset*>(inst);
 
-			auto ptr = Light_Compiler::inst->interp->constants->allocated[coff->offset];
+			auto ptr = g_compiler->interp->constants->allocated[coff->offset];
 			memcpy(this->registers[coff->reg], &ptr, INTERP_REGISTER_SIZE);
 			return;
 		}
 		case BYTECODE_GLOBAL_OFFSET: {
 			auto gloff = static_cast<Inst_Global_Offset*>(inst);
 
-			auto ptr = Light_Compiler::inst->interp->globals->get(gloff->offset);
+			auto ptr = g_compiler->interp->globals->get(gloff->offset);
 			memcpy(this->registers[gloff->reg], &ptr, INTERP_REGISTER_SIZE);
 			return;
 		}
@@ -229,20 +229,20 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			if (func->foreign_module_name) {
 				DCpointer function_pointer = NULL;
 
-				auto ffunctions = Light_Compiler::inst->interp->foreign_functions;
+				auto ffunctions = g_compiler->interp->foreign_functions;
 				auto module = ffunctions->get_or_add_module(func->foreign_module_name);
 				if (module) {
 					function_pointer = ffunctions->get_or_add_function(module, func->foreign_function_name);
 					if (!function_pointer) {
-						Light_Compiler::inst->error_stop(func, "Function '%s' not found in module '%s'!",
+						report_error_stop(&func->location, "Function '%s' not found in module '%s'!",
 							func->foreign_function_name, func->foreign_module_name);
 					}
 				} else {
-					Light_Compiler::inst->error_stop(func, "Module '%s' not found!", func->foreign_module_name);
+					report_error_stop(&func->location, "Module '%s' not found!", func->foreign_module_name);
 				}
 
 				size_t result = 0;
-				auto instance = Light_Compiler::inst;
+				auto instance = g_compiler;
 				auto ret_ty = func->type->return_type;
 				if (ret_ty == instance->type_def_void) {
 					dcCallVoid(vm, function_pointer);
@@ -274,8 +274,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			return;
 		}
 		default: {
-			Light_Compiler::inst->error_stop(NULL,
-				"Instruction not yet supported: %d", inst->bytecode);
+			report_error_stop(NULL, "Instruction not yet supported: %d", inst->bytecode);
 		}
 	}
 }

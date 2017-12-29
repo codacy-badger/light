@@ -27,7 +27,7 @@ MB_SYSTEMMODAL 			:: 0x00001000;
 MB_TASKMODAL 			:: 0x00002000;
 
 #foreign("user32", "MessageBoxA")
-MessageBox : fn (hWnd: *void, lpText: string, lpCaption: string, uType: u32) -> s32 :;
+MessageBox : fn (hWnd: *void, lpText: *u8, lpCaption: *u8, uType: u32) -> s32 :;
 
 CS_BYTEALIGNCLIENT 		:: 0x1000;
 CS_BYTEALIGNWINDOW 		:: 0x2000;

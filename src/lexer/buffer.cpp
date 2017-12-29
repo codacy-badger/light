@@ -5,7 +5,7 @@
 
 Buffer::Buffer (const char* filename) {
 	fopen_s(&this->stream, filename, "r");
-	this->source = filename;
+	this->location.filename = filename;
 }
 
 Buffer::~Buffer () {
@@ -83,11 +83,6 @@ void Buffer::skipUntil (const char* stopper) {
 		} else i = 0;
 	}
 }
-
-void Buffer::printLocation () {
-	printf("%s:%zd,%zd", this->source, this->line, this->col);
-}
-
 void Buffer::fillPushbackBuffer (size_t limit) {
 	for (size_t i = this->pushback_buffer.size(); i < limit; i++) {
 		char c = (char) fgetc(this->stream);
@@ -98,7 +93,7 @@ void Buffer::fillPushbackBuffer (size_t limit) {
 void Buffer::handleLineCol (char character) {
 	if (character == EOF) return;
 	if (character == '\n') {
-		line += 1;
-		col = 1;
-	} else col += 1;
+		this->location.line += 1;
+		this->location.col = 1;
+	} else this->location.col += 1;
 }

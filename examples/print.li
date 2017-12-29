@@ -7,7 +7,7 @@ std_handle_out : *void;
 
 print_array :: fn (str: []u8) {
 	std_handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
-	
+
 	if (std_handle_out != INVALID_HANDLE_VALUE) {
 		console_mode : u32;
 		if GetConsoleMode(std_handle_out, *console_mode) {
@@ -97,7 +97,7 @@ print_u64_hex :: fn (number: u64) {
 	}
 }
 
-string_length :: fn (str: string) -> u32 {
+string_length :: fn (str: *u8) -> u32 {
 	result : u32 = 0;
 	char : u8 = &str;
 	while (char != 0) {

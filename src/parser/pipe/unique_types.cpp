@@ -103,8 +103,8 @@ void Unique_Types::unique (Ast_Type_Definition** type_def) {
 }
 
 void Unique_Types::unique (Ast_Struct_Type** _struct) {
-    Light_Compiler::inst->types->compute_type_name_if_needed(*_struct);
-	Light_Compiler::inst->types->struct_types[(*_struct)->name] = (*_struct);
+    g_compiler->types->compute_type_name_if_needed(*_struct);
+	g_compiler->types->struct_types[(*_struct)->name] = (*_struct);
     for (int i = 0; i < (*_struct)->attributes.size(); i++) {
         this->unique((*_struct)->attributes[i]);
     }
@@ -112,14 +112,14 @@ void Unique_Types::unique (Ast_Struct_Type** _struct) {
 
 void Unique_Types::unique (Ast_Pointer_Type** ptr_type) {
     this->unique(&(*ptr_type)->base);
-    (*ptr_type) = Light_Compiler::inst->types->get_unique_pointer_type(*ptr_type);
-    Light_Compiler::inst->types->compute_type_name_if_needed(*ptr_type);
+    (*ptr_type) = g_compiler->types->get_unique_pointer_type(*ptr_type);
+    g_compiler->types->compute_type_name_if_needed(*ptr_type);
 }
 
 void Unique_Types::unique (Ast_Array_Type** arr_type) {
     this->unique(&(*arr_type)->base);
-    (*arr_type) = Light_Compiler::inst->types->get_unique_array_type(*arr_type);
-    Light_Compiler::inst->types->compute_type_name_if_needed(*arr_type);
+    (*arr_type) = g_compiler->types->get_unique_array_type(*arr_type);
+    g_compiler->types->compute_type_name_if_needed(*arr_type);
 }
 
 void Unique_Types::unique (Ast_Function_Type** func_type) {
@@ -128,6 +128,6 @@ void Unique_Types::unique (Ast_Function_Type** func_type) {
     }
     this->unique(&(*func_type)->return_type);
 
-    (*func_type) = Light_Compiler::inst->types->get_unique_function_type(*func_type);
-    Light_Compiler::inst->types->compute_type_name_if_needed(*func_type);
+    (*func_type) = g_compiler->types->get_unique_function_type(*func_type);
+    g_compiler->types->compute_type_name_if_needed(*func_type);
 }

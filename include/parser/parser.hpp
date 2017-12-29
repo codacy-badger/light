@@ -12,19 +12,18 @@
 
 using namespace std;
 
-struct Light_Compiler;
+struct Compiler;
 
 struct Parser : Pipe {
-	Light_Compiler* compiler = NULL;
 	Lexer* lexer = NULL;
 	Ast_Block* current_block = NULL;
 
-	Parser (Light_Compiler* compiler, const char* param);
+	Parser (const char* param);
 
 	void expected (const char* expect, const char* after);
 
 	Ast_Block* top_level_block ();
-	void block (Ast_Block* insert_block);
+	void block (Ast_Block* inner_block);
 	Ast_Note* note ();
 	Ast_Statement* statement ();
 	Ast_Declaration* declaration (Ast_Ident* ident = NULL);

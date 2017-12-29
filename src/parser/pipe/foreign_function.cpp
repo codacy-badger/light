@@ -24,8 +24,8 @@ char* extract_string_parameter (Ast_Expression* exp) {
 		auto lit = static_cast<Ast_Literal*>(exp);
 		if (lit->literal_type == AST_LITERAL_STRING) {
 			return lit->string_value;
-		} else Light_Compiler::inst->error_stop(exp, "foreign note parameter is not a string!");
-	} else Light_Compiler::inst->error_stop(exp, "foreign notes parameter is not a literal!");
+		} else report_error_stop(&exp->location, "foreign note parameter is not a string!");
+	} else report_error_stop(&exp->location, "foreign notes parameter is not a literal!");
 	return NULL;
 }
 
@@ -47,7 +47,7 @@ void Foreign_Function::on_statement(Ast_Statement* stm) {
 
 						if (!note->arguments || (note->arguments->values.size() != 1
 							&& note->arguments->values.size() != 2)) {
-							Light_Compiler::inst->error_stop(note, "foreign notes must have 1 or 2 (string) parameter!");
+							report_error_stop(&note->location, "foreign notes must have 1 or 2 (string) parameter!");
 						}
 
 						auto exp = note->arguments->values[0];

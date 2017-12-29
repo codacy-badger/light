@@ -18,21 +18,21 @@ Ast_Note* remove_run_note (Ast_Declaration* decl) {
 
 size_t run_function (Ast_Function* func, Ast_Note* run_note) {
 	if (func->foreign_module_name) {
-		Light_Compiler::inst->error_stop(run_note, "#run can't go on foreign functions (for now)");
+		report_error_stop(&run_note->location, "#run can't go on foreign functions (for now)");
 	} else {
 		if (run_note->arguments) {
 			for (size_t i = 0; i < run_note->arguments->values.size(); i++) {
 				auto exp = run_note->arguments->values[i];
 				if (exp->exp_type == AST_EXPRESSION_LITERAL) {
 					auto lit = static_cast<Ast_Literal*>(exp);
-					auto reg = Light_Compiler::inst->interp->registers[i];
+					auto reg = g_compiler->interp->registers[i];
 					memcpy(reg, &lit->int_value, INTERP_REGISTER_SIZE);
 				} else {
-					Light_Compiler::inst->error_stop(run_note, "#run can only have literal arguments!");
+					report_error_stop(&run_note->location, "#run can only have literal arguments!");
 				}
 			}
 		}
-		Light_Compiler::inst->interp->run(func);
+		g_compiler->interp->run(func);
 	}
 	return NULL;
 }

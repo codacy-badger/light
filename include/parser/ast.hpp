@@ -16,8 +16,7 @@ struct Instruction;
 using namespace std;
 
 struct Ast {
-	const char* filename = NULL;
-	size_t line = 0, col = 0;
+	Location location;
 };
 
 void ast_copy_location_info (Ast* destination, Ast* source);

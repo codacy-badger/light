@@ -3,9 +3,11 @@
 #include "compiler.hpp"
 #include "parser/ast.hpp"
 
+#define ERROR(node, ...) report_error_stop(&node->location, __VA_ARGS__)
+
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
 	if (type_from == type_to) return true;
-    else if (Light_Compiler::inst->types->is_implicid_cast(type_from, type_to)) {
+    else if (g_compiler->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
         ast_copy_location_info(cast, *exp_ptr);
         cast->value = (*exp_ptr);
@@ -81,7 +83,7 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 	if (decl->expression) {
 		check_type(decl->expression);
 		if (!decl->expression->inferred_type) {
-			Light_Compiler::inst->error_stop(decl->expression, "Expression type could not be inferred!");
+			ERROR(decl->expression, "Expression type could not be inferred!");
 		}
 
 		if (!decl->type) {
@@ -89,14 +91,14 @@ void Type_Checking::check_type (Ast_Declaration* decl) {
 		}
 	} else {
 		if (!decl->type) {
-			Light_Compiler::inst->error_stop(decl, "Cannot infer type without an expression!");
+			ERROR(decl, "Cannot infer type without an expression!");
 		}
 	}
 
     if (!decl->type) {
-        Light_Compiler::inst->error_stop(decl, "Type could not be inferred!");
-    } else if (decl->type->inferred_type != Light_Compiler::inst->type_def_type) {
-		Light_Compiler::inst->error_stop(decl, "Expression is not a type!");
+        ERROR(decl, "Type could not be inferred!");
+    } else if (decl->type->inferred_type != g_compiler->type_def_type) {
+		ERROR(decl, "Expression is not a type!");
 	}
 }
 
@@ -106,19 +108,19 @@ void Type_Checking::check_type (Ast_Return* ret) {
 	auto fn = ret->block->get_function();
 	auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->type->return_type);
 	if (!fn) {
-		Light_Compiler::inst->error_stop(ret, "Return statement must be inside a function!");
+		ERROR(ret, "Return statement must be inside a function!");
 	} else if (ret->exp) {
-		if (fn->type->return_type == Light_Compiler::inst->type_def_void)
-			Light_Compiler::inst->error_stop(ret, "Return statment has expression, but function returns void!");
+		if (fn->type->return_type == g_compiler->type_def_void)
+			ERROR(ret, "Return statment has expression, but function returns void!");
 		else if (ret->exp->inferred_type != fn->type->return_type) {
             if (!cast_if_possible(&ret->exp, ret->exp->inferred_type, ret_type_def)) {
-    			Light_Compiler::inst->error_stop(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
+    			ERROR(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
     				ret->exp->inferred_type->name, ret_type_def->name);
             }
 		}
 	} else {
-		if (fn->type->return_type != Light_Compiler::inst->type_def_void)
-			Light_Compiler::inst->error_stop(ret, "Return statment has no expression, but function returns '%s'!",
+		if (fn->type->return_type != g_compiler->type_def_void)
+			ERROR(ret, "Return statment has no expression, but function returns '%s'!",
 				ret_type_def->name);
 	}
 }
@@ -160,7 +162,7 @@ void Type_Checking::check_type (Ast_Cast* cast) {
 		auto type_def = static_cast<Ast_Type_Definition*>(cast->cast_to);
 		cast->inferred_type = type_def;
 	} else {
-		Light_Compiler::inst->error_stop(cast, "Cast target is not a type");
+		ERROR(cast, "Cast target is not a type");
 	}
 }
 
@@ -183,7 +185,7 @@ void Type_Checking::check_type (Ast_Type_Definition* tydef) {
 }
 
 void Type_Checking::check_type (Ast_Function_Type* ty) {
-    ty->inferred_type = Light_Compiler::inst->type_def_type;
+    ty->inferred_type = g_compiler->type_def_type;
 
 	check_type(ty->return_type);
 	for (int i = 0; i < ty->parameter_decls.size(); i++) {
@@ -208,7 +210,7 @@ void compute_struct_size (Ast_Struct_Type* _struct) {
 }
 
 void Type_Checking::check_type (Ast_Struct_Type* _struct) {
-    _struct->inferred_type = Light_Compiler::inst->type_def_type;
+    _struct->inferred_type = g_compiler->type_def_type;
 	for (auto decl : _struct->attributes) {
 		check_type(decl);
 	}
@@ -216,7 +218,7 @@ void Type_Checking::check_type (Ast_Struct_Type* _struct) {
 }
 
 void Type_Checking::check_type (Ast_Array_Type* arr) {
-    arr->inferred_type = Light_Compiler::inst->type_def_type;
+    arr->inferred_type = g_compiler->type_def_type;
 	check_type(arr->base);
 	if (arr->count->exp_type == AST_EXPRESSION_LITERAL) {
 		auto lit = static_cast<Ast_Literal*>(arr->count);
@@ -224,15 +226,15 @@ void Type_Checking::check_type (Ast_Array_Type* arr) {
 			auto type_def = static_cast<Ast_Type_Definition*>(arr->base);
 			arr->byte_size = arr->length() * type_def->byte_size;
 		} else {
-			Light_Compiler::inst->error_stop(arr, "Arrays size must be an unsigned integer!");
+			ERROR(arr, "Arrays size must be an unsigned integer!");
 		}
 	} else {
-		Light_Compiler::inst->error_stop(arr, "Arrays can only have constant size!");
+		ERROR(arr, "Arrays can only have constant size!");
 	}
 }
 
 void Type_Checking::check_type (Ast_Pointer_Type* ty) {
-    ty->inferred_type = Light_Compiler::inst->type_def_type;
+    ty->inferred_type = g_compiler->type_def_type;
 	check_type(ty->base);
 	if (ty->base->exp_type == AST_EXPRESSION_IDENT) {
 		auto ident = static_cast<Ast_Ident*>(ty->base);
@@ -249,7 +251,7 @@ void Type_Checking::check_type (Ast_Function* func) {
 
 void Type_Checking::check_type (Ast_Function_Call* call) {
     if (call->fn->exp_type != AST_EXPRESSION_FUNCTION)
-		Light_Compiler::inst->error_stop(call, "Function calls can only be performed to functions types");
+		ERROR(call, "Function calls can only be performed to functions types");
 
 	auto func = static_cast<Ast_Function*>(call->fn);
 	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
@@ -264,13 +266,13 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 
 			if (param_decl_type != param_exp->inferred_type) {
 				if (!cast_if_possible(&call->args->values[i], param_exp->inferred_type, param_decl_type)) {
-					Light_Compiler::inst->error_stop(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
+					ERROR(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
 						i, param_decl_type->name, param_exp->inferred_type->name);
 				}
 			}
 		}
 	} else {
-		Light_Compiler::inst->error_stop(call, "Wrong number of arguments, function has %d, but call has %d",
+		ERROR(call, "Wrong number of arguments, function has %d, but call has %d",
 			func->type->parameter_decls.size(), call->args->values.size());
 	}
 }
@@ -291,7 +293,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 				deref_count += 1;
 			}
 			if (deref_count > WARN_MAX_DEREF_COUNT) {
-				Light_Compiler::inst->warning(binop, "Attribute access on deep pointer (%d)", deref_count);
+				report_warning(&binop->location, "Attribute access on deep pointer (%d)", deref_count);
 			}
 		}
 
@@ -306,35 +308,35 @@ void Type_Checking::check_type (Ast_Binary* binop) {
                     binop->inferred_type = attr_type;
                     ident->declaration = attribute;
                 } else {
-                    Light_Compiler::inst->error_stop(binop, "The type '%s' has no attribute named '%s'",
+                    ERROR(binop, "The type '%s' has no attribute named '%s'",
                         _struct->name, ident->name);
                 }
             } else {
                 // TODO: move this check to somewhere more relevant
-                Light_Compiler::inst->error_stop(binop, "Right of attribute access is NOT an identifier!");
+                ERROR(binop, "Right of attribute access is NOT an identifier!");
             }
         } else if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
 			auto _array = static_cast<Ast_Array_Type*>(type_def);
 			if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
 				auto ident = static_cast<Ast_Ident*>(binop->rhs);
 				if (strcmp(ident->name, "length") == 0) {
-					binop->inferred_type = Light_Compiler::inst->type_def_u64;
+					binop->inferred_type = g_compiler->type_def_u64;
 				} else if (strcmp(ident->name, "data") == 0) {
 					auto ptr_type = new Ast_Pointer_Type();
-					ptr_type->inferred_type = Light_Compiler::inst->type_def_type;
+					ptr_type->inferred_type = g_compiler->type_def_type;
 					ptr_type->base = _array->base;
-					binop->inferred_type = Light_Compiler::inst->types->get_unique_pointer_type(ptr_type);
-					Light_Compiler::inst->types->compute_type_name_if_needed(binop->inferred_type);
+					binop->inferred_type = g_compiler->types->get_unique_pointer_type(ptr_type);
+					g_compiler->types->compute_type_name_if_needed(binop->inferred_type);
 				} else {
-					Light_Compiler::inst->error_stop(binop->rhs, "'%s' is not a valid attribute for array (use length or data)",
+					ERROR(binop->rhs, "'%s' is not a valid attribute for array (use length or data)",
 						ident->name);
 				}
 			} else {
 				// TODO: move this check to somewhere more relevant
-				Light_Compiler::inst->error_stop(binop, "Right of attribute access is NOT an identifier!");
+				ERROR(binop, "Right of attribute access is NOT an identifier!");
 			}
 		} else {
-            Light_Compiler::inst->error_stop(binop, "Left of attribute access has invalid type: '%s'",
+            ERROR(binop, "Left of attribute access has invalid type: '%s'",
 				type_def->name);
         }
     } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
@@ -343,8 +345,8 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 			binop->inferred_type = static_cast<Ast_Type_Definition*>(arr_type->base);
 
 			check_type(binop->rhs);
-			if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, Light_Compiler::inst->type_def_u64)) {
-				Light_Compiler::inst->error_stop(binop, "Type '%s' cannot be casted to u64 (index)",
+			if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, g_compiler->type_def_u64)) {
+				ERROR(binop, "Type '%s' cannot be casted to u64 (index)",
 					binop->rhs->inferred_type->name);
 			}
 		} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
@@ -356,13 +358,13 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 					auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
 					binop->inferred_type = static_cast<Ast_Type_Definition*>(ptr_type->base);
 				} else {
-					Light_Compiler::inst->error_stop(binop, "Slice type doesn't have data attribute");
+					ERROR(binop, "Slice type doesn't have data attribute");
 				}
 			} else {
-				Light_Compiler::inst->error_stop(binop, "Left struct is not a slice");
+				ERROR(binop, "Left struct is not a slice");
 			}
 		} else {
-			Light_Compiler::inst->error_stop(binop, "Left of array access is not of array or slice type");
+			ERROR(binop, "Left of array access is not of array or slice type");
 		}
 	} else {
     	check_type(binop->rhs);
@@ -371,7 +373,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
             // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...
             if (!cast_if_possible(&binop->lhs, binop->lhs->inferred_type, binop->rhs->inferred_type)) {
                 if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, binop->lhs->inferred_type)) {
-                    Light_Compiler::inst->error_stop(binop, "Type mismatch on binary expression: '%s' and '%s'",
+                    ERROR(binop, "Type mismatch on binary expression: '%s' and '%s'",
                         binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
                 }
             }
@@ -383,7 +385,7 @@ void Type_Checking::check_type (Ast_Binary* binop) {
     		case AST_BINARY_LTE:
     		case AST_BINARY_GT:
     		case AST_BINARY_GTE: {
-    			binop->inferred_type = Light_Compiler::inst->type_def_bool;
+    			binop->inferred_type = g_compiler->type_def_bool;
     			break;
     		}
     		default: {
@@ -398,7 +400,7 @@ void Type_Checking::check_type (Ast_Unary* unop) {
 	check_type(unop->exp);
 	switch (unop->unary_op) {
 		case AST_UNARY_NEGATE: {
-			auto inst = Light_Compiler::inst;
+			auto inst = g_compiler;
 			if (unop->exp->inferred_type == inst->type_def_u8) {
 				unop->inferred_type = inst->type_def_s16;
 			} else if (unop->exp->inferred_type == inst->type_def_u16) {
@@ -419,16 +421,16 @@ void Type_Checking::check_type (Ast_Unary* unop) {
                 auto base_type = static_cast<Ast_Type_Definition*>(ptr_type->base);
                 unop->inferred_type = base_type;
             } else {
-                Light_Compiler::inst->error_stop(unop, "Can't dereference a non-pointer type expression!");
+                ERROR(unop, "Can't dereference a non-pointer type expression!");
             }
             break;
 		}
 		case AST_UNARY_REFERENCE: {
 		    auto ptr_type = new Ast_Pointer_Type();
-		    ptr_type->inferred_type = Light_Compiler::inst->type_def_type;
+		    ptr_type->inferred_type = g_compiler->type_def_type;
 		    ptr_type->base = unop->exp->inferred_type;
-		    unop->inferred_type = Light_Compiler::inst->types->get_unique_pointer_type(ptr_type);
-			Light_Compiler::inst->types->compute_type_name_if_needed(unop->inferred_type);
+		    unop->inferred_type = g_compiler->types->get_unique_pointer_type(ptr_type);
+			g_compiler->types->compute_type_name_if_needed(unop->inferred_type);
             break;
 		}
 	}
@@ -438,13 +440,13 @@ void Type_Checking::check_type (Ast_Ident* ident) {
 	if (ident->declaration) {
 		ident->inferred_type = static_cast<Ast_Type_Definition*>(ident->declaration->type);
 	} else {
-		Light_Compiler::inst->error_stop(ident, "Indetifier '%s' has no declaration!", ident->name);
+		ERROR(ident, "Indetifier '%s' has no declaration!", ident->name);
 	}
 }
 
 void Type_Checking::check_type (Ast_Literal* lit) {
     if (!lit->inferred_type) {
-		auto inst = Light_Compiler::inst;
+		auto inst = g_compiler;
         switch (lit->literal_type) {
             case AST_LITERAL_UNSIGNED_INT: {
 				if (lit->uint_value <= UINT32_MAX) {
@@ -467,11 +469,12 @@ void Type_Checking::check_type (Ast_Literal* lit) {
                 break;
             }
             case AST_LITERAL_DECIMAL: {
-				lit->inferred_type = Light_Compiler::inst->type_def_f32;
+				lit->inferred_type = g_compiler->type_def_f32;
                 break;
             }
             case AST_LITERAL_STRING: {
-				lit->inferred_type = Light_Compiler::inst->type_def_string;
+				// TODO: Pre-allocate this pointer, since it's very common
+				lit->inferred_type = new Ast_Pointer_Type(g_compiler->type_def_u8);
                 break;
             }
             default: break;

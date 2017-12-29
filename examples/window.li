@@ -4,7 +4,7 @@ import "examples/windows/user32.li"
 // will make all pointer to further variables not addressable
 atom : u16;
 
-window_create :: fn (name: string) -> *void {
+window_create :: fn (name: *u8) -> *void {
 	window_class: WNDCLASSEXA;
 	window_class.cbSize 		= 80;
 	window_class.style 			= CS_OWNDC | CS_HREDRAW | CS_VREDRAW;

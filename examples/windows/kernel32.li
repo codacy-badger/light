@@ -12,7 +12,7 @@ ExitProcess : fn (uExitCode: u32) :;
 GetLastError : fn -> u16 :;
 
 #foreign("kernel32", "GetModuleHandleA")
-GetModuleHandle : fn (lpModuleName: string) -> *void :;
+GetModuleHandle : fn (lpModuleName: *u8) -> *void :;
 
 #foreign("kernel32")
 GetStdHandle : fn (code: s32) -> *void :;

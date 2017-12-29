@@ -46,12 +46,12 @@ void Symbol_Resolution::on_finish () {
     if (this->unresolved.size() > 0) {
 		for (auto dependencies : this->unresolved) {
 			for (auto ident_ptr2 : dependencies.second) {
-                Light_Compiler::inst->error((*ident_ptr2), "Unresolved symbol: '%s'", (*ident_ptr2)->name);
+                report_error(&(*ident_ptr2)->location, "Unresolved symbol: '%s'", (*ident_ptr2)->name);
                 have_unresolved = true;
 			}
         }
 		if (have_unresolved) {
-            Light_Compiler::inst->stop();
+            g_compiler->stop();
             return;
         }
     }

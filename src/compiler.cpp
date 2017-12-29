@@ -1,6 +1,5 @@
 #include "compiler.hpp"
 
-#include <assert.h>
 #include <stdio.h>
 
 #include "timer.hpp"
@@ -13,53 +12,36 @@
 #include "parser/pipe/array_attributes.hpp"
 #include "parser/pipe/print_pipe.hpp"
 
-Light_Compiler* Light_Compiler::inst = NULL;
-
-Ast_Struct_Type* create_new_primitive_type (char* name, uint16_t size = 0) {
+Ast_Struct_Type* create_new_primitive_type (Compiler* compiler, char* name, uint16_t size = 0) {
 	auto output = new Ast_Struct_Type(name, size);
-	output->inferred_type = Light_Compiler::inst->type_def_type;
+	output->inferred_type = compiler->type_def_type;
 	output->is_primitive = true;
 	return output;
 }
 
-Light_Compiler::Light_Compiler (Light_Compiler_Settings* settings) {
-	this->settings = settings ? settings : new Light_Compiler_Settings();
-	Light_Compiler::inst = this;
-
-	int16_t i = 1;
-	if (((int8_t *) &i)[0] == 1) {
-		this->byte_order = BYTEORDER_LITTLE_ENDIAN;
-	} else this->byte_order = BYTEORDER_BIG_ENDIAN;
-
-	this->type_def_type = 	create_new_primitive_type("type");
-	this->type_def_void = 	create_new_primitive_type("void");
-	this->type_def_bool = 	create_new_primitive_type("bool", 1);
-	this->type_def_s8 = 	create_new_primitive_type("s8", 1);
-	this->type_def_s16 = 	create_new_primitive_type("s16", 2);
-	this->type_def_s32 = 	create_new_primitive_type("s32", 4);
-	this->type_def_s64 = 	create_new_primitive_type("s64", 8);
-	this->type_def_u8 = 	create_new_primitive_type("u8", 1);
-	this->type_def_u16 = 	create_new_primitive_type("u16", 2);
-	this->type_def_u32 = 	create_new_primitive_type("u32", 4);
-	this->type_def_u64 = 	create_new_primitive_type("u64", 8);
-	this->type_def_f32 = 	create_new_primitive_type("f32", 4);
-	this->type_def_f64 = 	create_new_primitive_type("f64", 8);
+Compiler::Compiler () {
+	this->type_def_type = 	create_new_primitive_type(this, "type");
+	this->type_def_void = 	create_new_primitive_type(this, "void");
+	this->type_def_bool = 	create_new_primitive_type(this, "bool", 1);
+	this->type_def_s8 = 	create_new_primitive_type(this, "s8", 1);
+	this->type_def_s16 = 	create_new_primitive_type(this, "s16", 2);
+	this->type_def_s32 = 	create_new_primitive_type(this, "s32", 4);
+	this->type_def_s64 = 	create_new_primitive_type(this, "s64", 8);
+	this->type_def_u8 = 	create_new_primitive_type(this, "u8", 1);
+	this->type_def_u16 = 	create_new_primitive_type(this, "u16", 2);
+	this->type_def_u32 = 	create_new_primitive_type(this, "u32", 4);
+	this->type_def_u64 = 	create_new_primitive_type(this, "u64", 8);
+	this->type_def_f32 = 	create_new_primitive_type(this, "f32", 4);
+	this->type_def_f64 = 	create_new_primitive_type(this, "f64", 8);
 
 	// TODO: size should be platform dependendant, since it's used for indexing
 	this->type_def_usize = 	this->type_def_u64;
-
-	// TODO: add array structure (length, data?)
-	// TODO: improve string representation in the language (array?)
-	this->type_def_string = new Ast_Pointer_Type();
-	this->type_def_string->base = this->type_def_u8;
 }
 
-void Light_Compiler::run () {
+void Compiler::run () {
 	auto total = Timer::getTime();
 	for (auto filename : this->settings->input_files) {
-		printf("%s\n", filename);
-
-		this->parser = new Parser(this, filename);
+		this->parser = new Parser(filename);
 		// Mandatory
 		parser->append(new Compile_Constants());
 		parser->append(new Symbol_Resolution());
@@ -68,83 +50,21 @@ void Light_Compiler::run () {
 		parser->append(new Type_Checking());
 		parser->append(new Array_Attributes());
 		parser->append(new Foreign_Function());
-
-		// Optimizations
-
 		// Bytecode
 		parser->append(this->interp->generator);
 		parser->append(this->interp->runner);
-
-		// Bytecode Optimizations
-
 		// Ouput
 		//parser->append(new PrintPipe());
 
 		auto start = Timer::getTime();
 		parser->top_level_block();
-		Timer::print("\n  Parse ", start);
+		Timer::print("\n  Parse %8.6fs\n", start);
 		parser->on_finish();
 	}
-	Timer::print("TOTAL   ", total);
+	Timer::print("TOTAL   %8.6fs\n", total);
 }
 
-void print_node_location (FILE* buffer, Ast* node) {
-	if (node && node->filename) {
-		fprintf(buffer, "@ %s:%zd,%zd", node->filename, node->line, node->col);
-		fprintf(stdout, "\n");
-	}
-}
-
-void Light_Compiler::info (Ast* node, const char* format, ...) {
-	fprintf(stdout, "\n[INFO] ");
-
-	va_list argptr;
-    va_start(argptr, format);
-    vfprintf(stdout, format, argptr);
-    va_end(argptr);
-	fprintf(stdout, "\n\t");
-
-	print_node_location(stdout, node);
-}
-
-void Light_Compiler::warning (Ast* node, const char* format, ...) {
-	fprintf(stdout, "\n[WARNING] ");
-
-	va_list argptr;
-    va_start(argptr, format);
-    vfprintf(stdout, format, argptr);
-    va_end(argptr);
-	fprintf(stdout, "\n\t");
-
-	print_node_location(stdout, node);
-}
-
-void Light_Compiler::error (Ast* node, const char* format, ...) {
-	va_list argptr;
-    va_start(argptr, format);
-    v_error(node, format, argptr);
-    va_end(argptr);
-}
-
-void Light_Compiler::v_error (Ast* node, const char* format, va_list argptr) {
-	fprintf(stderr, "\n[ERROR] ");
-
-    vfprintf(stderr, format, argptr);
-	fprintf(stderr, "\n\t");
-
-	print_node_location(stderr, node);
-	has_errors = true;
-}
-
-void Light_Compiler::error_stop (Ast* node, const char* format, ...) {
-	va_list argptr;
-    va_start(argptr, format);
-	this->v_error(node, format, argptr);
-    va_end(argptr);
-	this->stop();
-}
-
-void Light_Compiler::stop () {
+void Compiler::stop () {
 	fprintf(stdout, "\nStopping compilation...\n");
 	exit(1);
 }

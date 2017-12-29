@@ -4,80 +4,63 @@
 
 template <typename T>
 T* setup_ast_node (Lexer* lexer, T* node) {
-	node->filename = lexer->buffer->source;
-	node->line = lexer->buffer->line;
-	node->col = lexer->buffer->col;
+	node->location = lexer->buffer->location;
 	return node;
 }
 
 #define AST_NEW(T, ...) setup_ast_node(lexer, new T(__VA_ARGS__))
 
-Parser::Parser (Light_Compiler* compiler, const char* filepath) {
-	this->compiler = compiler;
+Parser::Parser (const char* filepath) {
 	this->lexer = new Lexer(filepath);
 }
 
-void push_new_type (Parser* parser, Ast_Block* block, const char* name, Ast_Type_Definition* type_def) {
-	auto type_decl = ast_make_declaration(name, type_def);
+void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def) {
+	auto type_decl = ast_make_declaration(type_def->name, type_def);
 	block->list.push_back(type_decl);
 	parser->to_next(type_decl);
-}
-
-void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def) {
-	push_new_type(parser, block, type_def->name, type_def);
 }
 
 Ast_Block* Parser::top_level_block () {
 	auto _block = AST_NEW(Ast_Block);
 	_block->is_global = true;
 
-	push_new_type(this, _block, Light_Compiler::inst->type_def_type);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_void);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_bool);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_s8);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_s16);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_s32);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_s64);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_u8);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_u16);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_u32);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_u64);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_f32);
-	push_new_type(this, _block, Light_Compiler::inst->type_def_f64);
-	push_new_type(this, _block, "string", Light_Compiler::inst->type_def_string);
+	push_new_type(this, _block, g_compiler->type_def_type);
+	push_new_type(this, _block, g_compiler->type_def_void);
+	push_new_type(this, _block, g_compiler->type_def_bool);
+	push_new_type(this, _block, g_compiler->type_def_s8);
+	push_new_type(this, _block, g_compiler->type_def_s16);
+	push_new_type(this, _block, g_compiler->type_def_s32);
+	push_new_type(this, _block, g_compiler->type_def_s64);
+	push_new_type(this, _block, g_compiler->type_def_u8);
+	push_new_type(this, _block, g_compiler->type_def_u16);
+	push_new_type(this, _block, g_compiler->type_def_u32);
+	push_new_type(this, _block, g_compiler->type_def_u64);
+	push_new_type(this, _block, g_compiler->type_def_f32);
+	push_new_type(this, _block, g_compiler->type_def_f64);
+	push_new_type(this, _block, g_compiler->type_def_usize);
 
 	this->block(_block);
 	return _block;
 }
 
-void Parser::block (Ast_Block* insert_block) {
+void Parser::block (Ast_Block* inner_block) {
 	auto _tmp = this->current_block;
-	this->current_block = insert_block;
+	this->current_block = inner_block;
 
 	Ast_Statement* stm = this->statement();
 	while (stm != NULL) {
-		if (stm->stm_type == AST_STATEMENT_IMPORT) {
-			auto imp = static_cast<Ast_Import*>(stm);
-
-			this->lexer = this->lexer->push(imp->filepath);
-			if (this->lexer->buffer->is_valid()) {
-				this->block(this->current_block);
-			} else this->compiler->error_stop(imp, "Can't open import file: '%s'", imp->filepath);
-			this->lexer = this->lexer->pop();
+		this->current_block->list.push_back(stm);
+		if (this->current_block->is_global) {
+			this->to_next(stm);
 		} else {
-			this->current_block->list.push_back(stm);
-			if (this->current_block->parent == NULL) {
-				this->to_next(stm);
-			} else {
-				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-					auto decl = static_cast<Ast_Declaration*>(stm);
-					if (decl->is_constant()) this->to_next(stm);
-				}
+			if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+				auto decl = static_cast<Ast_Declaration*>(stm);
+				if (decl->is_constant()) this->to_next(stm);
 			}
 		}
 
 		if (this->lexer->is_next_type(TOKEN_EOF)) break;
-		stm = this->statement();
+		else stm = this->statement();
 	}
 
 	this->current_block = _tmp;
@@ -116,12 +99,19 @@ Ast_Statement* Parser::statement () {
 		}
 		case TOKEN_IMPORT: {
 			this->lexer->skip(1);
-			auto output = AST_NEW(Ast_Import);
-			if (this->lexer->is_next_type(TOKEN_STRING))
-				output->filepath = this->lexer->text();
-			else Light_Compiler::inst->error_stop(output, "Import statements must be followed by string literal!");
+
+			if (this->lexer->is_next_type(TOKEN_STRING)) {
+				auto filepath = this->lexer->text();
+
+				this->lexer = this->lexer->push(filepath);
+				if (this->lexer->buffer->is_valid()) {
+					this->block(this->current_block);
+				} else report_error_stop(&this->lexer->buffer->location, "Can't open import file: '%s'", filepath);
+				this->lexer = this->lexer->pop();
+			} else report_error_stop(&this->lexer->buffer->location, "Import statements must be followed by string literal!");
 			this->lexer->optional_skip(TOKEN_STM_END);
-			return output;
+
+			return this->statement();
 		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip(1);
@@ -284,7 +274,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 					decl->_struct = _struct;
 					_struct->attributes.push_back(decl);
 				} else {
-					Light_Compiler::inst->error_stop(stm, "Only declarations can go inside a struct!");
+					report_error_stop(&stm->location, "Only declarations can go inside a struct!");
 				}
 			}
 			delete _block;
@@ -338,7 +328,7 @@ Ast_Expression* Parser::type_definition () {
 	} else {
 		auto ident = this->ident();
 		if (ident != NULL) {
-			auto _struct = Light_Compiler::inst->types->get_struct_type(ident->name);
+			auto _struct = g_compiler->types->get_struct_type(ident->name);
 			if (_struct == NULL) {
 				return ident;
 			} else {
@@ -366,7 +356,7 @@ Ast_Function_Type* Parser::function_type () {
 
 	if (this->lexer->optional_skip(TOKEN_ARROW)) {
 		fn_type->return_type = this->type_definition();
-	} else fn_type->return_type = Light_Compiler::inst->type_def_void;
+	} else fn_type->return_type = g_compiler->type_def_void;
 
 	return fn_type;
 }

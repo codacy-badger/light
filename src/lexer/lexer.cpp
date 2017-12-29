@@ -108,8 +108,7 @@ bool Lexer::parse_next () {
 
 	fprintf(stderr, "Unrecognized token!\n");
 	fprintf(stderr, " -> '%d'\n", this->buffer->peek());
-	fprintf(stderr, "\tat %s:%zd,%zd\n", this->buffer->source,
-		this->buffer->line, this->buffer->col);
+	print_location(stderr, &this->buffer->location);
 	exit(EXIT_FAILURE);
 }
 
@@ -146,18 +145,13 @@ bool Lexer::optional_skip (Token_Type type) {
 }
 
 void Lexer::report_unexpected (Token_Type expected) {
-	// TODO: make some sort of generic location info structure to pass
-	Light_Compiler::inst->error(NULL, "Parser: Expected '%s', but got '%s'",
+	report_error(&this->buffer->location, "Parser: Expected '%s', but got '%s'",
 		token_get_text(expected), token_get_text(this->nextType));
-	Light_Compiler::inst->error_stop(NULL, "@ %s:%d,%d", this->buffer->source,
-		this->buffer->line, this->buffer->col);
 }
 
 void Lexer::report_unexpected () {
-	Light_Compiler::inst->error(NULL, "Parser: Unexpected token '%s'",
+	report_error(&this->buffer->location, "Parser: Unexpected token '%s'",
 		token_get_text(this->nextType));
-	Light_Compiler::inst->error_stop(NULL, "@ %s:%d,%d", this->buffer->source,
-		this->buffer->line, this->buffer->col);
 	exit(EXIT_FAILURE);
 }
 

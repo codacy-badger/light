@@ -5,9 +5,7 @@
 #include <string.h>
 
 void ast_copy_location_info (Ast* destination, Ast* source) {
-	destination->filename = source->filename;
-	destination->line = source->line;
-	destination->col = source->col;
+	destination->location = source->location;
 }
 
 Ast_Declaration* Ast_Block::find_declaration (const char* _name, bool recurse, bool is_out_scope) {
@@ -268,12 +266,12 @@ Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type, Ast_Struct_Type
 
 	auto length_attr = new Ast_Declaration();
 	length_attr->name = "length";
-	length_attr->type = size_type ? size_type : Light_Compiler::inst->type_def_u64;
+	length_attr->type = size_type ? size_type : g_compiler->type_def_u64;
 	slice_type->attributes.push_back(length_attr);
 
 	auto data_attr = new Ast_Declaration();
 	data_attr->name = "data";
-	data_attr->type = Light_Compiler::inst->types->get_or_create_pointer_type(base_type);
+	data_attr->type = g_compiler->types->get_or_create_pointer_type(base_type);
 	slice_type->attributes.push_back(data_attr);
 
 	return slice_type;

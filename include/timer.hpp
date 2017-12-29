@@ -8,6 +8,6 @@ struct Timer {
 	static double clockStop (uint64_t start);
 
 	static void print (const char* pre, uint64_t start) {
-		printf("%s%8.6fs\n", pre, Timer::clockStop(start));
+		printf(pre, Timer::clockStop(start));
 	}
 };

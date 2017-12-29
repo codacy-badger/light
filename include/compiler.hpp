@@ -4,29 +4,22 @@
 #include "parser/parser.hpp"
 #include "types.hpp"
 
-#include <stdarg.h>
 #include <vector>
 
 using namespace std;
 
-struct Light_Compiler_Settings {
+struct Compiler_Settings {
 	vector<const char*> input_files;
 	const char* output_file;
 };
 
-enum Byte_Order {
-	BYTEORDER_UNDEFINED = 0,
-	BYTEORDER_BIG_ENDIAN,
-	BYTEORDER_LITTLE_ENDIAN,
-};
+struct Compiler {
+	Compiler_Settings* settings = new Compiler_Settings();
 
-struct Light_Compiler {
-	Light_Compiler_Settings* settings = NULL;
 	Bytecode_Interpreter* interp = new Bytecode_Interpreter();
 	Types* types = new Types();
 	Parser* parser = NULL;
 
-	Byte_Order byte_order = BYTEORDER_UNDEFINED;
 	bool has_errors = false;
 
 	Ast_Struct_Type* type_def_type;
@@ -43,19 +36,11 @@ struct Light_Compiler {
 	Ast_Struct_Type* type_def_f32;
 	Ast_Struct_Type* type_def_f64;
 	Ast_Struct_Type* type_def_usize;
-	Ast_Pointer_Type* type_def_string;
 
-	static Light_Compiler* inst;
-
-	Light_Compiler (Light_Compiler_Settings* settings = NULL);
+	Compiler ();
 
 	void run ();
-
-	void info (Ast* node, const char* format, ...);
-	void warning (Ast* node, const char* format, ...);
-	void error (Ast* node, const char* format, ...);
-	void v_error (Ast* node, const char* format, va_list argptr);
-	void error_stop (Ast* node, const char* format, ...);
-
 	void stop ();
 };
+
+extern Compiler* g_compiler;
