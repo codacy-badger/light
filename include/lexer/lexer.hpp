@@ -19,7 +19,7 @@ struct Lexer {
 
 	bool parse_next ();
 	bool is_next_type (Token_Type type);
-	void skip (unsigned int count);
+	void skip (unsigned int count = 1);
 	char* text ();
 	const char* get_name (Token_Type type);
 
@@ -33,7 +33,4 @@ struct Lexer {
 	bool number ();
 	void handle_token (Token_Type type, const char* text = NULL);
 	bool skip_ignored_and_comments ();
-
-	Lexer* push (const char* filepath);
-	Lexer* pop ();
 };

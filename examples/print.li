@@ -33,7 +33,7 @@ print :: fn (str: *u8) {
 	}
 }
 
-ASCII_ZERO :: 48;
+ASCII_ZERO :: 0b00110000;
 _number_buffer : [20] u8;
 
 print_u64 :: fn (number: u64) {

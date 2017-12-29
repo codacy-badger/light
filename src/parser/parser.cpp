@@ -82,8 +82,26 @@ Ast_Statement* Parser::statement () {
 	switch (this->lexer->nextType) {
 		case TOKEN_EOF: this->lexer->report_unexpected();
 		case TOKEN_STM_END: {
-			this->lexer->skip(1);
-			return NULL;
+			this->lexer->skip();
+			return this->statement();
+		}
+		case TOKEN_IMPORT: {
+			this->lexer->skip();
+
+			if (this->lexer->is_next_type(TOKEN_STRING)) {
+				auto filepath = this->lexer->text();
+
+				auto tmp = this->lexer;
+				this->lexer = new Lexer(filepath);
+				if (this->lexer->buffer->is_valid()) {
+					this->block(this->current_block);
+				} else report_error_stop(&tmp->buffer->location, "Can't open import file: '%s'", filepath);
+				this->lexer = tmp;
+
+			} else report_error_stop(&this->lexer->buffer->location, "Import statements must be followed by string literal!");
+			this->lexer->optional_skip(TOKEN_STM_END);
+
+			return this->statement();
 		}
 		case TOKEN_HASH: {
 			vector<Ast_Note*> notes;
@@ -97,56 +115,37 @@ Ast_Statement* Parser::statement () {
 			stm->notes = notes;
 			return stm;
 		}
-		case TOKEN_IMPORT: {
-			this->lexer->skip(1);
-
-			if (this->lexer->is_next_type(TOKEN_STRING)) {
-				auto filepath = this->lexer->text();
-
-				this->lexer = this->lexer->push(filepath);
-				if (this->lexer->buffer->is_valid()) {
-					this->block(this->current_block);
-				} else report_error_stop(&this->lexer->buffer->location, "Can't open import file: '%s'", filepath);
-				this->lexer = this->lexer->pop();
-			} else report_error_stop(&this->lexer->buffer->location, "Import statements must be followed by string literal!");
-			this->lexer->optional_skip(TOKEN_STM_END);
-
-			return this->statement();
-		}
 		case TOKEN_BRAC_OPEN: {
-			this->lexer->skip(1);
+			this->lexer->skip();
 			auto _block = AST_NEW(Ast_Block, this->current_block);
 			this->block(_block);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 			return _block;
 		}
 		case TOKEN_IF: {
-			if (this->lexer->optional_skip(TOKEN_IF)) {
-				auto stm_if = AST_NEW(Ast_If);
-				stm_if->condition = this->expression();
-				stm_if->then_statement = this->statement();
-				if (this->lexer->optional_skip(TOKEN_ELSE)) {
-					stm_if->else_statement = this->statement();
-				}
-				return stm_if;
-			} else return NULL;
+			this->lexer->skip();
+			auto stm_if = AST_NEW(Ast_If);
+			stm_if->condition = this->expression();
+			stm_if->then_statement = this->statement();
+			if (this->lexer->optional_skip(TOKEN_ELSE)) {
+				stm_if->else_statement = this->statement();
+			}
+			return stm_if;
 		}
 		case TOKEN_WHILE: {
-			if (this->lexer->optional_skip(TOKEN_WHILE)) {
-				auto stm_while = AST_NEW(Ast_While);
-				stm_while->condition = this->expression();
-				stm_while->statement = this->statement();
-				return stm_while;
-			} else return NULL;
+			this->lexer->skip();
+			auto stm_while = AST_NEW(Ast_While);
+			stm_while->condition = this->expression();
+			stm_while->statement = this->statement();
+			return stm_while;
 		}
 		case TOKEN_BREAK: {
-			if (this->lexer->optional_skip(TOKEN_BREAK)) {
-				this->lexer->optional_skip(TOKEN_STM_END);
-				return AST_NEW(Ast_Break);
-			} else return NULL;
+			this->lexer->skip();
+			this->lexer->optional_skip(TOKEN_STM_END);
+			return AST_NEW(Ast_Break);
 		}
 		case TOKEN_RETURN: {
-			this->lexer->skip(1);
+			this->lexer->skip();
 			auto output = AST_NEW(Ast_Return);
 			output->exp = this->expression();
 			output->block = this->current_block;
@@ -182,6 +181,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	decl->scope = this->current_block;
 	decl->name = ident->name;
 	delete ident;
+
 	if (this->current_block->is_global) {
 		decl->decl_flags |= AST_DECL_FLAG_GLOBAL;
 	}
@@ -214,13 +214,13 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	return decl;
 }
 
-Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
+Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
 	Ast_Expression* output = this->_atom(initial);
     if (output != NULL) {
         Token_Type tt = this->lexer->nextType;
 		auto precedence = Ast_Binary::getPrecedence(tt);
-		while (precedence >= minPrecedence) {
-			this->lexer->skip(1);
+		while (precedence >= min_precedence) {
+			this->lexer->skip();
 
 			short nextMinPrec = precedence;
 			if (Ast_Binary::getLeftAssociativity(tt)) nextMinPrec += 1;
@@ -239,18 +239,6 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short minPrecedence) {
 	return output;
 }
 
-Ast_Function* Parser::function (Ast_Function_Type* fn_type) {
-	if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
-		auto fn = AST_NEW(Ast_Function);
-		fn->type = fn_type;
-		fn->scope = AST_NEW(Ast_Block, this->current_block);
-		fn->scope->scope_of = fn;
-		this->block(fn->scope);
-		this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-		return fn;
-	} else return NULL;
-}
-
 Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	if (this->lexer->is_next_type(TOKEN_ID) || initial) {
 		auto output = initial ? initial : this->ident();
@@ -264,7 +252,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			_struct->name = this->lexer->text();
 
 		if (this->lexer->is_next_type(TOKEN_BRAC_OPEN)) {
-			this->lexer->skip(1);
+			this->lexer->skip();
 
 			auto _block = AST_NEW(Ast_Block, this->current_block);
 			this->block(_block);
@@ -282,6 +270,17 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		}
 
 		return _struct;
+	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
+		auto fn_type = this->function_type();
+		if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
+			auto func = AST_NEW(Ast_Function);
+			func->type = fn_type;
+			func->scope = AST_NEW(Ast_Block, this->current_block);
+			func->scope->scope_of = func;
+			this->block(func->scope);
+			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
+			return func;
+		} else return fn_type;
 	} else if (this->lexer->optional_skip(TOKEN_CAST)) {
 		auto cast = AST_NEW(Ast_Cast);
 		this->lexer->check_skip(TOKEN_PAR_OPEN);
@@ -293,8 +292,6 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		auto result = this->expression();
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		return result;
-	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
-		return this->function(this->function_type());
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		return AST_NEW(Ast_Unary, TOKEN_MUL, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_EXCLAMATION)) {
@@ -329,9 +326,8 @@ Ast_Expression* Parser::type_definition () {
 		auto ident = this->ident();
 		if (ident != NULL) {
 			auto _struct = g_compiler->types->get_struct_type(ident->name);
-			if (_struct == NULL) {
-				return ident;
-			} else {
+			if (_struct == NULL) return ident;
+			else {
 				delete ident;
 				return _struct;
 			}
@@ -378,8 +374,11 @@ Ast_Literal* Parser::literal () {
 				output->decimal_value = atof(number_str);
 			} else if (strstr(number_str, "x") != NULL) {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
-				output->uint_value = strtoull(number_str, NULL, 16);
-			}else {
+				output->uint_value = strtoull(number_str + 2, NULL, 16);
+			} else if (strstr(number_str, "b") != NULL) {
+				output->literal_type = AST_LITERAL_UNSIGNED_INT;
+				output->uint_value = strtoull(number_str + 2, NULL, 2);
+			} else {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
 				output->uint_value = strtoull(number_str, NULL, 10);
 			}

@@ -211,7 +211,23 @@ bool Lexer::number () {
 	_buffer_count = 0;
 	char c = this->buffer->peek();
 	if (c == '0' && this->buffer->peek(1) == 'x') {
-		while (ALPHANUM(c) || c == 'x') {
+		_buffer[_buffer_count++] = '0';
+		_buffer[_buffer_count++] = 'x';
+		this->buffer->skip(2);
+		while (ALPHANUM(c)) {
+			_buffer[_buffer_count++] = c;
+			this->buffer->skip();
+			c = this->buffer->peek();
+		}
+		this->nextType = TOKEN_NUMBER;
+		_buffer[_buffer_count] = 0;
+		this->nextText = _strdup(_buffer);
+		return true;
+	} else if (c == '0' && this->buffer->peek(1) == 'b') {
+		_buffer[_buffer_count++] = '0';
+		_buffer[_buffer_count++] = 'b';
+		this->buffer->skip(2);
+		while (ALPHANUM(c)) {
 			_buffer[_buffer_count++] = c;
 			this->buffer->skip();
 			c = this->buffer->peek();
@@ -272,16 +288,6 @@ bool Lexer::skip_ignored_and_comments () {
         }
     }
 	return false;
-}
-
-Lexer* Lexer::push (const char* filepath) {
-	return new Lexer(filepath, this);
-}
-
-Lexer* Lexer::pop () {
-	auto out = this->parent;
-	delete this;
-	return out;
 }
 
 #define CASE_ENUM_TEXT(T, str) case T: return str;

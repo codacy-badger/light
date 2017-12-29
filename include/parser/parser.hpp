@@ -31,7 +31,6 @@ struct Parser : Pipe {
 	Ast_Comma_Separated_Arguments* comma_separated_arguments ();
 	Ast_Expression* _atom (Ast_Ident* initial = NULL);
 	Ast_Expression* type_definition ();
-	Ast_Function* function (Ast_Function_Type* fn_type);
 	Ast_Function_Type* function_type ();
 	Ast_Function_Call* call (Ast_Expression* callee = NULL);
 	Ast_Literal* literal ();
