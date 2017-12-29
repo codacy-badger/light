@@ -2,17 +2,16 @@
 
 #include <deque>
 
-#include "lexer/buffer.hpp"
+#include "lexer/ring_buffer.hpp"
 #include "tokens.hpp"
 
 struct Lexer {
-	Buffer* buffer;
+	Ring_Buffer* buffer;
 
 	char* next_text;
 	Token_Type next_type;
 
 	Lexer (FILE* file, const char* filename);
-	Lexer (Buffer* buffer);
 
 	bool parse_next ();
 	bool is_next_type (Token_Type type);

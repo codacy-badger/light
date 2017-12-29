@@ -8,7 +8,7 @@
 #define RING_BUFFER_SIZE 512
 #define RING_BUFFER_SECTIONS 2
 
-struct Buffer {
+struct Ring_Buffer {
 	int ring_buffer[RING_BUFFER_SIZE];
 	int64_t ring_buffer_index = 0;
 	int64_t ring_buffer_last = 0;
@@ -16,7 +16,7 @@ struct Buffer {
 	FILE* file = NULL;
 	Location location;
 
-	Buffer (FILE* file, const char* filename);
+	Ring_Buffer (FILE* file, const char* filename);
 
 	char next ();
 	bool has_next ();

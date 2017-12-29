@@ -15,12 +15,7 @@
 const char* token_get_text (Token_Type type);
 
 Lexer::Lexer (FILE* file, const char* filename) {
-	this->buffer = new Buffer(file, filename);
-	this->parse_next();
-}
-
-Lexer::Lexer (Buffer* buffer) {
-	this->buffer = buffer;
+	this->buffer = new Ring_Buffer(file, filename);
 	this->parse_next();
 }
 
