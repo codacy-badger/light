@@ -209,11 +209,11 @@ void ASTPrinter::print (Ast_Unary* unop, int tabs) {
 void ASTPrinter::print (Ast_Function_Call* call, int tabs) {
 	print(call->fn, tabs, true);
 	printf("( ");
-	if (call->args->values.size() > 0) {
-		print(call->args->values[0], tabs);
-		for (int i = 1; i < call->args->values.size(); i++) {
+	if (call->arguments.size() > 0) {
+		print(call->arguments[0], tabs);
+		for (int i = 1; i < call->arguments.size(); i++) {
 			printf(", ");
-			print(call->args->values[i], tabs);
+			print(call->arguments[i], tabs);
 		}
 	}
 	printf(" )");

@@ -56,10 +56,8 @@ void Type_Checking::check_type (Ast_Statement* stm) {
 }
 
 void Type_Checking::check_type (Ast_Note* note) {
-    if (note->arguments) {
-		for (auto exp : note->arguments->values)
-			check_type(exp);
-	}
+	for (auto exp : note->arguments)
+		check_type(exp);
 }
 
 void Type_Checking::check_type (Ast_Block* block) {
@@ -257,15 +255,15 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
 	call->inferred_type = ret_ty;
 
-	if (call->args->values.size() == func->type->parameter_decls.size()) {
-		for (int i = 0; i < call->args->values.size(); i++) {
+	if (call->arguments.size() == func->type->parameter_decls.size()) {
+		for (int i = 0; i < call->arguments.size(); i++) {
 			auto param_decl = func->type->parameter_decls[i];
 			auto param_decl_type = static_cast<Ast_Type_Definition*>(param_decl->type);
-			auto param_exp = call->args->values[i];
+			auto param_exp = call->arguments[i];
 			check_type(param_exp);
 
 			if (param_decl_type != param_exp->inferred_type) {
-				if (!cast_if_possible(&call->args->values[i], param_exp->inferred_type, param_decl_type)) {
+				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, param_decl_type)) {
 					ERROR(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
 						i, param_decl_type->name, param_exp->inferred_type->name);
 				}
@@ -273,7 +271,7 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 		}
 	} else {
 		ERROR(call, "Wrong number of arguments, function has %d, but call has %d",
-			func->type->parameter_decls.size(), call->args->values.size());
+			func->type->parameter_decls.size(), call->arguments.size());
 	}
 }
 

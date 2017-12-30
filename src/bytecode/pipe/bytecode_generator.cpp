@@ -476,27 +476,23 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	}
 
 	this->current_register = 0;
-	if (call->args) {
-		for (auto exp : call->args->values) {
-            if (exp->inferred_type->byte_size > INTERP_REGISTER_SIZE) {
-                this->gen(exp, true);
-            } else this->gen(exp);
-		}
+	for (auto exp : call->arguments) {
+        if (exp->inferred_type->byte_size > INTERP_REGISTER_SIZE) {
+            this->gen(exp, true);
+        } else this->gen(exp);
 	}
 
 	this->add_instruction(call, new Inst_Call_Setup(DC_CALL_C_X64_WIN64));
 
-	if (call->args) {
-		auto bytecode_type = BYTECODE_TYPE_VOID;
-		for (uint8_t i = 0; i < call->args->values.size(); i++) {
-			auto exp = call->args->values[i];
-			if (exp->inferred_type->byte_size > INTERP_REGISTER_SIZE) {
-                bytecode_type = BYTECODE_TYPE_POINTER;
-            } else {
-				bytecode_type = bytecode_get_type(exp->inferred_type);
-			}
-			this->add_instruction(call, new Inst_Call_Param(i, bytecode_type));
+	auto bytecode_type = BYTECODE_TYPE_VOID;
+	for (uint8_t i = 0; i < call->arguments.size(); i++) {
+		auto exp = call->arguments[i];
+		if (exp->inferred_type->byte_size > INTERP_REGISTER_SIZE) {
+            bytecode_type = BYTECODE_TYPE_POINTER;
+        } else {
+			bytecode_type = bytecode_get_type(exp->inferred_type);
 		}
+		this->add_instruction(call, new Inst_Call_Param(i, bytecode_type));
 	}
 
 	auto func = static_cast<Ast_Function*>(call->fn);

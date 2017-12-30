@@ -85,7 +85,7 @@ Ast_Note* Parser::note () {
 		auto note = AST_NEW(Ast_Note);
 		note->name = this->lexer->text();
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-			note->arguments = this->comma_separated_arguments();
+			this->comma_separated_arguments(&note->arguments);
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		}
 		return note;
@@ -259,7 +259,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			auto call = AST_NEW(Ast_Function_Call);
 			call->fn = output;
-			call->args = this->comma_separated_arguments();
+			this->comma_separated_arguments(&call->arguments);
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
 			return call;
 		} else return output;
@@ -406,17 +406,15 @@ Ast_Literal* Parser::literal () {
 	return output;
 }
 
-Ast_Comma_Separated_Arguments* Parser::comma_separated_arguments () {
-	auto arguments = AST_NEW(Ast_Comma_Separated_Arguments);
+void Parser::comma_separated_arguments (vector<Ast_Expression*>* arguments) {
 	auto exp = this->expression();
 	if (exp) {
 		while (exp != NULL) {
-			arguments->values.push_back(exp);
+			arguments->push_back(exp);
 			this->lexer->optional_skip(TOKEN_COMMA);
 			exp = this->expression();
 		}
 	}
-	return arguments;
 }
 
 Ast_Ident* Parser::ident (const char* name) {

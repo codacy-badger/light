@@ -39,7 +39,6 @@ struct Bytecode_Interpreter {
 	Bytecode_Interpreter (size_t vm_size = 512);
 	~Bytecode_Interpreter ();
 
-	void set (Ast_Comma_Separated_Arguments* args);
 	void run (Ast_Function* func);
 	void run (Instruction* inst);
 	void print (size_t index, Instruction* inst);

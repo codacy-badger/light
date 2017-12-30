@@ -22,7 +22,6 @@ struct Symbol_Resolution : Pipe {
 
     void check_symbols (Ast_Expression** stm, vector<Ast_Ident**>* sym);
 	void check_symbols (Ast_Function_Call** call, vector<Ast_Ident**>* sym);
-    void check_symbols (Ast_Comma_Separated_Arguments** args, vector<Ast_Ident**>* sym);
 
     void check_symbols (Ast_Type_Definition** tydef, vector<Ast_Ident**>* sym);
     void check_symbols (Ast_Function_Type** fn_type, vector<Ast_Ident**>* sym);

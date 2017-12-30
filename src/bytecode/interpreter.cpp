@@ -25,17 +25,6 @@ Bytecode_Interpreter::~Bytecode_Interpreter () {
 	dcFree(this->vm);
 }
 
-void Bytecode_Interpreter::set (Ast_Comma_Separated_Arguments* args) {
-	std::vector<Instruction*> args_setters;
-	auto _tmp = this->generator->bytecode;
-
-	this->generator->bytecode = &args_setters;
-	for (auto exp : args->values) this->generator->gen(exp);
-	for (auto inst : args_setters) this->run(inst);
-
-	this->generator->bytecode = _tmp;
-}
-
 void Bytecode_Interpreter::run (Ast_Function* func) {
 	auto _tmp = this->stack_index;
 	for (instruction_index = 0; instruction_index < func->bytecode.size(); instruction_index++) {

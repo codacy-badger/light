@@ -67,13 +67,6 @@ struct Array_Attributes : Pipe {
 				}
 				break;
 			}
-			case AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS: {
-				auto args = static_cast<Ast_Comma_Separated_Arguments*>(*exp);
-				for (int i = 0; i < args->values.size(); i++) {
-					this->replace(&args->values[i]);
-				}
-				break;
-			}
 			case AST_EXPRESSION_FUNCTION: {
 				auto func = static_cast<Ast_Function*>(*exp);
 				if (func->scope) this->replace(func->scope);
@@ -86,10 +79,8 @@ struct Array_Attributes : Pipe {
 			}
 			case AST_EXPRESSION_CALL: {
 				auto call = static_cast<Ast_Function_Call*>(*exp);
-				if (call->args) {
-					for (int i = 0; i < call->args->values.size(); i++) {
-						this->replace(&call->args->values[i]);
-					}
+				for (int i = 0; i < call->arguments.size(); i++) {
+					this->replace(&call->arguments[i]);
 				}
 				break;
 			}

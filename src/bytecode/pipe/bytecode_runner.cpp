@@ -20,16 +20,14 @@ size_t run_function (Ast_Function* func, Ast_Note* run_note) {
 	if (func->foreign_module_name) {
 		report_error_stop(&run_note->location, "#run can't go on foreign functions (for now)");
 	} else {
-		if (run_note->arguments) {
-			for (size_t i = 0; i < run_note->arguments->values.size(); i++) {
-				auto exp = run_note->arguments->values[i];
-				if (exp->exp_type == AST_EXPRESSION_LITERAL) {
-					auto lit = static_cast<Ast_Literal*>(exp);
-					auto reg = g_compiler->interp->registers[i];
-					memcpy(reg, &lit->int_value, INTERP_REGISTER_SIZE);
-				} else {
-					report_error_stop(&run_note->location, "#run can only have literal arguments!");
-				}
+		for (size_t i = 0; i < run_note->arguments.size(); i++) {
+			auto exp = run_note->arguments[i];
+			if (exp->exp_type == AST_EXPRESSION_LITERAL) {
+				auto lit = static_cast<Ast_Literal*>(exp);
+				auto reg = g_compiler->interp->registers[i];
+				memcpy(reg, &lit->int_value, INTERP_REGISTER_SIZE);
+			} else {
+				report_error_stop(&run_note->location, "#run can only have literal arguments!");
 			}
 		}
 		g_compiler->interp->run(func);

@@ -45,17 +45,16 @@ void Foreign_Function::on_statement(Ast_Statement* stm) {
 						fn->name = decl->name;
 						fn->type = fn_type;
 
-						if (!note->arguments || (note->arguments->values.size() != 1
-							&& note->arguments->values.size() != 2)) {
+						if (note->arguments.size() != 1 && note->arguments.size() != 2) {
 							report_error_stop(&note->location, "foreign notes must have 1 or 2 (string) parameter!");
 						}
 
-						auto exp = note->arguments->values[0];
+						auto exp = note->arguments[0];
 						auto module_name = extract_string_parameter(exp);
 						if (module_name) {
 							fn->foreign_module_name = module_name;
-							if (note->arguments->values.size() == 2) {
-								exp = note->arguments->values[1];
+							if (note->arguments.size() == 2) {
+								exp = note->arguments[1];
 								fn->foreign_function_name = extract_string_parameter(exp);
 							} else fn->foreign_function_name = fn->name;
 						}

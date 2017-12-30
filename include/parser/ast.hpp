@@ -9,7 +9,6 @@ struct Ast_Expression;
 struct Ast_Declaration;
 struct Ast_Struct_Type;
 struct Ast_Type_Definition;
-struct Ast_Comma_Separated_Arguments;
 
 struct Instruction;
 
@@ -21,7 +20,7 @@ struct Ast {
 
 struct Ast_Note : Ast {
 	const char* name = NULL;
-	Ast_Comma_Separated_Arguments* arguments = NULL;
+	vector<Ast_Expression*> arguments;
 };
 
 enum Ast_Statement_Type {
@@ -123,7 +122,6 @@ struct Ast_Import : Ast_Statement {
 
 enum Ast_Expression_Type {
 	AST_EXPRESSION_UNDEFINED = 0,
-	AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS,
 	AST_EXPRESSION_TYPE_DEFINITION,
 	AST_EXPRESSION_FUNCTION,
 	AST_EXPRESSION_POINTER,
@@ -147,12 +145,6 @@ struct Ast_Cast : Ast_Expression {
 	Ast_Expression* cast_to = NULL;
 
 	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
-};
-
-struct Ast_Comma_Separated_Arguments : Ast_Expression {
-	vector<Ast_Expression*> values;
-
-	Ast_Comma_Separated_Arguments() { this->exp_type = AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS; }
 };
 
 enum Ast_Type_Definition_Type {
@@ -301,7 +293,7 @@ struct Ast_Unary : Ast_Expression {
 
 struct Ast_Function_Call : Ast_Expression {
 	Ast_Expression* fn;
-	Ast_Comma_Separated_Arguments* args = NULL;
+	vector<Ast_Expression*> arguments;
 
 	Ast_Function_Call() { this->exp_type = AST_EXPRESSION_CALL; }
 };

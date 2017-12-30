@@ -100,9 +100,9 @@ bool Symbol_Resolution::is_unresolved (const char* name) {
 
 void Symbol_Resolution::check_symbols (Ast_Statement* stm, vector<Ast_Ident**>* sym) {
 	for (auto note : stm->notes) {
-		if (note->arguments) {
-            check_symbols(&note->arguments, sym);
-        }
+        for (int i = 0; i < note->arguments.size(); i++) {
+    		check_symbols(&note->arguments[i], sym);
+    	}
 	}
     switch (stm->stm_type) {
         case AST_STATEMENT_DECLARATION: {
@@ -155,13 +155,6 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
         }
 		case AST_EXPRESSION_TYPE_DEFINITION: {
 			check_symbols(reinterpret_cast<Ast_Type_Definition**>(exp), sym);
-			break;
-        }
-		case AST_EXPRESSION_COMMA_SEPARATED_ARGUMENTS: {
-            auto args = reinterpret_cast<Ast_Comma_Separated_Arguments**>(exp);
-            for (int i = 0; i < (*args)->values.size(); i++) {
-        		check_symbols(&(*args)->values[i], sym);
-        	}
 			break;
         }
 		case AST_EXPRESSION_CALL: {
@@ -249,19 +242,11 @@ void Symbol_Resolution::check_symbols (Ast_Function_Type** fn_type, vector<Ast_I
 	}
 }
 
-void Symbol_Resolution::check_symbols (Ast_Comma_Separated_Arguments** args, vector<Ast_Ident**>* sym) {
-	for (int i = 0; i < (*args)->values.size(); i++) {
-		check_symbols(&(*args)->values[i], sym);
-	}
-}
-
 void Symbol_Resolution::check_symbols (Ast_Function_Call** call, vector<Ast_Ident**>* sym) {
 	if ((*call)->fn->exp_type != AST_EXPRESSION_FUNCTION) {
         check_symbols(&(*call)->fn, sym);
 	}
-	if ((*call)->args) {
-		for (int i = 0; i < (*call)->args->values.size(); i++) {
-			check_symbols(&(*call)->args->values[i], sym);
-		}
+	for (int i = 0; i < (*call)->arguments.size(); i++) {
+		check_symbols(&(*call)->arguments[i], sym);
 	}
 }
