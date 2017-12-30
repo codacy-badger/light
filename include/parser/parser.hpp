@@ -32,7 +32,6 @@ struct Parser : Pipe {
 	Ast_Expression* _atom (Ast_Ident* initial = NULL);
 	Ast_Expression* type_definition ();
 	Ast_Function_Type* function_type ();
-	Ast_Function_Call* call (Ast_Expression* callee = NULL);
 	Ast_Literal* literal ();
 	Ast_Ident* ident (const char* name = NULL);
 };

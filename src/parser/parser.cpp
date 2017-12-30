@@ -12,11 +12,11 @@ T* setup_ast_node (Lexer* lexer, T* node) {
 
 #define AST_NEW(T, ...) setup_ast_node(lexer, new T(__VA_ARGS__))
 
-FILE* open_file_or_crash (const char* filename, Location* location = NULL) {
+FILE* open_file_or_stop (const char* filename, Location* location = NULL) {
 	FILE* file_ptr = NULL;
 	auto err = fopen_s(&file_ptr, filename, "r");
 	if (err) {
-		char buf[128];
+		char buf[256];
 		strerror_s(buf, sizeof buf, err);
 		report_error_stop(location, "Cannot open file '%s': %s", filename, buf);
 	}
@@ -24,7 +24,7 @@ FILE* open_file_or_crash (const char* filename, Location* location = NULL) {
 }
 
 Parser::Parser (const char* filepath) {
-	auto file = open_file_or_crash(filepath);
+	auto file = open_file_or_stop(filepath);
 	this->lexer = new Lexer(file, filepath);
 }
 
@@ -104,14 +104,15 @@ Ast_Statement* Parser::statement () {
 
 			if (this->lexer->is_next_type(TOKEN_STRING)) {
 				auto filepath = this->lexer->text();
-				auto file = open_file_or_crash(filepath, &this->lexer->buffer->location);
+				auto file = open_file_or_stop(filepath, &this->lexer->buffer->location);
 
 				auto tmp = this->lexer;
 				this->lexer = new Lexer(file, filepath);
 				this->block(this->current_block);
 				this->lexer = tmp;
 
-			} else report_error_stop(&this->lexer->buffer->location, "Import statements must be followed by string literal!");
+				fclose(file);
+			} else report_error_stop(&this->lexer->buffer->location, "Import statements must be followed by string literal");
 			this->lexer->optional_skip(TOKEN_STM_END);
 
 			return this->statement();
@@ -256,7 +257,11 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	if (this->lexer->is_next_type(TOKEN_ID) || initial) {
 		auto output = initial ? initial : this->ident();
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-			return this->call(output);
+			auto call = AST_NEW(Ast_Function_Call);
+			call->fn = output;
+			call->args = this->comma_separated_arguments();
+			this->lexer->check_skip(TOKEN_PAR_CLOSE);
+			return call;
 		} else return output;
 	} else if (this->lexer->optional_skip(TOKEN_STRUCT)) {
 		auto _struct = AST_NEW(Ast_Struct_Type);
@@ -382,29 +387,27 @@ Ast_Literal* Parser::literal () {
 		case TOKEN_NUMBER: {
 			output = AST_NEW(Ast_Literal);
 			auto number_str = this->lexer->text();
-			if (strstr(number_str, ".") != NULL) {
-				output->literal_type = AST_LITERAL_DECIMAL;
-				output->decimal_value = atof(number_str);
-			} else if (strstr(number_str, "x") != NULL) {
+			if (number_str[0] == '0' && number_str[1] == 'x') {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
 				output->uint_value = strtoull(number_str + 2, NULL, 16);
-			} else if (strstr(number_str, "b") != NULL) {
+			} else if (number_str[0] == '0' && number_str[1] == 'b') {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
 				output->uint_value = strtoull(number_str + 2, NULL, 2);
+			} else if (strstr(number_str, ".") != NULL) {
+				output->literal_type = AST_LITERAL_DECIMAL;
+				output->decimal_value = atof(number_str);
 			} else {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
 				output->uint_value = strtoull(number_str, NULL, 10);
 			}
 			break;
 		}
-		default: break;
 	}
 	return output;
 }
 
 Ast_Comma_Separated_Arguments* Parser::comma_separated_arguments () {
 	auto arguments = AST_NEW(Ast_Comma_Separated_Arguments);
-
 	auto exp = this->expression();
 	if (exp) {
 		while (exp != NULL) {
@@ -413,16 +416,7 @@ Ast_Comma_Separated_Arguments* Parser::comma_separated_arguments () {
 			exp = this->expression();
 		}
 	}
-
 	return arguments;
-}
-
-Ast_Function_Call* Parser::call (Ast_Expression* callee) {
-	auto call = AST_NEW(Ast_Function_Call);
-	call->fn = callee;
-	call->args = this->comma_separated_arguments();
-	this->lexer->check_skip(TOKEN_PAR_CLOSE);
-	return call;
 }
 
 Ast_Ident* Parser::ident (const char* name) {
