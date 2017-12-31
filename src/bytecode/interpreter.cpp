@@ -151,6 +151,24 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 				this->registers[binary->reg2], binary->bytecode_type);
 			return;
 		}
+		case BYTECODE_ADD_CONST: {
+			auto add_c = static_cast<Inst_Add_Const*>(inst);
+
+			size_t reg_value = 0;
+			memcpy(&reg_value, this->registers[add_c->reg], INTERP_REGISTER_SIZE);
+			reg_value += add_c->number;
+			memcpy(this->registers[add_c->reg], &reg_value, INTERP_REGISTER_SIZE);
+			return;
+		}
+		case BYTECODE_MUL_CONST: {
+			auto mul_c = static_cast<Inst_Mul_Const*>(inst);
+
+			size_t reg_value = 0;
+			memcpy(&reg_value, this->registers[mul_c->reg], INTERP_REGISTER_SIZE);
+			reg_value *= mul_c->number;
+			memcpy(this->registers[mul_c->reg], &reg_value, INTERP_REGISTER_SIZE);
+			return;
+		}
 		case BYTECODE_JUMP: {
 			auto jump = static_cast<Inst_Jump*>(inst);
 			instruction_index += jump->offset;
@@ -388,6 +406,16 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 				case BYTECODE_GTE: 					printf("GTE"); break;
 			}
 			printf(" %d, %d", binary->reg1, binary->reg2);
+			break;
+		}
+		case BYTECODE_ADD_CONST: {
+			auto add_c = static_cast<Inst_Add_Const*>(inst);
+			printf("ADD_CONSTANT %d, %zd", add_c->reg, add_c->number);
+			break;
+		}
+		case BYTECODE_MUL_CONST: {
+			auto mul_c = static_cast<Inst_Mul_Const*>(inst);
+			printf("MUL_CONSTANT %d, %zd", mul_c->reg, mul_c->number);
 			break;
 		}
 		case BYTECODE_JUMP: {

@@ -54,12 +54,18 @@ struct Array_Attributes : Pipe {
 			case AST_EXPRESSION_BINARY: {
 				auto binary = static_cast<Ast_Binary*>(*exp);
 				if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
+					auto ident = static_cast<Ast_Ident*>(binary->rhs);
 					if (binary->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
-						auto arr_type = static_cast<Ast_Array_Type*>(binary->lhs->inferred_type);
-						auto lit = ast_make_literal(arr_type->length());
-						lit->inferred_type = g_compiler->type_def_u64;
-						delete *exp;
-						(*exp) = lit;
+						if (strcmp(ident->name, "length") == 0) {
+							auto arr_type = static_cast<Ast_Array_Type*>(binary->lhs->inferred_type);
+							auto lit = ast_make_literal(arr_type->length());
+							lit->inferred_type = g_compiler->type_def_u64;
+							lit->location = binary->location;
+							delete *exp;
+							(*exp) = lit;
+						} else if (strcmp(ident->name, "data") == 0) {
+							// TODO: build pointer to array (casted)
+						}
 					}
 				} else {
 					this->replace(&binary->lhs);

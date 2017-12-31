@@ -9,7 +9,7 @@ struct Bytecode_Generator : Pipe {
 	size_t stack_offset;
 
 	vector<Instruction*>* bytecode = NULL;
-	uint8_t current_register = 0;
+	uint8_t reg = 0;
 
 	vector<Inst_Jump*> pending_breaks;
 

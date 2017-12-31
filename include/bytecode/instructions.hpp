@@ -16,7 +16,6 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_CAST,
 
 	BYTECODE_SET,
-	BYTECODE_ZERO,
 
 	BYTECODE_CONSTANT_OFFSET,
 	BYTECODE_GLOBAL_OFFSET,
@@ -29,6 +28,9 @@ enum Inst_Bytecode : uint8_t {
 
 	BYTECODE_UNARY,
 	BYTECODE_BINARY,
+
+	BYTECODE_ADD_CONST,
+	BYTECODE_MUL_CONST,
 
 	BYTECODE_JUMP,
 	BYTECODE_JUMP_IF_FALSE,
@@ -261,6 +263,28 @@ struct Inst_Binary : Instruction {
 		this->reg1 = reg1;
 		this->reg2 = reg2;
 		this->bytecode_type = bytecode_type;
+	}
+};
+
+struct Inst_Add_Const : Instruction {
+	uint8_t reg = 0;
+	uint64_t number = 0;
+
+	Inst_Add_Const (uint8_t reg, uint64_t number) {
+		this->bytecode = BYTECODE_ADD_CONST;
+		this->reg = reg;
+		this->number = number;
+	}
+};
+
+struct Inst_Mul_Const : Instruction {
+	uint8_t reg = 0;
+	uint64_t number = 0;
+
+	Inst_Mul_Const (uint8_t reg, uint64_t number) {
+		this->bytecode = BYTECODE_MUL_CONST;
+		this->reg = reg;
+		this->number = number;
 	}
 };
 

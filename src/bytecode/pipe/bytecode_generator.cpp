@@ -16,7 +16,7 @@ void Bytecode_Generator::add_instruction (Ast* node, Instruction* intruction) {
 }
 
 void Bytecode_Generator::gen (Ast_Statement* stm) {
-	this->current_register = 0;
+	this->reg = 0;
     switch (stm->stm_type) {
         case AST_STATEMENT_DECLARATION: this->gen(static_cast<Ast_Declaration*>(stm)); break;
 		case AST_STATEMENT_RETURN: this->gen(static_cast<Ast_Return*>(stm)); break;
@@ -36,8 +36,8 @@ void Bytecode_Generator::gen (Ast_Statement* stm) {
 void Bytecode_Generator::gen (Ast_Return* ret) {
 	if (ret->exp) {
 	    this->gen(ret->exp);
-	    if (this->current_register != 1) {
-	        this->add_instruction(ret, new Inst_Copy(0, this->current_register - 1));
+	    if (this->reg != 1) {
+	        this->add_instruction(ret, new Inst_Copy(0, this->reg - 1));
 	    }
 	}
     this->add_instruction(ret, new Inst_Return());
@@ -89,14 +89,14 @@ void Bytecode_Generator::gen (Ast_Break* _break) {
 	jump->offset = this->bytecode->size();
 }
 
-void Bytecode_Generator::fill (Ast_Function* fn) {
-	if (fn->scope && fn->bytecode.size() == 0) {
+void Bytecode_Generator::fill (Ast_Function* func) {
+	if (func->scope && func->bytecode.size() == 0) {
         auto _tmp = this->bytecode;
-        this->bytecode = &fn->bytecode;
+        this->bytecode = &func->bytecode;
 
-        auto free_reg = (uint8_t) fn->type->parameter_decls.size();
-        for (uint8_t i = 0; i < fn->type->parameter_decls.size(); i++) {
-            auto decl = fn->type->parameter_decls[i];
+        auto free_reg = (uint8_t) func->type->parameter_decls.size();
+        for (uint8_t i = 0; i < func->type->parameter_decls.size(); i++) {
+            auto decl = func->type->parameter_decls[i];
 
             auto decl_type = static_cast<Ast_Type_Definition*>(decl->type);
             decl->stack_offset = this->stack_offset;
@@ -111,16 +111,16 @@ void Bytecode_Generator::fill (Ast_Function* fn) {
             }
         }
 
-		this->current_register = 0;
-		this->gen(fn->scope);
+		this->reg = 0;
+		this->gen(func->scope);
 
-		if (fn->type->return_type == g_compiler->type_def_void) {
+		if (func->type->return_type == g_compiler->type_def_void) {
 			if (this->bytecode->size() == 0) {
-				this->add_instruction(fn->scope, new Inst_Return());
+				this->add_instruction(func->scope, new Inst_Return());
 			} else {
 				auto last_inst = this->bytecode->back();
 				if (last_inst->bytecode != BYTECODE_RETURN) {
-					this->add_instruction(fn->scope, new Inst_Return());
+					this->add_instruction(func->scope, new Inst_Return());
 				}
 			}
 		}
@@ -180,7 +180,7 @@ void Bytecode_Generator::gen (Ast_Cast* cast) {
 	this->gen(cast->value);
 	auto type_from = bytecode_get_type(cast->value->inferred_type);
 	auto type_to = bytecode_get_type(cast->inferred_type);
-	this->add_instruction(cast, new Inst_Cast(this->current_register - 1, type_from, type_to));
+	this->add_instruction(cast, new Inst_Cast(this->reg - 1, type_from, type_to));
 }
 
 void Bytecode_Generator::gen (Ast_Literal* lit) {
@@ -188,22 +188,22 @@ void Bytecode_Generator::gen (Ast_Literal* lit) {
 		case AST_LITERAL_SIGNED_INT:
 		case AST_LITERAL_UNSIGNED_INT: {
 			auto bytecode_type = bytecode_get_type(lit->inferred_type);
-            this->add_instruction(lit, new Inst_Set(this->current_register++, bytecode_type, &lit->int_value));
+            this->add_instruction(lit, new Inst_Set(this->reg++, bytecode_type, &lit->int_value));
 			break;
 		}
 		case AST_LITERAL_DECIMAL: {
 			auto bytecode_type = bytecode_get_type(lit->inferred_type);
             if (bytecode_type == BYTECODE_TYPE_F32) {
                 auto _tmp = (float) lit->decimal_value;
-                this->add_instruction(lit, new Inst_Set(this->current_register++, bytecode_type, &_tmp));
+                this->add_instruction(lit, new Inst_Set(this->reg++, bytecode_type, &_tmp));
             } else {
-                this->add_instruction(lit, new Inst_Set(this->current_register++, bytecode_type, &lit->decimal_value));
+                this->add_instruction(lit, new Inst_Set(this->reg++, bytecode_type, &lit->decimal_value));
             }
             break;
         }
 		case AST_LITERAL_STRING: {
 			lit->data_offset = g_compiler->interp->constants->add(lit->string_value);
-            this->add_instruction(lit, new Inst_Constant_Offset(this->current_register++, lit->data_offset));
+            this->add_instruction(lit, new Inst_Constant_Offset(this->reg++, lit->data_offset));
 			break;
 		}
 		default: {
@@ -240,24 +240,10 @@ uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
 	}
 }
 
-uint8_t count_dereferences (Ast_Type_Definition* type_def) {
-    uint8_t deref_count = 0;
-    while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
-        auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
-        type_def = static_cast<Ast_Type_Definition*>(ptr_type->base);
-        deref_count += 1;
-    }
-    return deref_count;
-}
-
 void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 	switch (binop->binary_op) {
 		case AST_BINARY_ATTRIBUTE: {
         	this->gen(binop->lhs, true);
-
-            auto ident = static_cast<Ast_Ident*>(binop->rhs);
-			auto reg = this->current_register;
-            auto decl = ident->declaration;
 
             // We follow the pointer until we hit a non-pointer type
             auto type_def = binop->lhs->inferred_type;
@@ -267,48 +253,37 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
                 this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, type_def->byte_size));
             }
 
+            auto ident = static_cast<Ast_Ident*>(binop->rhs);
+            auto decl = ident->declaration;
 			if (decl->attribute_byte_offset != 0) {
-	            this->add_instruction(binop, new Inst_Set(reg, BYTECODE_TYPE_U16, &decl->attribute_byte_offset));
-	            this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
+				this->add_instruction(binop, new Inst_Add_Const(reg - 1, decl->attribute_byte_offset));
 			}
 
-            if (!left_value) {
-                if (binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
-                } else {
-                    // TODO: this value should be hidden into a reg by pointer
-                    ERROR(binop, "Value of identifier is bigger than a register!");
-                }
+            if (!left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+                this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
             }
 
 			break;
 		}
 		case AST_BINARY_SUBSCRIPT: {
 			if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
+	        	this->gen(binop->lhs, true);
+				this->gen(binop->rhs, left_value);
+
 				auto array_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
 				auto array_base_type = static_cast<Ast_Type_Definition*>(array_type->base);
 	            auto element_size = array_base_type->byte_size;
 
-	        	this->gen(binop->lhs, true);
-				this->gen(binop->rhs, left_value);
-
-				auto reg = this->current_register;
 	            if (element_size > 1) {
-	                this->add_instruction(binop, new Inst_Set(this->current_register, BYTECODE_TYPE_U64, &element_size));
-	                this->add_instruction(binop, new Inst_Binary(BYTECODE_MUL, reg - 1, reg, BYTECODE_TYPE_U64));
+					this->add_instruction(binop, new Inst_Mul_Const(reg - 1, element_size));
 	            }
 
-				reg = --this->current_register;
+				this->reg -= 1;
 	            this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
 
-	            if (!left_value) {
-	                if (binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-	                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
-	                } else {
-	                    // TODO: this value should be hidden into a reg by pointer
-	                    ERROR(binop, "Value of identifier is bigger than a register!");
-	                }
-	            }
+	            if (!left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
+                }
 			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
 				auto struct_type = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
 				if (struct_type->is_slice) {
@@ -319,35 +294,22 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 			            auto element_size = array_base_type->byte_size;
 
 			        	this->gen(binop->lhs, true);
-						auto reg = this->current_register;
-		                this->add_instruction(binop, new Inst_Set(reg, BYTECODE_TYPE_U64, &data_decl->attribute_byte_offset));
-		                this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
+						this->add_instruction(binop, new Inst_Add_Const(reg - 1, data_decl->attribute_byte_offset));
 						this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, ptr_type->byte_size));
 						this->gen(binop->rhs, left_value);
 
-						reg = this->current_register;
 			            if (element_size > 1) {
-			                this->add_instruction(binop, new Inst_Set(reg, BYTECODE_TYPE_U64, &element_size));
-			                this->add_instruction(binop, new Inst_Binary(BYTECODE_MUL, reg - 1, reg, BYTECODE_TYPE_U64));
+							this->add_instruction(binop, new Inst_Mul_Const(reg - 1, element_size));
 			            }
 
-						reg -= 1;
+						this->reg -= 1;
 			            this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
 
-			            if (!left_value) {
-			                if (binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
-			                } else {
-			                    // TODO: this value should be hidden into a reg by pointer
-			                    ERROR(binop, "Value of identifier is bigger than a register!");
-			                }
-			            }
-					} else {
-						ERROR(binop, "Slice type doesn't have data attribute");
-					}
-				} else {
-					ERROR(binop->lhs, "Struct is not slice");
-				}
+		                if (!left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+		                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
+		                }
+					} else ERROR(binop, "Slice type doesn't have data attribute");
+				} else ERROR(binop->lhs, "Struct is not a slice");
 			}
 			break;
 		}
@@ -355,8 +317,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
             auto size = binop->rhs->inferred_type->byte_size;
 			this->gen(binop->rhs, left_value);
         	this->gen(binop->lhs, true);
-            this->current_register--;
-			auto reg = this->current_register;
+            this->reg -= 1;
 			if (size > INTERP_REGISTER_SIZE) {
                 this->add_instruction(binop, new Inst_Copy_Memory(reg, reg - 1, size));
             } else {
@@ -367,8 +328,7 @@ void Bytecode_Generator::gen (Ast_Binary* binop, bool left_value) {
 		default: {
 			this->gen(binop->lhs, left_value);
 			this->gen(binop->rhs, left_value);
-            this->current_register--;
-			auto reg = this->current_register;
+            this->reg -= 1;
 			auto binop_type = get_bytecode_from_binop(binop->binary_op);
             auto bytecode_type = bytecode_get_type(binop->lhs->inferred_type);
             this->add_instruction(binop, new Inst_Binary(binop_type, reg - 1, reg, bytecode_type));
@@ -392,7 +352,7 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
         	this->gen(unop->exp);
 			auto unop_type = get_bytecode_from_unop(unop->unary_op);
             auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
-            this->add_instruction(unop, new Inst_Unary(unop_type, this->current_register - 1, bytecode_type));
+            this->add_instruction(unop, new Inst_Unary(unop_type, this->reg - 1, bytecode_type));
 			break;
 		}
 		case AST_UNARY_NEGATE: {
@@ -401,15 +361,14 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
             auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
 			auto result_type = bytecode_unsigned_to_signed(bytecode_type);
 			if (bytecode_type != result_type) {
-				this->add_instruction(unop, new Inst_Cast(this->current_register - 1, bytecode_type, result_type));
+				this->add_instruction(unop, new Inst_Cast(this->reg - 1, bytecode_type, result_type));
 			}
-            this->add_instruction(unop, new Inst_Unary(unop_type, this->current_register - 1, result_type));
+            this->add_instruction(unop, new Inst_Unary(unop_type, this->reg - 1, result_type));
 			break;
 		}
         case AST_UNARY_DEREFERENCE: {
             this->gen(unop->exp, left_value);
-            uint8_t reg = this->current_register - 1;
-            this->add_instruction(unop, new Inst_Load(reg, reg, unop->exp->inferred_type->byte_size));
+            this->add_instruction(unop, new Inst_Load(reg - 1, reg - 1, unop->exp->inferred_type->byte_size));
             break;
         }
         case AST_UNARY_REFERENCE: {
@@ -421,7 +380,6 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
 }
 
 void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
-	auto reg = this->current_register++;
 	if (ident->declaration->decl_flags && AST_DECL_FLAG_GLOBAL) {
 		this->add_instruction(ident, new Inst_Global_Offset(reg, ident->declaration->global_offset));
 	} else {
@@ -434,6 +392,7 @@ void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 			//ERROR(ident, "Value of identifier is bigger than a register!");
 		}
 	}
+	this->reg++;
 }
 
 void Bytecode_Generator::gen (Ast_Function* func) {
@@ -443,8 +402,8 @@ void Bytecode_Generator::gen (Ast_Function* func) {
 		if (module) {
 			auto function_pointer = ffunctions->get_or_add_function(module, func->foreign_function_name);
 			if (function_pointer) {
-	            this->add_instruction(func, new Inst_Set(this->current_register, BYTECODE_TYPE_POINTER, &function_pointer));
-				this->current_register++;
+	            this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &function_pointer));
+				this->reg++;
 			}
 		} else {
 			ERROR(func, "Module '%s' not found!", func->foreign_module_name);
@@ -464,7 +423,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	// If we're not the 1st argument in an expression or argument list,
 	// we're overriding the values in previous registers, so we have to
 	// store them in the stack and restore them after the call
-	auto _tmp = this->current_register;
+	auto _tmp = this->reg;
 	if (_tmp > 0) {
 		this->add_instruction(call, new Inst_Stack_Allocate(_tmp * INTERP_REGISTER_SIZE));
 		for (uint8_t i = 0; i < _tmp; i++) {
@@ -475,7 +434,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 		}
 	}
 
-	this->current_register = 0;
+	this->reg = 0;
 	for (auto exp : call->arguments) {
         if (exp->inferred_type->byte_size > INTERP_REGISTER_SIZE) {
             this->gen(exp, true);
@@ -514,7 +473,7 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
         this->add_instruction(call, new Inst_Stack_Free(max_size - this->stack_offset));
 	}
 
-	this->current_register = _tmp + 1;
+	this->reg = _tmp + 1;
 }
 
 void Bytecode_Generator::update_pending_breaks () {

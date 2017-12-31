@@ -11,6 +11,8 @@ size_t get_ring_index (size_t index) {
 
 Ring_Buffer::Ring_Buffer (FILE* file, const char* filename) {
 	this->location.filename = filename;
+	this->location.line = 1;
+	this->location.col = 1;
 	this->file = file;
 
 	size_t index = 0;

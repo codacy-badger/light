@@ -4,9 +4,6 @@ template<typename F>
 void _cast_signed (void* ptr, size_t size_to) {
 	F value;
 	memcpy(&value, ptr, sizeof(F));
-	// We have to do this, since the cast for signed numbers
-	// has to mantain the sign bit,
-	// TODO: maybe we could simplify this by using bitmasks?
 	switch (size_to) {
 		case 1: {
 			auto new_value = static_cast<int8_t>(value);
