@@ -41,19 +41,36 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
     } else this->on_resolved(stm);
 }
 
+void Symbol_Resolution::find_unique_unresolved (set<Ast_Ident*>* idents) {
+    for (auto deps : this->unresolved) {
+        for (auto ident_ptr : deps.second) {
+            idents->insert(*ident_ptr);
+        }
+    }
+
+    for (auto deps : this->unresolved) {
+        if (deps.first->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(deps.first);
+            auto ident_ptr = idents->begin();
+            while (ident_ptr != idents->end()) {
+                if (strcmp(decl->name, (*ident_ptr)->name) == 0
+                    && (*ident_ptr)->scope->is_ancestor(decl->scope)) {
+                    ident_ptr = idents->erase(ident_ptr);
+                } else ident_ptr++;
+            }
+        }
+    }
+}
+
 void Symbol_Resolution::on_finish () {
-    bool have_unresolved = false;
     if (this->unresolved.size() > 0) {
-		for (auto dependencies : this->unresolved) {
-			for (auto ident_ptr2 : dependencies.second) {
-                report_error(&(*ident_ptr2)->location, "Unresolved symbol: '%s'", (*ident_ptr2)->name);
-                have_unresolved = true;
-			}
+        set<Ast_Ident*> idents;
+        this->find_unique_unresolved(&idents);
+        for (auto ident : idents) {
+            report_error(&ident->location, "Unresolved symbol: '%s'", ident->name);
         }
-		if (have_unresolved) {
-            g_compiler->stop();
-            return;
-        }
+        g_compiler->stop();
+        return;
     }
     this->try_finish();
 }

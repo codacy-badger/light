@@ -6,6 +6,7 @@
 #include <deque>
 #include <vector>
 #include <map>
+#include <set>
 
 using namespace std;
 
@@ -13,6 +14,7 @@ struct Symbol_Resolution : Pipe {
     map<Ast_Statement*, vector<Ast_Ident**>> unresolved;
 
     void on_statement (Ast_Statement* stm);
+    void find_unique_unresolved (set<Ast_Ident*>* idents);
     void on_finish ();
 
     void on_resolved (Ast_Statement* stm);
