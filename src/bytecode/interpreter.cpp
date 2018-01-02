@@ -230,7 +230,10 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
-			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
+
+			size_t value;
+			memcpy(&value, this->registers[call->reg], INTERP_REGISTER_SIZE);
+			auto func = reinterpret_cast<Ast_Function*>(value);
 
 			//printf("\t ++ Call: %s\n", func->name);
 			if (func->foreign_module_name) {
@@ -278,6 +281,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 				this->instruction_index = _inst;
 				this->stack_base = _base;
 			}
+
 			return;
 		}
 		default: {
@@ -440,12 +444,7 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
-			auto func = reinterpret_cast<Ast_Function*>(call->function_pointer);
-			printf("CALL %p (", func);
-			if (func->foreign_module_name) {
-				printf("%s@%s", func->foreign_function_name, func->foreign_module_name);
-			} else printf("%s", func->name);
-			printf(")");
+			printf("CALL %d", call->reg);
 			break;
 		}
 		default: assert(false);

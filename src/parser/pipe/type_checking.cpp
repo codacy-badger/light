@@ -243,22 +243,25 @@ void Type_Checking::check_type (Ast_Pointer_Type* ty) {
 }
 
 void Type_Checking::check_type (Ast_Function* func) {
-    func->inferred_type = func->type;
-	check_type(func->type);
-	if (func->scope) check_type(func->scope);
+	if (func->inferred_type == NULL) {
+	    func->inferred_type = func->type;
+		check_type(func->type);
+		if (func->scope) check_type(func->scope);
+	}
 }
 
 void Type_Checking::check_type (Ast_Function_Call* call) {
-    if (call->fn->exp_type != AST_EXPRESSION_FUNCTION)
+	check_type(call->fn);
+    if (call->fn->inferred_type->typedef_type != AST_TYPEDEF_FUNCTION)
 		ERROR(call, "Function calls can only be performed to functions types");
 
-	auto func = static_cast<Ast_Function*>(call->fn);
-	auto ret_ty = static_cast<Ast_Type_Definition*>(func->type->return_type);
+	auto func_type = static_cast<Ast_Function_Type*>(call->fn->inferred_type);
+	auto ret_ty = static_cast<Ast_Type_Definition*>(func_type->return_type);
 	call->inferred_type = ret_ty;
 
-	if (call->arguments.size() == func->type->parameter_decls.size()) {
+	if (call->arguments.size() == func_type->parameter_decls.size()) {
 		for (int i = 0; i < call->arguments.size(); i++) {
-			auto param_decl = func->type->parameter_decls[i];
+			auto param_decl = func_type->parameter_decls[i];
 			auto param_decl_type = static_cast<Ast_Type_Definition*>(param_decl->type);
 			auto param_exp = call->arguments[i];
 			check_type(param_exp);
@@ -272,7 +275,7 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 		}
 	} else {
 		ERROR(call, "Wrong number of arguments, function has %d, but call has %d",
-			func->type->parameter_decls.size(), call->arguments.size());
+			func_type->parameter_decls.size(), call->arguments.size());
 	}
 }
 

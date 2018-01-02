@@ -6,6 +6,7 @@ main :: fn {
 	test_factorial();
 	test_cast();
 	test_pointers();
+	test_function_pointers();
 	test_decimals();
 	test_arrays();
 	test_division();
@@ -87,6 +88,22 @@ test_pointers :: fn {
 
 	set :: fn (ptr: *u8) {
 		&ptr = 12;
+	}
+}
+
+test_function_pointers :: fn {
+	num := repeat_3(sqrt, 3);
+	assert(num == 6561);
+
+	repeat_3 :: fn (func: fn (num: u64) -> u64, num: u64) -> u64 {
+		num = func(num);
+		num = func(num);
+		num = func(num);
+		return num;
+	}
+
+	sqrt :: fn (num: u64) -> u64 {
+		num * num
 	}
 }
 

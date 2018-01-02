@@ -396,21 +396,8 @@ void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 }
 
 void Bytecode_Generator::gen (Ast_Function* func) {
-    if (func->foreign_module_name) {
-		auto ffunctions = g_compiler->interp->foreign_functions;
-		auto module = ffunctions->get_or_add_module(func->foreign_module_name);
-		if (module) {
-			auto function_pointer = ffunctions->get_or_add_function(module, func->foreign_function_name);
-			if (function_pointer) {
-	            this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &function_pointer));
-				this->reg++;
-			}
-		} else {
-			ERROR(func, "Module '%s' not found!", func->foreign_module_name);
-		}
-	} else {
-		ERROR(func, "Internal functions cannot be referenced...");
-	}
+    this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &func));
+    this->reg++;
 }
 
 // TODO: we should try to solve this in a better way...
@@ -454,11 +441,11 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 		this->add_instruction(call, new Inst_Call_Param(i, bytecode_type));
 	}
 
-	auto func = static_cast<Ast_Function*>(call->fn);
-    this->add_instruction(call, new Inst_Call(reinterpret_cast<size_t>(func)));
-	if (_tmp != 0) {
-	    this->add_instruction(call, new Inst_Copy(_tmp, 0));
-	}
+    this->gen(call->fn);
+    this->add_instruction(call, new Inst_Call(this->reg - 1));
+    if (_tmp != 0) {
+        this->add_instruction(call, new Inst_Copy(_tmp, 0));
+    }
 
 	// Now we restore the values from previous registers so we can continue
 	// with the current expression
