@@ -209,20 +209,24 @@ test_static_array :: fn {
 	}
 }
 
+/*#inline
+make_slice :: fn (length: usize, data: *$T) -> []T {
+	tmp : []T;
+	tmp.length = length;
+	tmp.data = data;
+	return tmp;
+}*/
+
 test_slice :: fn {
 	numbers: [3]u8;
 	numbers[0] = 13;
 	numbers[1] = 14;
 	numbers[2] = 15;
 
-	print_u8_slice(make_slice(numbers.length, cast(*u8) (*numbers)));
-
-	make_slice :: fn (length: u64, data: *u8) -> []u8 {
-		_slice : []u8;
-		_slice.length = length;
-		_slice.data = data;
-		return _slice;
-	}
+	tmp : []u8;
+	tmp.length = numbers.length;
+	tmp.data = numbers.data;
+	print_u8_slice(tmp);
 
 	print_u8_slice :: fn (array : []u8) {
 		print("Slice data -> (");

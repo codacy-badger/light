@@ -111,11 +111,7 @@ uint64_t Ast_Array_Type::length () {
    } else return 0;
 }
 
-void Ast_Binary::setOP (Token_Type tType) {
-	this->binary_op = this->typeToOP(tType);
-}
-
-Ast_Binary_Type Ast_Binary::typeToOP (Token_Type tType) {
+Ast_Binary_Type token_to_binop (Token_Type tType) {
 	switch (tType) {
 		case TOKEN_EQUAL: 			return AST_BINARY_ASSIGN;
 		case TOKEN_DOT: 			return AST_BINARY_ATTRIBUTE;
@@ -218,24 +214,6 @@ bool Ast_Binary::getLeftAssociativity (Token_Type opToken) {
 	}
 }
 
-void Ast_Unary::setOP (Token_Type tType) {
-	this->unary_op = this->typeToOP(tType);
-}
-
-Ast_Unary_Type Ast_Unary::typeToOP (Token_Type tType) {
-	switch (tType) {
-		case TOKEN_AMP: 		return AST_UNARY_DEREFERENCE;
-		case TOKEN_MUL: 		return AST_UNARY_REFERENCE;
-		case TOKEN_SUB: 		return AST_UNARY_NEGATE;
-		case TOKEN_EXCLAMATION: return AST_UNARY_NOT;
-		default: 				return AST_UNARY_UNINITIALIZED;
-	};
-}
-
-bool Ast_Ident::operator ==(const Ast_Ident* other) const {
-	return strcmp(this->name, other->name) == 0;
-}
-
 Ast_Literal* ast_make_literal (const char* value) {
 	auto lit = new Ast_Literal();
 	lit->literal_type = AST_LITERAL_STRING;
@@ -254,6 +232,17 @@ Ast_Ident* ast_make_ident (const char* name) {
 	auto out = new Ast_Ident();
 	out->name = name;
 	return out;
+}
+
+Ast_Unary* ast_make_unary (Ast_Unary_Type type, Ast_Expression* expression) {
+    return new Ast_Unary(type, expression);
+}
+
+Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expression* rhs) {
+    auto binop = new Ast_Binary(type);
+    binop->lhs = lhs;
+    binop->rhs = rhs;
+    return binop;
 }
 
 Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type, Ast_Struct_Type* size_type) {

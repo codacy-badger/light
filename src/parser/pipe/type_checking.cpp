@@ -8,7 +8,7 @@
 
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
 	if (type_from == type_to) return true;
-    else if (g_compiler->types->is_implicid_cast(type_from, type_to)) {
+	else if (g_compiler->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
 		cast->location = (*exp_ptr)->location;
         cast->value = (*exp_ptr);

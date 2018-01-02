@@ -56,15 +56,21 @@ struct Array_Attributes : Pipe {
 				if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
 					auto ident = static_cast<Ast_Ident*>(binary->rhs);
 					if (binary->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
+						auto arr_type = static_cast<Ast_Array_Type*>(binary->lhs->inferred_type);
 						if (strcmp(ident->name, "length") == 0) {
-							auto arr_type = static_cast<Ast_Array_Type*>(binary->lhs->inferred_type);
 							auto lit = ast_make_literal(arr_type->length());
 							lit->inferred_type = g_compiler->type_def_u64;
 							lit->location = binary->location;
+
 							delete *exp;
 							(*exp) = lit;
 						} else if (strcmp(ident->name, "data") == 0) {
-							// TODO: build pointer to array (casted)
+							auto array_ref = ast_make_unary(AST_UNARY_REFERENCE, binary->lhs);
+							array_ref->inferred_type = g_compiler->types->get_or_create_pointer_type(arr_type->base);
+							array_ref->location = binary->location;
+
+							delete *exp;
+							(*exp) = array_ref;
 						}
 					}
 				} else {

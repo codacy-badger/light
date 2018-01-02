@@ -311,13 +311,13 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		return result;
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
-		return AST_NEW(Ast_Unary, TOKEN_MUL, this->_atom());
+		return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_EXCLAMATION)) {
-		return AST_NEW(Ast_Unary, TOKEN_EXCLAMATION, this->_atom());
+		return AST_NEW(Ast_Unary, AST_UNARY_NOT, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_SUB)) {
-		return AST_NEW(Ast_Unary, TOKEN_SUB, this->_atom());
+		return AST_NEW(Ast_Unary, AST_UNARY_NEGATE, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_AMP)) {
-		return AST_NEW(Ast_Unary, TOKEN_AMP, this->_atom());
+		return AST_NEW(Ast_Unary, AST_UNARY_DEREFERENCE, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_ADD)) {
 		return this->expression();
 	} else return this->literal();

@@ -252,19 +252,23 @@ enum Ast_Binary_Type {
 	AST_BINARY_GTE,
 };
 
+Ast_Binary_Type token_to_binop (Token_Type type);
+
 struct Ast_Binary : Ast_Expression {
 	Ast_Binary_Type binary_op = AST_BINARY_UNINITIALIZED;
 	Ast_Expression* lhs = NULL;
 	Ast_Expression* rhs = NULL;
 
-	Ast_Binary (Token_Type tType) {
+	Ast_Binary (Ast_Binary_Type type) {
 		this->exp_type = AST_EXPRESSION_BINARY;
-		this->setOP(tType);
+		this->binary_op = type;
 	}
 
-	void setOP (Token_Type tType);
+	Ast_Binary (Token_Type token_type) {
+		this->exp_type = AST_EXPRESSION_BINARY;
+		this->binary_op = token_to_binop(token_type);
+	}
 
-	Ast_Binary_Type typeToOP (Token_Type tType);
 	static short getPrecedence (Token_Type opToken);
 	static bool getLeftAssociativity (Token_Type opToken);
 };
@@ -281,14 +285,11 @@ struct Ast_Unary : Ast_Expression {
 	Ast_Unary_Type unary_op = AST_UNARY_UNINITIALIZED;
 	Ast_Expression* exp = NULL;
 
-	Ast_Unary (Token_Type tType, Ast_Expression* exp = NULL) {
+	Ast_Unary (Ast_Unary_Type type, Ast_Expression* exp = NULL) {
 		this->exp_type = AST_EXPRESSION_UNARY;
-		this->setOP(tType);
+		this->unary_op = type;
 		this->exp = exp;
 	}
-
-	void setOP (Token_Type tType);
-	Ast_Unary_Type typeToOP (Token_Type tType);
 };
 
 struct Ast_Function_Call : Ast_Expression {
@@ -332,12 +333,12 @@ struct Ast_Ident : Ast_Expression {
 		this->exp_type = AST_EXPRESSION_IDENT;
 		this->scope = scope;
 	}
-
-	bool operator ==(const Ast_Ident* other) const;
 };
 
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);
 Ast_Ident* ast_make_ident (const char* name);
+Ast_Unary* ast_make_unary (Ast_Unary_Type type, Ast_Expression* expression);
+Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expression* rhs);
 Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type, Ast_Struct_Type* size_type = NULL);
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const = true);
