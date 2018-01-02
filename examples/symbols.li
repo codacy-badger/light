@@ -1,0 +1,28 @@
+import "examples/print.li"
+
+PRE_VALUE :: 12;
+
+#run
+main :: fn {
+	print(__FILE__);
+
+	number: u64 = work(POST_VALUE);
+	if number == PRE_VALUE {
+		print_u64(number);
+	}
+
+	d: Data;
+	d.a = 64;
+}
+
+work :: fn (val: u64) -> u64 {
+	val - 1
+}
+
+POST_VALUE :: PRE_VALUE + 1;
+
+Data :: struct {
+	a: u64;
+	b: u64;
+	c: u64;
+}
