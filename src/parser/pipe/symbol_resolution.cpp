@@ -22,12 +22,12 @@ bool try_resolve (Ast_Ident** ident_ptr2, Ast_Declaration* decl) {
     return false;
 }
 
-void Symbol_Resolution::on_statement(Ast_Statement* stm) {
+void Symbol_Resolution::on_statement(Ast_Statement** stm) {
     vector<Ast_Ident**> idents;
-    check_symbols(stm, &idents);
+    check_symbols((*stm), &idents);
 
-	if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-		auto decl = static_cast<Ast_Declaration*>(stm);
+	if ((*stm)->stm_type == AST_STATEMENT_DECLARATION) {
+		auto decl = static_cast<Ast_Declaration*>((*stm));
 		auto it = idents.begin();
 		while (it != idents.end()) {
             if (try_resolve(*it, decl)) {
@@ -37,7 +37,7 @@ void Symbol_Resolution::on_statement(Ast_Statement* stm) {
 	}
 
     if (idents.size() > 0) {
-        this->unresolved[stm] = idents;
+        this->unresolved[(*stm)] = idents;
     } else this->on_resolved(stm);
 }
 
@@ -75,10 +75,10 @@ void Symbol_Resolution::on_finish () {
     this->try_finish();
 }
 
-void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
+void Symbol_Resolution::on_resolved (Ast_Statement** stm) {
     this->to_next(stm);
-    if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-        auto decl = static_cast<Ast_Declaration*>(stm);
+    if ((*stm)->stm_type == AST_STATEMENT_DECLARATION) {
+        auto decl = static_cast<Ast_Declaration*>(*stm);
 		if (decl->is_constant()) {
             vector<Ast_Statement*> resolved_stms;
 
@@ -95,9 +95,9 @@ void Symbol_Resolution::on_resolved (Ast_Statement* stm) {
                 }
             }
 
-            for (auto resolved_stm : resolved_stms) {
+            for (auto &resolved_stm : resolved_stms) {
                 this->unresolved.erase(resolved_stm);
-                this->on_resolved(resolved_stm);
+                this->on_resolved(&resolved_stm);
             }
 		}
     }

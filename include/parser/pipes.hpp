@@ -5,8 +5,8 @@
 struct Pipe {
 	Pipe* next = NULL;
 
-	virtual void on_statement (Ast_Statement* stm) {
-		this->handle(&stm);
+	virtual void on_statement (Ast_Statement** stm) {
+		this->handle(stm);
 		this->to_next(stm);
 	}
 
@@ -14,7 +14,7 @@ struct Pipe {
 		this->try_finish();
 	}
 
-	void to_next (Ast_Statement* stm) {
+	void to_next (Ast_Statement** stm) {
 		if (next) next->on_statement(stm);
 	}
 

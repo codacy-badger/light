@@ -26,8 +26,8 @@ void replace_slice_type (Ast_Array_Type** array_type_ptr) {
 	(*array_type_ptr) = reinterpret_cast<Ast_Array_Type*>(slice_type);
 }
 
-void Type_Checking::on_statement(Ast_Statement* stm) {
-    this->check_type(stm);
+void Type_Checking::on_statement(Ast_Statement** stm) {
+    this->check_type(*stm);
     this->to_next(stm);
 }
 

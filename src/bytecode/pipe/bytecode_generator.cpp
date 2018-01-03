@@ -4,8 +4,8 @@
 
 #define ERROR(node, ...) report_error_stop(&node->location, __VA_ARGS__)
 
-void Bytecode_Generator::on_statement (Ast_Statement* stm) {
-    this->gen(stm);
+void Bytecode_Generator::on_statement (Ast_Statement** stm) {
+    this->gen(*stm);
     this->to_next(stm);
 }
 

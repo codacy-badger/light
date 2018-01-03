@@ -13,7 +13,7 @@ struct Bytecode_Generator : Pipe {
 
 	vector<Inst_Jump*> pending_breaks;
 
-	void on_statement(Ast_Statement* stm);
+	void on_statement(Ast_Statement** stm);
 
 	void add_instruction (Ast* node, Instruction* intruction);
 

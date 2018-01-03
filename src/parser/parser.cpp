@@ -31,7 +31,7 @@ Parser::Parser (const char* filepath) {
 void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def) {
 	auto type_decl = ast_make_declaration(type_def->name, type_def);
 	block->list.push_back(type_decl);
-	parser->to_next(type_decl);
+	parser->to_next(reinterpret_cast<Ast_Statement**>(&type_decl));
 }
 
 Ast_Block* Parser::top_level_block () {
@@ -65,11 +65,11 @@ void Parser::block (Ast_Block* inner_block) {
 	while (stm != NULL) {
 		this->current_block->list.push_back(stm);
 		if (this->current_block->is_global) {
-			this->to_next(stm);
+			this->to_next(&stm);
 		} else {
 			if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 				auto decl = static_cast<Ast_Declaration*>(stm);
-				if (decl->is_constant()) this->to_next(stm);
+				if (decl->is_constant()) this->to_next(&stm);
 			}
 		}
 

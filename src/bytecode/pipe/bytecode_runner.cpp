@@ -35,8 +35,8 @@ size_t run_function (Ast_Function* func, Ast_Note* run_note) {
 	return NULL;
 }
 
-void Bytecode_Runner::on_statement (Ast_Statement* stm) {
-	this->run(stm);
+void Bytecode_Runner::on_statement (Ast_Statement** stm) {
+	this->run(*stm);
     this->to_next(stm);
 }
 

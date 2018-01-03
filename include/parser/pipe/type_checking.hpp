@@ -5,7 +5,7 @@
 #define WARN_MAX_DEREF_COUNT 3
 
 struct Type_Checking : Pipe {
-    void on_statement(Ast_Statement* stm);
+    void on_statement(Ast_Statement** stm);
 
     void check_type (Ast_Statement* stm);
     void check_type (Ast_Note* note);
