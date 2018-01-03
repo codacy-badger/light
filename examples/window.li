@@ -6,7 +6,7 @@ atom : u16;
 
 window_create :: fn (name: *u8) -> *void {
 	window_class: WNDCLASSEXA;
-	window_class.cbSize 		= 80;
+	window_class.cbSize 		= 79;
 	window_class.style 			= CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	window_class.lpfnWndProc 	= DefWindowProc;
 	window_class.hInstance 		= GetModuleHandle(0);

@@ -444,7 +444,10 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
-			printf("CALL %d", call->reg);
+			size_t value;
+			memcpy(&value, this->registers[call->reg], INTERP_REGISTER_SIZE);
+			auto func = reinterpret_cast<Ast_Function*>(value);
+			printf("CALL %d (%s)", call->reg, func->name);
 			break;
 		}
 		default: assert(false);

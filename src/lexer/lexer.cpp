@@ -134,6 +134,7 @@ bool Lexer::next_is_id () {
 	char c = this->buffer->peek();
     if (ALPHA(c)) {
 		this->next_type = TOKEN_ID;
+
 		size_t count = 0;
         while (ALPHANUM(c)) {
 			_buffer[count++] = c;
@@ -174,39 +175,59 @@ bool Lexer::next_is_string () {
     } else return false;
 }
 
-bool Lexer::next_is_number (size_t count) {
+bool Lexer::next_is_number () {
+	size_t _buffer_count = 0;
 	char c = this->buffer->peek();
-	char c2 = this->buffer->peek(1);
-	if (c == '0' && (c2 == 'x' || c2 == 'b')) {
-		_buffer[count++] = '0';
-		_buffer[count++] = c2;
+	if (c == '0' && this->buffer->peek(1) == 'x') {
+		_buffer[_buffer_count++] = '0';
+		_buffer[_buffer_count++] = 'x';
 		this->buffer->skip(2);
-		return this->next_is_number(count);
+		while (ALPHANUM(c)) {
+			_buffer[_buffer_count++] = c;
+			this->buffer->skip();
+			c = this->buffer->peek();
+		}
+		this->next_type = TOKEN_NUMBER;
+		_buffer[_buffer_count] = 0;
+		this->next_text = _strdup(_buffer);
+		return true;
+	} else if (c == '0' && this->buffer->peek(1) == 'b') {
+		_buffer[_buffer_count++] = '0';
+		_buffer[_buffer_count++] = 'b';
+		this->buffer->skip(2);
+		while (ALPHANUM(c)) {
+			_buffer[_buffer_count++] = c;
+			this->buffer->skip();
+			c = this->buffer->peek();
+		}
+		this->next_type = TOKEN_NUMBER;
+		_buffer[_buffer_count] = 0;
+		this->next_text = _strdup(_buffer);
+		return true;
 	} else {
 	    if (c == '+' || c == '-') {
-	        _buffer[count++] = c;
+	        _buffer[_buffer_count++] = c;
 			this->buffer->skip();
 	        c = this->buffer->peek();
 	    }
 	    if (DIGIT(c) || c == '.') {
 	        while (DIGIT(c)) {
-				_buffer[count++] = c;
+				_buffer[_buffer_count++] = c;
 				this->buffer->skip();
 		        c = this->buffer->peek();
 	        }
 	        if (c == '.') {
-	            _buffer[count++] = c;
+	            _buffer[_buffer_count++] = c;
 	            this->buffer->skip();
 	            c = this->buffer->peek();
 	            while (DIGIT(c)) {
-		            _buffer[count++] = c;
+		            _buffer[_buffer_count++] = c;
 		            this->buffer->skip();
 		            c = this->buffer->peek();
 	            }
 	        }
-			_buffer[count] = 0;
-
 	        this->next_type = TOKEN_NUMBER;
+			_buffer[_buffer_count] = 0;
 			this->next_text = _strdup(_buffer);
 	        return true;
 	    }
