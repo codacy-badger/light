@@ -330,10 +330,12 @@ struct Inst_Call_Param : Instruction {
 
 struct Inst_Call : Instruction {
 	uint8_t reg;
+	uint8_t bytecode_type;
 
-	Inst_Call (uint8_t reg) {
+	Inst_Call (uint8_t reg, uint8_t bytecode_type) {
 		this->bytecode = BYTECODE_CALL;
 		this->reg = reg;
+		this->bytecode_type = bytecode_type;
 	}
 };
 

@@ -10,10 +10,10 @@ GL_OUT_OF_MEMORY    	:: 0x0505;
 #foreign("opengl32")
 glGetError : fn -> u32 :;
 
-GL_VENDOR		:: 0x1F00;
-GL_RENDERER		:: 0x1F01;
-GL_VERSION		:: 0x1F02;
-GL_EXTENSIONS	:: 0x1F03;
+GL_VENDOR		: u32 : 0x1F00;
+GL_RENDERER		: u32 : 0x1F01;
+GL_VERSION		: u32 : 0x1F02;
+GL_EXTENSIONS	: u32 : 0x1F03;
 
 #foreign("opengl32")
 glGetString : fn (name: u32) -> *u8 :;

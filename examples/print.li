@@ -98,6 +98,8 @@ print_u64_hex :: fn (number: u64) {
 }
 
 string_length :: fn (str: *u8) -> u32 {
+	if str == 0 return 0;
+	
 	result : u32 = 0;
 	char : u8 = &str;
 	while (char != 0) {

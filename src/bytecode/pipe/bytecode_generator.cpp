@@ -367,8 +367,10 @@ void Bytecode_Generator::gen (Ast_Unary* unop, bool left_value) {
 			break;
 		}
         case AST_UNARY_DEREFERENCE: {
-            this->gen(unop->exp, left_value);
-            this->add_instruction(unop, new Inst_Load(reg - 1, reg - 1, unop->exp->inferred_type->byte_size));
+            this->gen(unop->exp, false);
+			if (!left_value) {
+				this->add_instruction(unop, new Inst_Load(reg - 1, reg - 1, unop->inferred_type->byte_size));
+			}
             break;
         }
         case AST_UNARY_REFERENCE: {
@@ -396,7 +398,23 @@ void Bytecode_Generator::gen (Ast_Ident* ident, bool left_value) {
 }
 
 void Bytecode_Generator::gen (Ast_Function* func) {
-    this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &func));
+	if (func->is_native()) {
+		auto ffunctions = g_compiler->interp->foreign_functions;
+		auto module = ffunctions->get_or_add_module(func->foreign_module_name);
+		if (module) {
+			auto function_pointer = ffunctions->get_or_add_function(module, func->foreign_function_name);
+			if (!function_pointer) {
+				report_error_stop(&func->location, "Function '%s' not found in module '%s'!",
+					func->foreign_function_name, func->foreign_module_name);
+			} else {
+				this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &function_pointer));
+			}
+		} else {
+			report_error_stop(&func->location, "Module '%s' not found!", func->foreign_module_name);
+		}
+	} else {
+		this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &func));
+	}
     this->reg++;
 }
 
@@ -442,7 +460,8 @@ void Bytecode_Generator::gen (Ast_Function_Call* call) {
 	}
 
     this->gen(call->fn);
-    this->add_instruction(call, new Inst_Call(this->reg - 1));
+	auto ret_type = bytecode_get_type(call->inferred_type);
+    this->add_instruction(call, new Inst_Call(this->reg - 1, ret_type));
     if (_tmp != 0) {
         this->add_instruction(call, new Inst_Copy(_tmp, 0));
     }

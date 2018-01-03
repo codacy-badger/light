@@ -182,6 +182,7 @@ bool Lexer::next_is_number () {
 		_buffer[_buffer_count++] = '0';
 		_buffer[_buffer_count++] = 'x';
 		this->buffer->skip(2);
+		c = this->buffer->peek();
 		while (ALPHANUM(c)) {
 			_buffer[_buffer_count++] = c;
 			this->buffer->skip();
@@ -195,6 +196,7 @@ bool Lexer::next_is_number () {
 		_buffer[_buffer_count++] = '0';
 		_buffer[_buffer_count++] = 'b';
 		this->buffer->skip(2);
+		c = this->buffer->peek();
 		while (ALPHANUM(c)) {
 			_buffer[_buffer_count++] = c;
 			this->buffer->skip();

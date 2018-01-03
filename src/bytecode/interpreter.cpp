@@ -236,43 +236,12 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 			auto func = reinterpret_cast<Ast_Function*>(value);
 
 			//printf("\t ++ Call: %s\n", func->name);
-			if (func->foreign_module_name) {
-				DCpointer function_pointer = NULL;
 
-				auto ffunctions = g_compiler->interp->foreign_functions;
-				auto module = ffunctions->get_or_add_module(func->foreign_module_name);
-				if (module) {
-					function_pointer = ffunctions->get_or_add_function(module, func->foreign_function_name);
-					if (!function_pointer) {
-						report_error_stop(&func->location, "Function '%s' not found in module '%s'!",
-							func->foreign_function_name, func->foreign_module_name);
-					}
-				} else {
-					report_error_stop(&func->location, "Module '%s' not found!", func->foreign_module_name);
-				}
-
-				size_t result = 0;
-				auto instance = g_compiler;
-				auto ret_ty = func->type->return_type;
-				if (ret_ty == instance->type_def_void) {
-					dcCallVoid(vm, function_pointer);
-				} else if (ret_ty == instance->type_def_s8 || ret_ty == instance->type_def_u8) {
-					result = (size_t) dcCallChar(vm, function_pointer);
-				} else if (ret_ty == instance->type_def_s16 || ret_ty == instance->type_def_u16) {
-					result = (size_t) dcCallShort(vm, function_pointer);
-				} else if (ret_ty == instance->type_def_s32 || ret_ty == instance->type_def_u32) {
-					result = (size_t) dcCallInt(vm, function_pointer);
-				} else if (ret_ty == instance->type_def_s64 || ret_ty == instance->type_def_u64) {
-					result = (size_t) dcCallLongLong(vm, function_pointer);
-				} else if (ret_ty == instance->type_def_f32) {
-					result = (size_t) dcCallFloat(vm, function_pointer);
-				} else if (ret_ty == instance->type_def_f64) {
-					result = (size_t) dcCallDouble(vm, function_pointer);
-				} else {
-					result = (size_t) dcCallPointer(vm, function_pointer);
-				}
-				memcpy(this->registers[0], &result, INTERP_REGISTER_SIZE);
-			}else {
+			// @Fixme! handle native and non-native pointers well
+			// @Fixme! handle native and non-native pointers well
+			// @Fixme! handle native and non-native pointers well
+			// @Fixme! handle native and non-native pointers well
+			if (func->exp_type == AST_EXPRESSION_FUNCTION && !func->is_native()) {
 				auto _base = this->stack_base;
 				auto _inst = this->instruction_index;
 				this->stack_base = this->stack_index;
@@ -280,6 +249,25 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 				this->stack_index = this->stack_base;
 				this->instruction_index = _inst;
 				this->stack_base = _base;
+			} else {
+				DCpointer function_pointer = reinterpret_cast<DCpointer>(value);
+
+				size_t result = 0;
+				switch (call->bytecode_type) {
+					case BYTECODE_TYPE_VOID: 	dcCallVoid(vm, function_pointer); break;
+					case BYTECODE_TYPE_U8:
+					case BYTECODE_TYPE_S8: 		result = (size_t) dcCallChar(vm, function_pointer); break;
+					case BYTECODE_TYPE_U16:
+					case BYTECODE_TYPE_S16: 	result = (size_t) dcCallShort(vm, function_pointer); break;
+					case BYTECODE_TYPE_U32:
+					case BYTECODE_TYPE_S32: 	result = (size_t) dcCallInt(vm, function_pointer); break;
+					case BYTECODE_TYPE_U64:
+					case BYTECODE_TYPE_S64: 	result = (size_t) dcCallLongLong(vm, function_pointer); break;
+					case BYTECODE_TYPE_F32: 	result = (size_t) dcCallFloat(vm, function_pointer); break;
+					case BYTECODE_TYPE_F64: 	result = (size_t) dcCallDouble(vm, function_pointer); break;
+					case BYTECODE_TYPE_POINTER: result = (size_t) dcCallPointer(vm, function_pointer); break;
+				}
+				memcpy(this->registers[0], &result, INTERP_REGISTER_SIZE);
 			}
 
 			return;
@@ -447,7 +435,11 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 			size_t value;
 			memcpy(&value, this->registers[call->reg], INTERP_REGISTER_SIZE);
 			auto func = reinterpret_cast<Ast_Function*>(value);
-			printf("CALL %d (%s)", call->reg, func->name);
+			if (func->exp_type == AST_EXPRESSION_FUNCTION && !func->is_native()) {
+				printf("CALL %d (%s)", call->reg, func->name);
+			} else {
+				printf("CALL_NATIVE %d (%llX)", call->reg, value);
+			}
 			break;
 		}
 		default: assert(false);

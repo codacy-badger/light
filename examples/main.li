@@ -14,12 +14,12 @@ main :: fn {
 	window_dc := GetDC(window_handle);
 
 	desired_pixel_format: PIXELFORMATDESCRIPTOR;
-	desired_pixel_format.nSize				= 40;
-	desired_pixel_format.nVersion			= 1;
-	desired_pixel_format.dwFlags			= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-	desired_pixel_format.iPixelType			= PFD_TYPE_RGBA;
-	desired_pixel_format.cColorBits			= 32;
-	desired_pixel_format.iLayerType			= PFD_MAIN_PLANE;
+	desired_pixel_format.nSize		= 40;
+	desired_pixel_format.nVersion	= 1;
+	desired_pixel_format.dwFlags	= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	desired_pixel_format.iPixelType	= PFD_TYPE_RGBA;
+	desired_pixel_format.cColorBits	= 32;
+	desired_pixel_format.iLayerType	= PFD_MAIN_PLANE;
 
 	suggested_index := ChoosePixelFormat(window_dc, *desired_pixel_format);
 	DescribePixelFormat(window_dc, suggested_index, 40, *desired_pixel_format);
@@ -40,7 +40,7 @@ main :: fn {
 			print(_tmp_string);
 			print("\n");
 
-			/*msg: MSG;
+			msg: MSG;
 			while (GetMessage(*msg, window_handle, 0, 0)) {
 				if (msg.message == WM_NULL) break;
 
@@ -49,10 +49,10 @@ main :: fn {
 
 				glClear(GL_COLOR_BUFFER_BIT);
 				SwapBuffers(window_dc);
-			}*/
+			}
 		} else {
 			err := GetLastError();
-			print("ERROR: wglCreateContext -> ");
+			print("ERROR: wglMakeCurrent -> ");
 			print_u64(err);
 			print("\n");
 		}
