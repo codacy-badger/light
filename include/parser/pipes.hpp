@@ -141,7 +141,9 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Function_Call** func_call) {
-		this->handle(&(*func_call)->fn);
+		if ((*func_call)->fn->exp_type != AST_EXPRESSION_FUNCTION) {
+			this->handle(&(*func_call)->fn);
+		}
 		for (auto &exp : (*func_call)->arguments) {
 			this->handle(&exp);
 		}

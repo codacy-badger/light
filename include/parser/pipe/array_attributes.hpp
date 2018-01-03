@@ -18,6 +18,7 @@ struct Array_Attributes : Pipe {
 
 					delete *binary_ptr;
 					(*binary_ptr) = reinterpret_cast<Ast_Binary*>(lit);
+					return;
 				} else if (strcmp(ident->name, "data") == 0) {
 					auto array_ref = ast_make_unary(AST_UNARY_REFERENCE, binary->lhs);
 					array_ref->inferred_type = g_compiler->types->get_or_create_pointer_type(arr_type->base);
@@ -25,10 +26,12 @@ struct Array_Attributes : Pipe {
 
 					delete *binary_ptr;
 					(*binary_ptr) = reinterpret_cast<Ast_Binary*>(array_ref);
+					Pipe::handle(reinterpret_cast<Ast_Unary**>(binary_ptr));
+					return;
 				}
 			}
 		}
-		
+
 		Pipe::handle(binary_ptr);
 	}
 };

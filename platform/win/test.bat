@@ -1,3 +1,3 @@
 @echo off
 
-bin\light -o bin\test.exe examples\main.li
+bin\light -o bin\test.exe examples\test.li
