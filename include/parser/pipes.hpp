@@ -29,6 +29,9 @@ struct Pipe {
 	}
 
 	void handle (Ast_Statement** stm) {
+		for (auto &note : (*stm)->notes) {
+			this->handle(&note);
+		}
 		switch ((*stm)->stm_type) {
 			case AST_STATEMENT_BLOCK: {
 				this->handle(reinterpret_cast<Ast_Block**>(stm));
@@ -63,6 +66,12 @@ struct Pipe {
 				break;
 			}
 			default: break;
+		}
+	}
+
+	virtual void handle (Ast_Note** note) {
+		for (auto &exp : (*note)->arguments) {
+			this->handle(&exp);
 		}
 	}
 
