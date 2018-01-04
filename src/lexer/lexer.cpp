@@ -53,6 +53,7 @@ bool Lexer::parse_next () {
 	CHAR_TOKEN('^', TOKEN_CARET);
 	CHAR_TOKEN('~', TOKEN_TILDE);
 	CHAR_TOKEN('!', TOKEN_EXCLAMATION);
+	CHAR_TOKEN('$', TOKEN_DOLLAR);
 	CHAR_TOKEN('@', TOKEN_AT);
 	CHAR_TOKEN('#', TOKEN_HASH);
 	CHAR_TOKEN('=', TOKEN_EQUAL);
@@ -80,7 +81,7 @@ bool Lexer::parse_next () {
 		return true;
 	} else if (next_is_string() || next_is_number()) return true;
 
-	report_error_stop(&this->buffer->location, "Unrecognized token: '%d'\n",
+	report_error_stop(&this->buffer->location, "Unrecognized token: '%c'",
 		this->buffer->peek());
 	return false;
 }
@@ -294,6 +295,7 @@ const char* token_get_text (Token_Type type) {
 		CASE_ENUM_TEXT(TOKEN_IMPORT,		"IMPORT")
 
 		CASE_ENUM_TEXT(TOKEN_EXCLAMATION,	"!")
+		CASE_ENUM_TEXT(TOKEN_DOLLAR,		"$")
 
 		CASE_ENUM_TEXT(TOKEN_AMP,			"&")
 		CASE_ENUM_TEXT(TOKEN_PIPE,			"|")

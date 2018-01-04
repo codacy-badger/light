@@ -10,6 +10,7 @@
 #include "parser/pipe/foreign_function.hpp"
 #include "parser/pipe/compile_constants.hpp"
 #include "parser/pipe/array_attributes.hpp"
+#include "parser/pipe/poly_functions.hpp"
 
 Ast_Struct_Type* create_new_primitive_type (Compiler* compiler, char* name, uint16_t size = 0) {
 	auto output = new Ast_Struct_Type(name, size);
@@ -43,6 +44,7 @@ void Compiler::run () {
 		this->parser = new Parser(filename);
 		// Mandatory
 		parser->append(new Compile_Constants());
+		parser->append(new Poly_Functions());
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Unique_Types());

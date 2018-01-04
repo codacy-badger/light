@@ -31,6 +31,7 @@ enum Token_Type : uint8_t {
 	TOKEN_IMPORT,			// IMPORT
 
 	TOKEN_EXCLAMATION		= '!',
+	TOKEN_DOLLAR			= '$',
 
 	TOKEN_AMP				= '&',
 	TOKEN_PIPE				= '|',

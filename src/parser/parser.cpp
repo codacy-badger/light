@@ -317,7 +317,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 					decl->_struct = _struct;
 					_struct->attributes.push_back(decl);
 				} else {
-					report_error_stop(&stm->location, "Only declarations can go inside a struct!");
+					report_error_stop(&stm->location, "Only declarations can go inside a struct");
 				}
 			}
 			delete _block;
@@ -393,6 +393,16 @@ Ast_Expression* Parser::type_definition () {
 		return AST_NEW(Ast_Pointer_Type, this->type_definition());
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
 		return this->function_type();
+	} else if (this->lexer->optional_skip(TOKEN_DOLLAR)) {
+		if (this->lexer->is_next_type(TOKEN_ID)) {
+			auto poly_type = AST_NEW(Ast_Type_Definition);
+			poly_type->typedef_type = AST_TYPEDEF_POLY;
+			poly_type->name = _strdup(this->ident()->name);
+			return poly_type;
+		} else {
+			report_error_stop(&this->lexer->buffer->location, "Expected ID after polymorphic symbol");
+			return NULL;
+		}
 	} else {
 		auto ident = this->ident();
 		if (ident != NULL) {

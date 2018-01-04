@@ -226,13 +226,12 @@ test_static_array :: fn {
 	}
 }
 
-/*#inline
-make_slice :: fn (length: usize, data: *$T) -> []T {
+make_slice :: fn (length: u64, data: *$T) -> []T {
 	tmp : []T;
 	tmp.length = length;
 	tmp.data = data;
 	return tmp;
-}*/
+}
 
 test_slice :: fn {
 	numbers: [3]u8;
@@ -244,6 +243,7 @@ test_slice :: fn {
 	tmp.length = numbers.length;
 	tmp.data = numbers.data;
 	print_u8_slice(tmp);
+	//print_u8_slice(make_slice(numbers.length, numbers.data));
 
 	print_u8_slice :: fn (array : []u8) {
 		print("Slice data -> (");
