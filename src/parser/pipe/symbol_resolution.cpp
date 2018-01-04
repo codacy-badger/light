@@ -166,8 +166,11 @@ void Symbol_Resolution::check_symbols (Ast_Expression** exp, vector<Ast_Ident**>
     switch ((*exp)->exp_type) {
         case AST_EXPRESSION_FUNCTION: {
             auto func = reinterpret_cast<Ast_Function**>(exp);
-            check_symbols(&(*func)->type, sym);
-            check_symbols((*func)->scope, sym);
+            for (auto arg_decl : (*func)->arg_decls) {
+                check_symbols(arg_decl, sym);
+            }
+            check_symbols(&(*func)->ret_type, sym);
+            if ((*func)->scope) check_symbols((*func)->scope, sym);
 			break;
         }
 		case AST_EXPRESSION_TYPE_DEFINITION: {
@@ -236,9 +239,9 @@ void Symbol_Resolution::check_symbols (Ast_Type_Definition** tydef, vector<Ast_I
 		}
         case AST_TYPEDEF_FUNCTION: {
             auto fn_type = reinterpret_cast<Ast_Function_Type**>(tydef);
-            check_symbols(&(*fn_type)->return_type, sym);
-        	for (int i = 0; i < (*fn_type)->parameter_decls.size(); i++) {
-        		check_symbols((*fn_type)->parameter_decls[i], sym);
+            check_symbols(&(*fn_type)->ret_type, sym);
+        	for (int i = 0; i < (*fn_type)->arg_types.size(); i++) {
+        		check_symbols((*fn_type)->arg_types[i], sym);
         	}
 			break;
 		}
@@ -253,9 +256,9 @@ void Symbol_Resolution::check_symbols (Ast_Type_Definition** tydef, vector<Ast_I
 }
 
 void Symbol_Resolution::check_symbols (Ast_Function_Type** fn_type, vector<Ast_Ident**>* sym) {
-    check_symbols(&(*fn_type)->return_type, sym);
-	for (int i = 0; i < (*fn_type)->parameter_decls.size(); i++) {
-		check_symbols((*fn_type)->parameter_decls[i], sym);
+    check_symbols(&(*fn_type)->ret_type, sym);
+	for (int i = 0; i < (*fn_type)->arg_types.size(); i++) {
+		check_symbols((*fn_type)->arg_types[i], sym);
 	}
 }
 

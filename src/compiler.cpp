@@ -46,9 +46,9 @@ void Compiler::run () {
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Unique_Types());
+		parser->append(new Foreign_Function());
 		parser->append(new Type_Checking());
 		parser->append(new Array_Attributes());
-		parser->append(new Foreign_Function());
 		// Bytecode
 		parser->append(this->interp->generator);
 		parser->append(this->interp->runner);

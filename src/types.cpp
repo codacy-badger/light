@@ -87,17 +87,36 @@ Ast_Array_Type* Types::get_unique_array_type (Ast_Array_Type* arr_type) {
     return arr_type;
 }
 
-bool Types::func_type_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
-    if (func_type1->parameter_decls.size() != func_type2->parameter_decls.size()) return false;
-    if (func_type1->return_type != func_type2->return_type) return false;
-    for (int i = 0; i < func_type1->parameter_decls.size(); i++) {
-        auto decl_1 = func_type1->parameter_decls[i];
-        auto decl_2 = func_type2->parameter_decls[i];
+bool func_type_are_equal (vector<Ast_Expression*> func1_args, Ast_Expression* func1_ret,
+        vector<Ast_Declaration*> func2_args, Ast_Expression* func2_ret) {
+    if (func1_args.size() != func2_args.size()) return false;
+    if (func1_ret != func2_ret) return false;
+    for (int i = 0; i < func1_args.size(); i++) {
+        auto type_1 = func1_args[i];
+        auto decl_2 = func2_args[i];
         // since we've already "uniqued" the parameter types, we can
         // check if they're the same using pointers
-        if (decl_1->type != decl_2->type) return false;
+        if (type_1 != decl_2->type) return false;
     }
     return true;
+}
+
+bool func_type_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
+    if (func_type1->arg_types.size() != func_type2->arg_types.size()) return false;
+    if (func_type1->ret_type != func_type2->ret_type) return false;
+    for (int i = 0; i < func_type1->arg_types.size(); i++) {
+        auto type_1 = func_type1->arg_types[i];
+        auto type_2 = func_type2->arg_types[i];
+        // since we've already "uniqued" the parameter types, we can
+        // check if they're the same using pointers
+        if (type_1 != type_2) return false;
+    }
+    return true;
+}
+
+bool func_type_are_equal (Ast_Function_Type* func_type,
+        vector<Ast_Declaration*> func_args, Ast_Expression* func_ret) {
+    return func_type_are_equal(func_type->arg_types, func_type->ret_type, func_args, func_ret);
 }
 
 Ast_Function_Type* Types::get_unique_function_type (Ast_Function_Type* func_type) {
@@ -110,6 +129,21 @@ Ast_Function_Type* Types::get_unique_function_type (Ast_Function_Type* func_type
         }
     }
     this->func_types.push_back(func_type);
+    return func_type;
+}
+
+Ast_Function_Type* Types::get_or_create_function_type (Ast_Function* func) {
+    for (auto _func_type : this->func_types) {
+        if (func_type_are_equal(_func_type, func->arg_decls, func->ret_type)) {
+			return _func_type;
+        }
+    }
+    auto func_type = new Ast_Function_Type();
+    func_type->location = func->location;
+    for (auto arg_decl : func->arg_decls) {
+        func_type->arg_types.push_back(arg_decl->type);
+    }
+    func_type->ret_type = func->ret_type;
     return func_type;
 }
 
@@ -185,21 +219,21 @@ void Types::compute_type_name_if_needed (Ast_Type_Definition* type_def) {
         case AST_TYPEDEF_FUNCTION: {
             auto _func = static_cast<Ast_Function_Type*>(type_def);
             if (_func->name == NULL) {
-        		auto par_decls = _func->parameter_decls;
+        		auto arg_types = _func->arg_types;
 
 				Ast_Type_Definition* par_type_def;
         		size_t name_size = strlen("fn (");
-        		if (par_decls.size() > 0) {
-        			par_type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
+        		if (arg_types.size() > 0) {
+        			par_type_def = static_cast<Ast_Type_Definition*>(arg_types[0]);
         			name_size += strlen(par_type_def->name);
-        			for (int i = 1; i < par_decls.size(); i++) {
+        			for (int i = 1; i < arg_types.size(); i++) {
         				name_size += strlen(", ");
-        				par_type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
+        				par_type_def = static_cast<Ast_Type_Definition*>(arg_types[i]);
         				name_size += strlen(par_type_def->name);
         			}
         		}
         		name_size += strlen(") -> ");
-        		par_type_def = static_cast<Ast_Type_Definition*>(_func->return_type);
+        		par_type_def = static_cast<Ast_Type_Definition*>(_func->ret_type);
         		name_size += strlen(par_type_def->name);
         		_func->name = (char*) malloc(name_size + 1);
 
@@ -208,15 +242,15 @@ void Types::compute_type_name_if_needed (Ast_Type_Definition* type_def) {
         		offset += 4;
 
 				size_t par_type_name_length;
-        		if (par_decls.size() > 0) {
-        			par_type_def = static_cast<Ast_Type_Definition*>(par_decls[0]->type);
+        		if (arg_types.size() > 0) {
+        			par_type_def = static_cast<Ast_Type_Definition*>(arg_types[0]);
 					par_type_name_length = strlen(par_type_def->name);
         			memcpy(_func->name + offset, par_type_def->name, par_type_name_length);
         			offset += par_type_name_length;
-        			for (int i = 1; i < par_decls.size(); i++) {
+        			for (int i = 1; i < arg_types.size(); i++) {
         				memcpy(_func->name + offset, ", ", 2);
         				offset += 2;
-                        par_type_def = static_cast<Ast_Type_Definition*>(par_decls[i]->type);
+                        par_type_def = static_cast<Ast_Type_Definition*>(arg_types[i]);
 						par_type_name_length = strlen(par_type_def->name);
         				memcpy(_func->name + offset, par_type_def->name, par_type_name_length);
         				offset += par_type_name_length;
@@ -225,7 +259,7 @@ void Types::compute_type_name_if_needed (Ast_Type_Definition* type_def) {
 
         		memcpy(_func->name + offset, ") -> ", 5);
         		offset += 5;
-        		par_type_def = static_cast<Ast_Type_Definition*>(_func->return_type);
+        		par_type_def = static_cast<Ast_Type_Definition*>(_func->ret_type);
 				par_type_name_length = strlen(par_type_def->name);
         		memcpy(_func->name + offset, par_type_def->name, par_type_name_length);
         		offset += par_type_name_length;

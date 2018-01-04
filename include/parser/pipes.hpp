@@ -145,7 +145,9 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Function** func) {
-		this->handle(&(*func)->type);
+		for (auto &arg : (*func)->arg_decls) {
+			this->handle(&arg);
+		}
 		if ((*func)->scope) this->handle(&(*func)->scope);
 	}
 
@@ -207,10 +209,10 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Function_Type** func_type) {
-		for (auto &decl : (*func_type)->parameter_decls) {
-			this->handle(&decl);
+		for (auto &arg_type : (*func_type)->arg_types) {
+			this->handle(&arg_type);
 		}
-		this->handle(&(*func_type)->return_type);
+		this->handle(&(*func_type)->ret_type);
 	}
 
 	virtual void handle (Ast_Array_Type** arr) {

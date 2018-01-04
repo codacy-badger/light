@@ -255,6 +255,16 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	return decl;
 }
 
+Ast_Declaration* Parser::declaration_or_type () {
+	auto decl = this->declaration();
+	if (decl) return decl;
+	else {
+		decl = AST_NEW(Ast_Declaration);
+		decl->type = this->type_definition();
+		return decl;
+	}
+}
+
 Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
 	Ast_Expression* output = this->_atom(initial);
     if (output != NULL) {
@@ -316,16 +326,32 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 		return _struct;
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
-		auto fn_type = this->function_type();
+		auto func = AST_NEW(Ast_Function);
+
+		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
+			auto decl = this->declaration();
+			while (decl != NULL) {
+				decl->decl_flags &= ~AST_DECL_FLAG_GLOBAL;
+				func->arg_decls.push_back(decl);
+
+				if (!this->lexer->optional_skip(TOKEN_COMMA)) break;
+				decl = this->declaration();
+			}
+			this->lexer->check_skip(TOKEN_PAR_CLOSE);
+		}
+
+		if (this->lexer->optional_skip(TOKEN_ARROW)) {
+			func->ret_type = this->type_definition();
+		} else func->ret_type = g_compiler->type_def_void;
+
 		if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
-			auto func = AST_NEW(Ast_Function);
-			func->type = fn_type;
 			func->scope = AST_NEW(Ast_Block, this->current_block);
 			func->scope->scope_of = func;
 			this->block(func->scope);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-			return func;
-		} else return fn_type;
+		}
+
+		return func;
 	} else if (this->lexer->optional_skip(TOKEN_CAST)) {
 		auto cast = AST_NEW(Ast_Cast);
 		this->lexer->check_skip(TOKEN_PAR_OPEN);
@@ -384,20 +410,20 @@ Ast_Function_Type* Parser::function_type () {
 	auto fn_type = AST_NEW(Ast_Function_Type);
 
 	if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-		Ast_Declaration* decl = this->declaration();
+		Ast_Declaration* decl = this->declaration_or_type();
 		while (decl != NULL) {
 			decl->decl_flags &= ~AST_DECL_FLAG_GLOBAL;
-			fn_type->parameter_decls.push_back(decl);
+			fn_type->arg_types.push_back(decl->type);
 
 			if (!this->lexer->optional_skip(TOKEN_COMMA)) break;
-			decl = this->declaration();
+			decl = this->declaration_or_type();
 		}
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 	}
 
 	if (this->lexer->optional_skip(TOKEN_ARROW)) {
-		fn_type->return_type = this->type_definition();
-	} else fn_type->return_type = g_compiler->type_def_void;
+		fn_type->ret_type = this->type_definition();
+	} else fn_type->ret_type = g_compiler->type_def_void;
 
 	return fn_type;
 }

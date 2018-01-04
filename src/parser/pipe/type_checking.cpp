@@ -105,20 +105,20 @@ void Type_Checking::check_type (Ast_Return* ret) {
 	if (ret->exp) check_type(ret->exp);
 
 	auto fn = ret->block->get_function();
-	auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->type->return_type);
+	auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->ret_type);
 	if (!fn) {
 		ERROR(ret, "Return statement must be inside a function");
 	} else if (ret->exp) {
-		if (fn->type->return_type == g_compiler->type_def_void)
+		if (fn->ret_type == g_compiler->type_def_void)
 			ERROR(ret, "Return statment has expression, but function returns void");
-		else if (ret->exp->inferred_type != fn->type->return_type) {
+		else if (ret->exp->inferred_type != fn->ret_type) {
             if (!cast_if_possible(&ret->exp, ret->exp->inferred_type, ret_type_def)) {
     			ERROR(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
     				ret->exp->inferred_type->name, ret_type_def->name);
             }
 		}
 	} else {
-		if (fn->type->return_type != g_compiler->type_def_void)
+		if (fn->ret_type != g_compiler->type_def_void)
 			ERROR(ret, "Return statment has no expression, but function returns '%s'!",
 				ret_type_def->name);
 	}
@@ -186,9 +186,9 @@ void Type_Checking::check_type (Ast_Type_Definition* tydef) {
 void Type_Checking::check_type (Ast_Function_Type* ty) {
     ty->inferred_type = g_compiler->type_def_type;
 
-	check_type(ty->return_type);
-	for (int i = 0; i < ty->parameter_decls.size(); i++) {
-		check_type(ty->parameter_decls[i]);
+	check_type(ty->ret_type);
+	for (int i = 0; i < ty->arg_types.size(); i++) {
+		check_type(ty->arg_types[i]);
 	}
 }
 
@@ -244,8 +244,12 @@ void Type_Checking::check_type (Ast_Pointer_Type* ty) {
 
 void Type_Checking::check_type (Ast_Function* func) {
 	if (func->inferred_type == NULL) {
-	    func->inferred_type = func->type;
-		check_type(func->type);
+		for (auto arg_decl : func->arg_decls) {
+			check_type(arg_decl);
+		}
+		check_type(func->ret_type);
+	    func->inferred_type = g_compiler->types->get_or_create_function_type(func);
+		check_type(func->inferred_type);
 		if (func->scope) check_type(func->scope);
 	}
 }
@@ -256,26 +260,25 @@ void Type_Checking::check_type (Ast_Function_Call* call) {
 		ERROR(call, "Function calls can only be performed to functions types");
 
 	auto func_type = static_cast<Ast_Function_Type*>(call->fn->inferred_type);
-	auto ret_ty = static_cast<Ast_Type_Definition*>(func_type->return_type);
+	auto ret_ty = static_cast<Ast_Type_Definition*>(func_type->ret_type);
 	call->inferred_type = ret_ty;
 
-	if (call->arguments.size() == func_type->parameter_decls.size()) {
+	if (call->arguments.size() == func_type->arg_types.size()) {
 		for (int i = 0; i < call->arguments.size(); i++) {
-			auto param_decl = func_type->parameter_decls[i];
-			auto param_decl_type = static_cast<Ast_Type_Definition*>(param_decl->type);
+			auto arg_type = static_cast<Ast_Type_Definition*>(func_type->arg_types[i]);
 			auto param_exp = call->arguments[i];
 			check_type(param_exp);
 
-			if (param_decl_type != param_exp->inferred_type) {
-				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, param_decl_type)) {
+			if (arg_type != param_exp->inferred_type) {
+				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
 					ERROR(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
-						i, param_decl_type->name, param_exp->inferred_type->name);
+						i, arg_type->name, param_exp->inferred_type->name);
 				}
 			}
 		}
 	} else {
 		ERROR(call, "Wrong number of arguments, function has %d, but call has %d",
-			func_type->parameter_decls.size(), call->arguments.size());
+			func_type->arg_types.size(), call->arguments.size());
 	}
 }
 
@@ -342,6 +345,15 @@ void Type_Checking::check_type (Ast_Binary* binop) {
 				} else ERROR(binop, "Slice type doesn't have data attribute");
 			} else ERROR(binop, "Left struct is not a slice");
 		} else ERROR(binop, "Left of array access is not of array or slice type");
+	} else if (binop->binary_op == AST_BINARY_ASSIGN) {
+		check_type(binop->rhs);
+		if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
+            if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, binop->lhs->inferred_type)) {
+                ERROR(binop, "Type mismatch on assign: from '%s' to '%s'",
+                    binop->rhs->inferred_type->name, binop->lhs->inferred_type->name);
+            }
+    	}
+		binop->inferred_type = binop->rhs->inferred_type;
 	} else {
     	check_type(binop->rhs);
     	if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
@@ -393,11 +405,8 @@ void Type_Checking::check_type (Ast_Unary* unop) {
             break;
 		}
 		case AST_UNARY_REFERENCE: {
-		    auto ptr_type = new Ast_Pointer_Type();
-		    ptr_type->inferred_type = g_compiler->type_def_type;
-		    ptr_type->base = unop->exp->inferred_type;
-		    unop->inferred_type = g_compiler->types->get_unique_pointer_type(ptr_type);
-			g_compiler->types->compute_type_name_if_needed(unop->inferred_type);
+		    unop->inferred_type = g_compiler->types->get_or_create_pointer_type(unop->exp->inferred_type);
+			check_type(unop->inferred_type);
             break;
 		}
 	}
@@ -437,6 +446,7 @@ void Type_Checking::check_type (Ast_Literal* lit) {
         }
         case AST_LITERAL_STRING: {
 			lit->inferred_type = g_compiler->types->get_or_create_pointer_type(g_compiler->type_def_u8);
+			check_type(lit->inferred_type);
             break;
         }
         default: break;

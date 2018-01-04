@@ -201,8 +201,8 @@ struct Ast_Array_Type : Ast_Type_Definition {
 };
 
 struct Ast_Function_Type : Ast_Type_Definition {
-	vector<Ast_Declaration*> parameter_decls;
-	Ast_Expression* return_type = NULL;
+	vector<Ast_Expression*> arg_types;
+	Ast_Expression* ret_type = NULL;
 
 	Ast_Function_Type() {
 		this->typedef_type = AST_TYPEDEF_FUNCTION;
@@ -212,11 +212,13 @@ struct Ast_Function_Type : Ast_Type_Definition {
 
 struct Ast_Function : Ast_Expression {
 	const char* name = NULL;
-	Ast_Function_Type* type = NULL;
+	vector<Ast_Declaration*> arg_decls;
+	Ast_Expression* ret_type = NULL;
 	Ast_Block* scope = NULL;
 
 	const char* foreign_module_name = NULL;
 	const char* foreign_function_name = NULL;
+	void* foreign_function_pointer = NULL;
 
 	vector<Instruction*> bytecode;
 

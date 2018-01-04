@@ -32,35 +32,19 @@ struct Foreign_Function : Pipe {
 	void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);
 
-		if (!decl->expression && decl->notes.size() > 0) {
-			if (decl->type->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-				auto type_def = static_cast<Ast_Type_Definition*>(decl->type);
-				if (type_def->typedef_type == AST_TYPEDEF_FUNCTION) {
-					auto fn_type = static_cast<Ast_Function_Type*>(type_def);
+		auto note = remove_foreign_note(decl);
+		if (note) {
+			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
+				auto func = static_cast<Ast_Function*>(decl->expression);
 
-					auto note = remove_foreign_note(decl);
-					if (note) {
-						auto fn = new Ast_Function();
-						fn->location = decl->location;
-						fn->name = decl->name;
-						fn->type = fn_type;
-
-						if (note->arguments.size() != 1 && note->arguments.size() != 2) {
-							report_error_stop(&note->location, "foreign notes must have 1 or 2 (string) parameter!");
-						}
-
-						auto exp = note->arguments[0];
-						auto module_name = extract_string_parameter(exp);
-						if (module_name) {
-							fn->foreign_module_name = module_name;
-							if (note->arguments.size() == 2) {
-								exp = note->arguments[1];
-								fn->foreign_function_name = extract_string_parameter(exp);
-							} else fn->foreign_function_name = fn->name;
-						}
-
-						decl->expression = fn;
-					}
+				auto exp = note->arguments[0];
+				auto module_name = extract_string_parameter(exp);
+				if (module_name) {
+					func->foreign_module_name = module_name;
+					if (note->arguments.size() == 2) {
+						exp = note->arguments[1];
+						func->foreign_function_name = extract_string_parameter(exp);
+					} else func->foreign_function_name = func->name;
 				}
 			}
 		}

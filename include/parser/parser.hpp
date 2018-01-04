@@ -30,6 +30,7 @@ struct Parser : Pipe {
 	Ast_Note* note ();
 	Ast_Statement* statement ();
 	Ast_Declaration* declaration (Ast_Ident* ident = NULL);
+	Ast_Declaration* declaration_or_type ();
 	Ast_Expression* expression (Ast_Ident* initial = NULL, short minPrecedence = 1);
 	void comma_separated_arguments (vector<Ast_Expression*>* arguments);
 	Ast_Expression* _atom (Ast_Ident* initial = NULL);

@@ -38,8 +38,8 @@ struct Types {
 
     Ast_Array_Type* get_unique_array_type (Ast_Array_Type* arr_type);
 
-    bool func_type_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2);
     Ast_Function_Type* get_unique_function_type (Ast_Function_Type* func_type);
+    Ast_Function_Type* get_or_create_function_type (Ast_Function* func);
 
     void add_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to, Ast_Function* func, bool is_implicid = false);
     Cast_Instance* get_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to);

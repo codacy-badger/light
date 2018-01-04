@@ -23,7 +23,7 @@ Ast_Declaration* Ast_Block::find_declaration (const char* _name, bool recurse, b
         }
     }
 	if (this->scope_of) {
-		for (auto decl : this->scope_of->type->parameter_decls) {
+		for (auto decl : this->scope_of->arg_decls) {
 			if (strcmp(decl->name, _name) == 0) {
 				if (is_out_scope) {
 					if (decl->is_constant() || decl->is_global()) return decl;
@@ -47,7 +47,7 @@ Ast_Declaration* Ast_Block::find_non_const_declaration (const char* _name) {
         }
     }
 	if (this->scope_of) {
-		for (auto decl : this->scope_of->type->parameter_decls) {
+		for (auto decl : this->scope_of->arg_decls) {
 			if (strcmp(decl->name, _name) == 0) {
 				return decl;
 			}

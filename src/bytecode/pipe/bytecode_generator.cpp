@@ -94,9 +94,9 @@ void Bytecode_Generator::fill (Ast_Function* func) {
         auto _tmp = this->bytecode;
         this->bytecode = &func->bytecode;
 
-        auto free_reg = (uint8_t) func->type->parameter_decls.size();
-        for (uint8_t i = 0; i < func->type->parameter_decls.size(); i++) {
-            auto decl = func->type->parameter_decls[i];
+        auto free_reg = (uint8_t) func->arg_decls.size();
+        for (uint8_t i = 0; i < func->arg_decls.size(); i++) {
+            auto decl = func->arg_decls[i];
 
             auto decl_type = static_cast<Ast_Type_Definition*>(decl->type);
             decl->stack_offset = this->stack_offset;
@@ -114,7 +114,7 @@ void Bytecode_Generator::fill (Ast_Function* func) {
 		this->reg = 0;
 		this->gen(func->scope);
 
-		if (func->type->return_type == g_compiler->type_def_void) {
+		if (func->ret_type == g_compiler->type_def_void) {
 			if (this->bytecode->size() == 0) {
 				this->add_instruction(func->scope, new Inst_Return());
 			} else {

@@ -150,16 +150,16 @@ void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool name_only) {
 
 void ASTPrinter::print (Ast_Function_Type* type, int tabs) {
 	printf("fn ( ");
-	if (type->parameter_decls.size() > 0) {
-		print(type->parameter_decls[0], tabs);
-		for (size_t i = 1; i < type->parameter_decls.size(); i++) {
+	if (type->arg_types.size() > 0) {
+		print(type->arg_types[0], tabs);
+		for (size_t i = 1; i < type->arg_types.size(); i++) {
 			printf(", ");
-			print(type->parameter_decls[i], tabs);
+			print(type->arg_types[i], tabs);
 		}
 
 	}
 	printf(") -> ");
-	print(type->return_type, tabs, true);
+	print(type->ret_type, tabs, true);
 }
 
 void ASTPrinter::print (Ast_Pointer_Type* type, int tabs) {

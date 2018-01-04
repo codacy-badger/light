@@ -55,13 +55,13 @@ PIXELFORMATDESCRIPTOR :: struct {
 
 #!foreign("gdi32")
 
-ChoosePixelFormat : fn (hdc: *void, ppfd: *PIXELFORMATDESCRIPTOR) -> s32 :;
+ChoosePixelFormat :: fn (hdc: *void, ppfd: *PIXELFORMATDESCRIPTOR) -> s32;
 
-DescribePixelFormat : fn (hdc: *void, iPixelFormat: s32, nBytes: u32, ppfd: *PIXELFORMATDESCRIPTOR) -> s32 :;
+DescribePixelFormat :: fn (hdc: *void, iPixelFormat: s32, nBytes: u32, ppfd: *PIXELFORMATDESCRIPTOR) -> s32;
 
-SetPixelFormat : fn (hdc: *void, iPixelFormat: s32, ppfd: *PIXELFORMATDESCRIPTOR) -> u8 :;
+SetPixelFormat :: fn (hdc: *void, iPixelFormat: s32, ppfd: *PIXELFORMATDESCRIPTOR) -> u8;
 
-SwapBuffers : fn (hdc: *void) -> u8 :;
+SwapBuffers :: fn (hdc: *void) -> u8;
 
 // global notes are file-local
 //#!end
