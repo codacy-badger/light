@@ -2,21 +2,6 @@
 
 #include "parser/pipes.hpp"
 
-Ast_Note* remove_foreign_note (Ast_Declaration* decl) {
-	if (decl->notes.size() > 0) {
-		auto it = decl->notes.begin();
-		while (it != decl->notes.end()) {
-
-			if (strcmp((*it)->name, "foreign") == 0) {
-				auto output = (*it);
-				decl->notes.erase(it);
-				return output;
-			} else it++;
-		}
-	}
-	return NULL;
-}
-
 char* extract_string_parameter (Ast_Expression* exp) {
 	if (exp->exp_type == AST_EXPRESSION_LITERAL) {
 		auto lit = static_cast<Ast_Literal*>(exp);
@@ -32,7 +17,7 @@ struct Foreign_Function : Pipe {
 	void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);
 
-		auto note = remove_foreign_note(decl);
+		auto note = decl->remove_note("foreign");
 		if (note) {
 			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 				auto func = static_cast<Ast_Function*>(decl->expression);

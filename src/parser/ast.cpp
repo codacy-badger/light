@@ -4,6 +4,26 @@
 
 #include <string.h>
 
+Ast_Note* Ast_Statement::get_note (const char* name) {
+    for (auto note : this->notes) {
+        if (strcmp(note->name, name) == 0) return note;
+    }
+    return NULL;
+}
+
+Ast_Note* Ast_Statement::remove_note (const char* name) {
+    auto it = this->notes.begin();
+    while (it != this->notes.end()) {
+        if (strcmp((*it)->name, name) == 0) {
+            auto note = *it;
+            this->notes.erase(it);
+            return note;
+        }
+        it++;
+    }
+    return NULL;
+}
+
 Ast_Declaration* Ast_Block::find_declaration (const char* _name, bool recurse, bool is_out_scope) {
     for (auto stm : this->list) {
 		// TODO: check why the F. do I have to check for null here

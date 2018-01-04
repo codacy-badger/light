@@ -40,6 +40,9 @@ struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 
 	vector<Ast_Note*> notes;
+
+	Ast_Note* get_note (const char* name);
+	Ast_Note* remove_note (const char* name);
 };
 
 struct Ast_Block : Ast_Statement {
