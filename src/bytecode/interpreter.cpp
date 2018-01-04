@@ -15,6 +15,10 @@
 
 #define INST_OFFSET(offset) buffer[offset]
 
+#define IS_INTERNAL_FUNCTION(func) func->stm_type == AST_STATEMENT_EXPRESSION 	\
+	&& func->exp_type == AST_EXPRESSION_FUNCTION								\
+	&& !func->is_native()														\
+
 Bytecode_Interpreter::Bytecode_Interpreter (size_t vm_size) {
 	assert(INTERP_REGISTER_SIZE >= sizeof(void*));
 	memset(&this->registers, 0, INTERP_REGISTER_COUNT * sizeof(Bytecode_Register));
@@ -237,11 +241,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 
 			//printf("\t ++ Call: %s\n", func->name);
 
-			// @Fixme! handle native and non-native pointers well
-			// @Fixme! handle native and non-native pointers well
-			// @Fixme! handle native and non-native pointers well
-			// @Fixme! handle native and non-native pointers well
-			if (func->exp_type == AST_EXPRESSION_FUNCTION && !func->is_native()) {
+			if (IS_INTERNAL_FUNCTION(func)) {
 				auto _base = this->stack_base;
 				auto _inst = this->instruction_index;
 				this->stack_base = this->stack_index;
@@ -250,7 +250,7 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 				this->instruction_index = _inst;
 				this->stack_base = _base;
 			} else {
-				DCpointer function_pointer = reinterpret_cast<DCpointer>(value);
+				auto function_pointer = reinterpret_cast<DCpointer>(value);
 
 				size_t result = 0;
 				switch (call->bytecode_type) {
@@ -435,7 +435,7 @@ void Bytecode_Interpreter::print (size_t index, Instruction* inst) {
 			size_t value;
 			memcpy(&value, this->registers[call->reg], INTERP_REGISTER_SIZE);
 			auto func = reinterpret_cast<Ast_Function*>(value);
-			if (func->exp_type == AST_EXPRESSION_FUNCTION && !func->is_native()) {
+			if (IS_INTERNAL_FUNCTION(func)) {
 				printf("CALL %d (%s)", call->reg, func->name);
 			} else {
 				printf("CALL_NATIVE %d (%llX)", call->reg, value);
