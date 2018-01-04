@@ -83,7 +83,10 @@ void Parser::block (Ast_Block* inner_block) {
 Ast_Note* Parser::note () {
 	if (this->lexer->optional_skip(TOKEN_HASH)) {
 		auto note = AST_NEW(Ast_Note);
-		note->name = this->lexer->text();
+		note->is_global = this->lexer->optional_skip(TOKEN_EXCLAMATION);
+		if (this->lexer->is_next_type(TOKEN_ID)) {
+			note->name = this->lexer->text();
+		} else report_error_stop(&note->location, "All notes must have a name");
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			this->comma_separated_arguments(&note->arguments);
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
@@ -93,11 +96,13 @@ Ast_Note* Parser::note () {
 }
 
 Ast_Statement* Parser::statement () {
+	Ast_Statement* stm = NULL;
 	switch (this->lexer->next_type) {
-		case TOKEN_EOF: this->lexer->report_unexpected();
+		case TOKEN_EOF: break;
 		case TOKEN_STM_END: {
 			this->lexer->skip();
-			return this->statement();
+			stm = this->statement();
+			break;
 		}
 		case TOKEN_IMPORT: {
 			this->lexer->skip();
@@ -109,32 +114,42 @@ Ast_Statement* Parser::statement () {
 				auto tmp = this->lexer;
 				this->lexer = new Lexer(file, filepath);
 				this->block(this->current_block);
+				this->global_notes.clear();
 				this->lexer = tmp;
 
 				fclose(file);
 			} else report_error_stop(&this->lexer->buffer->location, "Import statements must be followed by string literal");
 			this->lexer->optional_skip(TOKEN_STM_END);
 
-			return this->statement();
+			stm = this->statement();
+			break;
 		}
 		case TOKEN_HASH: {
-			vector<Ast_Note*> notes;
 			auto note = this->note();
-			while (note != NULL) {
-				notes.push_back(note);
-				note = this->note();
-			}
+			if (note->is_global) {
+				if (strcmp(note->name, "end") == 0) {
+					this->global_notes.clear();
+					delete note;
+				} else {
+					this->global_notes.push_back(note);
+				}
+			} else notes.push_back(note);
 
-			auto stm = this->statement();
-			stm->notes = notes;
-			return stm;
+			stm = this->statement();
+			if (stm) {
+				stm->notes.insert(stm->notes.end(),
+					this->notes.begin(), this->notes.end());
+				this->notes.clear();
+			}
+			break;
 		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip();
 			auto _block = AST_NEW(Ast_Block, this->current_block);
 			this->block(_block);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-			return _block;
+			stm = _block;
+			break;
 		}
 		case TOKEN_IF: {
 			this->lexer->skip();
@@ -144,19 +159,22 @@ Ast_Statement* Parser::statement () {
 			if (this->lexer->optional_skip(TOKEN_ELSE)) {
 				stm_if->else_statement = this->statement();
 			}
-			return stm_if;
+			stm = stm_if;
+			break;
 		}
 		case TOKEN_WHILE: {
 			this->lexer->skip();
 			auto stm_while = AST_NEW(Ast_While);
 			stm_while->condition = this->expression();
 			stm_while->statement = this->statement();
-			return stm_while;
+			stm = stm_while;
+			break;
 		}
 		case TOKEN_BREAK: {
 			this->lexer->skip();
 			this->lexer->optional_skip(TOKEN_STM_END);
-			return AST_NEW(Ast_Break);
+			stm = AST_NEW(Ast_Break);
+			break;
 		}
 		case TOKEN_RETURN: {
 			this->lexer->skip();
@@ -164,27 +182,36 @@ Ast_Statement* Parser::statement () {
 			output->exp = this->expression();
 			output->block = this->current_block;
 			this->lexer->optional_skip(TOKEN_STM_END);
-			return output;
+			stm = output;
+			break;
 		}
 		default: {
 			auto ident = this->ident();
 			if (this->lexer->is_next_type(TOKEN_COLON)) {
-				return this->declaration(ident);
+				stm = this->declaration(ident);
 			} else {
 				auto exp = this->expression(ident);
 				if (exp) {
 					if (this->lexer->optional_skip(TOKEN_STM_END)) {
-						return exp;
+						stm = exp;
 					} else {
 						auto output = AST_NEW(Ast_Return);
 						output->block = this->current_block;
 						output->exp = exp;
-						return output;
+						stm = output;
 					}
-				} else return NULL;
+				}
 			}
+			break;
 		}
 	}
+
+	if (stm) {
+		stm->notes.insert(stm->notes.end(),
+			this->global_notes.begin(), this->global_notes.end());
+	}
+
+	return stm;
 }
 
 Ast_Declaration* Parser::declaration (Ast_Ident* ident) {

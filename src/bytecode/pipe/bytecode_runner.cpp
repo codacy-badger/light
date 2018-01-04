@@ -60,7 +60,9 @@ void Bytecode_Runner::run (Ast_Declaration* decl) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 			auto func = static_cast<Ast_Function*>(decl->expression);
 			auto run_note = remove_run_note(decl);
-			if (run_note) run_function(func, run_note);
+			if (run_note) {
+				run_function(func, run_note);
+			}
 		}
 		this->run(decl->expression);
 	}

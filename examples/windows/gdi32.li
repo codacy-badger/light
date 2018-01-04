@@ -53,14 +53,15 @@ PIXELFORMATDESCRIPTOR :: struct {
 	dwDamageMask: 		u32;
 }
 
-#foreign("gdi32")
+#!foreign("gdi32")
+
 ChoosePixelFormat : fn (hdc: *void, ppfd: *PIXELFORMATDESCRIPTOR) -> s32 :;
 
-#foreign("gdi32")
 DescribePixelFormat : fn (hdc: *void, iPixelFormat: s32, nBytes: u32, ppfd: *PIXELFORMATDESCRIPTOR) -> s32 :;
 
-#foreign("gdi32")
 SetPixelFormat : fn (hdc: *void, iPixelFormat: s32, ppfd: *PIXELFORMATDESCRIPTOR) -> u8 :;
 
-#foreign("gdi32")
 SwapBuffers : fn (hdc: *void) -> u8 :;
+
+// global notes are file-local
+//#!end

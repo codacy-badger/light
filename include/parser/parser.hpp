@@ -18,6 +18,9 @@ struct Parser : Pipe {
 	Lexer* lexer = NULL;
 	Ast_Block* current_block = NULL;
 
+	vector<Ast_Note*> global_notes;
+	vector<Ast_Note*> notes;
+
 	Parser (const char* param);
 
 	void expected (const char* expect, const char* after);

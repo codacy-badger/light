@@ -19,6 +19,7 @@ struct Ast {
 };
 
 struct Ast_Note : Ast {
+	bool is_global = false;
 	const char* name = NULL;
 	vector<Ast_Expression*> arguments;
 };

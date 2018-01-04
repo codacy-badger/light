@@ -58,7 +58,6 @@ struct Foreign_Function : Pipe {
 								fn->foreign_function_name = extract_string_parameter(exp);
 							} else fn->foreign_function_name = fn->name;
 						}
-						delete note;
 
 						decl->expression = fn;
 					}
