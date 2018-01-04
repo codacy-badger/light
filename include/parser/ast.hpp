@@ -276,8 +276,8 @@ struct Ast_Binary : Ast_Expression {
 		this->binary_op = token_to_binop(token_type);
 	}
 
-	static short getPrecedence (Token_Type opToken);
-	static bool getLeftAssociativity (Token_Type opToken);
+	static short get_precedence (Token_Type opToken);
+	static bool is_left_associative (Token_Type opToken);
 };
 
 enum Ast_Unary_Type {

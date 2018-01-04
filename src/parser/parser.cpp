@@ -269,12 +269,12 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
 	Ast_Expression* output = this->_atom(initial);
     if (output != NULL) {
         Token_Type tt = this->lexer->next_type;
-		auto precedence = Ast_Binary::getPrecedence(tt);
+		auto precedence = Ast_Binary::get_precedence(tt);
 		while (precedence >= min_precedence) {
 			this->lexer->skip();
 
 			short nextMinPrec = precedence;
-			if (Ast_Binary::getLeftAssociativity(tt)) nextMinPrec += 1;
+			if (Ast_Binary::is_left_associative(tt)) nextMinPrec += 1;
 
 			Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
 			_tmp->rhs = this->expression(NULL, nextMinPrec);
@@ -284,7 +284,7 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
 			if (tt == TOKEN_SQ_BRAC_OPEN) this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 
 			tt = this->lexer->next_type;
-			precedence = Ast_Binary::getPrecedence(tt);
+			precedence = Ast_Binary::get_precedence(tt);
 		}
     }
 	return output;
@@ -357,7 +357,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		this->lexer->check_skip(TOKEN_PAR_OPEN);
 		cast->cast_to = this->type_definition();
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
-		cast->value = this->_atom();
+		cast->value = this->expression();
 		return cast;
 	} else if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 		auto result = this->expression();

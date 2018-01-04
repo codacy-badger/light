@@ -162,46 +162,48 @@ Ast_Binary_Type token_to_binop (Token_Type tType) {
 	};
 }
 
-short Ast_Binary::getPrecedence (Token_Type opToken) {
+short Ast_Binary::get_precedence (Token_Type opToken) {
 	switch (opToken) {
+		default: 		  			return 0;
 		case TOKEN_EQUAL: 			return 1;
 		case TOKEN_SQ_BRAC_OPEN:	return 2;
+		case TOKEN_DOUBLE_PIPE:		return 3;
+		case TOKEN_DOUBLE_AMP:		return 4;
+		case TOKEN_PIPE:			return 5;
+		case TOKEN_TILDE:			return 6;
+		case TOKEN_AMP:				return 7;
 
-		case TOKEN_DOUBLE_AMP:		return 2;
-		case TOKEN_DOUBLE_PIPE:		return 2;
-		case TOKEN_EXCLAMATION:		return 2;
+		case TOKEN_DOUBLE_EQUAL:
+		case TOKEN_NOT_EQUAL:		return 8;
 
-		case TOKEN_DOUBLE_ADD: 		return 3;
-		case TOKEN_DOUBLE_SUB: 		return 3;
-		case TOKEN_ADD:   			return 3;
-		case TOKEN_SUB:   			return 3;
-		case TOKEN_MUL:   			return 4;
-		case TOKEN_DIV:   			return 4;
-		case TOKEN_PERCENT:			return 4;
+		case TOKEN_GREATER_EQUAL:
+		case TOKEN_LESSER_EQUAL:
+		case TOKEN_GREATER:
+		case TOKEN_LESSER:			return 9;
 
-		case TOKEN_AMP:				return 4;
-		case TOKEN_PIPE:			return 4;
-		case TOKEN_CARET:			return 4;
-		case TOKEN_TILDE:			return 4;
-		case TOKEN_RIGHT_SHIFT:		return 4;
-		case TOKEN_LEFT_SHIFT:		return 4;
+		case TOKEN_RIGHT_SHIFT:
+		case TOKEN_LEFT_SHIFT:		return 10;
 
-		case TOKEN_DOUBLE_EQUAL:	return 5;
-		case TOKEN_NOT_EQUAL:		return 5;
-		case TOKEN_GREATER_EQUAL:	return 5;
-		case TOKEN_LESSER_EQUAL:	return 5;
-		case TOKEN_GREATER:			return 5;
-		case TOKEN_LESSER:			return 5;
+		case TOKEN_ADD:
+		case TOKEN_SUB:   			return 11;
 
-		case TOKEN_DOT:   			return 8;
+		case TOKEN_MUL:
+		case TOKEN_DIV:
+		case TOKEN_PERCENT:			return 12;
 
-		default: 		  			return 0;
+		case TOKEN_CARET:
+		case TOKEN_EXCLAMATION:		return 13;
+
+		case TOKEN_DOUBLE_ADD:
+		case TOKEN_DOUBLE_SUB:
+		case TOKEN_DOT:   			return 14;
+
 	}
 }
 
-bool Ast_Binary::getLeftAssociativity (Token_Type opToken) {
+bool Ast_Binary::is_left_associative (Token_Type opToken) {
 	switch (opToken) {
-		case TOKEN_EQUAL: 			return false;
+		case TOKEN_EQUAL: 			return true;
 		case TOKEN_DOT:   			return false;
 		case TOKEN_SQ_BRAC_OPEN:	return false;
 

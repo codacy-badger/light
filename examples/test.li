@@ -40,10 +40,10 @@ test_factorial :: fn {
 test_division :: fn {
 	num1 := 10;
 	num2 := 9;
-	assert((num1 / 5) == 2);
-	assert((num2 / 2) == 4);
+	assert(num1 / 5 == 2);
+	assert(num2 / 2 == 4);
 	num3 := 9.;
-	assert((num3 / 2.) == 4.5);
+	assert(num3 / 2. == 4.5);
 }
 
 test_arrays :: fn {

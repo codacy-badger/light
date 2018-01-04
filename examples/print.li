@@ -11,9 +11,9 @@ print_array :: fn (str: []u8) {
 	if (std_handle_out != INVALID_HANDLE_VALUE) {
 		console_mode : u32;
 		if GetConsoleMode(std_handle_out, *console_mode) {
-			WriteConsole(std_handle_out, str.data, cast(u32) (str.length), 0, 0);
+			WriteConsole(std_handle_out, str.data, cast(u32) str.length, 0, 0);
 		} else {
-			WriteFile(std_handle_out, str.data, cast(u32) (str.length), 0, 0);
+			WriteFile(std_handle_out, str.data, cast(u32) str.length, 0, 0);
 		}
 	}
 }
@@ -99,7 +99,7 @@ print_u64_hex :: fn (number: u64) {
 
 string_length :: fn (str: *u8) -> u32 {
 	if str == 0 return 0;
-	
+
 	result : u32 = 0;
 	char : u8 = &str;
 	while (char != 0) {
