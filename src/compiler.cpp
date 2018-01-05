@@ -12,6 +12,9 @@
 #include "parser/pipe/array_attributes.hpp"
 #include "parser/pipe/poly_functions.hpp"
 
+#include "bytecode/pipe/bytecode_generator.hpp"
+#include "bytecode/pipe/bytecode_runner.hpp"
+
 Ast_Struct_Type* create_new_primitive_type (Compiler* compiler, char* name, uint16_t size = 0) {
 	auto output = new Ast_Struct_Type(name, size);
 	output->inferred_type = compiler->type_def_type;
@@ -52,8 +55,8 @@ void Compiler::run () {
 		parser->append(new Type_Checking());
 		parser->append(new Array_Attributes());
 		// Bytecode
-		parser->append(this->interp->generator);
-		parser->append(this->interp->runner);
+		parser->append(new Bytecode_Generator());
+		parser->append(new Bytecode_Runner());
 		// Ouput
 		//parser->append(new PrintPipe());
 

@@ -5,9 +5,6 @@
 #include "bytecode/constants.hpp"
 #include "bytecode/globals.hpp"
 
-#include "bytecode/pipe/bytecode_generator.hpp"
-#include "bytecode/pipe/bytecode_runner.hpp"
-
 #include <deque>
 
 #include "dyncall/dyncall.h"
@@ -21,9 +18,6 @@
 typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
 struct Interpreter {
-	Bytecode_Generator* generator = new Bytecode_Generator();
-	Bytecode_Runner* runner = new Bytecode_Runner();
-
 	Foreign_Functions* foreign_functions = new Foreign_Functions();
 	Bytecode_Constants* constants = new Bytecode_Constants();
 	Bytecode_Globals* globals = new Bytecode_Globals();
