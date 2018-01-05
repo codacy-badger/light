@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include "parser/ast.hpp"
 #include "timer.hpp"
 
@@ -20,13 +21,9 @@ struct Pipe {
 
 	virtual void on_finish (double full_time) {
 		if (this->pipe_name) {
-			double percent = 0;
-			if (full_time > 0) {
-				percent = (this->accumulated_spans * 100.0) / full_time;
-				printf("  - %-25s%8.6fs ( %5.2f %% )\n", this->pipe_name, this->accumulated_spans, percent);
-			} else {
-				printf("  - %-25s%8.6fs\n", this->pipe_name, this->accumulated_spans);
-			}
+			assert(full_time > 0);
+			double percent = (this->accumulated_spans * 100.0) / full_time;
+			printf("  - %-25s%8.6fs ( %5.2f %% )\n", this->pipe_name, this->accumulated_spans, percent);
 		}
 		this->try_finish(full_time);
 	}

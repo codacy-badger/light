@@ -8,14 +8,15 @@ struct Inst_Jump;
 #define ERROR(node, ...) report_error_stop(&node->location, __VA_ARGS__)
 
 struct Bytecode_Generator : Pipe {
-	size_t global_offset;
-	size_t stack_offset;
+	size_t stack_offset = 0;
 
 	vector<Instruction*>* bytecode = NULL;
 	bool is_left_value = false;
 	uint8_t reg = 0;
 
 	vector<Inst_Jump*> pending_breaks;
+
+	PIPE_NAME(Bytecode_Generator)
 
 	void on_statement(Ast_Statement** stm) {
 	    this->gen(*stm);
