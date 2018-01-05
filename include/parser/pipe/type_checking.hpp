@@ -142,17 +142,16 @@ struct Type_Checking : Pipe {
 
 	    arr->inferred_type = g_compiler->type_def_type;
 		Pipe::handle(&arr->base);
-		if (arr->count->exp_type == AST_EXPRESSION_LITERAL) {
-			auto lit = static_cast<Ast_Literal*>(arr->count);
-			if (lit->literal_type == AST_LITERAL_UNSIGNED_INT) {
-				auto type_def = static_cast<Ast_Type_Definition*>(arr->base);
-				arr->byte_size = arr->length() * type_def->byte_size;
-			} else {
+
+		if (arr->length_exp->exp_type == AST_EXPRESSION_LITERAL) {
+			auto lit = static_cast<Ast_Literal*>(arr->length_exp);
+			if (lit->literal_type != AST_LITERAL_UNSIGNED_INT) {
 				ERROR(arr, "Arrays size must be an unsigned integer");
 			}
-		} else {
-			ERROR(arr, "Arrays can only have constant size");
-		}
+		} else ERROR(arr, "Arrays can only have constant size");
+
+		auto type_def = static_cast<Ast_Type_Definition*>(arr->base);
+		arr->byte_size = arr->length() * type_def->byte_size;
 	}
 
 	void handle (Ast_Pointer_Type** ptr_type_ptr) {

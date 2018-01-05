@@ -151,10 +151,12 @@ Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
 }
 
 uint64_t Ast_Array_Type::length () {
-   if (this->count && this->count->exp_type == AST_EXPRESSION_LITERAL) {
-	   auto lit = static_cast<Ast_Literal*>(this->count);
-	   return lit->uint_value;
-   } else return 0;
+	if (!this->_length) {
+		assert(this->length_exp);
+		assert(this->length_exp->exp_type == AST_EXPRESSION_LITERAL);
+		this->_length = static_cast<Ast_Literal*>(this->length_exp)->uint_value;
+	}
+	return this->_length;
 }
 
 Ast_Binary_Type token_to_binop (Token_Type tType) {
@@ -293,13 +295,13 @@ Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expr
     return binop;
 }
 
-Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type, Ast_Struct_Type* size_type) {
+Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type) {
 	auto slice_type = new Ast_Struct_Type();
 	slice_type->is_slice = true;
 
 	auto length_attr = new Ast_Declaration();
 	length_attr->name = "length";
-	length_attr->type = size_type ? size_type : g_compiler->type_def_u64;
+	length_attr->type = g_compiler->type_def_u64;
 	slice_type->attributes.push_back(length_attr);
 
 	auto data_attr = new Ast_Declaration();

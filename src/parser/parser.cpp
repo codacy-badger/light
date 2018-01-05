@@ -377,22 +377,30 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 }
 
 Ast_Expression* Parser::type_definition () {
-	if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
-		auto count = this->_atom();
-		if (count) {
-			auto _array = AST_NEW(Ast_Array_Type);
-			_array->count = count;
+	if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
+		return this->function_type();
+	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
+		auto base_type = this->type_definition();
+		if (base_type->exp_type != AST_EXPRESSION_IDENT) {
+			return g_compiler->types->get_or_create_pointer_type(base_type);
+		} else return AST_NEW(Ast_Pointer_Type, base_type);
+	} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
+		auto length = this->_atom();
+		if (length) {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
-			_array->base = this->type_definition();
+			auto base_type = this->type_definition();
+
+			auto _array = AST_NEW(Ast_Array_Type);
+			_array->length_exp = length;
+			_array->base = base_type;
 			return _array;
 		} else {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
-			return ast_make_slice_type(this->type_definition());
+			auto base_type = this->type_definition();
+			if (base_type->exp_type != AST_EXPRESSION_IDENT) {
+				return g_compiler->types->get_or_create_slice_type(base_type);
+			} else return ast_make_slice_type(base_type);
 		}
-	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
-		return AST_NEW(Ast_Pointer_Type, this->type_definition());
-	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
-		return this->function_type();
 	} else if (this->lexer->optional_skip(TOKEN_DOLLAR)) {
 		if (this->lexer->is_next_type(TOKEN_ID)) {
 			auto poly_type = AST_NEW(Ast_Type_Definition);

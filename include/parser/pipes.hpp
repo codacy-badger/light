@@ -231,6 +231,6 @@ struct Pipe {
 
 	virtual void handle (Ast_Array_Type** arr) {
 		this->handle(&(*arr)->base);
-		if ((*arr)->count) this->handle(&(*arr)->count);
+		if ((*arr)->length_exp) this->handle(&(*arr)->length_exp);
 	}
 };

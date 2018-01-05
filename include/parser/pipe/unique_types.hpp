@@ -8,20 +8,18 @@
 using namespace std;
 
 struct Unique_Types : Pipe {
-
 	PIPE_NAME(Unique_Types)
 
 	void handle (Ast_Struct_Type** _struct) {
+		Pipe::handle(_struct);
+		
 	    g_compiler->types->compute_type_name_if_needed(*_struct);
 		g_compiler->types->struct_types[(*_struct)->name] = (*_struct);
-
-		Pipe::handle(_struct);
 	}
 
 	void handle (Ast_Pointer_Type** ptr_type) {
 		Pipe::handle(ptr_type);
 
-	    (*ptr_type) = g_compiler->types->get_unique_pointer_type(*ptr_type);
 	    g_compiler->types->compute_type_name_if_needed(*ptr_type);
 	}
 

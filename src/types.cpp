@@ -2,46 +2,11 @@
 
 #include "compiler.hpp"
 
-Ast_Type_Definition* Types::get_unique_type (Ast_Type_Definition* type_def) {
-    switch (type_def->typedef_type) {
-        case AST_TYPEDEF_STRUCT: {
-            auto _struct = static_cast<Ast_Struct_Type*>(type_def);
-            return this->get_unique_struct_type(_struct);
-        }
-        case AST_TYPEDEF_POINTER: {
-            auto _ptr = static_cast<Ast_Pointer_Type*>(type_def);
-            return this->get_unique_pointer_type(_ptr);
-        }
-        case AST_TYPEDEF_ARRAY: {
-            auto _arr = static_cast<Ast_Array_Type*>(type_def);
-            return this->get_unique_array_type(_arr);
-        }
-        case AST_TYPEDEF_FUNCTION: {
-            auto _func = static_cast<Ast_Function_Type*>(type_def);
-            return this->get_unique_function_type(_func);
-        }
-        default: return NULL;
-    }
-}
-
 Ast_Struct_Type* Types::get_struct_type (const char* name) {
 	auto it = this->struct_types.find(name);
     if (it != this->struct_types.end()) {
 		return it->second;
     } else return NULL;
-}
-
-Ast_Struct_Type* Types::get_unique_struct_type (Ast_Struct_Type* _struct) {
-    auto it = this->struct_types.find(_struct->name);
-    if (it != this->struct_types.end()) {
-		if (_struct != it->second) {
-			delete _struct;
-			return it->second;
-		} else return _struct;
-    } else {
-        this->struct_types[_struct->name] = _struct;
-        return _struct;
-    }
 }
 
 Ast_Pointer_Type* Types::get_pointer_type (Ast_Type_Definition* base_type) {
@@ -56,7 +21,9 @@ Ast_Pointer_Type* Types::get_or_create_pointer_type (Ast_Expression* base_type) 
     if (it != this->ptr_types.end()) {
 		return it->second;
     } else {
-		return new Ast_Pointer_Type(base_type);
+		auto ptr_type = new Ast_Pointer_Type(base_type);
+		this->ptr_types[base_type] = ptr_type;
+		return ptr_type;
 	}
 }
 
@@ -76,15 +43,27 @@ Ast_Pointer_Type* Types::get_unique_pointer_type (Ast_Pointer_Type* ptr_type) {
 Ast_Array_Type* Types::get_unique_array_type (Ast_Array_Type* arr_type) {
     auto it = this->arr_types.find(arr_type->base);
     if (it != this->arr_types.end()) {
-        if (arr_type != it->second) {
-			if (it->second->length() == arr_type->length()) {
+		auto it2 = it->second.find(arr_type->length());
+		if (it2 != it->second.end()) {
+	        if (arr_type != it2->second) {
 				delete arr_type;
-				return it->second;
-			}
-        }
+				return it2->second;
+	        }
+		}
     }
-    this->arr_types[arr_type->base] = arr_type;
+    this->arr_types[arr_type->base][arr_type->length()] = arr_type;
     return arr_type;
+}
+
+Ast_Struct_Type* Types::get_or_create_slice_type (Ast_Expression* base_type) {
+	auto it = this->sli_types.find(base_type);
+    if (it != this->sli_types.end()) {
+		return it->second;
+    } else {
+		auto sli_type = ast_make_slice_type(base_type);
+		this->sli_types[base_type] = sli_type;
+		return sli_type;
+	}
 }
 
 bool func_type_are_equal (vector<Ast_Expression*> func1_args, Ast_Expression* func1_ret,

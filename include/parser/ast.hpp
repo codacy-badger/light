@@ -199,7 +199,9 @@ struct Ast_Pointer_Type : Ast_Type_Definition {
 
 struct Ast_Array_Type : Ast_Type_Definition {
 	Ast_Expression* base = NULL;
-	Ast_Expression* count = NULL;
+	Ast_Expression* length_exp = NULL;
+
+	uint64_t _length = 0;
 
 	Ast_Array_Type() { this->typedef_type = AST_TYPEDEF_ARRAY; }
 
@@ -357,5 +359,5 @@ Ast_Literal* ast_make_literal (unsigned long long value);
 Ast_Ident* ast_make_ident (const char* name);
 Ast_Unary* ast_make_unary (Ast_Unary_Type type, Ast_Expression* expression);
 Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expression* rhs);
-Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type, Ast_Struct_Type* size_type = NULL);
+Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type);
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const = true);
