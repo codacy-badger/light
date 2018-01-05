@@ -23,7 +23,7 @@ struct Types {
     map<const char*, Ast_Struct_Type*, cmp_str_types> struct_types;
     map<Ast_Expression*, Ast_Pointer_Type*> ptr_types;
     map<Ast_Expression*, map<uint64_t, Ast_Array_Type*>> arr_types;
-    map<Ast_Expression*, Ast_Struct_Type*> sli_types;
+    map<Ast_Expression*, Ast_Slice_Type*> sli_types;
     vector<Ast_Function_Type*> func_types;
 
     map<Ast_Type_Definition*, map<Ast_Type_Definition*, Cast_Instance*>> casts;
@@ -37,7 +37,8 @@ struct Types {
     Ast_Array_Type* get_unique_array_type (Ast_Array_Type* arr_type);
 	Ast_Array_Type* get_or_create_array_type (Ast_Expression* base_type, uint64_t size);
 
-	Ast_Struct_Type* get_or_create_slice_type (Ast_Expression* base_type);
+	Ast_Slice_Type* get_unique_slice_type (Ast_Slice_Type* arr_type);
+	Ast_Slice_Type* get_or_create_slice_type (Ast_Expression* base_type);
 
     Ast_Function_Type* get_unique_function_type (Ast_Function_Type* func_type);
     Ast_Function_Type* get_or_create_function_type (Ast_Function* func);

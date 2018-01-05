@@ -216,6 +216,9 @@ struct Pipe {
 		for (auto &attr : (*_struct)->attributes) {
 			this->handle(&attr);
 		}
+		if ((*_struct)->is_slice) {
+			this->handle(reinterpret_cast<Ast_Slice_Type**>(_struct));
+		}
 	}
 
 	virtual void handle (Ast_Pointer_Type** _ptr) {
@@ -232,5 +235,9 @@ struct Pipe {
 	virtual void handle (Ast_Array_Type** arr) {
 		this->handle(&(*arr)->base);
 		if ((*arr)->length_exp) this->handle(&(*arr)->length_exp);
+	}
+
+	virtual void handle (Ast_Slice_Type** slice) {
+		this->handle(&(*slice)->base);
 	}
 };

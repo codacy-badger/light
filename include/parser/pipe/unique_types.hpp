@@ -12,9 +12,10 @@ struct Unique_Types : Pipe {
 
 	void handle (Ast_Struct_Type** _struct) {
 		Pipe::handle(_struct);
-		
-	    g_compiler->types->compute_type_name_if_needed(*_struct);
-		g_compiler->types->struct_types[(*_struct)->name] = (*_struct);
+
+		if (!(*_struct)->is_slice) {
+			g_compiler->types->struct_types[(*_struct)->name] = (*_struct);
+		}
 	}
 
 	void handle (Ast_Pointer_Type** ptr_type) {
@@ -28,6 +29,13 @@ struct Unique_Types : Pipe {
 
 	    (*arr_type) = g_compiler->types->get_unique_array_type(*arr_type);
 	    g_compiler->types->compute_type_name_if_needed(*arr_type);
+	}
+
+	void handle (Ast_Slice_Type** slice) {
+		Pipe::handle(slice);
+
+		(*slice) = g_compiler->types->get_unique_slice_type(*slice);
+	    g_compiler->types->compute_type_name_if_needed(*slice);
 	}
 
 	void handle (Ast_Function_Type** func_type) {

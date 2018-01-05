@@ -55,12 +55,24 @@ Ast_Array_Type* Types::get_unique_array_type (Ast_Array_Type* arr_type) {
     return arr_type;
 }
 
-Ast_Struct_Type* Types::get_or_create_slice_type (Ast_Expression* base_type) {
+Ast_Slice_Type* Types::get_unique_slice_type (Ast_Slice_Type* slice_type) {
+	auto it = this->sli_types.find(slice_type->base);
+    if (it != this->sli_types.end()) {
+		if (slice_type != it->second) {
+			delete slice_type;
+			return it->second;
+		}
+    }
+    this->sli_types[slice_type->base] = slice_type;
+    return slice_type;
+}
+
+Ast_Slice_Type* Types::get_or_create_slice_type (Ast_Expression* base_type) {
 	auto it = this->sli_types.find(base_type);
     if (it != this->sli_types.end()) {
 		return it->second;
     } else {
-		auto sli_type = ast_make_slice_type(base_type);
+		auto sli_type = new Ast_Slice_Type(base_type);
 		this->sli_types[base_type] = sli_type;
 		return sli_type;
 	}
@@ -164,12 +176,14 @@ void Types::compute_type_name_if_needed (Ast_Type_Definition* type_def) {
         case AST_TYPEDEF_STRUCT: {
 			auto _struct = static_cast<Ast_Struct_Type*>(type_def);
 			if (_struct->is_slice) {
-				auto data_decl = _struct->find_attribute("data");
-        		auto data_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
-        		auto base_type = static_cast<Ast_Type_Definition*>(data_type->base);
-        		auto base_name_length = strlen(base_type->name);
-				_struct->name = (char*) malloc(base_name_length + 3);
-				sprintf_s(_struct->name, base_name_length + 3, "[]%s", base_type->name);
+				auto slice = static_cast<Ast_Slice_Type*>(type_def);
+        		auto base_type_def = static_cast<Ast_Type_Definition*>(slice->base);
+        		auto base_name_length = strlen(base_type_def->name);
+        		slice->name = (char*) malloc(base_name_length + 3);
+        		slice->name[0] = '[';
+        		slice->name[1] = ']';
+        		memcpy(slice->name + 2, base_type_def->name, base_name_length);
+        		slice->name[base_name_length + 2] = '\0';
 			}
 			break;
 		}

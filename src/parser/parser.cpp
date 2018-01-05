@@ -381,7 +381,7 @@ Ast_Expression* Parser::type_definition () {
 		return this->function_type();
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		auto base_type = this->type_definition();
-		if (base_type->exp_type != AST_EXPRESSION_IDENT) {
+		if (base_type->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
 			return g_compiler->types->get_or_create_pointer_type(base_type);
 		} else return AST_NEW(Ast_Pointer_Type, base_type);
 	} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
@@ -397,9 +397,9 @@ Ast_Expression* Parser::type_definition () {
 		} else {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 			auto base_type = this->type_definition();
-			if (base_type->exp_type != AST_EXPRESSION_IDENT) {
+			if (base_type->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
 				return g_compiler->types->get_or_create_slice_type(base_type);
-			} else return ast_make_slice_type(base_type);
+			} else return AST_NEW(Ast_Slice_Type, base_type);
 		}
 	} else if (this->lexer->optional_skip(TOKEN_DOLLAR)) {
 		if (this->lexer->is_next_type(TOKEN_ID)) {

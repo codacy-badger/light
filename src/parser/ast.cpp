@@ -159,6 +159,22 @@ uint64_t Ast_Array_Type::length () {
 	return this->_length;
 }
 
+Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
+	this->typedef_type = AST_TYPEDEF_STRUCT;
+	this->base = base_type;
+	this->is_slice = true;
+
+	auto length_attr = new Ast_Declaration();
+	length_attr->name = "length";
+	length_attr->type = g_compiler->type_def_u64;
+	this->attributes.push_back(length_attr);
+
+	auto data_attr = new Ast_Declaration();
+	data_attr->name = "data";
+	data_attr->type = g_compiler->types->get_or_create_pointer_type(base_type);
+	this->attributes.push_back(data_attr);
+}
+
 Ast_Binary_Type token_to_binop (Token_Type tType) {
 	switch (tType) {
 		case TOKEN_EQUAL: 			return AST_BINARY_ASSIGN;
@@ -293,23 +309,6 @@ Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expr
     binop->lhs = lhs;
     binop->rhs = rhs;
     return binop;
-}
-
-Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type) {
-	auto slice_type = new Ast_Struct_Type();
-	slice_type->is_slice = true;
-
-	auto length_attr = new Ast_Declaration();
-	length_attr->name = "length";
-	length_attr->type = g_compiler->type_def_u64;
-	slice_type->attributes.push_back(length_attr);
-
-	auto data_attr = new Ast_Declaration();
-	data_attr->name = "data";
-	data_attr->type = g_compiler->types->get_or_create_pointer_type(base_type);
-	slice_type->attributes.push_back(data_attr);
-
-	return slice_type;
 }
 
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const) {

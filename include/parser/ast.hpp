@@ -208,6 +208,12 @@ struct Ast_Array_Type : Ast_Type_Definition {
 	uint64_t length ();
 };
 
+struct Ast_Slice_Type : Ast_Struct_Type {
+	Ast_Expression* base = NULL;
+
+	Ast_Slice_Type(Ast_Expression* base_type);
+};
+
 struct Ast_Function_Type : Ast_Type_Definition {
 	vector<Ast_Expression*> arg_types;
 	Ast_Expression* ret_type = NULL;
@@ -359,5 +365,4 @@ Ast_Literal* ast_make_literal (unsigned long long value);
 Ast_Ident* ast_make_ident (const char* name);
 Ast_Unary* ast_make_unary (Ast_Unary_Type type, Ast_Expression* expression);
 Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expression* rhs);
-Ast_Struct_Type* ast_make_slice_type (Ast_Expression* base_type);
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const = true);

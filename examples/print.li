@@ -5,19 +5,6 @@ import "examples/windows/kernel32.li"
 // TODO: if the default value is not constant, run at app startup
 std_handle_out : *void;
 
-print_array :: fn (str: []u8) {
-	std_handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	if (std_handle_out != INVALID_HANDLE_VALUE) {
-		console_mode : u32;
-		if GetConsoleMode(std_handle_out, *console_mode) {
-			WriteConsole(std_handle_out, str.data, cast(u32) str.length, 0, 0);
-		} else {
-			WriteFile(std_handle_out, str.data, cast(u32) str.length, 0, 0);
-		}
-	}
-}
-
 print :: fn (str: *u8) {
 	std_handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
 
