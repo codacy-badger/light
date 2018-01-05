@@ -23,17 +23,17 @@
 #define LOAD_REG(var_name, reg) size_t var_name;								\
 	memcpy(&var_name, this->registers[reg], INTERP_REGISTER_SIZE)
 
-Bytecode_Interpreter::Bytecode_Interpreter (size_t vm_size) {
+Interpreter::Interpreter (size_t vm_size) {
 	assert(INTERP_REGISTER_SIZE >= sizeof(void*));
 	memset(&this->registers, 0, INTERP_REGISTER_COUNT * sizeof(Bytecode_Register));
 	this->vm = dcNewCallVM(vm_size);
 }
 
-Bytecode_Interpreter::~Bytecode_Interpreter () {
+Interpreter::~Interpreter () {
 	dcFree(this->vm);
 }
 
-void Bytecode_Interpreter::run (Ast_Function* func) {
+void Interpreter::run (Ast_Function* func) {
 	auto _tmp = this->stack_index;
 	for (instruction_index = 0; instruction_index < func->bytecode.size(); instruction_index++) {
 		auto inst = func->bytecode[instruction_index];
@@ -53,7 +53,7 @@ void Bytecode_Interpreter::run (Ast_Function* func) {
 	this->stack_index = _tmp;
 }
 
-void Bytecode_Interpreter::run (Instruction* inst) {
+void Interpreter::run (Instruction* inst) {
 	switch (inst->bytecode) {
 		case BYTECODE_NOOP: return;
 		case BYTECODE_RETURN: return;
@@ -184,17 +184,17 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 				case BYTECODE_TYPE_U64:		dcArgLongLong(vm, (DClonglong) value); break;
 				case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (DCpointer) value); break;
 				case BYTECODE_TYPE_F32: {
-					float tmp;
-					assert(sizeof(float) <= sizeof(size_t));
-					memcpy(&tmp, &value, sizeof(float));
+					DCfloat tmp;
+					assert(sizeof(DCfloat) <= sizeof(size_t));
+					memcpy(&tmp, &value, sizeof(DCfloat));
 					dcArgFloat(vm, (DCfloat) tmp);
 					break;
 				}
 				case BYTECODE_TYPE_F64: {
-					double tmp;
-					assert(sizeof(double) <= sizeof(size_t));
-					memcpy(&tmp, &value, sizeof(double));
-					dcArgFloat(vm, (DCfloat) tmp);
+					DCdouble tmp;
+					assert(sizeof(DCdouble) <= sizeof(size_t));
+					memcpy(&tmp, &value, sizeof(DCdouble));
+					dcArgDouble(vm, (DCdouble) tmp);
 					break;
 				}
 				default: 					abort();
@@ -204,13 +204,10 @@ void Bytecode_Interpreter::run (Instruction* inst) {
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
 
-			size_t value;
-			memcpy(&value, this->registers[call->reg], INTERP_REGISTER_SIZE);
+			LOAD_REG(value, call->reg);
 			auto func = reinterpret_cast<Ast_Function*>(value);
-
-			//printf("\t ++ Call: %s\n", func->name);
-
 			if (IS_INTERNAL_FUNCTION(func)) {
+				//printf("\t ++ Call: %s\n", func->name);
 				auto _base = this->stack_base;
 				auto _inst = this->instruction_index;
 				this->stack_base = this->stack_index;

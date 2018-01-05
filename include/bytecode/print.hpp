@@ -160,7 +160,7 @@ void bytecode_print (size_t index, Instruction* inst) {
 	printf("\n");
 }
 
-void bytecode_dump (Bytecode_Interpreter* interp) {
+void bytecode_dump (Interpreter* interp) {
 	printf("\n                ----------- Light VM dump ------------\n\n");
 	for (short i = 0; i < INTERP_REGISTER_COUNT; i++) {
         for (size_t j = INTERP_REGISTER_SIZE; j > 0; j--) {

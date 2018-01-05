@@ -20,7 +20,7 @@
 
 typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
-struct Bytecode_Interpreter {
+struct Interpreter {
 	Bytecode_Generator* generator = new Bytecode_Generator();
 	Bytecode_Runner* runner = new Bytecode_Runner();
 
@@ -36,8 +36,8 @@ struct Bytecode_Interpreter {
 
 	DCCallVM* vm = NULL;
 
-	Bytecode_Interpreter (size_t vm_size = 512);
-	~Bytecode_Interpreter ();
+	Interpreter (size_t vm_size = 512);
+	~Interpreter ();
 
 	void run (Ast_Function* func);
 	void run (Instruction* inst);

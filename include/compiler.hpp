@@ -16,7 +16,7 @@ struct Compiler_Settings {
 struct Compiler {
 	Compiler_Settings* settings = new Compiler_Settings();
 
-	Bytecode_Interpreter* interp = new Bytecode_Interpreter();
+	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
 	Parser* parser = NULL;
 

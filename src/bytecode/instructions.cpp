@@ -2,7 +2,7 @@
 
 #include "compiler.hpp"
 
-uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty) {
+Bytecode_Type bytecode_get_type (Ast_Type_Definition* decl_ty) {
 	switch (decl_ty->typedef_type) {
 		case AST_TYPEDEF_ARRAY:
 		case AST_TYPEDEF_POINTER:
@@ -28,13 +28,13 @@ uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty) {
 	return BYTECODE_TYPE_POINTER;
 }
 
-uint8_t bytecode_get_type (Ast_Expression* exp) {
+Bytecode_Type bytecode_get_type (Ast_Expression* exp) {
 	if (exp->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
 		return bytecode_get_type(static_cast<Ast_Type_Definition*>(exp));
 	} else return BYTECODE_TYPE_VOID;
 }
 
-size_t bytecode_get_size (uint8_t bytecode_type) {
+size_t bytecode_get_size (Bytecode_Type bytecode_type) {
 	switch (bytecode_type) {
 		case BYTECODE_TYPE_BOOL:
 		case BYTECODE_TYPE_U8:
@@ -52,7 +52,7 @@ size_t bytecode_get_size (uint8_t bytecode_type) {
 	}
 }
 
-bool bytecode_has_sign (uint8_t bytecode_type) {
+bool bytecode_has_sign (Bytecode_Type bytecode_type) {
 	switch (bytecode_type) {
 		case BYTECODE_TYPE_S8:
 		case BYTECODE_TYPE_S16:
@@ -63,7 +63,7 @@ bool bytecode_has_sign (uint8_t bytecode_type) {
 	}
 }
 
-uint8_t bytecode_unsigned_to_signed (uint8_t bytecode_type) {
+Bytecode_Type bytecode_unsigned_to_signed (Bytecode_Type bytecode_type) {
 	switch (bytecode_type) {
 		case BYTECODE_TYPE_U8: 	return BYTECODE_TYPE_S16;
 		case BYTECODE_TYPE_U16: return BYTECODE_TYPE_S32;

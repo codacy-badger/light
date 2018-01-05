@@ -6,7 +6,7 @@
 
 #include "parser/ast.hpp"
 
-struct Bytecode_Interpreter;
+struct Interpreter;
 
 enum Inst_Bytecode : uint8_t {
 	BYTECODE_NOOP,
@@ -70,25 +70,28 @@ enum Inst_Binop : uint8_t {
 	BYTECODE_GTE,
 };
 
-const uint8_t BYTECODE_TYPE_VOID 	= 0x00;
-const uint8_t BYTECODE_TYPE_BOOL	= 0x01;
-const uint8_t BYTECODE_TYPE_S8 		= 0x02;
-const uint8_t BYTECODE_TYPE_S16 	= 0x03;
-const uint8_t BYTECODE_TYPE_S32 	= 0x04;
-const uint8_t BYTECODE_TYPE_S64 	= 0x05;
-const uint8_t BYTECODE_TYPE_U8 		= 0x06;
-const uint8_t BYTECODE_TYPE_U16 	= 0x07;
-const uint8_t BYTECODE_TYPE_U32 	= 0x08;
-const uint8_t BYTECODE_TYPE_U64 	= 0x09;
-const uint8_t BYTECODE_TYPE_F32 	= 0x0A;
-const uint8_t BYTECODE_TYPE_F64 	= 0x0B;
-const uint8_t BYTECODE_TYPE_POINTER	= 0x0C;
+enum Bytecode_Type : uint8_t {
+	BYTECODE_TYPE_UNINITIALIZED = 0,
+	BYTECODE_TYPE_VOID,
+	BYTECODE_TYPE_BOOL,
+	BYTECODE_TYPE_S8,
+	BYTECODE_TYPE_S16,
+	BYTECODE_TYPE_S32,
+	BYTECODE_TYPE_S64,
+	BYTECODE_TYPE_U8,
+	BYTECODE_TYPE_U16,
+	BYTECODE_TYPE_U32,
+	BYTECODE_TYPE_U64,
+	BYTECODE_TYPE_F32,
+	BYTECODE_TYPE_F64,
+	BYTECODE_TYPE_POINTER,
+};
 
-uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty);
-uint8_t bytecode_get_type (Ast_Expression* exp);
-size_t bytecode_get_size (uint8_t bytecode_type);
-bool bytecode_has_sign (uint8_t bytecode_type);
-uint8_t bytecode_unsigned_to_signed (uint8_t bytecode_type);
+Bytecode_Type bytecode_get_type (Ast_Type_Definition* decl_ty);
+Bytecode_Type bytecode_get_type (Ast_Expression* exp);
+size_t bytecode_get_size (Bytecode_Type bytecode_type);
+bool bytecode_has_sign (Bytecode_Type bytecode_type);
+Bytecode_Type bytecode_unsigned_to_signed (Bytecode_Type bytecode_type);
 
 struct Instruction {
 	uint8_t bytecode = BYTECODE_NOOP;
@@ -122,10 +125,10 @@ struct Inst_Copy_Memory : Instruction {
 
 struct Inst_Cast : Instruction {
 	uint8_t reg = 0;
-	uint8_t type_from = 0;
-	uint8_t type_to = 0;
+	Bytecode_Type type_from = BYTECODE_TYPE_UNINITIALIZED;
+	Bytecode_Type type_to = BYTECODE_TYPE_UNINITIALIZED;
 
-	Inst_Cast (uint8_t reg, uint8_t type_from, uint8_t type_to) {
+	Inst_Cast (uint8_t reg, Bytecode_Type type_from, Bytecode_Type type_to) {
 		this->bytecode = BYTECODE_CAST;
 		this->reg = reg;
 		this->type_from = type_from;
@@ -135,7 +138,7 @@ struct Inst_Cast : Instruction {
 
 struct Inst_Set : Instruction {
 	uint8_t reg = 0;
-	uint8_t bytecode_type = 0;
+	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
 	uint8_t* data = NULL;
 
 	Inst_Set (uint8_t reg, uint8_t value)  : Inst_Set (reg, BYTECODE_TYPE_U8,  &value) {}
@@ -148,7 +151,7 @@ struct Inst_Set : Instruction {
 	Inst_Set (uint8_t reg, int64_t value)  : Inst_Set (reg, BYTECODE_TYPE_S64, &value) {}
 	Inst_Set (uint8_t reg, float value)    : Inst_Set (reg, BYTECODE_TYPE_F32, &value) {}
 	Inst_Set (uint8_t reg, double value)   : Inst_Set (reg, BYTECODE_TYPE_F64, &value) {}
-	Inst_Set (uint8_t reg, uint8_t bytecode_type, void* data) {
+	Inst_Set (uint8_t reg, Bytecode_Type bytecode_type, void* data) {
 		this->bytecode = BYTECODE_SET;
 		this->reg = reg;
 		this->bytecode_type = bytecode_type;
@@ -231,9 +234,9 @@ struct Inst_Store : Instruction {
 struct Inst_Unary : Instruction {
 	uint8_t unop = 0;
 	uint8_t reg = 0;
-	uint8_t bytecode_type = 0;
+	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
 
-	Inst_Unary (uint8_t unop, uint8_t reg, uint8_t bytecode_type) {
+	Inst_Unary (uint8_t unop, uint8_t reg, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_UNARY;
 		this->unop = unop;
 		this->reg = reg;
@@ -245,9 +248,9 @@ struct Inst_Binary : Instruction {
 	uint8_t binop = 0;
 	uint8_t reg1 = 0;
 	uint8_t reg2 = 0;
-	uint8_t bytecode_type = 0;
+	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
 
-	Inst_Binary (uint8_t binop, uint8_t reg1, uint8_t reg2, uint8_t bytecode_type) {
+	Inst_Binary (uint8_t binop, uint8_t reg1, uint8_t reg2, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_BINARY;
 		this->binop = binop;
 		this->reg1 = reg1;
@@ -309,9 +312,9 @@ struct Inst_Call_Setup : Instruction {
 
 struct Inst_Call_Param : Instruction {
 	uint8_t index;
-	uint8_t bytecode_type;
+	Bytecode_Type bytecode_type;
 
-	Inst_Call_Param (uint8_t index, uint8_t bytecode_type) {
+	Inst_Call_Param (uint8_t index, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_CALL_PARAM;
 		this->index = index;
 		this->bytecode_type = bytecode_type;
@@ -320,9 +323,9 @@ struct Inst_Call_Param : Instruction {
 
 struct Inst_Call : Instruction {
 	uint8_t reg;
-	uint8_t bytecode_type;
+	Bytecode_Type bytecode_type;
 
-	Inst_Call (uint8_t reg, uint8_t bytecode_type) {
+	Inst_Call (uint8_t reg, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_CALL;
 		this->reg = reg;
 		this->bytecode_type = bytecode_type;

@@ -36,7 +36,7 @@ void _cast_unsigned (void* ptr, size_t size_to) {
 	memcpy(ptr, &new_value, size_to);
 }
 
-void bytecode_cast(void* reg_ptr, uint8_t type_from, uint8_t type_to) {
+void bytecode_cast(void* reg_ptr, Bytecode_Type type_from, Bytecode_Type type_to) {
 	auto size_from = bytecode_get_size(type_from);
 	auto size_to = bytecode_get_size(type_to);
 	auto sign_from = bytecode_has_sign(type_from);
