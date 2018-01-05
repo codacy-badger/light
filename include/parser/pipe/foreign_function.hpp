@@ -14,6 +14,8 @@ char* extract_string_parameter (Ast_Expression* exp) {
 
 struct Foreign_Function : Pipe {
 
+	PIPE_NAME(Foreign_Function)
+
 	void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);
 

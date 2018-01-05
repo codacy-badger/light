@@ -9,10 +9,12 @@ using namespace std;
 
 struct Unique_Types : Pipe {
 
+	PIPE_NAME(Unique_Types)
+
 	void handle (Ast_Struct_Type** _struct) {
 	    g_compiler->types->compute_type_name_if_needed(*_struct);
 		g_compiler->types->struct_types[(*_struct)->name] = (*_struct);
-		
+
 		Pipe::handle(_struct);
 	}
 

@@ -46,12 +46,12 @@ void Compiler::run () {
 	for (auto filename : this->settings->input_files) {
 		this->parser = new Parser(filename);
 		// Mandatory
+		parser->append(new Foreign_Function());
 		parser->append(new Compile_Constants());
 		parser->append(new Poly_Functions());
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Unique_Types());
-		parser->append(new Foreign_Function());
 		parser->append(new Type_Checking());
 		parser->append(new Array_Attributes());
 		// Bytecode
@@ -62,8 +62,9 @@ void Compiler::run () {
 
 		auto start = Timer::getTime();
 		parser->top_level_block();
-		Timer::print("\n  Parse %8.6fs\n", start);
-		parser->on_finish();
+		auto stop = Timer::clockStop(start);
+		parser->on_finish(stop);
+		printf("\n  Parse %8.6fs\n", stop);
 	}
 	Timer::print("TOTAL   %8.6fs\n", total);
 }

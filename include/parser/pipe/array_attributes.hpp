@@ -4,6 +4,8 @@
 
 struct Array_Attributes : Pipe {
 
+	PIPE_NAME(Array_Attributes)
+
 	void handle (Ast_Binary** binary_ptr) {
 		auto binary = (*binary_ptr);
 

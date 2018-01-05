@@ -1,25 +1,42 @@
 #pragma once
 
 #include "parser/ast.hpp"
+#include "timer.hpp"
+
+#define PIPE_NAME(name) name() { this->pipe_name = #name; }
 
 struct Pipe {
+
+	double accumulated_spans = 0;
+	const char* pipe_name = NULL;
 	Pipe* next = NULL;
 
 	virtual void on_statement (Ast_Statement** stm) {
+		auto start = Timer::getTime();
 		this->handle(stm);
+		this->accumulated_spans += Timer::clockStop(start);
 		this->to_next(stm);
 	}
 
-	virtual void on_finish () {
-		this->try_finish();
+	virtual void on_finish (double full_time) {
+		if (this->pipe_name) {
+			double percent = 0;
+			if (full_time > 0) {
+				percent = (this->accumulated_spans * 100.0) / full_time;
+				printf("  - %-25s%8.6fs ( %5.2f %% )\n", this->pipe_name, this->accumulated_spans, percent);
+			} else {
+				printf("  - %-25s%8.6fs\n", this->pipe_name, this->accumulated_spans);
+			}
+		}
+		this->try_finish(full_time);
 	}
 
 	void to_next (Ast_Statement** stm) {
 		if (next) next->on_statement(stm);
 	}
 
-	void try_finish() {
-		if (next) next->on_finish();
+	void try_finish(double full_time) {
+		if (next) next->on_finish(full_time);
 	}
 
 	void append (Pipe* next_pipe) {

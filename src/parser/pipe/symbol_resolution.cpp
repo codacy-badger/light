@@ -62,7 +62,7 @@ void Symbol_Resolution::find_unique_unresolved (set<Ast_Ident*>* idents) {
     }
 }
 
-void Symbol_Resolution::on_finish () {
+void Symbol_Resolution::on_finish (double full_time) {
     if (this->unresolved.size() > 0) {
         set<Ast_Ident*> idents;
         this->find_unique_unresolved(&idents);
@@ -72,7 +72,7 @@ void Symbol_Resolution::on_finish () {
         g_compiler->stop();
         return;
     }
-    this->try_finish();
+	Pipe::on_finish(full_time);
 }
 
 void Symbol_Resolution::on_resolved (Ast_Statement** stm) {

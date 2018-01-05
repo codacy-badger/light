@@ -10,6 +10,8 @@ struct Poly_Functions : Pipe {
     map<Ast_Function*, Ast_Expression**> poly_refs;
     bool stm_continue = true;
 
+	PIPE_NAME(Poly_Functions)
+
     void on_statement (Ast_Statement** stm_ptr) {
         this->stm_continue = true;
     	Pipe::handle(stm_ptr);

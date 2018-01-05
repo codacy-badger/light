@@ -13,9 +13,11 @@ using namespace std;
 struct Symbol_Resolution : Pipe {
     map<Ast_Statement*, vector<Ast_Ident**>> unresolved;
 
+	PIPE_NAME(Symbol_Resolution)
+
     void on_statement (Ast_Statement** stm);
     void find_unique_unresolved (set<Ast_Ident*>* idents);
-    void on_finish ();
+    void on_finish (double full_time);
 
     void on_resolved (Ast_Statement** stm);
     bool is_unresolved (const char* name);

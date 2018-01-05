@@ -47,6 +47,8 @@ T unary_fold (Ast_Unary_Type unary_op, T a) {
 
 struct Constant_Folding : Pipe {
 
+	PIPE_NAME(Constant_Folding)
+
 	void handle (Ast_Unary** unary_ptr) {
 		Pipe::handle(unary_ptr);
 		auto unary = (*unary_ptr);

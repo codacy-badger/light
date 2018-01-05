@@ -4,9 +4,11 @@
 
 struct Compile_Constants : Pipe {
 
+	PIPE_NAME(Compile_Constants)
+
 	void handle (Ast_Ident** ident_ptr) {
 		auto ident = (*ident_ptr);
-		
+
 		if (strcmp(ident->name, "__FILE__") == 0) {
 			auto file_literal = ast_make_literal(ident->location.filename);
 			file_literal->location = (*ident_ptr)->location;
