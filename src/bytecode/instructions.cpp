@@ -1,7 +1,5 @@
 #include "bytecode/instructions.hpp"
 
-#include <assert.h>
-
 #include "compiler.hpp"
 
 uint8_t bytecode_get_type (Ast_Type_Definition* decl_ty) {

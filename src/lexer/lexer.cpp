@@ -1,5 +1,6 @@
 #include "lexer/lexer.hpp"
 
+#include <assert.h>
 #include "compiler.hpp"
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
@@ -134,16 +135,16 @@ char _buffer[LEXER_BUFFER_SIZE];
 bool Lexer::next_is_id () {
 	char c = this->buffer->peek();
     if (ALPHA(c)) {
-		this->next_type = TOKEN_ID;
-
 		size_t count = 0;
         while (ALPHANUM(c)) {
-			_buffer[count++] = c;
 			assert(count < LEXER_BUFFER_SIZE);
+			_buffer[count++] = c;
 			this->buffer->skip();
 	        c = this->buffer->peek();
         }
 		_buffer[count] = 0;
+
+		this->next_type = TOKEN_ID;
 		this->next_text = _strdup(_buffer);
         return true;
     }
@@ -158,6 +159,7 @@ bool Lexer::next_is_string () {
 		size_t count = 0;
 		c = this->buffer->next();
 		while (c != '"') {
+			assert(count < LEXER_BUFFER_SIZE);
 			if (c == '\\') {
 				c = this->buffer->next();
 				switch (c) {

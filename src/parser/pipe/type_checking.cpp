@@ -1,5 +1,6 @@
 #include "parser/pipe/type_checking.hpp"
 
+#include <assert.h>
 #include "compiler.hpp"
 #include "parser/ast.hpp"
 

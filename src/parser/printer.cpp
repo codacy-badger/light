@@ -1,7 +1,6 @@
 #include "parser/printer.hpp"
 
 #include <stdio.h>
-#include <assert.h>
 
 void _tabs (int count) {
 	for (int i = 0; i < count; i++) printf("    ");
@@ -188,7 +187,7 @@ void ASTPrinter::print (Ast_Binary* binop, int tabs) {
 		case AST_BINARY_SUB: 			printf("-"); break;
 		case AST_BINARY_MUL: 			printf("*"); break;
 		case AST_BINARY_DIV: 			printf("/"); break;
-		default:						assert(false);
+		default:						abort();
 	}
 	printf(" ");
 	print(binop->rhs, tabs);
@@ -199,7 +198,7 @@ void ASTPrinter::print (Ast_Unary* unop, int tabs) {
 	printf("(");
 	switch (unop->unary_op) {
 		case AST_UNARY_NEGATE: 	printf("-"); break;
-		default:						assert(false);
+		default:				abort();
 	}
 	printf(" ");
 	print(unop->exp, tabs);
@@ -229,6 +228,6 @@ void ASTPrinter::print (Ast_Literal* cons) {
 		case AST_LITERAL_UNSIGNED_INT:	printf("%lld", cons->uint_value); break;
 		case AST_LITERAL_DECIMAL:		printf("%lf", cons->decimal_value); break;
 		case AST_LITERAL_STRING: 		printf("\"%s\"", cons->string_value); break;
-		default: 						assert(false);
+		default: 						abort();
 	}
 }
