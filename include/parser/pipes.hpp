@@ -71,10 +71,6 @@ struct Pipe {
 				this->handle(reinterpret_cast<Ast_Break**>(stm));
 				break;
 			}
-			case AST_STATEMENT_IMPORT: {
-				this->handle(reinterpret_cast<Ast_Import**>(stm));
-				break;
-			}
 			case AST_STATEMENT_EXPRESSION: {
 				this->handle(reinterpret_cast<Ast_Expression**>(stm));
 				break;
@@ -118,7 +114,6 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Break**) {}
-	virtual void handle (Ast_Import**) {}
 
 	void handle (Ast_Expression** exp) {
 		switch ((*exp)->exp_type) {

@@ -12,10 +12,6 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 			print(static_cast<Ast_Block*>(stm), tabs);
 			break;
 		}
-		case AST_STATEMENT_IMPORT: {
-			print(static_cast<Ast_Import*>(stm), tabs);
-			break;
-		}
 		case AST_STATEMENT_DECLARATION: {
 			_tabs(tabs);
 			print(static_cast<Ast_Declaration*>(stm), tabs);
@@ -72,11 +68,6 @@ void ASTPrinter::print (Ast_Return* ret, int tabs) {
 	printf("return ");
 	if (ret->exp) print(ret->exp, tabs);
 	printf(";\n");
-}
-
-void ASTPrinter::print (Ast_Import* imp, int tabs) {
-	_tabs(tabs);
-	printf("import %s;", imp->filepath);
 }
 
 void ASTPrinter::print (Ast_Expression* exp, int tabs, bool name_only) {

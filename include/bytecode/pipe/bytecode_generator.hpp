@@ -27,43 +27,32 @@ struct Bytecode_Generator : Pipe {
 	    this->bytecode->push_back(intruction);
 	}
 
+	void handle (Ast_Note**) { /* Notes don't produce any bytecode by themselves */ }
+
     void handle (Ast_Statement** stm_ptr) {
 		this->reg = 0;
 		this->is_left_value = false;
-	    switch ((*stm_ptr)->stm_type) {
-	        case AST_STATEMENT_DECLARATION: this->handle(reinterpret_cast<Ast_Declaration**>(stm_ptr)); break;
-			case AST_STATEMENT_RETURN: this->handle(static_cast<Ast_Return*>(*stm_ptr)); break;
-			case AST_STATEMENT_IF: this->handle(static_cast<Ast_If*>(*stm_ptr)); break;
-			case AST_STATEMENT_WHILE: this->handle(static_cast<Ast_While*>(*stm_ptr)); break;
-			case AST_STATEMENT_BREAK: this->handle(static_cast<Ast_Break*>(*stm_ptr)); break;
-			case AST_STATEMENT_BLOCK: this->handle(static_cast<Ast_Block*>(*stm_ptr)); break;
-			case AST_STATEMENT_EXPRESSION: this->handle(static_cast<Ast_Expression*>(*stm_ptr)); break;
-	        default: break;
-	    }
+		Pipe::handle(stm_ptr);
 	}
 
-	void handle (Ast_Block* block) {
-		for (auto &_stm : block->list) {
-			this->handle(&_stm);
+	void handle (Ast_Block** block_ptr) {
+		for (auto &stm : (*block_ptr)->list) {
+			this->handle(&stm);
 		}
 	}
 
-	void handle (Ast_Return* ret) {
-		if (ret->exp) {
-			PUSH_L(tmp, false);
-		    this->handle(ret->exp);
-			POP_L(tmp);
-
-		    if (this->reg != 1) {
-		        this->add_instruction(ret, new Inst_Copy(0, this->reg - 1));
-		    }
-		}
-	    this->add_instruction(ret, new Inst_Return());
-	}
-
-	void handle (Ast_If* _if) {
+	void handle (Ast_Return** ret_ptr) {
 		PUSH_L(tmp, false);
-		this->handle(_if->condition);
+	    Pipe::handle(ret_ptr);
+		POP_L(tmp);
+	    this->add_instruction((*ret_ptr), new Inst_Return());
+	}
+
+	void handle (Ast_If** _if_ptr) {
+		auto _if = (*_if_ptr);
+
+		PUSH_L(tmp, false);
+		Pipe::handle(&_if->condition);
 		POP_L(tmp);
 
 		auto inst = new Inst_Jump_If_False(0);
@@ -83,11 +72,13 @@ struct Bytecode_Generator : Pipe {
 		}
 	}
 
-	void handle (Ast_While* _while) {
+	void handle (Ast_While** _while_ptr) {
+		auto _while = (*_while_ptr);
+
 		auto index1 = this->bytecode->size();
 
 		PUSH_L(tmp, false);
-		this->handle(_while->condition);
+		Pipe::handle(&_while->condition);
 		POP_L(tmp);
 
 		auto jmp1 = new Inst_Jump_If_False(0);
@@ -104,9 +95,9 @@ struct Bytecode_Generator : Pipe {
 		this->update_pending_breaks();
 	}
 
-	void handle (Ast_Break* _break) {
+	void handle (Ast_Break** _break_ptr) {
 		auto jump = new Inst_Jump();
-		this->add_instruction(_break, jump);
+		this->add_instruction((*_break_ptr), jump);
 		this->pending_breaks.push_back(jump);
 		jump->offset = this->bytecode->size();
 	}
@@ -133,8 +124,7 @@ struct Bytecode_Generator : Pipe {
 	            }
 	        }
 
-			this->reg = 0;
-			this->handle(func->scope);
+			this->handle(&func->scope);
 
 			if (func->ret_type == g_compiler->type_def_void) {
 				if (this->bytecode->size() == 0) {
@@ -176,7 +166,7 @@ struct Bytecode_Generator : Pipe {
 				this->stack_offset += ty_decl->byte_size;
 				if (decl->expression) {
 					PUSH_L(tmp, false);
-					this->handle(decl->expression);
+					Pipe::handle(&decl->expression);
 					POP_L(tmp);
 
 	                this->add_instruction(decl, new Inst_Stack_Offset(1, decl->stack_offset));
@@ -190,22 +180,11 @@ struct Bytecode_Generator : Pipe {
 		}
 	}
 
-    void handle (Ast_Expression* exp) {
-	    switch (exp->exp_type) {
-			case AST_EXPRESSION_LITERAL: 	this->handle(static_cast<Ast_Literal*>(exp)); break;
-	        case AST_EXPRESSION_FUNCTION: 	this->handle(static_cast<Ast_Function*>(exp)); break;
-	        case AST_EXPRESSION_CALL: 		this->handle(static_cast<Ast_Function_Call*>(exp)); break;
-	        case AST_EXPRESSION_CAST: 		this->handle(static_cast<Ast_Cast*>(exp)); break;
-			case AST_EXPRESSION_UNARY: 		this->handle(static_cast<Ast_Unary*>(exp)); break;
-	        case AST_EXPRESSION_BINARY: 	this->handle(static_cast<Ast_Binary*>(exp)); break;
-	        case AST_EXPRESSION_IDENT: 		this->handle(static_cast<Ast_Ident*>(exp)); break;
-	        default: abort();
-	    }
-	}
+	void handle (Ast_Cast** cast_ptr) {
+		auto cast = (*cast_ptr);
 
-	void handle (Ast_Cast* cast) {
 		PUSH_L(tmp, false);
-		this->handle(cast->value);
+		Pipe::handle(&cast->value);
 		POP_L(tmp);
 
 		auto type_from = bytecode_get_type(cast->value->inferred_type);
@@ -213,7 +192,9 @@ struct Bytecode_Generator : Pipe {
 		this->add_instruction(cast, new Inst_Cast(this->reg - 1, type_from, type_to));
 	}
 
-	void handle (Ast_Literal* lit) {
+	void handle (Ast_Literal** lit_ptr) {
+		auto lit = (*lit_ptr);
+
 		switch (lit->literal_type) {
 			case AST_LITERAL_SIGNED_INT:
 			case AST_LITERAL_UNSIGNED_INT: {
@@ -248,11 +229,13 @@ struct Bytecode_Generator : Pipe {
 		return BYTECODE_NOOP;
 	}
 
-	void handle (Ast_Unary* unop) {
+	void handle (Ast_Unary** unop_ptr) {
+		auto unop = (*unop_ptr);
+
 		switch (unop->unary_op) {
 			case AST_UNARY_NOT: {
 				PUSH_L(tmp, false);
-	        	this->handle(unop->exp);
+	        	Pipe::handle(&unop->exp);
 				POP_L(tmp);
 
 				auto unop_type = get_bytecode_from_unop(unop->unary_op);
@@ -262,7 +245,7 @@ struct Bytecode_Generator : Pipe {
 			}
 			case AST_UNARY_NEGATE: {
 				PUSH_L(tmp, false);
-	        	this->handle(unop->exp);
+	        	Pipe::handle(&unop->exp);
 				POP_L(tmp);
 
 				auto unop_type = get_bytecode_from_unop(unop->unary_op);
@@ -276,7 +259,7 @@ struct Bytecode_Generator : Pipe {
 			}
 	        case AST_UNARY_DEREFERENCE: {
 				PUSH_L(tmp, false);
-	            this->handle(unop->exp);
+	            Pipe::handle(&unop->exp);
 				POP_L(tmp);
 
 				if (!this->is_left_value) {
@@ -286,7 +269,7 @@ struct Bytecode_Generator : Pipe {
 	        }
 	        case AST_UNARY_REFERENCE: {
 				PUSH_L(tmp, true);
-	            this->handle(unop->exp);
+	            Pipe::handle(&unop->exp);
 				POP_L(tmp);
 
 	            break;
@@ -323,11 +306,13 @@ struct Bytecode_Generator : Pipe {
 		}
 	}
 
-	void handle (Ast_Binary* binop) {
+	void handle (Ast_Binary** binop_ptr) {
+		auto binop = (*binop_ptr);
+
 		switch (binop->binary_op) {
 			case AST_BINARY_ATTRIBUTE: {
 				PUSH_L(tmp, true);
-	        	this->handle(binop->lhs);
+	        	Pipe::handle(&binop->lhs);
 				POP_L(tmp);
 
 	            // We follow the pointer until we hit a non-pointer type
@@ -353,10 +338,10 @@ struct Bytecode_Generator : Pipe {
 			case AST_BINARY_SUBSCRIPT: {
 				if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 					PUSH_L(tmp, true);
-		        	this->handle(binop->lhs);
+		        	Pipe::handle(&binop->lhs);
 					POP_L(tmp);
 
-					this->handle(binop->rhs);
+					Pipe::handle(&binop->rhs);
 
 					auto array_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
 					auto array_base_type = static_cast<Ast_Type_Definition*>(array_type->base);
@@ -382,12 +367,12 @@ struct Bytecode_Generator : Pipe {
 				            auto element_size = array_base_type->byte_size;
 
 							PUSH_L(tmp, true);
-				        	this->handle(binop->lhs);
+				        	Pipe::handle(&binop->lhs);
 							POP_L(tmp);
 
 							this->add_instruction(binop, new Inst_Add_Const(reg - 1, data_decl->attribute_byte_offset));
 							this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, ptr_type->byte_size));
-							this->handle(binop->rhs);
+							Pipe::handle(&binop->rhs);
 
 				            if (element_size > 1) {
 								this->add_instruction(binop, new Inst_Mul_Const(reg - 1, element_size));
@@ -406,10 +391,10 @@ struct Bytecode_Generator : Pipe {
 			}
 			case AST_BINARY_ASSIGN: {
 	            auto size = binop->rhs->inferred_type->byte_size;
-				this->handle(binop->rhs);
+				Pipe::handle(&binop->rhs);
 
 				PUSH_L(tmp, true);
-	        	this->handle(binop->lhs);
+	        	Pipe::handle(&binop->lhs);
 				POP_L(tmp);
 
 	            this->reg -= 1;
@@ -421,8 +406,8 @@ struct Bytecode_Generator : Pipe {
 				break;
 			}
 			default: {
-				this->handle(binop->lhs);
-				this->handle(binop->rhs);
+				Pipe::handle(&binop->lhs);
+				Pipe::handle(&binop->rhs);
 	            this->reg -= 1;
 				auto binop_type = get_bytecode_from_binop(binop->binary_op);
 	            auto bytecode_type = bytecode_get_type(binop->lhs->inferred_type);
@@ -433,23 +418,23 @@ struct Bytecode_Generator : Pipe {
 		}
 	}
 
-	void handle (Ast_Ident* ident) {
+	void handle (Ast_Ident** ident_ptr) {
+		auto ident = (*ident_ptr);
+
 		if (ident->declaration->decl_flags && AST_DECL_FLAG_GLOBAL) {
 			this->add_instruction(ident, new Inst_Global_Offset(reg, ident->declaration->global_offset));
 		} else {
 			this->add_instruction(ident, new Inst_Stack_Offset(reg, ident->declaration->stack_offset));
 		}
-		if (!this->is_left_value) {
-			if (ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-				this->add_instruction(ident, new Inst_Load(reg, reg, ident->inferred_type->byte_size));
-			} else {
-				//ERROR(ident, "Value of identifier is bigger than a register!");
-			}
+		if (!this->is_left_value && ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+			this->add_instruction(ident, new Inst_Load(reg, reg, ident->inferred_type->byte_size));
 		}
 		this->reg++;
 	}
 
-    void handle (Ast_Function* func) {
+    void handle (Ast_Function** func_ptr) {
+		auto func = (*func_ptr);
+
 		if (func->is_native()) {
 			auto ffunctions = g_compiler->interp->foreign_functions;
 			auto module = ffunctions->get_or_add_module(func->foreign_module_name);
@@ -474,7 +459,9 @@ struct Bytecode_Generator : Pipe {
 	// start from left
 	// start from right
 	// start at index
-	void handle (Ast_Function_Call* call) {
+	void handle (Ast_Function_Call** call_ptr) {
+		auto call = (*call_ptr);
+
 		// If we're not the 1st argument in an expression or argument list,
 		// we're overriding the values in previous registers, so we have to
 		// store them in the stack and restore them after the call
@@ -490,9 +477,9 @@ struct Bytecode_Generator : Pipe {
 		}
 
 		this->reg = 0;
-		for (auto exp : call->arguments) {
+		for (auto &exp : call->arguments) {
 			PUSH_L(tmp, false);
-			this->handle(exp);
+			Pipe::handle(&exp);
 			POP_L(tmp);
 		}
 
@@ -510,7 +497,7 @@ struct Bytecode_Generator : Pipe {
 		}
 
 		PUSH_L(tmp, false);
-	    this->handle(call->fn);
+	    Pipe::handle(&call->fn);
 		POP_L(tmp);
 
 		auto ret_type = bytecode_get_type(call->inferred_type);
