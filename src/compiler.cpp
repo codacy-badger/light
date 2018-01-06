@@ -48,7 +48,7 @@ void Compiler::run () {
 		// Mandatory
 		parser->append(new Foreign_Function());
 		parser->append(new Compile_Constants());
-		parser->append(new Poly_Functions());
+		//parser->append(new Poly_Functions());
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Unique_Types());

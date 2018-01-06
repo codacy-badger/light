@@ -227,12 +227,12 @@ test_static_array :: fn {
 	}
 }
 
-make_slice :: fn (length: u64, data: *$T) -> []T {
+/*make_slice :: fn (length: u64, data: *$T) -> []T {
 	tmp : []T;
 	tmp.length = length;
 	tmp.data = data;
 	return tmp;
-}
+}*/
 
 test_slice :: fn {
 	numbers: [3]u8;
