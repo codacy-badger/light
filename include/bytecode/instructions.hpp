@@ -9,7 +9,7 @@
 struct Interpreter;
 
 enum Inst_Bytecode : uint8_t {
-	BYTECODE_NOOP,
+	BYTECODE_NOOP = 0,
 
 	BYTECODE_COPY,
 	BYTECODE_COPY_MEMORY,

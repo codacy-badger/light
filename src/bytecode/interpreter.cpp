@@ -38,25 +38,22 @@ void Interpreter::run (Ast_Function* func) {
 	for (instruction_index = 0; instruction_index < func->bytecode.size(); instruction_index++) {
 		auto inst = func->bytecode[instruction_index];
 
-		if (DEBUG) {
-			bytecode_print(instruction_index, inst);
-			if (inst->bytecode == BYTECODE_RETURN || inst->bytecode == BYTECODE_CALL) {
-				printf("\n");
-			}
+#ifdef BYTECODE_DEBUG
+		bytecode_print(instruction_index, inst);
+		if (inst->bytecode == BYTECODE_RETURN
+				|| inst->bytecode == BYTECODE_CALL) {
+			printf("\n");
 		}
-		this->run(inst);
-		if (inst->bytecode == BYTECODE_RETURN) {
-			//bytecode_dump(this);
-			break;
-		}
+#endif
+
+		if (inst->bytecode == BYTECODE_RETURN) break;
+		else this->run(inst);
 	}
 	this->stack_index = _tmp;
 }
 
 void Interpreter::run (Instruction* inst) {
 	switch (inst->bytecode) {
-		case BYTECODE_NOOP: return;
-		case BYTECODE_RETURN: return;
 		case BYTECODE_COPY: {
 			auto cpy = static_cast<Inst_Copy*>(inst);
 			MOVE(this->registers[cpy->reg1], this->registers[cpy->reg2]);
@@ -84,13 +81,13 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_CONSTANT_OFFSET: {
 			auto coff = static_cast<Inst_Constant_Offset*>(inst);
-			auto ptr = g_compiler->interp->constants->allocated[coff->offset];
+			auto ptr = this->constants->allocated[coff->offset];
 			MOVE(this->registers[coff->reg], &ptr);
 			return;
 		}
 		case BYTECODE_GLOBAL_OFFSET: {
 			auto gloff = static_cast<Inst_Global_Offset*>(inst);
-			auto ptr = g_compiler->interp->globals->get(gloff->offset);
+			auto ptr = this->globals->get(gloff->offset);
 			MOVE(this->registers[gloff->reg], &ptr);
 			return;
 		}
@@ -168,9 +165,6 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_CALL_PARAM: {
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
-
-			//printf("\t + Param #%u: %llX (%zd bytes)\n", call_param->index, value, size);
-
 			LOAD_REG(value, call_param->index);
 			switch (call_param->bytecode_type) {
 				case BYTECODE_TYPE_BOOL:
@@ -203,7 +197,6 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
-
 			LOAD_REG(value, call->reg);
 			auto func = reinterpret_cast<Ast_Function*>(value);
 			if (IS_INTERNAL_FUNCTION(func)) {

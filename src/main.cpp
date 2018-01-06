@@ -5,9 +5,6 @@
 #include "back/coff/coff_object.hpp"
 #include "compiler.hpp"
 
-#define NAME "Light Compiler"
-#define VERSION "0.1.0"
-
 Compiler* g_compiler = NULL;
 
 int main (int argc, char** argv) {

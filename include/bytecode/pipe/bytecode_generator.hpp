@@ -59,7 +59,7 @@ struct Bytecode_Generator : Pipe {
 		this->add_instruction(_if, inst);
 
 		auto index1 = this->bytecode->size();
-		this->handle(&_if->then_statement);
+		Pipe::handle(&_if->then_statement);
 		inst->offset = this->bytecode->size() - index1;
 		if (_if->else_statement) {
 			inst->offset += 1;
@@ -67,7 +67,7 @@ struct Bytecode_Generator : Pipe {
 			this->add_instruction(_if, inst2);
 
 			index1 = this->bytecode->size();
-			this->handle(&_if->else_statement);
+			Pipe::handle(&_if->else_statement);
 			inst2->offset = this->bytecode->size() - index1;
 		}
 	}
@@ -85,7 +85,7 @@ struct Bytecode_Generator : Pipe {
 		this->add_instruction(_while, jmp1);
 		auto index2 = this->bytecode->size();
 
-		this->handle(&_while->statement);
+		Pipe::handle(&_while->statement);
 
 		auto jmp2 = new Inst_Jump();
 		this->add_instruction(_while, jmp2);

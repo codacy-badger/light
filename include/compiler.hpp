@@ -6,6 +6,9 @@
 
 #include <vector>
 
+#define LIGHT_NAME "Light Compiler"
+#define LIGHT_VERSION "0.1.0"
+
 using namespace std;
 
 struct Compiler_Settings {
@@ -19,8 +22,6 @@ struct Compiler {
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
 	Parser* parser = NULL;
-
-	bool has_errors = false;
 
 	Ast_Struct_Type* type_def_type;
 	Ast_Struct_Type* type_def_void;

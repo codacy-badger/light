@@ -1,16 +1,13 @@
 #include "parser/parser.hpp"
 
-#include <errno.h>
-
 #include "compiler.hpp"
 
-template <typename T>
-T* setup_ast_node (Lexer* lexer, T* node) {
+Ast* setup_ast_node (Lexer* lexer, Ast* node) {
 	node->location = lexer->buffer->location;
 	return node;
 }
 
-#define AST_NEW(T, ...) setup_ast_node(lexer, new T(__VA_ARGS__))
+#define AST_NEW(T, ...) ((T*)setup_ast_node(lexer, new T(__VA_ARGS__)))
 
 FILE* open_file_or_stop (const char* filename, Location* location = NULL) {
 	FILE* file_ptr = NULL;

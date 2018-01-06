@@ -13,8 +13,6 @@
 #define INTERP_REGISTER_COUNT 16
 #define INTERP_STACK_SIZE 	  1073741824 // 1 MB
 
-#define INTERP_STACK_REGISTER INTERP_REGISTER_COUNT - 1
-
 typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
 struct Interpreter {
@@ -35,7 +33,4 @@ struct Interpreter {
 
 	void run (Ast_Function* func);
 	void run (Instruction* inst);
-	void print (size_t index, Instruction* inst);
-
-	void dump ();
 };
