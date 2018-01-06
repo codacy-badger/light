@@ -2,40 +2,43 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <assert.h>
 
-#include "report.hpp"
-
+inline
 size_t get_ring_index (size_t index) {
 	return index % RING_BUFFER_SIZE;
 }
 
 Ring_Buffer::Ring_Buffer (FILE* file, const char* filename) {
+	// If this rule doesn't get satisfied the sections of the buffer will
+	// have different sizes, messing up the data
+	assert((RING_BUFFER_SIZE % RING_BUFFER_SECTIONS) == 0);
+
 	this->location.filename = filename;
 	this->location.line = 1;
 	this->location.col = 1;
 	this->file = file;
 
-	size_t index = 0;
-	while (index < RING_BUFFER_SIZE) {
-		this->ring_buffer[index++] = fgetc(this->file);
-	}
+	this->remaining += fread(this->buffer, 1, RING_BUFFER_SIZE, this->file);
 }
 
 char Ring_Buffer::next () {
-	char output = (char) this->ring_buffer[this->ring_buffer_index++];
-	this->ring_buffer_index = get_ring_index(this->ring_buffer_index);
-	this->update_ring_buffer_if_needed();
+	char output = (char) this->buffer[this->index++];
+	this->index = get_ring_index(this->index);
+	this->refill_ring_buffer_if_needed();
 	this->handle_location(output);
+	this->remaining -= 1;
 	return output;
 }
 
 bool Ring_Buffer::has_next () {
-	return this->ring_buffer[this->ring_buffer_index] != -1;
+	return this->remaining > 0;
 }
 
 char Ring_Buffer::peek (size_t offset) {
-	auto index = get_ring_index(this->ring_buffer_index + offset);
-	return (char) this->ring_buffer[index];
+	auto tmp = get_ring_index(this->index + offset);
+	return (char) this->buffer[tmp];
 }
 
 bool Ring_Buffer::is_next (char c) {
@@ -78,14 +81,14 @@ void Ring_Buffer::skip_until (const char* stopper) {
 	}
 }
 
-void Ring_Buffer::update_ring_buffer_if_needed () {
-	auto diff = this->ring_buffer_index - this->ring_buffer_last;
-	if (diff < 0) diff = -diff;
-	if (diff > (RING_BUFFER_SIZE / RING_BUFFER_SECTIONS)) {
-		while (this->ring_buffer_last != this->ring_buffer_index) {
-			this->ring_buffer[this->ring_buffer_last++] = fgetc(this->file);
-			this->ring_buffer_last = get_ring_index(this->ring_buffer_last);
-		}
+void Ring_Buffer::refill_ring_buffer_if_needed () {
+	auto last_idx = get_ring_index(this->last);
+	auto current_idx = get_ring_index(this->index);
+	int64_t diff = current_idx - last_idx;
+	if (abs(diff) >= RING_BUFFER_SECTION_SIZE) {
+		this->remaining += fread(this->buffer + this->last, 1,
+			RING_BUFFER_SECTION_SIZE, this->file);
+		this->last = get_ring_index(this->last + RING_BUFFER_SECTION_SIZE);
 	}
 }
 

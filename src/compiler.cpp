@@ -62,7 +62,7 @@ void Compiler::run () {
 		auto stop = Timer::clockStop(start);
 		printf("\n");
 		parser->on_finish(stop);
-		printf("  TOTAL                      %8.6fs\n", stop);
+		printf("\n  TOTAL                      %8.6fs\n", stop);
 	}
 	Timer::print("\nDone                         %8.6fs\n", total);
 }
