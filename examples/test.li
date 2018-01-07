@@ -38,7 +38,7 @@ test_factorial :: fn {
 }
 
 test_division :: fn {
-	num1 := 10;
+	num1 := 0b1010;
 	num2 := 9;
 	assert(num1 / 5 == 2);
 	assert(num2 / 2 == 4);

@@ -13,6 +13,9 @@
 
 #define STRING_EQUAL(str1, str2) (strcmp(str1, str2) == 0)
 
+#define CONSUME(check, c) while (check(c)) { assert(count < LEXER_BUFFER_SIZE);	\
+	_buffer[count++] = c; this->buffer->skip(); c = this->buffer->peek(); }
+
 const char* token_get_text (Token_Type type);
 
 Lexer::Lexer (FILE* file, const char* filename) {
@@ -136,12 +139,7 @@ bool Lexer::next_is_id () {
 	char c = this->buffer->peek();
     if (ALPHA(c)) {
 		size_t count = 0;
-        while (ALPHANUM(c)) {
-			assert(count < LEXER_BUFFER_SIZE);
-			_buffer[count++] = c;
-			this->buffer->skip();
-	        c = this->buffer->peek();
-        }
+		CONSUME(ALPHANUM, c)
 		_buffer[count] = 0;
 
 		this->next_type = TOKEN_ID;
@@ -179,60 +177,47 @@ bool Lexer::next_is_string () {
 }
 
 bool Lexer::next_is_number () {
-	size_t _buffer_count = 0;
+	size_t count = 0;
 	char c = this->buffer->peek();
 	if (c == '0' && this->buffer->peek(1) == 'x') {
-		_buffer[_buffer_count++] = '0';
-		_buffer[_buffer_count++] = 'x';
+		_buffer[count++] = '0';
+		_buffer[count++] = 'x';
 		this->buffer->skip(2);
 		c = this->buffer->peek();
-		while (ALPHANUM(c)) {
-			_buffer[_buffer_count++] = c;
-			this->buffer->skip();
-			c = this->buffer->peek();
-		}
+		CONSUME(ALPHANUM, c)
+		_buffer[count] = 0;
+
 		this->next_type = TOKEN_NUMBER;
-		_buffer[_buffer_count] = 0;
 		this->next_text = _strdup(_buffer);
 		return true;
 	} else if (c == '0' && this->buffer->peek(1) == 'b') {
-		_buffer[_buffer_count++] = '0';
-		_buffer[_buffer_count++] = 'b';
+		_buffer[count++] = '0';
+		_buffer[count++] = 'b';
 		this->buffer->skip(2);
 		c = this->buffer->peek();
-		while (ALPHANUM(c)) {
-			_buffer[_buffer_count++] = c;
-			this->buffer->skip();
-			c = this->buffer->peek();
-		}
+		CONSUME(DIGIT, c)
+		_buffer[count] = 0;
+
 		this->next_type = TOKEN_NUMBER;
-		_buffer[_buffer_count] = 0;
 		this->next_text = _strdup(_buffer);
 		return true;
 	} else {
 	    if (c == '+' || c == '-') {
-	        _buffer[_buffer_count++] = c;
+	        _buffer[count++] = c;
 			this->buffer->skip();
 	        c = this->buffer->peek();
 	    }
 	    if (DIGIT(c) || c == '.') {
-	        while (DIGIT(c)) {
-				_buffer[_buffer_count++] = c;
-				this->buffer->skip();
-		        c = this->buffer->peek();
-	        }
+			CONSUME(DIGIT, c)
 	        if (c == '.') {
-	            _buffer[_buffer_count++] = c;
+	            _buffer[count++] = c;
 	            this->buffer->skip();
 	            c = this->buffer->peek();
-	            while (DIGIT(c)) {
-		            _buffer[_buffer_count++] = c;
-		            this->buffer->skip();
-		            c = this->buffer->peek();
-	            }
+				CONSUME(DIGIT, c)
 	        }
+			_buffer[count] = 0;
+
 	        this->next_type = TOKEN_NUMBER;
-			_buffer[_buffer_count] = 0;
 			this->next_text = _strdup(_buffer);
 	        return true;
 	    }
