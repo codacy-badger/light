@@ -14,11 +14,6 @@ struct cmp_str_types {
     }
 };
 
-struct Cast_Instance {
-    Ast_Function* function = NULL;
-    bool is_implicid = false;
-};
-
 struct Types {
     map<const char*, Ast_Struct_Type*, cmp_str_types> struct_types;
     map<Ast_Expression*, Ast_Pointer_Type*> ptr_types;
@@ -26,13 +21,10 @@ struct Types {
     map<Ast_Expression*, Ast_Slice_Type*> sli_types;
     vector<Ast_Function_Type*> func_types;
 
-    map<Ast_Type_Definition*, map<Ast_Type_Definition*, Cast_Instance*>> casts;
-
 	Ast_Struct_Type* get_struct_type (const char* name);
 
 	Ast_Pointer_Type* get_pointer_type (Ast_Type_Definition* base_type);
 	Ast_Pointer_Type* get_or_create_pointer_type (Ast_Expression* base_type);
-    Ast_Pointer_Type* get_unique_pointer_type (Ast_Pointer_Type* ptr_type);
 
     Ast_Array_Type* get_unique_array_type (Ast_Array_Type* arr_type);
 	Ast_Array_Type* get_or_create_array_type (Ast_Expression* base_type, uint64_t size);
@@ -42,9 +34,6 @@ struct Types {
 
     Ast_Function_Type* get_unique_function_type (Ast_Function_Type* func_type);
     Ast_Function_Type* get_or_create_function_type (Ast_Function* func);
-
-    void add_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to, Ast_Function* func, bool is_implicid = false);
-    Cast_Instance* get_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to);
 
     bool is_implicid_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to);
 

@@ -240,11 +240,7 @@ struct Type_Checking : Pipe {
 					if (strcmp(ident->name, "length") == 0) {
 						binop->inferred_type = g_compiler->type_def_u64;
 					} else if (strcmp(ident->name, "data") == 0) {
-						auto ptr_type = new Ast_Pointer_Type();
-						ptr_type->inferred_type = g_compiler->type_def_type;
-						ptr_type->base = _array->base;
-						binop->inferred_type = g_compiler->types->get_unique_pointer_type(ptr_type);
-						g_compiler->types->compute_type_name_if_needed(binop->inferred_type);
+						binop->inferred_type = g_compiler->types->get_or_create_pointer_type(_array->base);
 					} else ERROR(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
 				} else ERROR(binop, "Right of attribute access is NOT an identifier");
 			} else ERROR(binop, "Left of attribute access has invalid type: '%s'", type_def->name);

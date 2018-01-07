@@ -27,19 +27,6 @@ Ast_Pointer_Type* Types::get_or_create_pointer_type (Ast_Expression* base_type) 
 	}
 }
 
-Ast_Pointer_Type* Types::get_unique_pointer_type (Ast_Pointer_Type* ptr_type) {
-    auto it = this->ptr_types.find(ptr_type->base);
-    if (it != this->ptr_types.end()) {
-		if (ptr_type != it->second) {
-			delete ptr_type;
-			return it->second;
-		} else return ptr_type;
-    } else {
-        this->ptr_types[ptr_type->base] = ptr_type;
-        return ptr_type;
-    }
-}
-
 Ast_Array_Type* Types::get_unique_array_type (Ast_Array_Type* arr_type) {
     auto it = this->arr_types.find(arr_type->base);
     if (it != this->arr_types.end()) {
@@ -136,23 +123,6 @@ Ast_Function_Type* Types::get_or_create_function_type (Ast_Function* func) {
     }
     func_type->ret_type = func->ret_type;
     return func_type;
-}
-
-void Types::add_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to, Ast_Function* func, bool is_implicid) {
-    auto cast_instance = new Cast_Instance();
-    cast_instance->function = func;
-    cast_instance->is_implicid = is_implicid;
-    this->casts[type_from][type_to] = cast_instance;
-}
-
-Cast_Instance* Types::get_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
-    auto it = this->casts.find(type_from);
-    if (it != this->casts.end()) {
-        auto it2 = it->second.find(type_to);
-        if (it2 != it->second.end()) {
-            return it2->second;
-        } else return NULL;
-    } else return NULL;
 }
 
 bool Types::is_implicid_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
