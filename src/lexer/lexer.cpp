@@ -18,9 +18,28 @@
 
 const char* token_get_text (Token_Type type);
 
-Lexer::Lexer (FILE* file, const char* filename) {
-	this->buffer = new Ring_Buffer(file, filename);
+FILE* open_file_or_stop (const char* filename, Location* location = NULL) {
+	FILE* file_ptr = NULL;
+	auto err = fopen_s(&file_ptr, filename, "r");
+	if (err) {
+		char buf[256];
+		strerror_s(buf, sizeof buf, err);
+		report_error_stop(location, "Cannot open file '%s': %s", filename, buf);
+	}
+	return file_ptr;
+}
+
+Lexer::Lexer (const char* filepath, Lexer* parent) {
+	FILE* file = parent
+		? open_file_or_stop(filepath, &parent->buffer->location)
+		: open_file_or_stop(filepath, NULL);
+	this->buffer = new Ring_Buffer(file, filepath);
 	this->parse_next();
+}
+
+Lexer::~Lexer () {
+	fclose(this->buffer->file);
+	delete this->buffer;
 }
 
 bool Lexer::parse_next () {

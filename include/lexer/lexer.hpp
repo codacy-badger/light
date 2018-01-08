@@ -11,7 +11,8 @@ struct Lexer {
 	char* next_text;
 	Token_Type next_type;
 
-	Lexer (FILE* file, const char* filename);
+	Lexer (const char* filepath, Lexer* parent);
+	~Lexer ();
 
 	bool parse_next ();
 	bool is_next_type (Token_Type type);

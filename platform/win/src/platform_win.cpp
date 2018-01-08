@@ -35,7 +35,7 @@ void os_get_current_directory (char* buffer) {
 	GetCurrentDirectory(MAX_PATH, buffer);
 }
 
-void os_get_absolute_path (char* relative_path, char* buffer, char** file_part) {
+void os_get_absolute_path (const char* relative_path, char* buffer, char** file_part) {
 	GetFullPathName(relative_path, MAX_PATH, buffer, file_part);
 }
 

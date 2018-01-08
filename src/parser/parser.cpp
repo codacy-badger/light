@@ -9,94 +9,75 @@ Ast* setup_ast_node (Lexer* lexer, Ast* node) {
 
 #define AST_NEW(T, ...) ((T*)setup_ast_node(lexer, new T(__VA_ARGS__)))
 
-FILE* open_file_or_stop (const char* filename, Location* location = NULL) {
-	FILE* file_ptr = NULL;
-	auto err = fopen_s(&file_ptr, filename, "r");
-	if (err) {
-		char buf[256];
-		strerror_s(buf, sizeof buf, err);
-		report_error_stop(location, "Cannot open file '%s': %s", filename, buf);
-	}
-	return file_ptr;
-}
+#define SET_PATH(other) if (strcmp(other, this->current_path) != 0) {			\
+	os_set_current_directory(other);											\
+	strcpy_s(this->current_path, MAX_PATH_LENGTH, other); }
 
-void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def) {
-	auto type_decl = ast_make_declaration(type_def->name, type_def);
-	block->list.push_back(type_decl);
-	parser->to_next(reinterpret_cast<Ast_Statement**>(&type_decl));
-}
+#define DECL_TYPE(type) this->add(ast_make_declaration(type->name, type), parent);
 
 Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
-	FILE* file = NULL;
-
-	auto abs_path = (char*) malloc(MAX_PATH_LENGHT);
 	char* file_part = NULL;
-	os_get_absolute_path(const_cast<char*>(filepath), abs_path, &file_part);
+	auto abs_path = (char*) malloc(MAX_PATH_LENGTH);
+	os_get_absolute_path(filepath, abs_path, &file_part);
 
-	bool do_paths_differ = false;
-	char last_path[MAX_PATH_LENGHT];
+	char last_path[MAX_PATH_LENGTH];
+	strcpy_s(last_path, MAX_PATH_LENGTH, this->current_path);
 
 	auto _c = *file_part;
 	*file_part = '\0';
-	if (strcmp(abs_path, this->current_path) != 0) {
-		os_get_current_directory(last_path);
-		os_set_current_directory(abs_path);
-		strcpy_s(this->current_path, MAX_PATH_LENGHT, abs_path);
-		do_paths_differ = true;
-	}
+	SET_PATH(abs_path);
 	*file_part = _c;
 
 	if (!parent) {
-		file = open_file_or_stop(abs_path, NULL);
-
 		parent = AST_NEW(Ast_Block);
 		parent->is_global = true;
 
-		push_new_type(this, parent, g_compiler->type_def_type);
-		push_new_type(this, parent, g_compiler->type_def_void);
-		push_new_type(this, parent, g_compiler->type_def_bool);
-		push_new_type(this, parent, g_compiler->type_def_s8);
-		push_new_type(this, parent, g_compiler->type_def_s16);
-		push_new_type(this, parent, g_compiler->type_def_s32);
-		push_new_type(this, parent, g_compiler->type_def_s64);
-		push_new_type(this, parent, g_compiler->type_def_u8);
-		push_new_type(this, parent, g_compiler->type_def_u16);
-		push_new_type(this, parent, g_compiler->type_def_u32);
-		push_new_type(this, parent, g_compiler->type_def_u64);
-		push_new_type(this, parent, g_compiler->type_def_f32);
-		push_new_type(this, parent, g_compiler->type_def_f64);
-		push_new_type(this, parent, g_compiler->type_def_usize);
-	} else file = open_file_or_stop(abs_path, &this->lexer->buffer->location);
+		DECL_TYPE(g_compiler->type_def_type);
+		DECL_TYPE(g_compiler->type_def_void);
+		DECL_TYPE(g_compiler->type_def_bool);
+		DECL_TYPE(g_compiler->type_def_s8);
+		DECL_TYPE(g_compiler->type_def_s16);
+		DECL_TYPE(g_compiler->type_def_s32);
+		DECL_TYPE(g_compiler->type_def_s64);
+		DECL_TYPE(g_compiler->type_def_u8);
+		DECL_TYPE(g_compiler->type_def_u16);
+		DECL_TYPE(g_compiler->type_def_u32);
+		DECL_TYPE(g_compiler->type_def_u64);
+		DECL_TYPE(g_compiler->type_def_f32);
+		DECL_TYPE(g_compiler->type_def_f64);
+		DECL_TYPE(g_compiler->type_def_usize);
+	}
 
 	auto tmp = this->lexer;
-	this->lexer = new Lexer(file, abs_path);
+	this->lexer = new Lexer(abs_path, this->lexer);
 	this->block(parent);
 	this->global_notes.clear();
 	this->lexer = tmp;
 
-	if (do_paths_differ) {
-		os_set_current_directory(last_path);
-		strcpy_s(this->current_path, MAX_PATH_LENGHT, last_path);
-	}
-	fclose(file);
+	SET_PATH(last_path);
 	return parent;
+}
+
+void Parser::add (Ast_Statement* stm, Ast_Block* block) {
+	if (!block) block = this->current_block;
+	block->list.push_back(stm);
+	if (block->is_global) {
+		this->to_next(&stm);
+	} else {
+		if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+			auto decl = static_cast<Ast_Declaration*>(stm);
+			if (decl->is_constant()) this->to_next(&stm);
+		}
+	}
 }
 
 void Parser::block (Ast_Block* inner_block) {
 	auto _tmp = this->current_block;
 	this->current_block = inner_block;
 
-	Ast_Statement* stm = this->statement();
+	auto stm = this->statement();
 	while (stm != NULL) {
-		this->current_block->list.push_back(stm);
-		if (this->current_block->is_global) {
-			this->to_next(&stm);
-		} else {
-			if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-				auto decl = static_cast<Ast_Declaration*>(stm);
-				if (decl->is_constant()) this->to_next(&stm);
-			}
-		}
+		this->add(stm);
 
 		if (this->lexer->is_next_type(TOKEN_EOF)) break;
 		else stm = this->statement();
