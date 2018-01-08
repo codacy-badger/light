@@ -42,6 +42,8 @@ void Compiler::run () {
 		printf("\n%s\n", filename);
 
 		auto parser = new Parser();
+		os_get_current_directory(parser->current_path);
+
 		// Mandatory
 		parser->append(new Foreign_Function());
 		parser->append(new Compile_Constants());

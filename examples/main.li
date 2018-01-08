@@ -1,10 +1,10 @@
-import "examples/print.li"
-import "examples/window.li"
-import "examples/opengl.li"
+import "print.li"
+import "window.li"
+import "opengl.li"
 
-import "examples/windows/gdi32.li"
-import "examples/windows/opengl.li"
-import "examples/windows/vulkan.li"
+import "windows/gdi32.li"
+import "windows/opengl.li"
+import "windows/vulkan.li"
 
 #run
 main :: fn {

@@ -1,4 +1,4 @@
-import "examples/print.li"
+import "print.li"
 
 PRE_VALUE :: 12;
 

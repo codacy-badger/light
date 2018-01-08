@@ -1,4 +1,4 @@
-import "examples/windows/user32.li"
+import "windows/user32.li"
 
 // We're not aligning the stack memory, so declaring a 2 byte variable
 // will make all pointer to further variables not addressable

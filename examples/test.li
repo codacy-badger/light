@@ -1,5 +1,5 @@
-import "examples/print.li"
-import "examples/sys.li"
+import "print.li"
+import "sys.li"
 
 #run
 main :: fn {

@@ -29,10 +29,22 @@ void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def)
 Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	FILE* file = NULL;
 
-	auto abs_path = (char*) malloc(260);
+	auto abs_path = (char*) malloc(MAX_PATH_LENGHT);
 	char* file_part = NULL;
 	os_get_absolute_path(const_cast<char*>(filepath), abs_path, &file_part);
-	printf("%s\n", abs_path);
+
+	bool do_paths_differ = false;
+	char last_path[MAX_PATH_LENGHT];
+
+	auto _c = *file_part;
+	*file_part = '\0';
+	if (strcmp(abs_path, this->current_path) != 0) {
+		os_get_current_directory(last_path);
+		os_set_current_directory(abs_path);
+		strcpy_s(this->current_path, MAX_PATH_LENGHT, abs_path);
+		do_paths_differ = true;
+	}
+	*file_part = _c;
 
 	if (!parent) {
 		file = open_file_or_stop(abs_path, NULL);
@@ -62,6 +74,10 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	this->global_notes.clear();
 	this->lexer = tmp;
 
+	if (do_paths_differ) {
+		os_set_current_directory(last_path);
+		strcpy_s(this->current_path, MAX_PATH_LENGHT, last_path);
+	}
 	fclose(file);
 	return parent;
 }

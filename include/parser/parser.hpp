@@ -9,12 +9,15 @@
 #include "parser/pipes.hpp"
 #include "parser/ast.hpp"
 
+#define MAX_PATH_LENGHT 260
+
 using namespace std;
 
 struct Compiler;
 
 struct Parser : Pipe {
 	Lexer* lexer = NULL;
+	char current_path[MAX_PATH_LENGHT];
 	Ast_Block* current_block = NULL;
 
 	vector<Ast_Note*> global_notes;
