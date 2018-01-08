@@ -38,7 +38,7 @@ struct Symbol_Resolution : Pipe {
 	void on_statement(Ast_Statement** stm) {
 	    this->collected_ident_ptrs.clear();
 
-		auto start = Timer::getTime();
+		auto start = os_get_time();
 	    Pipe::handle(stm);
 		if ((*stm)->stm_type == AST_STATEMENT_DECLARATION) {
 			auto decl = static_cast<Ast_Declaration*>((*stm));
@@ -49,7 +49,7 @@ struct Symbol_Resolution : Pipe {
 	            } else it++;
 			}
 		}
-		this->accumulated_spans += Timer::clockStop(start);
+		this->accumulated_spans += os_clock_stop(start);
 
 	    if (this->collected_ident_ptrs.size() > 0) {
 	        this->unresolved[(*stm)] = this->collected_ident_ptrs;

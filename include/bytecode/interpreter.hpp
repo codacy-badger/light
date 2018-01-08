@@ -1,7 +1,7 @@
 #pragma once
 
+#include "platform.hpp"
 #include "bytecode/instructions.hpp"
-#include "bytecode/foreign_functions.hpp"
 #include "bytecode/constants.hpp"
 #include "bytecode/globals.hpp"
 
@@ -16,7 +16,6 @@
 typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
 struct Interpreter {
-	Foreign_Functions* foreign_functions = new Foreign_Functions();
 	Bytecode_Constants* constants = new Bytecode_Constants();
 	Bytecode_Globals* globals = new Bytecode_Globals();
 

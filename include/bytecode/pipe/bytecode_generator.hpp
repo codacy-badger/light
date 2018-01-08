@@ -436,10 +436,9 @@ struct Bytecode_Generator : Pipe {
 		auto func = (*func_ptr);
 
 		if (func->is_native()) {
-			auto ffunctions = g_compiler->interp->foreign_functions;
-			auto module = ffunctions->get_or_add_module(func->foreign_module_name);
+			auto module = os_get_module(func->foreign_module_name);
 			if (module) {
-				auto function_pointer = ffunctions->get_or_add_function(module, func->foreign_function_name);
+				auto function_pointer = os_get_function(module, func->foreign_function_name);
 				if (!function_pointer) {
 	                ERROR(func, "Function '%s' not found in module '%s'!",
 						func->foreign_function_name, func->foreign_module_name);

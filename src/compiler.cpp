@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "timer.hpp"
+#include "platform.hpp"
 #include "parser/pipe/symbol_resolution.hpp"
 #include "parser/pipe/constant_folding.hpp"
 #include "parser/pipe/unique_types.hpp"
@@ -37,7 +37,7 @@ Compiler::Compiler () {
 void Compiler::run () {
 	printf("%s v%s\n", LIGHT_NAME, LIGHT_VERSION);
 
-	auto total = Timer::getTime();
+	auto total = os_get_time();
 	for (auto filename : this->settings->input_files) {
 		printf("\n%s\n", filename);
 
@@ -57,14 +57,14 @@ void Compiler::run () {
 		// Ouput
 		//parser->append(new PrintPipe());
 
-		auto start = Timer::getTime();
+		auto start = os_get_time();
 		parser->top_level_block();
-		auto stop = Timer::clockStop(start);
+		auto stop = os_clock_stop(start);
 		printf("\n");
 		parser->on_finish(stop);
 		printf("\n  TOTAL                      %8.6fs\n", stop);
 	}
-	Timer::print("\nDone                         %8.6fs\n", total);
+	printf("\nDone                         %8.6fs\n", os_clock_stop(total));
 }
 
 void Compiler::stop () {

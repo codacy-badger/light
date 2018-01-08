@@ -1,10 +1,10 @@
-#include "timer.hpp"
+#include "platform.hpp"
 
 #include <windows.h>
 
 double PCFreq = 0;
 
-uint64_t Timer::getTime () {
+uint64_t os_get_time () {
 	LARGE_INTEGER li;
 
 	if (PCFreq == 0) {
@@ -17,8 +17,16 @@ uint64_t Timer::getTime () {
     return static_cast<uint64_t>(li.QuadPart);
 }
 
-double Timer::clockStop (uint64_t start) {
+double os_clock_stop (uint64_t start) {
 	LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
     return double(li.QuadPart - start) / PCFreq;
+}
+
+void* os_get_module (const char* module_name) {
+    return LoadLibrary(module_name);
+}
+
+void* os_get_function (void* module, const char* function_name) {
+    return GetProcAddress((HMODULE)module, function_name);
 }

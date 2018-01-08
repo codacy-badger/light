@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include "parser/ast.hpp"
-#include "timer.hpp"
+#include "platform.hpp"
 
 #define PIPE_NAME(name) name() { this->pipe_name = #name; }
 
@@ -13,9 +13,9 @@ struct Pipe {
 	Pipe* next = NULL;
 
 	virtual void on_statement (Ast_Statement** stm) {
-		auto start = Timer::getTime();
+		auto start = os_get_time();
 		this->handle(stm);
-		this->accumulated_spans += Timer::clockStop(start);
+		this->accumulated_spans += os_clock_stop(start);
 		this->to_next(stm);
 	}
 
