@@ -3,7 +3,7 @@
 #include "compiler.hpp"
 
 Ast* setup_ast_node (Lexer* lexer, Ast* node) {
-	node->location = lexer->buffer->location;
+	if (lexer) node->location = lexer->buffer->location;
 	return node;
 }
 
@@ -20,38 +20,50 @@ FILE* open_file_or_stop (const char* filename, Location* location = NULL) {
 	return file_ptr;
 }
 
-Parser::Parser (const char* filepath) {
-	auto file = open_file_or_stop(filepath);
-	this->lexer = new Lexer(file, filepath);
-}
-
 void push_new_type (Parser* parser, Ast_Block* block, Ast_Struct_Type* type_def) {
 	auto type_decl = ast_make_declaration(type_def->name, type_def);
 	block->list.push_back(type_decl);
 	parser->to_next(reinterpret_cast<Ast_Statement**>(&type_decl));
 }
 
-Ast_Block* Parser::top_level_block () {
-	auto _block = AST_NEW(Ast_Block);
-	_block->is_global = true;
+Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
+	FILE* file = NULL;
 
-	push_new_type(this, _block, g_compiler->type_def_type);
-	push_new_type(this, _block, g_compiler->type_def_void);
-	push_new_type(this, _block, g_compiler->type_def_bool);
-	push_new_type(this, _block, g_compiler->type_def_s8);
-	push_new_type(this, _block, g_compiler->type_def_s16);
-	push_new_type(this, _block, g_compiler->type_def_s32);
-	push_new_type(this, _block, g_compiler->type_def_s64);
-	push_new_type(this, _block, g_compiler->type_def_u8);
-	push_new_type(this, _block, g_compiler->type_def_u16);
-	push_new_type(this, _block, g_compiler->type_def_u32);
-	push_new_type(this, _block, g_compiler->type_def_u64);
-	push_new_type(this, _block, g_compiler->type_def_f32);
-	push_new_type(this, _block, g_compiler->type_def_f64);
-	push_new_type(this, _block, g_compiler->type_def_usize);
+	auto abs_path = (char*) malloc(260);
+	char* file_part = NULL;
+	os_get_absolute_path(const_cast<char*>(filepath), abs_path, &file_part);
+	printf("%s\n", abs_path);
 
-	this->block(_block);
-	return _block;
+	if (!parent) {
+		file = open_file_or_stop(abs_path, NULL);
+
+		parent = AST_NEW(Ast_Block);
+		parent->is_global = true;
+
+		push_new_type(this, parent, g_compiler->type_def_type);
+		push_new_type(this, parent, g_compiler->type_def_void);
+		push_new_type(this, parent, g_compiler->type_def_bool);
+		push_new_type(this, parent, g_compiler->type_def_s8);
+		push_new_type(this, parent, g_compiler->type_def_s16);
+		push_new_type(this, parent, g_compiler->type_def_s32);
+		push_new_type(this, parent, g_compiler->type_def_s64);
+		push_new_type(this, parent, g_compiler->type_def_u8);
+		push_new_type(this, parent, g_compiler->type_def_u16);
+		push_new_type(this, parent, g_compiler->type_def_u32);
+		push_new_type(this, parent, g_compiler->type_def_u64);
+		push_new_type(this, parent, g_compiler->type_def_f32);
+		push_new_type(this, parent, g_compiler->type_def_f64);
+		push_new_type(this, parent, g_compiler->type_def_usize);
+	} else file = open_file_or_stop(abs_path, &this->lexer->buffer->location);
+
+	auto tmp = this->lexer;
+	this->lexer = new Lexer(file, abs_path);
+	this->block(parent);
+	this->global_notes.clear();
+	this->lexer = tmp;
+
+	fclose(file);
+	return parent;
 }
 
 void Parser::block (Ast_Block* inner_block) {
@@ -105,17 +117,9 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip();
 
 			if (this->lexer->is_next_type(TOKEN_STRING)) {
-				auto filepath = this->lexer->text();
-				auto file = open_file_or_stop(filepath, &this->lexer->buffer->location);
-
-				auto tmp = this->lexer;
-				this->lexer = new Lexer(file, filepath);
-				this->block(this->current_block);
-				this->global_notes.clear();
-				this->lexer = tmp;
-
-				fclose(file);
-			} else report_error_stop(&this->lexer->buffer->location, "Import statements must be followed by string literal");
+				this->run(this->lexer->text(), this->current_block);
+			} else report_error_stop(&this->lexer->buffer->location,
+				"Import statements must be followed by a string literal");
 			this->lexer->optional_skip(TOKEN_STM_END);
 
 			stm = this->statement();

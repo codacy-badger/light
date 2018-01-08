@@ -30,3 +30,15 @@ void* os_get_module (const char* module_name) {
 void* os_get_function (void* module, const char* function_name) {
     return GetProcAddress((HMODULE)module, function_name);
 }
+
+void os_get_current_directory (char* buffer) {
+	GetCurrentDirectory(MAX_PATH, buffer);
+}
+
+void os_get_absolute_path (char* relative_path, char* buffer, char** file_part) {
+	GetFullPathName(relative_path, MAX_PATH, buffer, file_part);
+}
+
+bool os_set_current_directory (char* new_path) {
+	return SetCurrentDirectory(new_path);
+}

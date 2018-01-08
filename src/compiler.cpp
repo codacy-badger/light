@@ -41,7 +41,7 @@ void Compiler::run () {
 	for (auto filename : this->settings->input_files) {
 		printf("\n%s\n", filename);
 
-		this->parser = new Parser(filename);
+		auto parser = new Parser();
 		// Mandatory
 		parser->append(new Foreign_Function());
 		parser->append(new Compile_Constants());
@@ -55,10 +55,9 @@ void Compiler::run () {
 		parser->append(new Bytecode_Generator());
 		parser->append(new Bytecode_Runner());
 		// Ouput
-		//parser->append(new PrintPipe());
 
 		auto start = os_get_time();
-		parser->top_level_block();
+		parser->run(filename);
 		auto stop = os_clock_stop(start);
 		printf("\n");
 		parser->on_finish(stop);

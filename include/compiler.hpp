@@ -21,7 +21,6 @@ struct Compiler {
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
-	Parser* parser = NULL;
 
 	Ast_Struct_Type* type_def_type;
 	Ast_Struct_Type* type_def_void;

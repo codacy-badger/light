@@ -20,11 +20,8 @@ struct Parser : Pipe {
 	vector<Ast_Note*> global_notes;
 	vector<Ast_Note*> notes;
 
-	Parser (const char* param);
+	Ast_Block* run (const char* filepath, Ast_Block* parent = NULL);
 
-	void expected (const char* expect, const char* after);
-
-	Ast_Block* top_level_block ();
 	void block (Ast_Block* inner_block);
 	Ast_Note* note ();
 	Ast_Statement* statement ();
