@@ -24,7 +24,7 @@ struct Ring_Buffer {
 	bool has_next ();
 	char peek (size_t offset = 0);
 	bool is_next (char c);
-	bool is_next (const char* expected);
+	bool is_next (const char* expected, size_t length);
 	void skip (size_t count = 1);
 	void skip_any (const char* chars);
 	void skip_until (const char* stopper);

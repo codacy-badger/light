@@ -8,8 +8,11 @@
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 #define LEXER_IGNORED " \n\t"
 
-#define STRING_TOKEN(literal, type) if (this->buffer->is_next(literal)) { handle_token(type, literal); return true; }
-#define CHAR_TOKEN(c, type) if (this->buffer->is_next(c)) { handle_token(type); return true; }
+#define STRING_TOKEN(literal, length, type)										\
+	if (this->buffer->is_next(literal, length))									\
+	{ handle_token(type, literal); return true; }
+#define CHAR_TOKEN(c, type) if (this->buffer->is_next(c))						\
+	{ handle_token(type); return true; }
 
 #define STRING_EQUAL(str1, str2) (strcmp(str1, str2) == 0)
 
@@ -51,18 +54,18 @@ bool Lexer::parse_next () {
 		return false;
 	}
 
-    STRING_TOKEN("->", TOKEN_ARROW);
-	STRING_TOKEN("&&", TOKEN_DOUBLE_AMP);
-	STRING_TOKEN("||", TOKEN_DOUBLE_PIPE);
-	STRING_TOKEN(">>", TOKEN_RIGHT_SHIFT);
-	STRING_TOKEN("<<", TOKEN_LEFT_SHIFT);
-	STRING_TOKEN("==", TOKEN_DOUBLE_EQUAL);
-	STRING_TOKEN("!=", TOKEN_NOT_EQUAL);
-	STRING_TOKEN(">=", TOKEN_GREATER_EQUAL);
-	STRING_TOKEN("<=", TOKEN_LESSER_EQUAL);
-	STRING_TOKEN("++", TOKEN_DOUBLE_ADD);
-	STRING_TOKEN("--", TOKEN_DOUBLE_SUB);
-	STRING_TOKEN("..", TOKEN_DOUBLE_DOT);
+    STRING_TOKEN("->", 2, TOKEN_ARROW);
+	STRING_TOKEN("&&", 2, TOKEN_DOUBLE_AMP);
+	STRING_TOKEN("||", 2, TOKEN_DOUBLE_PIPE);
+	STRING_TOKEN(">>", 2, TOKEN_RIGHT_SHIFT);
+	STRING_TOKEN("<<", 2, TOKEN_LEFT_SHIFT);
+	STRING_TOKEN("==", 2, TOKEN_DOUBLE_EQUAL);
+	STRING_TOKEN("!=", 2, TOKEN_NOT_EQUAL);
+	STRING_TOKEN(">=", 2, TOKEN_GREATER_EQUAL);
+	STRING_TOKEN("<=", 2, TOKEN_LESSER_EQUAL);
+	STRING_TOKEN("++", 2, TOKEN_DOUBLE_ADD);
+	STRING_TOKEN("--", 2, TOKEN_DOUBLE_SUB);
+	STRING_TOKEN("..", 2, TOKEN_DOUBLE_DOT);
 
 	CHAR_TOKEN('+', TOKEN_ADD);
 	CHAR_TOKEN('-', TOKEN_SUB);

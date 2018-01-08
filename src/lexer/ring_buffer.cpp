@@ -5,10 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-inline
-size_t get_ring_index (size_t index) {
-	return index % RING_BUFFER_SIZE;
-}
+#define IDX(index) (index) % RING_BUFFER_SIZE
 
 Ring_Buffer::Ring_Buffer (FILE* file, const char* filename) {
 	// If this rule doesn't get satisfied the sections of the buffer will
@@ -16,8 +13,6 @@ Ring_Buffer::Ring_Buffer (FILE* file, const char* filename) {
 	assert((RING_BUFFER_SIZE % RING_BUFFER_SECTIONS) == 0);
 
 	this->location.filename = filename;
-	this->location.line = 1;
-	this->location.col = 1;
 	this->file = file;
 
 	this->remaining += fread(this->buffer, 1, RING_BUFFER_SIZE, this->file);
@@ -25,7 +20,7 @@ Ring_Buffer::Ring_Buffer (FILE* file, const char* filename) {
 
 char Ring_Buffer::next () {
 	char output = (char) this->buffer[this->index++];
-	this->index = get_ring_index(this->index);
+	this->index = IDX(this->index);
 	this->refill_ring_buffer_if_needed();
 	this->handle_location(output);
 	this->remaining -= 1;
@@ -37,16 +32,14 @@ bool Ring_Buffer::has_next () {
 }
 
 char Ring_Buffer::peek (size_t offset) {
-	auto tmp = get_ring_index(this->index + offset);
-	return (char) this->buffer[tmp];
+	return this->buffer[IDX(this->index + offset)];
 }
 
 bool Ring_Buffer::is_next (char c) {
 	return this->peek(0) == c;
 }
 
-bool Ring_Buffer::is_next (const char* expected) {
-	auto length = strlen(expected);
+bool Ring_Buffer::is_next (const char* expected, size_t length) {
 	for (unsigned int i = 0; i < length; i++) {
         if (this->peek(i) != expected[i])
             return false;
@@ -82,13 +75,13 @@ void Ring_Buffer::skip_until (const char* stopper) {
 }
 
 void Ring_Buffer::refill_ring_buffer_if_needed () {
-	auto last_idx = get_ring_index(this->last);
-	auto current_idx = get_ring_index(this->index);
+	auto last_idx = IDX(this->last);
+	auto current_idx = IDX(this->index);
 	int64_t diff = current_idx - last_idx;
 	if (abs(diff) >= RING_BUFFER_SECTION_SIZE) {
 		this->remaining += fread(this->buffer + this->last, 1,
 			RING_BUFFER_SECTION_SIZE, this->file);
-		this->last = get_ring_index(this->last + RING_BUFFER_SECTION_SIZE);
+		this->last = IDX(this->last + RING_BUFFER_SECTION_SIZE);
 	}
 }
 
