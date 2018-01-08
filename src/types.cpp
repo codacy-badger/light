@@ -122,6 +122,7 @@ Ast_Function_Type* Types::get_or_create_function_type (Ast_Function* func) {
         func_type->arg_types.push_back(arg_decl->type);
     }
     func_type->ret_type = func->ret_type;
+	this->func_types.push_back(func_type);
     return func_type;
 }
 

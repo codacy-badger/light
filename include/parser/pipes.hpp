@@ -157,6 +157,7 @@ struct Pipe {
 		for (auto &arg : (*func)->arg_decls) {
 			this->handle(&arg);
 		}
+		this->handle(&(*func)->ret_type);
 		if ((*func)->scope) this->handle(&(*func)->scope);
 	}
 

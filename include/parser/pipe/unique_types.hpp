@@ -4,6 +4,7 @@
 
 #include <map>
 #include <vector>
+#include <assert.h>
 
 using namespace std;
 
@@ -22,26 +23,27 @@ struct Unique_Types : Pipe {
 		Pipe::handle(ptr_type);
 
 	    g_compiler->types->compute_type_name_if_needed(*ptr_type);
+		assert((*ptr_type)->name);
 	}
 
 	void handle (Ast_Array_Type** arr_type) {
 		Pipe::handle(arr_type);
 
-	    (*arr_type) = g_compiler->types->get_unique_array_type(*arr_type);
 	    g_compiler->types->compute_type_name_if_needed(*arr_type);
+		assert((*arr_type)->name);
 	}
 
 	void handle (Ast_Slice_Type** slice) {
 		Pipe::handle(slice);
 
-		(*slice) = g_compiler->types->get_unique_slice_type(*slice);
-	    g_compiler->types->compute_type_name_if_needed(*slice);
+	   	g_compiler->types->compute_type_name_if_needed(*slice);
+		assert((*slice)->name);
 	}
 
 	void handle (Ast_Function_Type** func_type) {
 		Pipe::handle(func_type);
 
-	    (*func_type) = g_compiler->types->get_unique_function_type(*func_type);
 	    g_compiler->types->compute_type_name_if_needed(*func_type);
+		assert((*func_type)->name);
 	}
 };

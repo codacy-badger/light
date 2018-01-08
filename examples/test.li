@@ -108,7 +108,8 @@ test_function_pointers :: fn {
 }
 
 test_struct :: fn {
-	vecs : [2] Vec3;
+	vecs : [2]Vec3;
+	vecs2 : [2]Vec3;
 
 	Vec3 :: struct {
 		x: u64;
@@ -121,6 +122,13 @@ test_struct :: fn {
 	assert(vecs[0].x == 12);
 	assert(vecs[0].y == 16);
 	assert(vecs[0].y != 49);
+
+	assert(vecs2[1].y != 16);
+	vecs2[1] = vecs[0];
+
+	assert(vecs2[1].x == 12);
+	assert(vecs2[1].y == 16);
+	assert(vecs2[1].y != 49);
 
 	v_ptr := *(vecs[0]);
 	v_ptr.x = 14;
