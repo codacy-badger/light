@@ -51,7 +51,10 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	auto tmp = this->lexer;
 	this->lexer = new Lexer(abs_path, this->lexer);
 	this->block(parent);
+
+	this->all_lines += this->lexer->buffer->location.line;
 	this->global_notes.clear();
+	delete this->lexer;
 	this->lexer = tmp;
 
 	SET_PATH(last_path);

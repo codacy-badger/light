@@ -23,6 +23,8 @@ struct Parser : Pipe {
 	vector<Ast_Note*> global_notes;
 	vector<Ast_Note*> notes;
 
+	size_t all_lines = 0;
+
 	Ast_Block* run (const char* filepath, Ast_Block* parent = NULL);
 	void add (Ast_Statement* stm, Ast_Block* block = NULL);
 
