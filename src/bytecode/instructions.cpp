@@ -2,7 +2,7 @@
 
 #include "compiler.hpp"
 
-Bytecode_Type bytecode_get_type (Ast_Type_Definition* decl_ty) {
+Bytecode_Type bytecode_get_type (Ast_Type_Instance* decl_ty) {
 	switch (decl_ty->typedef_type) {
 		case AST_TYPEDEF_ARRAY:
 		case AST_TYPEDEF_POINTER:
@@ -30,7 +30,7 @@ Bytecode_Type bytecode_get_type (Ast_Type_Definition* decl_ty) {
 
 Bytecode_Type bytecode_get_type (Ast_Expression* exp) {
 	if (exp->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-		return bytecode_get_type(static_cast<Ast_Type_Definition*>(exp));
+		return bytecode_get_type(static_cast<Ast_Type_Instance*>(exp));
 	} else return BYTECODE_TYPE_VOID;
 }
 

@@ -15,7 +15,7 @@ struct ASTPrinter {
 	static void print (Ast_Unary* unop, int tabs = 0);
 	static void print (Ast_Literal* cons);
 
-	static void print (Ast_Type_Definition* tydef, int tabs = 0, bool name_only = false);
+	static void print (Ast_Type_Instance* tydef, int tabs = 0, bool name_only = false);
 	static void print (Ast_Struct_Type* type, int tabs = 0, bool name_only = false);
 	static void print (Ast_Function_Type* type, int tabs = 0);
 	static void print (Ast_Pointer_Type* type, int tabs = 0);

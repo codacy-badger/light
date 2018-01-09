@@ -34,7 +34,7 @@ struct Parser : Pipe {
 	Ast_Expression* expression (Ast_Ident* initial = NULL, short minPrecedence = 1);
 	void comma_separated_arguments (vector<Ast_Expression*>* arguments);
 	Ast_Expression* _atom (Ast_Ident* initial = NULL);
-	Ast_Expression* type_definition ();
+	Ast_Expression* type_instance ();
 	Ast_Function_Type* function_type ();
 	Ast_Literal* literal ();
 	Ast_Ident* ident (const char* name = NULL);

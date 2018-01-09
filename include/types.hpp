@@ -23,7 +23,7 @@ struct Types {
 
 	Ast_Struct_Type* get_struct_type (const char* name);
 
-	Ast_Pointer_Type* get_pointer_type (Ast_Type_Definition* base_type);
+	Ast_Pointer_Type* get_pointer_type (Ast_Type_Instance* base_type);
 	Ast_Pointer_Type* get_or_create_pointer_type (Ast_Expression* base_type);
 
     Ast_Array_Type* get_unique_array_type (Ast_Array_Type* arr_type);
@@ -35,7 +35,7 @@ struct Types {
     Ast_Function_Type* get_unique_function_type (Ast_Function_Type* func_type);
     Ast_Function_Type* get_or_create_function_type (Ast_Function* func);
 
-    bool is_implicid_cast (Ast_Type_Definition* type_from, Ast_Type_Definition* type_to);
+    bool is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to);
 
-    void compute_type_name_if_needed (Ast_Type_Definition* type_def);
+    void compute_type_name_if_needed (Ast_Type_Instance* type_def);
 };

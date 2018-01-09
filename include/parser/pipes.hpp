@@ -146,7 +146,7 @@ struct Pipe {
 				break;
 			}
 			case AST_EXPRESSION_TYPE_DEFINITION: {
-				this->handle(reinterpret_cast<Ast_Type_Definition**>(exp));
+				this->handle(reinterpret_cast<Ast_Type_Instance**>(exp));
 				break;
 			}
 		}
@@ -187,7 +187,7 @@ struct Pipe {
 	virtual void handle (Ast_Ident**) {}
 	virtual void handle (Ast_Literal**) {}
 
-	void handle (Ast_Type_Definition** type_def) {
+	void handle (Ast_Type_Instance** type_def) {
 		switch ((*type_def)->typedef_type) {
 			case AST_TYPEDEF_STRUCT: {
 				this->handle(reinterpret_cast<Ast_Struct_Type**>(type_def));

@@ -73,7 +73,7 @@ void ASTPrinter::print (Ast_Return* ret, int tabs) {
 void ASTPrinter::print (Ast_Expression* exp, int tabs, bool name_only) {
 	switch (exp->exp_type) {
 		case AST_EXPRESSION_TYPE_DEFINITION: {
-			print(static_cast<Ast_Type_Definition*>(exp), tabs, name_only);
+			print(static_cast<Ast_Type_Instance*>(exp), tabs, name_only);
 			break;
 		}
 		case AST_EXPRESSION_FUNCTION: {
@@ -104,7 +104,7 @@ void ASTPrinter::print (Ast_Expression* exp, int tabs, bool name_only) {
 	}
 }
 
-void ASTPrinter::print (Ast_Type_Definition* tydef, int tabs, bool name_only) {
+void ASTPrinter::print (Ast_Type_Instance* tydef, int tabs, bool name_only) {
 	switch (tydef->typedef_type) {
 		case AST_TYPEDEF_FUNCTION: {
 			print(static_cast<Ast_Function_Type*>(tydef), tabs);

@@ -6,7 +6,7 @@
 
 bool ast_is_poly (Ast_Expression* exp) {
     if (exp->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-        auto type_def = static_cast<Ast_Type_Definition*>(exp);
+        auto type_def = static_cast<Ast_Type_Instance*>(exp);
         switch (type_def->typedef_type) {
             default:                    return false;
             case AST_TYPEDEF_POLY:      return true;

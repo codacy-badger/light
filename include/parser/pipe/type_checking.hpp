@@ -12,7 +12,7 @@
 #define ERROR(node, ...) report_error_stop(&node->location, __VA_ARGS__)
 #define WARN(node, ...) report_warning(&node->location, __VA_ARGS__)
 
-bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Definition* type_from, Ast_Type_Definition* type_to) {
+bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
 	if (type_from == type_to) return true;
 	else if (g_compiler->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
@@ -34,7 +34,7 @@ void compute_struct_size (Ast_Struct_Type* _struct) {
 			decl->attribute_index = i;
 
 			assert (decl->type->exp_type == AST_EXPRESSION_TYPE_DEFINITION);
-			auto defn_ty = static_cast<Ast_Type_Definition*>(decl->type);
+			auto defn_ty = static_cast<Ast_Type_Instance*>(decl->type);
 			byte_offset += defn_ty->byte_size;
 		}
 		_struct->byte_size = byte_offset;
@@ -77,7 +77,7 @@ struct Type_Checking : Pipe {
 		if (ret->exp) Pipe::handle(&ret->exp);
 
 		auto fn = ret->block->get_function();
-		auto ret_type_def = static_cast<Ast_Type_Definition*>(fn->ret_type);
+		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->ret_type);
 		if (!fn) {
 			ERROR(ret, "Return statement must be inside a function");
 		} else if (ret->exp) {
@@ -102,7 +102,7 @@ struct Type_Checking : Pipe {
 		Pipe::handle(&cast->value);
 		Pipe::handle(&cast->cast_to);
 		if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-			auto type_def = static_cast<Ast_Type_Definition*>(cast->cast_to);
+			auto type_def = static_cast<Ast_Type_Instance*>(cast->cast_to);
 			cast->inferred_type = type_def;
 		} else {
 			ERROR(cast, "Cast target is not a type");
@@ -143,7 +143,7 @@ struct Type_Checking : Pipe {
 			}
 		} else ERROR(arr, "Arrays can only have constant size");
 
-		auto type_def = static_cast<Ast_Type_Definition*>(arr->base);
+		auto type_def = static_cast<Ast_Type_Instance*>(arr->base);
 		arr->byte_size = arr->length() * type_def->byte_size;
 	}
 
@@ -181,12 +181,12 @@ struct Type_Checking : Pipe {
 			ERROR(call, "Function calls can only be performed to functions types");
 
 		auto func_type = static_cast<Ast_Function_Type*>(call->fn->inferred_type);
-		auto ret_ty = static_cast<Ast_Type_Definition*>(func_type->ret_type);
+		auto ret_ty = static_cast<Ast_Type_Instance*>(func_type->ret_type);
 		call->inferred_type = ret_ty;
 
 		if (call->arguments.size() == func_type->arg_types.size()) {
 			for (int i = 0; i < call->arguments.size(); i++) {
-				auto arg_type = static_cast<Ast_Type_Definition*>(func_type->arg_types[i]);
+				auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_types[i]);
 				auto param_exp = call->arguments[i];
 				Pipe::handle(&call->arguments[i]);
 
@@ -214,7 +214,7 @@ struct Type_Checking : Pipe {
 			uint8_t deref_count = 0;
 			while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
 				auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
-				type_def = static_cast<Ast_Type_Definition*>(ptr_type->base);
+				type_def = static_cast<Ast_Type_Instance*>(ptr_type->base);
 				deref_count += 1;
 			}
 			if (deref_count > WARN_MAX_DEREF_COUNT) {
@@ -227,7 +227,7 @@ struct Type_Checking : Pipe {
 	                auto ident = static_cast<Ast_Ident*>(binop->rhs);
 	                auto attribute = _struct->find_attribute(ident->name);
 	                if (attribute) {
-	                    auto attr_type = static_cast<Ast_Type_Definition*>(attribute->type);
+	                    auto attr_type = static_cast<Ast_Type_Instance*>(attribute->type);
 	                    ident->inferred_type = attr_type;
 	                    binop->inferred_type = attr_type;
 	                    ident->declaration = attribute;
@@ -247,7 +247,7 @@ struct Type_Checking : Pipe {
 	    } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
 			if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 				auto arr_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
-				binop->inferred_type = static_cast<Ast_Type_Definition*>(arr_type->base);
+				binop->inferred_type = static_cast<Ast_Type_Instance*>(arr_type->base);
 
 				Pipe::handle(&binop->rhs);
 				if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, g_compiler->type_def_u64)) {
@@ -260,7 +260,7 @@ struct Type_Checking : Pipe {
 					if (data_decl) {
 						Pipe::handle(&binop->rhs);
 						auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
-						binop->inferred_type = static_cast<Ast_Type_Definition*>(ptr_type->base);
+						binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 					} else ERROR(binop, "Slice type doesn't have data attribute");
 				} else ERROR(binop, "Left struct is not a slice");
 			} else ERROR(binop, "Left of array access is not of array or slice type");
@@ -320,7 +320,7 @@ struct Type_Checking : Pipe {
 	            auto inf_type = unop->exp->inferred_type;
 	            if (inf_type->typedef_type == AST_TYPEDEF_POINTER) {
 	                auto ptr_type = static_cast<Ast_Pointer_Type*>(inf_type);
-	                auto base_type = static_cast<Ast_Type_Definition*>(ptr_type->base);
+	                auto base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 	                unop->inferred_type = base_type;
 	            } else ERROR(unop, "Can't dereference a non-pointer type expression");
 	            break;
@@ -337,7 +337,7 @@ struct Type_Checking : Pipe {
 		auto ident = (*ident_ptr);
 
 		if (ident->declaration) {
-			ident->inferred_type = static_cast<Ast_Type_Definition*>(ident->declaration->type);
+			ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
 		} else ERROR(ident, "Indetifier '%s' has no declaration", ident->name);
 	}
 

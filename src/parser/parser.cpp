@@ -226,7 +226,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	}
 
 	if (this->lexer->check_skip(TOKEN_COLON)) {
-		decl->type = this->type_definition();
+		decl->type = this->type_instance();
 	}
 
 	if (this->lexer->optional_skip(TOKEN_COLON)) {
@@ -240,7 +240,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 			auto fn = static_cast<Ast_Function*>(decl->expression);
 			if (!fn->name) fn->name = decl->name;
 		} else if (decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-			auto defn_ty = static_cast<Ast_Type_Definition*>(decl->expression);
+			auto defn_ty = static_cast<Ast_Type_Instance*>(decl->expression);
 			if (defn_ty->typedef_type == AST_TYPEDEF_STRUCT) {
 				auto _struct = static_cast<Ast_Struct_Type*>(defn_ty);
 				if (!_struct->name) _struct->name = _strdup(decl->name);
@@ -258,7 +258,7 @@ Ast_Declaration* Parser::declaration_or_type () {
 	if (decl) return decl;
 	else {
 		decl = AST_NEW(Ast_Declaration);
-		decl->type = this->type_definition();
+		decl->type = this->type_instance();
 		return decl;
 	}
 }
@@ -339,7 +339,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		}
 
 		if (this->lexer->optional_skip(TOKEN_ARROW)) {
-			func->ret_type = this->type_definition();
+			func->ret_type = this->type_instance();
 		} else func->ret_type = g_compiler->type_def_void;
 
 		if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
@@ -353,7 +353,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->lexer->optional_skip(TOKEN_CAST)) {
 		auto cast = AST_NEW(Ast_Cast);
 		this->lexer->check_skip(TOKEN_PAR_OPEN);
-		cast->cast_to = this->type_definition();
+		cast->cast_to = this->type_instance();
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		cast->value = this->expression();
 		return cast;
@@ -374,17 +374,17 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else return this->literal();
 }
 
-Ast_Expression* Parser::type_definition () {
+Ast_Expression* Parser::type_instance () {
 	if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
 		return this->function_type();
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
-		auto base_type = this->type_definition();
+		auto base_type = this->type_instance();
 		return g_compiler->types->get_or_create_pointer_type(base_type);
 	} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
 		auto length = this->expression();
 		if (length) {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
-			auto base_type = this->type_definition();
+			auto base_type = this->type_instance();
 
 			auto _array = AST_NEW(Ast_Array_Type);
 			_array->length_exp = length;
@@ -392,12 +392,12 @@ Ast_Expression* Parser::type_definition () {
 			return _array;
 		} else {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
-			auto base_type = this->type_definition();
+			auto base_type = this->type_instance();
 			return g_compiler->types->get_or_create_slice_type(base_type);
 		}
 	} else if (this->lexer->optional_skip(TOKEN_DOLLAR)) {
 		if (this->lexer->is_next_type(TOKEN_ID)) {
-			auto poly_type = AST_NEW(Ast_Type_Definition);
+			auto poly_type = AST_NEW(Ast_Type_Instance);
 			poly_type->typedef_type = AST_TYPEDEF_POLY;
 			poly_type->name = _strdup(this->ident()->name);
 			return poly_type;
@@ -434,7 +434,7 @@ Ast_Function_Type* Parser::function_type () {
 	}
 
 	if (this->lexer->optional_skip(TOKEN_ARROW)) {
-		fn_type->ret_type = this->type_definition();
+		fn_type->ret_type = this->type_instance();
 	} else fn_type->ret_type = g_compiler->type_def_void;
 
 	return fn_type;

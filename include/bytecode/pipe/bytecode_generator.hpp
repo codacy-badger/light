@@ -111,7 +111,7 @@ struct Bytecode_Generator : Pipe {
 	        for (uint8_t i = 0; i < func->arg_decls.size(); i++) {
 	            auto decl = func->arg_decls[i];
 
-	            auto decl_type = static_cast<Ast_Type_Definition*>(decl->type);
+	            auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
 	            decl->stack_offset = this->stack_offset;
 	            this->stack_offset += decl_type->byte_size;
 
@@ -154,7 +154,7 @@ struct Bytecode_Generator : Pipe {
 	            }
 			}
 	    } else {
-			auto ty_decl = static_cast<Ast_Type_Definition*>(decl->type);
+			auto ty_decl = static_cast<Ast_Type_Instance*>(decl->type);
 			if (decl->decl_flags & AST_DECL_FLAG_GLOBAL) {
 				decl->global_offset = g_compiler->interp->globals->add(ty_decl->byte_size);
 			} else {
@@ -319,7 +319,7 @@ struct Bytecode_Generator : Pipe {
 	            auto type_def = binop->lhs->inferred_type;
 	            while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
 	                auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
-	                type_def = static_cast<Ast_Type_Definition*>(ptr_type->base);
+	                type_def = static_cast<Ast_Type_Instance*>(ptr_type->base);
 	                this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, type_def->byte_size));
 	            }
 
@@ -344,7 +344,7 @@ struct Bytecode_Generator : Pipe {
 					Pipe::handle(&binop->rhs);
 
 					auto array_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
-					auto array_base_type = static_cast<Ast_Type_Definition*>(array_type->base);
+					auto array_base_type = static_cast<Ast_Type_Instance*>(array_type->base);
 		            auto element_size = array_base_type->byte_size;
 
 		            if (element_size > 1) {
@@ -363,7 +363,7 @@ struct Bytecode_Generator : Pipe {
 						auto data_decl = struct_type->find_attribute("data");
 						if (data_decl) {
 							auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
-							auto array_base_type = static_cast<Ast_Type_Definition*>(ptr_type->base);
+							auto array_base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 				            auto element_size = array_base_type->byte_size;
 
 							PUSH_L(tmp, true);

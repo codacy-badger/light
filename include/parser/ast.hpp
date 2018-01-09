@@ -8,7 +8,7 @@ struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
 struct Ast_Struct_Type;
-struct Ast_Type_Definition;
+struct Ast_Type_Instance;
 
 struct Instruction;
 
@@ -140,7 +140,7 @@ enum Ast_Expression_Type {
 
 struct Ast_Expression : Ast_Statement {
 	Ast_Expression_Type exp_type = AST_EXPRESSION_UNDEFINED;
-	Ast_Type_Definition* inferred_type = NULL;
+	Ast_Type_Instance* inferred_type = NULL;
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
 };
@@ -152,7 +152,7 @@ struct Ast_Cast : Ast_Expression {
 	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
 };
 
-enum Ast_Type_Definition_Type {
+enum Ast_Type_Instance_Type {
 	AST_TYPEDEF_UNDEFINED = 0,
 	AST_TYPEDEF_FUNCTION,
 	AST_TYPEDEF_STRUCT,
@@ -163,16 +163,16 @@ enum Ast_Type_Definition_Type {
 
 #define AST_POINTER_SIZE sizeof(void*)
 
-struct Ast_Type_Definition : Ast_Expression {
-	Ast_Type_Definition_Type typedef_type = AST_TYPEDEF_UNDEFINED;
+struct Ast_Type_Instance : Ast_Expression {
+	Ast_Type_Instance_Type typedef_type = AST_TYPEDEF_UNDEFINED;
 	bool is_signed = false;
 	size_t byte_size = 0;
 	char* name = NULL;
 
-	Ast_Type_Definition() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
+	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
 };
 
-struct Ast_Struct_Type : Ast_Type_Definition {
+struct Ast_Struct_Type : Ast_Type_Instance {
 	vector<Ast_Declaration*> attributes;
 	bool is_slice = false;
 
@@ -185,7 +185,7 @@ struct Ast_Struct_Type : Ast_Type_Definition {
 	Ast_Declaration* find_attribute (const char* name);
 };
 
-struct Ast_Pointer_Type : Ast_Type_Definition {
+struct Ast_Pointer_Type : Ast_Type_Instance {
 	Ast_Expression* base = NULL;
 
 	Ast_Pointer_Type(Ast_Expression* base = NULL) {
@@ -195,7 +195,7 @@ struct Ast_Pointer_Type : Ast_Type_Definition {
 	}
 };
 
-struct Ast_Array_Type : Ast_Type_Definition {
+struct Ast_Array_Type : Ast_Type_Instance {
 	Ast_Expression* base = NULL;
 	Ast_Expression* length_exp = NULL;
 
@@ -212,7 +212,7 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 	Ast_Slice_Type(Ast_Expression* base_type);
 };
 
-struct Ast_Function_Type : Ast_Type_Definition {
+struct Ast_Function_Type : Ast_Type_Instance {
 	vector<Ast_Expression*> arg_types;
 	Ast_Expression* ret_type = NULL;
 
