@@ -128,7 +128,7 @@ struct Ast_Import : Ast_Statement {
 
 enum Ast_Expression_Type {
 	AST_EXPRESSION_UNDEFINED = 0,
-	AST_EXPRESSION_TYPE_DEFINITION,
+	AST_EXPRESSION_TYPE_INSTANCE,
 	AST_EXPRESSION_FUNCTION,
 	AST_EXPRESSION_BINARY,
 	AST_EXPRESSION_UNARY,
@@ -169,7 +169,7 @@ struct Ast_Type_Instance : Ast_Expression {
 	size_t byte_size = 0;
 	char* name = NULL;
 
-	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_DEFINITION; }
+	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
 };
 
 struct Ast_Struct_Type : Ast_Type_Instance {
@@ -358,6 +358,7 @@ struct Ast_Ident : Ast_Expression {
 	}
 };
 
+void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);
 Ast_Ident* ast_make_ident (const char* name);

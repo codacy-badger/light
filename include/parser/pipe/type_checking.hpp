@@ -33,7 +33,7 @@ void compute_struct_size (Ast_Struct_Type* _struct) {
 			decl->attribute_byte_offset = byte_offset;
 			decl->attribute_index = i;
 
-			assert (decl->type->exp_type == AST_EXPRESSION_TYPE_DEFINITION);
+			assert (decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
 			auto defn_ty = static_cast<Ast_Type_Instance*>(decl->type);
 			byte_offset += defn_ty->byte_size;
 		}
@@ -101,11 +101,20 @@ struct Type_Checking : Pipe {
 
 		Pipe::handle(&cast->value);
 		Pipe::handle(&cast->cast_to);
-		if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
-			auto type_def = static_cast<Ast_Type_Instance*>(cast->cast_to);
-			cast->inferred_type = type_def;
-		} else {
-			ERROR(cast, "Cast target is not a type");
+
+		if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+			cast->inferred_type = static_cast<Ast_Type_Instance*>(cast->cast_to);
+		} else ERROR(cast, "Cast target is not a type");
+	}
+
+	void handle (Ast_Type_Instance** type_inst_ptr) {
+		auto type_inst = (*type_inst_ptr);
+
+		Pipe::handle(type_inst_ptr);
+
+		if (type_inst && type_inst->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+			auto tmp = static_cast<Ast_Type_Instance*>(type_inst);
+			ast_compute_type_name_if_needed(tmp);
 		}
 	}
 
@@ -192,8 +201,8 @@ struct Type_Checking : Pipe {
 
 				if (arg_type != param_exp->inferred_type) {
 					if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
-						ERROR(call, "Type mismatch on parameter #%d, expected '%s' but got '%s'",
-							i, arg_type->name, param_exp->inferred_type->name);
+						ERROR(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
+							i + 1, arg_type->name, param_exp->inferred_type->name);
 					}
 				}
 			}

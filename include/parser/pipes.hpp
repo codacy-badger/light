@@ -42,7 +42,7 @@ struct Pipe {
 		last->next = next_pipe;
 	}
 
-	void handle (Ast_Statement** stm) {
+	virtual void handle (Ast_Statement** stm) {
 		for (auto &note : (*stm)->notes) {
 			this->handle(&note);
 		}
@@ -115,7 +115,7 @@ struct Pipe {
 
 	virtual void handle (Ast_Break**) {}
 
-	void handle (Ast_Expression** exp) {
+	virtual void handle (Ast_Expression** exp) {
 		switch ((*exp)->exp_type) {
 			case AST_EXPRESSION_FUNCTION: {
 				this->handle(reinterpret_cast<Ast_Function**>(exp));
@@ -145,7 +145,7 @@ struct Pipe {
 				this->handle(reinterpret_cast<Ast_Literal**>(exp));
 				break;
 			}
-			case AST_EXPRESSION_TYPE_DEFINITION: {
+			case AST_EXPRESSION_TYPE_INSTANCE: {
 				this->handle(reinterpret_cast<Ast_Type_Instance**>(exp));
 				break;
 			}
@@ -187,7 +187,7 @@ struct Pipe {
 	virtual void handle (Ast_Ident**) {}
 	virtual void handle (Ast_Literal**) {}
 
-	void handle (Ast_Type_Instance** type_def) {
+	virtual void handle (Ast_Type_Instance** type_def) {
 		switch ((*type_def)->typedef_type) {
 			case AST_TYPEDEF_STRUCT: {
 				this->handle(reinterpret_cast<Ast_Struct_Type**>(type_def));

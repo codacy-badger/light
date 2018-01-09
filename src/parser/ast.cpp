@@ -5,7 +5,7 @@
 #include <string.h>
 
 bool ast_is_poly (Ast_Expression* exp) {
-    if (exp->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
+    if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
         auto type_def = static_cast<Ast_Type_Instance*>(exp);
         switch (type_def->typedef_type) {
             default:                    return false;
@@ -277,6 +277,110 @@ bool Ast_Binary::is_left_associative (Token_Type opToken) {
 		case TOKEN_GREATER:			return false;
 		case TOKEN_LESSER:			return false;
 		default: 		  			return false;
+	}
+}
+
+char* _get_type_name (Ast_Expression* exp) {
+	if (exp->exp_type == AST_EXPRESSION_IDENT) {
+		auto ident = static_cast<Ast_Ident*>(exp);
+		return const_cast<char*>(ident->name);
+	} else if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+		auto type_inst = static_cast<Ast_Type_Instance*>(exp);
+		ast_compute_type_name_if_needed(type_inst);
+		return type_inst->name;
+	} else abort();
+}
+
+void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
+	if (!type_inst->name) {
+		switch (type_inst->typedef_type) {
+	        case AST_TYPEDEF_STRUCT: {
+				auto _struct = static_cast<Ast_Struct_Type*>(type_inst);
+				if (_struct->is_slice) {
+					auto slice = static_cast<Ast_Slice_Type*>(type_inst);
+					auto base_name = _get_type_name(slice->base);
+	        		auto base_name_length = strlen(base_name);
+	        		slice->name = (char*) malloc(base_name_length + 3);
+	        		slice->name[0] = '[';
+	        		slice->name[1] = ']';
+	        		memcpy(slice->name + 2, base_name, base_name_length);
+	        		slice->name[base_name_length + 2] = '\0';
+				}
+				break;
+			}
+	        case AST_TYPEDEF_POINTER: {
+	            auto _ptr = static_cast<Ast_Pointer_Type*>(type_inst);
+	            if (_ptr->name == NULL) {
+					auto base_name = _get_type_name(_ptr->base);
+	        		auto base_name_length = strlen(base_name);
+	        		_ptr->name = (char*) malloc(base_name_length + 2);
+	        		_ptr->name[0] = '*';
+	        		memcpy(_ptr->name + 1,base_name, base_name_length);
+	        		_ptr->name[base_name_length + 1] = '\0';
+	        	}
+	            return;
+	        }
+	        case AST_TYPEDEF_ARRAY: {
+	            auto _arr = static_cast<Ast_Array_Type*>(type_inst);
+	            if (_arr->name == NULL) {
+					auto base_name = _get_type_name(_arr->base);
+	        		auto base_name_length = strlen(base_name);
+					_arr->name = (char*) malloc(base_name_length + 23);
+					sprintf_s(_arr->name, base_name_length + 23, "[%lld]%s", _arr->length(), base_name);
+	        	}
+	            return;
+	        }
+	        case AST_TYPEDEF_FUNCTION: {
+	            auto _func = static_cast<Ast_Function_Type*>(type_inst);
+	            if (_func->name == NULL) {
+	        		auto arg_types = _func->arg_types;
+
+	        		size_t name_size = strlen("fn (");
+	        		if (arg_types.size() > 0) {
+						auto param_name = _get_type_name(arg_types[0]);
+	        			name_size += strlen(param_name);
+	        			for (int i = 1; i < arg_types.size(); i++) {
+	        				name_size += strlen(", ");
+	        				param_name = _get_type_name(arg_types[i]);
+	        				name_size += strlen(param_name);
+	        			}
+	        		}
+	        		name_size += strlen(") -> ");
+					auto ret_name = _get_type_name(_func->ret_type);
+	        		name_size += strlen(ret_name);
+	        		_func->name = (char*) malloc(name_size + 1);
+
+	        		size_t offset = 0;
+	        		memcpy(_func->name, "fn (", 4);
+	        		offset += 4;
+
+					size_t par_type_name_length;
+	        		if (arg_types.size() > 0) {
+						auto param_name = _get_type_name(arg_types[0]);
+						par_type_name_length = strlen(param_name);
+	        			memcpy(_func->name + offset, param_name, par_type_name_length);
+	        			offset += par_type_name_length;
+	        			for (int i = 1; i < arg_types.size(); i++) {
+	        				memcpy(_func->name + offset, ", ", 2);
+	        				offset += 2;
+	        				param_name = _get_type_name(arg_types[i]);
+							par_type_name_length = strlen(param_name);
+	        				memcpy(_func->name + offset, param_name, par_type_name_length);
+	        				offset += par_type_name_length;
+	        			}
+	        		}
+
+	        		memcpy(_func->name + offset, ") -> ", 5);
+	        		offset += 5;
+					par_type_name_length = strlen(ret_name);
+	        		memcpy(_func->name + offset, ret_name, par_type_name_length);
+	        		offset += par_type_name_length;
+	        		_func->name[offset] = '\0';
+	        	}
+	            return;
+	        }
+	        default: return;
+	    }
 	}
 }
 

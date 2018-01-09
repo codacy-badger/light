@@ -248,7 +248,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 		if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 			auto fn = static_cast<Ast_Function*>(decl->expression);
 			if (!fn->name) fn->name = decl->name;
-		} else if (decl->expression->exp_type == AST_EXPRESSION_TYPE_DEFINITION) {
+		} else if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 			auto defn_ty = static_cast<Ast_Type_Instance*>(decl->expression);
 			if (defn_ty->typedef_type == AST_TYPEDEF_STRUCT) {
 				auto _struct = static_cast<Ast_Struct_Type*>(defn_ty);
@@ -389,11 +389,12 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 }
 
 Ast_Expression* Parser::type_instance () {
+	Ast_Expression* type_inst = NULL;
 	if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
-		return this->function_type();
+		type_inst = this->function_type();
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		auto base_type = this->type_instance();
-		return g_compiler->types->get_or_create_pointer_type(base_type);
+		type_inst = g_compiler->types->get_or_create_pointer_type(base_type);
 	} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
 		auto length = this->expression();
 		if (length) {
@@ -403,33 +404,33 @@ Ast_Expression* Parser::type_instance () {
 			auto _array = AST_NEW(Ast_Array_Type);
 			_array->length_exp = length;
 			_array->base = base_type;
-			return _array;
+			type_inst = _array;
 		} else {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 			auto base_type = this->type_instance();
-			return g_compiler->types->get_or_create_slice_type(base_type);
+			type_inst = g_compiler->types->get_or_create_slice_type(base_type);
 		}
 	} else if (this->lexer->optional_skip(TOKEN_DOLLAR)) {
 		if (this->lexer->is_next_type(TOKEN_ID)) {
 			auto poly_type = AST_NEW(Ast_Type_Instance);
 			poly_type->typedef_type = AST_TYPEDEF_POLY;
 			poly_type->name = _strdup(this->ident()->name);
-			return poly_type;
+			type_inst = poly_type;
 		} else {
 			report_error_stop(&this->lexer->buffer->location, "Expected ID after polymorphic symbol");
-			return NULL;
 		}
 	} else {
 		auto ident = this->ident();
 		if (ident != NULL) {
 			auto _struct = g_compiler->types->get_struct_type(ident->name);
-			if (_struct == NULL) return ident;
+			if (_struct == NULL) type_inst = ident;
 			else {
 				delete ident;
-				return _struct;
+				type_inst = _struct;
 			}
-		} else return NULL;
+		}
 	}
+	return type_inst;
 }
 
 Ast_Function_Type* Parser::function_type () {

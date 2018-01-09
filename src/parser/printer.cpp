@@ -72,7 +72,7 @@ void ASTPrinter::print (Ast_Return* ret, int tabs) {
 
 void ASTPrinter::print (Ast_Expression* exp, int tabs, bool name_only) {
 	switch (exp->exp_type) {
-		case AST_EXPRESSION_TYPE_DEFINITION: {
+		case AST_EXPRESSION_TYPE_INSTANCE: {
 			print(static_cast<Ast_Type_Instance*>(exp), tabs, name_only);
 			break;
 		}
