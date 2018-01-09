@@ -224,6 +224,12 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	decl->name = ident->name;
 	delete ident;
 
+	auto other = this->current_block->find_non_const_declaration(decl->name);
+	if (other && decl->scope == other->scope) {
+		report_error(&decl->location, "redeclaration of '%s'", decl->name);
+		report_error_stop(&other->location, "previous declaration here");
+	}
+
 	if (this->current_block->is_global) {
 		decl->decl_flags |= AST_DECL_FLAG_GLOBAL;
 	}
@@ -328,8 +334,13 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		return _struct;
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
 		auto func = AST_NEW(Ast_Function);
+		func->scope = AST_NEW(Ast_Block, this->current_block);
+		func->scope->scope_of = func;
 
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
+			auto _tmp = this->current_block;
+			this->current_block = func->scope;
+
 			auto decl = this->declaration();
 			while (decl != NULL) {
 				decl->decl_flags &= ~AST_DECL_FLAG_GLOBAL;
@@ -339,6 +350,8 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 				decl = this->declaration();
 			}
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
+
+			this->current_block = _tmp;
 		}
 
 		if (this->lexer->optional_skip(TOKEN_ARROW)) {
@@ -346,8 +359,6 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		} else func->ret_type = g_compiler->type_def_void;
 
 		if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
-			func->scope = AST_NEW(Ast_Block, this->current_block);
-			func->scope->scope_of = func;
 			this->block(func->scope);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 		}

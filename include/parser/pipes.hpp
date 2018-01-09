@@ -23,7 +23,7 @@ struct Pipe {
 		if (this->pipe_name) {
 			assert(full_time > 0);
 			double percent = (this->accumulated_spans * 100.0) / full_time;
-			printf("  - %-25s%8.6fs ( %5.2f %% )\n", this->pipe_name, this->accumulated_spans, percent);
+			printf("  - %-25s%8.6f s (%5.2f %%)\n", this->pipe_name, this->accumulated_spans, percent);
 		}
 		this->try_finish(full_time);
 	}

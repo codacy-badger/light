@@ -64,11 +64,11 @@ void Compiler::run () {
 		printf("\n");
 		parser->on_finish(stop);
 		auto ms_per_line = (stop * 1000) / parser->all_lines;
-		printf("\n  TOTAL                      %8.6fs\n", stop);
-		printf("  LoC                        %8zd  (%5.3f ms / line)\n",
+		printf("\n  LoC                        %8zd   (%5.3f ms / line)\n",
 			parser->all_lines, ms_per_line);
+		printf("  TOTAL                      %8.6f s\n", stop);
 	}
-	printf("\nDone                         %8.6fs\n", os_clock_stop(total));
+	printf("\nDone                         %8.6f s\n", os_clock_stop(total));
 }
 
 void Compiler::stop () {

@@ -102,9 +102,7 @@ test_function_pointers :: fn {
 		return num;
 	}
 
-	sqrt :: fn (num: u64) -> u64 {
-		num * num
-	}
+	sqrt :: fn (n: u64) -> u64 { n * n }
 }
 
 test_struct :: fn {
