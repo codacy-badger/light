@@ -10,7 +10,7 @@
 using namespace std;
 
 void try_replace_ident_by_const (Ast_Ident** ident_ptr2) {
-    auto decl = reinterpret_cast<Ast_Declaration*>((*ident_ptr2)->declaration);
+    auto decl = (*ident_ptr2)->declaration;
     if (decl && decl->is_constant()) {
         auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr2);
         delete *_addr;

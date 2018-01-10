@@ -23,6 +23,7 @@ Ast_Pointer_Type* Types::get_or_create_pointer_type (Ast_Expression* base_type) 
     } else {
 		auto ptr_type = new Ast_Pointer_Type(base_type);
 		this->ptr_types[base_type] = ptr_type;
+		ast_compute_type_name_if_needed(ptr_type);
 		return ptr_type;
 	}
 }
@@ -61,6 +62,7 @@ Ast_Slice_Type* Types::get_or_create_slice_type (Ast_Expression* base_type) {
     } else {
 		auto sli_type = new Ast_Slice_Type(base_type);
 		this->sli_types[base_type] = sli_type;
+		ast_compute_type_name_if_needed(sli_type);
 		return sli_type;
 	}
 }
@@ -123,21 +125,19 @@ Ast_Function_Type* Types::get_or_create_function_type (Ast_Function* func) {
     }
     func_type->ret_type = func->ret_type;
 	this->func_types.push_back(func_type);
+	ast_compute_type_name_if_needed(func_type);
     return func_type;
 }
 
 bool Types::is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-	if (type_from->typedef_type == AST_TYPEDEF_POINTER && type_to->typedef_type == AST_TYPEDEF_POINTER) {
-		auto ptr_type_from = static_cast<Ast_Pointer_Type*>(type_from);
-		auto ptr_type_to = static_cast<Ast_Pointer_Type*>(type_to);
-		return ptr_type_from->base == ptr_type_to->base;
-	} else if (type_from->is_signed && type_to->is_signed) {
+	if (type_from->is_signed && type_to->is_signed) {
 		return type_to->byte_size >= type_from->byte_size;
 	} else if (!type_from->is_signed && type_to->is_signed) {
 		return type_to->byte_size > type_from->byte_size;
 	} else if (type_from->is_signed && !type_to->is_signed) {
 		return false;
 	} else {
+		// @Hack this allows cast from u8 to *u8, which should not be allowed.
 		return type_to->byte_size >= type_from->byte_size;
 	}
 }

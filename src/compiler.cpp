@@ -50,8 +50,8 @@ void Compiler::run () {
 		//parser->append(new Poly_Functions());
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
-		parser->append(new Unique_Types());
 		parser->append(new Type_Checking());
+		parser->append(new Unique_Types());
 		parser->append(new Array_Attributes());
 		// Bytecode
 		parser->append(new Bytecode_Generator());

@@ -13,7 +13,8 @@
 #define WARN(node, ...) report_warning(&node->location, __VA_ARGS__)
 
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-	if (type_from == type_to) return true;
+	//if (type_from == type_to) return true;
+	if (ast_type_are_equal(type_from, type_to)) return true;
 	else if (g_compiler->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
 		cast->location = (*exp_ptr)->location;
@@ -199,11 +200,9 @@ struct Type_Checking : Pipe {
 				auto param_exp = call->arguments[i];
 				Pipe::handle(&call->arguments[i]);
 
-				if (arg_type != param_exp->inferred_type) {
-					if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
-						ERROR(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
-							i + 1, arg_type->name, param_exp->inferred_type->name);
-					}
+				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
+					ERROR(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
+						i + 1, arg_type->name, param_exp->inferred_type->name);
 				}
 			}
 		} else {

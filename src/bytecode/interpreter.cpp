@@ -11,7 +11,7 @@
 #include "bytecode/primitive_unary.hpp"
 #include "bytecode/primitive_binary.hpp"
 
-#define DEBUG false
+//#define BYTECODE_DEBUG
 
 #define IS_INTERNAL_FUNCTION(func) func->stm_type == AST_STATEMENT_EXPRESSION 	\
 	&& func->exp_type == AST_EXPRESSION_FUNCTION								\

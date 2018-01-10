@@ -359,6 +359,7 @@ struct Ast_Ident : Ast_Expression {
 };
 
 void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);
+bool ast_type_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2);
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);
 Ast_Ident* ast_make_ident (const char* name);

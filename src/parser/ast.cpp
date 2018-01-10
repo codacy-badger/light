@@ -384,6 +384,46 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 	}
 }
 
+bool ast_type_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2) {
+    if (type_inst1 == type_inst2) return true;
+    else {
+        if (type_inst1->typedef_type != type_inst2->typedef_type) return false;
+        switch (type_inst1->typedef_type) {
+            case AST_TYPEDEF_STRUCT: return false;
+            case AST_TYPEDEF_POINTER: {
+                auto ptr_type1 = static_cast<Ast_Pointer_Type*>(type_inst1);
+                auto ptr_type2 = static_cast<Ast_Pointer_Type*>(type_inst2);
+                auto base_type1 = static_cast<Ast_Type_Instance*>(ptr_type1->base);
+                auto base_type2 = static_cast<Ast_Type_Instance*>(ptr_type2->base);
+                return ast_type_are_equal(base_type1, base_type2);
+                break;
+            }
+            case AST_TYPEDEF_ARRAY: {
+                auto arr_type1 = static_cast<Ast_Array_Type*>(type_inst1);
+                auto arr_type2 = static_cast<Ast_Array_Type*>(type_inst2);
+                auto base_type1 = static_cast<Ast_Type_Instance*>(arr_type1->base);
+                auto base_type2 = static_cast<Ast_Type_Instance*>(arr_type2->base);
+                return ast_type_are_equal(base_type1, base_type2);
+                break;
+            }
+            case AST_TYPEDEF_FUNCTION: {
+                auto func_type1 = static_cast<Ast_Function_Type*>(type_inst1);
+                auto func_type2 = static_cast<Ast_Function_Type*>(type_inst2);
+                for (size_t i = 0; i < func_type1->arg_types.size(); i++) {
+                    auto arg_type1 = static_cast<Ast_Type_Instance*>(func_type1->arg_types[i]);
+                    auto arg_type2 = static_cast<Ast_Type_Instance*>(func_type2->arg_types[i]);
+                    if (!ast_type_are_equal(arg_type1, arg_type2)) return false;
+                }
+                auto ret_type1 = static_cast<Ast_Type_Instance*>(func_type1->ret_type);
+                auto ret_type2 = static_cast<Ast_Type_Instance*>(func_type2->ret_type);
+                return ast_type_are_equal(ret_type1, ret_type2);
+                break;
+            }
+        }
+        return true;
+    }
+}
+
 Ast_Literal* ast_make_literal (const char* value) {
 	auto lit = new Ast_Literal();
 	lit->literal_type = AST_LITERAL_STRING;
