@@ -4,32 +4,6 @@
 
 #include <string.h>
 
-bool ast_is_poly (Ast_Expression* exp) {
-    if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-        auto type_def = static_cast<Ast_Type_Instance*>(exp);
-        switch (type_def->typedef_type) {
-            default:                    return false;
-            case AST_TYPEDEF_POLY:      return true;
-            case AST_TYPEDEF_POINTER: {
-                auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
-                return ast_is_poly(ptr_type->base);
-            }
-            case AST_TYPEDEF_ARRAY: {
-                auto arr_type = static_cast<Ast_Array_Type*>(type_def);
-                return ast_is_poly(arr_type->base);
-            }
-            case AST_TYPEDEF_FUNCTION: {
-                auto func_type = static_cast<Ast_Function_Type*>(type_def);
-                for (auto arg_type : func_type->arg_types) {
-                    if (ast_is_poly(arg_type)) return true;
-                }
-                if (ast_is_poly(func_type->ret_type)) return true;
-                return false;
-            }
-        }
-    } else return false;
-}
-
 Ast_Note* Ast_Statement::get_note (const char* name) {
     for (auto note : this->notes) {
         if (strcmp(note->name, name) == 0) return note;

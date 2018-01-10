@@ -158,7 +158,6 @@ enum Ast_Type_Instance_Type {
 	AST_TYPEDEF_STRUCT,
 	AST_TYPEDEF_POINTER,
 	AST_TYPEDEF_ARRAY,
-	AST_TYPEDEF_POLY,
 };
 
 #define AST_POINTER_SIZE sizeof(void*)
@@ -237,13 +236,6 @@ struct Ast_Function : Ast_Expression {
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 
 	bool is_native () { return this->foreign_module_name; }
-
-	bool is_poly () {
-		for (auto arg_decl : this->arg_decls) {
-			if (ast_is_poly(arg_decl->type)) return true;
-		}
-		return false;
-	}
 };
 
 enum Ast_Binary_Type {

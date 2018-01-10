@@ -10,7 +10,6 @@
 #include "parser/pipe/foreign_function.hpp"
 #include "parser/pipe/compile_constants.hpp"
 #include "parser/pipe/array_attributes.hpp"
-#include "parser/pipe/poly_functions.hpp"
 
 #include "bytecode/pipe/bytecode_generator.hpp"
 #include "bytecode/pipe/bytecode_runner.hpp"
@@ -47,7 +46,6 @@ void Compiler::run () {
 		// Mandatory
 		parser->append(new Foreign_Function());
 		parser->append(new Compile_Constants());
-		//parser->append(new Poly_Functions());
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Type_Checking());

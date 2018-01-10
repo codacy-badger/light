@@ -410,15 +410,6 @@ Ast_Expression* Parser::type_instance () {
 			auto base_type = this->type_instance();
 			type_inst = g_compiler->types->get_or_create_slice_type(base_type);
 		}
-	} else if (this->lexer->optional_skip(TOKEN_DOLLAR)) {
-		if (this->lexer->is_next_type(TOKEN_ID)) {
-			auto poly_type = AST_NEW(Ast_Type_Instance);
-			poly_type->typedef_type = AST_TYPEDEF_POLY;
-			poly_type->name = _strdup(this->ident()->name);
-			type_inst = poly_type;
-		} else {
-			report_error_stop(&this->lexer->buffer->location, "Expected ID after polymorphic symbol");
-		}
 	} else {
 		auto ident = this->ident();
 		if (ident != NULL) {
