@@ -77,7 +77,7 @@ struct Symbol_Resolution : Pipe {
 	    }
 	}
 
-	void on_finish (double full_time) {
+	void on_finish () {
 	    if (this->unresolved.size() > 0) {
 	        set<Ast_Ident*> idents;
 	        this->find_unique_unresolved(&idents);
@@ -87,7 +87,6 @@ struct Symbol_Resolution : Pipe {
 	        g_compiler->stop();
 	        return;
 	    }
-		Pipe::on_finish(full_time);
 	}
 
 	void on_resolved (Ast_Statement** stm) {

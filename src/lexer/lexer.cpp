@@ -185,6 +185,8 @@ bool Lexer::next_is_string () {
 				switch (c) {
 					case 'n': _buffer[count++] = '\n'; break;
 					case 't': _buffer[count++] = '\t'; break;
+					case '0': _buffer[count++] = '\0'; break;
+					case '"': _buffer[count++] = '\"'; break;
 					default:  _buffer[count++] = c;    break;
 				}
 			} else _buffer[count++] = c;

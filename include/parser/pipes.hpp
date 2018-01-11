@@ -19,21 +19,16 @@ struct Pipe {
 		this->to_next(stm);
 	}
 
-	virtual void on_finish (double full_time) {
-		if (this->pipe_name) {
-			assert(full_time > 0);
-			double percent = (this->accumulated_spans * 100.0) / full_time;
-			printf("  - %-25s%8.6f s (%5.2f %%)\n", this->pipe_name, this->accumulated_spans, percent);
-		}
-		this->try_finish(full_time);
+	virtual void on_finish () {
+		this->try_finish();
 	}
 
 	void to_next (Ast_Statement** stm) {
 		if (next) next->on_statement(stm);
 	}
 
-	void try_finish(double full_time) {
-		if (next) next->on_finish(full_time);
+	void try_finish() {
+		if (next) next->on_finish();
 	}
 
 	void append (Pipe* next_pipe) {

@@ -13,6 +13,10 @@
 #include "bytecode/pipe/bytecode_generator.hpp"
 #include "bytecode/pipe/bytecode_runner.hpp"
 
+#define COMPILER_LOC_FORMAT "\n  LoC                        %8zd   (%5.3f ms / line)\n"
+#define COMPILER_TOTAL_FORMAT "  TOTAL                      %8.6f s\n"
+#define COMPILER_DONE_FORMAT "\nCompilation completed in %8.6f s\n"
+
 Compiler::Compiler () {
 	this->type_def_type = 	new Ast_Struct_Type("type");
 	this->type_def_void = 	new Ast_Struct_Type("void");
@@ -32,6 +36,23 @@ Compiler::Compiler () {
 	this->type_def_usize = 	this->type_def_u64;
 }
 
+void print_compiler_metrics (Parser* parser, double total_time) {
+	printf("\n");
+	Pipe* current_pipe = parser;
+	while (current_pipe) {
+		if (current_pipe->pipe_name) {
+			double percent = (current_pipe->accumulated_spans * 100.0) / total_time;
+			printf("  - %-25s%8.6f s (%5.2f %%)\n", current_pipe->pipe_name,
+				current_pipe->accumulated_spans, percent);
+		}
+		current_pipe = current_pipe->next;
+	}
+
+	auto ms_per_line = (total_time * 1000) / parser->all_lines;
+	printf(COMPILER_LOC_FORMAT, parser->all_lines, ms_per_line);
+	printf(COMPILER_TOTAL_FORMAT, total_time);
+}
+
 void Compiler::run () {
 	printf("%s v%s\n", LIGHT_NAME, LIGHT_VERSION);
 
@@ -42,29 +63,26 @@ void Compiler::run () {
 		auto parser = new Parser();
 		os_get_current_directory(parser->current_path);
 
-		// Mandatory
 		parser->append(new Foreign_Function());
 		parser->append(new Compile_Constants());
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Type_Checking());
 		parser->append(new Array_Attributes());
-		// Bytecode
+
 		parser->append(new Bytecode_Generator());
 		parser->append(new Bytecode_Runner());
-		// Ouput
+
+		// @Incomplete: add output pipes (DLL, EXE, etc.)
 
 		auto start = os_get_time();
 		parser->run(filename);
-		auto stop = os_clock_stop(start);
-		printf("\n");
-		parser->on_finish(stop);
-		auto ms_per_line = (stop * 1000) / parser->all_lines;
-		printf("\n  LoC                        %8zd   (%5.3f ms / line)\n",
-			parser->all_lines, ms_per_line);
-		printf("  TOTAL                      %8.6f s\n", stop);
+		parser->on_finish();
+
+		print_compiler_metrics(parser, os_clock_stop(start));
 	}
-	printf("\nDone                         %8.6f s\n", os_clock_stop(total));
+
+	printf(COMPILER_DONE_FORMAT, os_clock_stop(total));
 }
 
 void Compiler::stop () {

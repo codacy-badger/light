@@ -389,12 +389,11 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 }
 
 Ast_Expression* Parser::type_instance () {
-	Ast_Expression* type_inst = NULL;
 	if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
-		type_inst = this->function_type();
+		return this->function_type();
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		auto base_type = this->type_instance();
-		type_inst = g_compiler->types->get_or_create_pointer_type(base_type);
+		return g_compiler->types->get_or_create_pointer_type(base_type);
 	} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
 		auto length = this->expression();
 		if (length) {
@@ -404,11 +403,11 @@ Ast_Expression* Parser::type_instance () {
 			auto _array = AST_NEW(Ast_Array_Type);
 			_array->length_exp = length;
 			_array->base = base_type;
-			type_inst = _array;
+			return _array;
 		} else {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 			auto base_type = this->type_instance();
-			type_inst = g_compiler->types->get_or_create_slice_type(base_type);
+			return g_compiler->types->get_or_create_slice_type(base_type);
 		}
 	} else {
 		auto ident = this->ident();
@@ -417,11 +416,10 @@ Ast_Expression* Parser::type_instance () {
 			if (decl && decl->expression
 					&& decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 				delete ident;
-				type_inst = decl->expression;
-			} else type_inst = ident;
-		}
+				return decl->expression;
+			} else return ident;
+		} else return NULL;
 	}
-	return type_inst;
 }
 
 Ast_Function_Type* Parser::function_type () {
