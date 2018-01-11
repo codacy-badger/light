@@ -5,7 +5,6 @@
 #include <string.h>
 #include <vector>
 #include <map>
-#include <set>
 
 using namespace std;
 
@@ -56,10 +55,10 @@ struct Symbol_Resolution : Pipe {
 	    } else this->on_resolved(stm);
 	}
 
-	void find_unique_unresolved (set<Ast_Ident*>* idents) {
+	void find_unique_unresolved (vector<Ast_Ident*>* idents) {
 	    for (auto deps : this->unresolved) {
 	        for (auto ident_ptr : deps.second) {
-	            idents->insert(*ident_ptr);
+	            idents->push_back(*ident_ptr);
 	        }
 	    }
 
@@ -79,7 +78,7 @@ struct Symbol_Resolution : Pipe {
 
 	void on_finish () {
 	    if (this->unresolved.size() > 0) {
-	        set<Ast_Ident*> idents;
+	        vector<Ast_Ident*> idents;
 	        this->find_unique_unresolved(&idents);
 	        for (auto ident : idents) {
 	            report_error(&ident->location, "Unresolved symbol: '%s'", ident->name);
@@ -134,7 +133,7 @@ struct Symbol_Resolution : Pipe {
 
 		if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
 			// We don't resolve symbols for struct attributes here,
-			// since we still don't know the type of lhs.
+			// since we still don't know the type of the lhs.
 			Pipe::handle(&binary->lhs);
 		} else Pipe::handle(binary_ptr);
 	}
@@ -149,6 +148,6 @@ struct Symbol_Resolution : Pipe {
 					this->collected_ident_ptrs.push_back(ident_ptr);
 				} else try_replace_ident_by_const(ident_ptr);
 			} else this->collected_ident_ptrs.push_back(ident_ptr);
-		} else try_replace_ident_by_const(ident_ptr);
+		}
 	}
 };

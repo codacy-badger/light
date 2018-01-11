@@ -15,7 +15,7 @@
 
 #define COMPILER_LOC_FORMAT "\n  LoC                        %8zd   (%5.3f ms / line)\n"
 #define COMPILER_TOTAL_FORMAT "  TOTAL                      %8.6f s\n"
-#define COMPILER_DONE_FORMAT "\nCompilation completed in %8.6f s\n"
+#define COMPILER_DONE_FORMAT "\nCompleted in %8.6f s\n"
 
 Compiler::Compiler () {
 	this->type_def_type = 	new Ast_Struct_Type("type");
