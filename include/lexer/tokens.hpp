@@ -30,6 +30,9 @@ enum Token_Type : uint8_t {
 	TOKEN_RETURN,			// RETURN
 	TOKEN_IMPORT,			// IMPORT
 
+	TOKEN_FILE,				// Replaced by filename
+	TOKEN_LINE,				// Replaced by line number
+
 	TOKEN_EXCLAMATION		= '!',
 	TOKEN_DOLLAR			= '$',
 

@@ -95,15 +95,17 @@ bool Lexer::parse_next () {
     CHAR_TOKEN(']', TOKEN_SQ_BRAC_CLOSE);
 
 	if (next_is_id()) {
-			 if (STRING_EQUAL(next_text, "if")) 	this->next_type = TOKEN_IF;
-		else if (STRING_EQUAL(next_text, "else")) 	this->next_type = TOKEN_ELSE;
-		else if (STRING_EQUAL(next_text, "while")) 	this->next_type = TOKEN_WHILE;
-		else if (STRING_EQUAL(next_text, "break")) 	this->next_type = TOKEN_BREAK;
-		else if (STRING_EQUAL(next_text, "cast")) 	this->next_type = TOKEN_CAST;
-		else if (STRING_EQUAL(next_text, "struct")) this->next_type = TOKEN_STRUCT;
-		else if (STRING_EQUAL(next_text, "fn")) 	this->next_type = TOKEN_FUNCTION;
-		else if (STRING_EQUAL(next_text, "return")) this->next_type = TOKEN_RETURN;
-		else if (STRING_EQUAL(next_text, "import")) this->next_type = TOKEN_IMPORT;
+			 if (STRING_EQUAL(next_text, "if")) 		this->next_type = TOKEN_IF;
+		else if (STRING_EQUAL(next_text, "else")) 		this->next_type = TOKEN_ELSE;
+		else if (STRING_EQUAL(next_text, "while")) 		this->next_type = TOKEN_WHILE;
+		else if (STRING_EQUAL(next_text, "break")) 		this->next_type = TOKEN_BREAK;
+		else if (STRING_EQUAL(next_text, "cast")) 		this->next_type = TOKEN_CAST;
+		else if (STRING_EQUAL(next_text, "struct")) 	this->next_type = TOKEN_STRUCT;
+		else if (STRING_EQUAL(next_text, "fn")) 		this->next_type = TOKEN_FUNCTION;
+		else if (STRING_EQUAL(next_text, "return")) 	this->next_type = TOKEN_RETURN;
+		else if (STRING_EQUAL(next_text, "import")) 	this->next_type = TOKEN_IMPORT;
+		else if (STRING_EQUAL(next_text, "__FILE__")) 	this->next_type = TOKEN_FILE;
+		else if (STRING_EQUAL(next_text, "__LINE__")) 	this->next_type = TOKEN_LINE;
 		return true;
 	} else if (next_is_string() || next_is_number()) return true;
 
@@ -304,6 +306,9 @@ const char* token_get_text (Token_Type type) {
 		CASE_ENUM_TEXT(TOKEN_FUNCTION,		"FUNCTION")
 		CASE_ENUM_TEXT(TOKEN_RETURN,		"RETURN")
 		CASE_ENUM_TEXT(TOKEN_IMPORT,		"IMPORT")
+
+		CASE_ENUM_TEXT(TOKEN_FILE,			"__FILE__")
+		CASE_ENUM_TEXT(TOKEN_LINE,			"__LINE__")
 
 		CASE_ENUM_TEXT(TOKEN_EXCLAMATION,	"!")
 		CASE_ENUM_TEXT(TOKEN_DOLLAR,		"$")

@@ -21,6 +21,8 @@ assert :: fn (condition: bool) {
 	if !condition {
 		print("ASSERT: ");
 		print(__FILE__);
+		print(" ");
+		print_u64(__LINE__);
 		print("\n");
 		sys_exit(1);
 	}

@@ -7,7 +7,6 @@
 #include "parser/pipe/constant_folding.hpp"
 #include "parser/pipe/type_checking.hpp"
 #include "parser/pipe/foreign_function.hpp"
-#include "parser/pipe/compile_constants.hpp"
 #include "parser/pipe/array_attributes.hpp"
 #include "parser/pipe/import_modules.hpp"
 
@@ -65,7 +64,6 @@ void Compiler::run () {
 		os_get_current_directory(parser->current_path);
 
 		parser->append(new Foreign_Function());
-		parser->append(new Compile_Constants());
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Type_Checking());
