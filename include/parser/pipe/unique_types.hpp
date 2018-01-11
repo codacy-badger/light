@@ -15,7 +15,7 @@ struct Unique_Types : Pipe {
 		Pipe::handle(_struct);
 
 		if (!(*_struct)->is_slice) {
-			g_compiler->types->struct_types[(*_struct)->name] = (*_struct);
+			//g_compiler->types->struct_types[(*_struct)->name] = (*_struct);
 		}
 	}
 

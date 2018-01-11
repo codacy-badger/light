@@ -412,13 +412,13 @@ Ast_Expression* Parser::type_instance () {
 		}
 	} else {
 		auto ident = this->ident();
-		if (ident != NULL) {
-			auto _struct = g_compiler->types->get_struct_type(ident->name);
-			if (_struct == NULL) type_inst = ident;
-			else {
+		if (ident) {
+			auto decl = this->current_block->find_const_declaration(ident->name);
+			if (decl && decl->expression
+					&& decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 				delete ident;
-				type_inst = _struct;
-			}
+				type_inst = decl->expression;
+			} else type_inst = ident;
 		}
 	}
 	return type_inst;
@@ -494,8 +494,8 @@ Ast_Ident* Parser::ident (const char* name) {
 	auto ident = AST_NEW(Ast_Ident, this->current_block);
 	ident->name = name ? name : this->lexer->text();
 
-	// this is the right time to do this, since on a non-is_constant reference
-	// the declaration should already be in the scope, even if it's still not resolved.
+	// this is the right time to do this, since on a non-constant reference
+	// the declaration should already be in the scope.
 	ident->declaration = this->current_block->find_non_const_declaration(ident->name);
 	return ident;
 }

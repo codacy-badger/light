@@ -5,7 +5,6 @@
 #include "platform.hpp"
 #include "parser/pipe/symbol_resolution.hpp"
 #include "parser/pipe/constant_folding.hpp"
-#include "parser/pipe/unique_types.hpp"
 #include "parser/pipe/type_checking.hpp"
 #include "parser/pipe/foreign_function.hpp"
 #include "parser/pipe/compile_constants.hpp"
@@ -49,7 +48,6 @@ void Compiler::run () {
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Type_Checking());
-		parser->append(new Unique_Types());
 		parser->append(new Array_Attributes());
 		// Bytecode
 		parser->append(new Bytecode_Generator());
