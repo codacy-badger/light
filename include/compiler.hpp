@@ -21,6 +21,7 @@ struct Compiler {
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
+	Parser* parser = NULL;
 
 	Ast_Struct_Type* type_def_type;
 	Ast_Struct_Type* type_def_void;
@@ -41,6 +42,8 @@ struct Compiler {
 
 	void run ();
 	void stop ();
+
+	void add_import (Ast_Import* import);
 };
 
 extern Compiler* g_compiler;

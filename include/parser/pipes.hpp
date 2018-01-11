@@ -7,10 +7,11 @@
 #define PIPE_NAME(name) name() { this->pipe_name = #name; }
 
 struct Pipe {
-
 	double accumulated_spans = 0;
 	const char* pipe_name = NULL;
 	Pipe* next = NULL;
+
+	bool remove_stm_from_block = false;
 
 	virtual void on_statement (Ast_Statement** stm) {
 		auto start = os_get_time();
@@ -44,6 +45,10 @@ struct Pipe {
 		switch ((*stm)->stm_type) {
 			case AST_STATEMENT_BLOCK: {
 				this->handle(reinterpret_cast<Ast_Block**>(stm));
+				break;
+			}
+			case AST_STATEMENT_IMPORT: {
+				this->handle(reinterpret_cast<Ast_Import**>(stm));
 				break;
 			}
 			case AST_STATEMENT_IF: {
@@ -81,9 +86,19 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Block** _block) {
-		for (auto &stm : (*_block)->list) {
-			this->handle(&stm);
+		auto it = (*_block)->list.begin();
+		while (it != (*_block)->list.end()) {
+			this->handle(&(*it));
+			if (this->remove_stm_from_block) {
+				printf("Removing statement from block!\n");
+				it = (*_block)->list.erase(it);
+				this->remove_stm_from_block = false;
+			} else it++;
 		}
+	}
+
+	virtual void handle (Ast_Import** import) {
+		this->handle(&(*import)->target);
 	}
 
 	virtual void handle (Ast_Declaration** decl) {

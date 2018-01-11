@@ -9,6 +9,7 @@
 #include "parser/pipe/foreign_function.hpp"
 #include "parser/pipe/compile_constants.hpp"
 #include "parser/pipe/array_attributes.hpp"
+#include "parser/pipe/import_modules.hpp"
 
 #include "bytecode/pipe/bytecode_generator.hpp"
 #include "bytecode/pipe/bytecode_runner.hpp"
@@ -60,7 +61,7 @@ void Compiler::run () {
 	for (auto filename : this->settings->input_files) {
 		printf("\n%s\n", filename);
 
-		auto parser = new Parser();
+		this->parser = new Parser();
 		os_get_current_directory(parser->current_path);
 
 		parser->append(new Foreign_Function());
@@ -68,6 +69,7 @@ void Compiler::run () {
 		parser->append(new Symbol_Resolution());
 		parser->append(new Constant_Folding());
 		parser->append(new Type_Checking());
+		parser->append(new Import_Modules());
 		parser->append(new Array_Attributes());
 
 		parser->append(new Bytecode_Generator());
@@ -83,6 +85,11 @@ void Compiler::run () {
 	}
 
 	printf(COMPILER_DONE_FORMAT, os_clock_stop(total));
+}
+
+void Compiler::add_import (Ast_Import* import) {
+	assert(this->parser);
+	this->parser->pending_imports.push_back(import);
 }
 
 void Compiler::stop () {

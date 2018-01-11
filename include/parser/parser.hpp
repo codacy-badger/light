@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <vector>
+#include <deque>
 #include <string>
 #include <map>
 
@@ -19,6 +20,9 @@ struct Parser : Pipe {
 	Lexer* lexer = NULL;
 	char current_path[MAX_PATH_LENGTH];
 	Ast_Block* current_block = NULL;
+
+	deque<Ast_Import*> pending_imports;
+	vector<char*> imported_files;
 
 	vector<Ast_Note*> global_notes;
 	vector<Ast_Note*> notes;

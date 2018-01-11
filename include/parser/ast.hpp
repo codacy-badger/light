@@ -47,6 +47,15 @@ struct Ast_Statement : Ast {
 	Ast_Note* remove_note (const char* name);
 };
 
+struct Ast_Import : Ast_Statement {
+	Ast_Expression* target;
+
+	Ast_Import (Ast_Expression* target = NULL) {
+		this->stm_type = AST_STATEMENT_IMPORT;
+		this->target = target;
+	}
+};
+
 struct Ast_Block : Ast_Statement {
 	const char* name = NULL;
 	vector<Ast_Statement*> list;
@@ -118,12 +127,6 @@ struct Ast_Return : Ast_Statement {
 	Ast_Block* block = NULL;
 
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
-};
-
-struct Ast_Import : Ast_Statement {
-	const char* filepath = NULL;
-
-	Ast_Import() { this->stm_type = AST_STATEMENT_IMPORT; }
 };
 
 enum Ast_Expression_Type {

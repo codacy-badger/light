@@ -19,6 +19,7 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	char* file_part = NULL;
 	auto abs_path = (char*) malloc(MAX_PATH_LENGTH);
 	os_get_absolute_path(filepath, abs_path, &file_part);
+	this->imported_files.push_back(abs_path);
 
 	char last_path[MAX_PATH_LENGTH];
 	strcpy_s(last_path, MAX_PATH_LENGTH, this->current_path);
@@ -82,6 +83,15 @@ void Parser::block (Ast_Block* inner_block) {
 	while (stm != NULL) {
 		this->add(stm);
 
+		while (this->pending_imports.size()) {
+			auto import = this->pending_imports.front();
+			this->pending_imports.pop_front();
+
+			// @Incomplete: don't assume expression is a string
+			auto literal = static_cast<Ast_Literal*>(import->target);
+			this->run(literal->string_value, this->current_block);
+		}
+
 		if (this->lexer->is_next_type(TOKEN_EOF)) break;
 		else stm = this->statement();
 	}
@@ -116,13 +126,16 @@ Ast_Statement* Parser::statement () {
 		case TOKEN_IMPORT: {
 			this->lexer->skip();
 
-			if (this->lexer->is_next_type(TOKEN_STRING)) {
+			/*if (this->lexer->is_next_type(TOKEN_STRING)) {
 				this->run(this->lexer->text(), this->current_block);
 			} else report_error_stop(&this->lexer->buffer->location,
 				"Import statements must be followed by a string literal");
 			this->lexer->optional_skip(TOKEN_STM_END);
+			stm = this->statement();*/
 
-			stm = this->statement();
+			auto import = AST_NEW(Ast_Import, this->expression());
+			this->lexer->optional_skip(TOKEN_STM_END);
+			stm = import;
 			break;
 		}
 		case TOKEN_HASH: {
@@ -138,8 +151,7 @@ Ast_Statement* Parser::statement () {
 
 			stm = this->statement();
 			if (stm) {
-				stm->notes.insert(stm->notes.end(),
-					this->notes.begin(), this->notes.end());
+				stm->notes.insert(stm->notes.end(), this->notes.begin(), this->notes.end());
 				this->notes.clear();
 			}
 			break;
@@ -208,8 +220,7 @@ Ast_Statement* Parser::statement () {
 	}
 
 	if (stm) {
-		stm->notes.insert(stm->notes.end(),
-			this->global_notes.begin(), this->global_notes.end());
+		stm->notes.insert(stm->notes.end(), this->global_notes.begin(), this->global_notes.end());
 	}
 
 	return stm;
