@@ -17,7 +17,9 @@ struct Pipe {
 		auto start = os_get_time();
 		this->handle(stm);
 		this->accumulated_spans += os_clock_stop(start);
-		this->to_next(stm);
+		if (this->remove_stm_from_block) {
+			this->remove_stm_from_block = false;
+		} else this->to_next(stm);
 	}
 
 	virtual void on_finish () {
@@ -90,7 +92,6 @@ struct Pipe {
 		while (it != (*_block)->list.end()) {
 			this->handle(&(*it));
 			if (this->remove_stm_from_block) {
-				printf("Removing statement from block!\n");
 				it = (*_block)->list.erase(it);
 				this->remove_stm_from_block = false;
 			} else it++;

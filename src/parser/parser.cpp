@@ -209,7 +209,7 @@ Ast_Statement* Parser::statement () {
 		}
 	}
 
-	if (stm) {
+	if (stm && this->global_notes.size()) {
 		stm->notes.insert(stm->notes.end(), this->global_notes.begin(), this->global_notes.end());
 	}
 
