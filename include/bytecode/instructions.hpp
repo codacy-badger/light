@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "parser/ast.hpp"
+#include "report.hpp"
 
 struct Interpreter;
 
@@ -95,8 +96,7 @@ Bytecode_Type bytecode_unsigned_to_signed (Bytecode_Type bytecode_type);
 
 struct Instruction {
 	uint8_t bytecode = BYTECODE_NOOP;
-	const char* filename = NULL;
-	size_t line = 0;
+	Location location;
 };
 
 struct Inst_Copy : Instruction {

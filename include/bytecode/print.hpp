@@ -11,7 +11,8 @@ void _bytecode_print (void* ptr, const char* printf_format) {
 }
 
 void bytecode_print (size_t index, Instruction* inst) {
-	printf(" #%-4zd ( %s @ %zd ) ", index, inst->filename, inst->line);
+	printf(" #%-4zd ( %s @ %zd ) ", index,
+		inst->location.filename, inst->location.line);
 	switch (inst->bytecode) {
 		case BYTECODE_NOOP: printf("NOOP"); break;
 		case BYTECODE_RETURN: printf("RETURN"); break;

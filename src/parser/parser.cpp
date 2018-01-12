@@ -125,14 +125,6 @@ Ast_Statement* Parser::statement () {
 		}
 		case TOKEN_IMPORT: {
 			this->lexer->skip();
-
-			/*if (this->lexer->is_next_type(TOKEN_STRING)) {
-				this->run(this->lexer->text(), this->current_block);
-			} else report_error_stop(&this->lexer->buffer->location,
-				"Import statements must be followed by a string literal");
-			this->lexer->optional_skip(TOKEN_STM_END);
-			stm = this->statement();*/
-
 			auto import = AST_NEW(Ast_Import, this->expression());
 			this->lexer->optional_skip(TOKEN_STM_END);
 			stm = import;
@@ -237,7 +229,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 
 	auto other = this->current_block->find_non_const_declaration(decl->name);
 	if (other && decl->scope == other->scope) {
-		report_error(&decl->location, "redeclaration of '%s'", decl->name);
+		report_error(&decl->location, "re-declaration of variable '%s'", decl->name);
 		report_error_stop(&other->location, "previous declaration here");
 	}
 

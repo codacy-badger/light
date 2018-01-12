@@ -22,8 +22,7 @@ struct Bytecode_Generator : Pipe {
 	PIPE_NAME(Bytecode_Generator)
 
 	void add_instruction (Ast* node, Instruction* intruction) {
-	    intruction->filename = node->location.filename;
-	    intruction->line = node->location.line;
+	    intruction->location = node->location;
 	    this->bytecode->push_back(intruction);
 	}
 
@@ -476,11 +475,11 @@ struct Bytecode_Generator : Pipe {
 		}
 
 		this->reg = 0;
+		PUSH_L(tmp, false);
 		for (auto &exp : call->arguments) {
-			PUSH_L(tmp, false);
 			Pipe::handle(&exp);
-			POP_L(tmp);
 		}
+		POP_L(tmp);
 
 		this->add_instruction(call, new Inst_Call_Setup(DC_CALL_C_X64_WIN64));
 
@@ -495,9 +494,9 @@ struct Bytecode_Generator : Pipe {
 			this->add_instruction(call, new Inst_Call_Param(i, bytecode_type));
 		}
 
-		PUSH_L(tmp, false);
+		PUSH_L(tmp2, false);
 	    Pipe::handle(&call->fn);
-		POP_L(tmp);
+		POP_L(tmp2);
 
 		auto ret_type = bytecode_get_type(call->inferred_type);
 	    this->add_instruction(call, new Inst_Call(this->reg - 1, ret_type));

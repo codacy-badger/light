@@ -13,8 +13,8 @@
 #include "bytecode/pipe/bytecode_generator.hpp"
 #include "bytecode/pipe/bytecode_runner.hpp"
 
-#define COMPILER_LOC_FORMAT "\n  LoC                        %8zd   (%5.3f ms / line)\n"
-#define COMPILER_TOTAL_FORMAT "  TOTAL                      %8.6f s\n"
+#define COMPILER_LOC_FORMAT "\n  Lines of Code              %8zd   (%5.3f ms / line)\n"
+#define COMPILER_TOTAL_FORMAT "  Total Time                 %8.6f s\n"
 #define COMPILER_DONE_FORMAT "\nCompleted in %8.6f s\n"
 
 Compiler::Compiler () {
