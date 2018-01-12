@@ -36,7 +36,8 @@ struct Compiler {
 	Ast_Struct_Type* type_def_u64;
 	Ast_Struct_Type* type_def_f32;
 	Ast_Struct_Type* type_def_f64;
-	Ast_Struct_Type* type_def_usize;
+
+	Ast_Pointer_Type* type_def_u8_ptr;
 
 	Compiler ();
 

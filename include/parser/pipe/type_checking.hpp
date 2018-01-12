@@ -13,7 +13,6 @@
 #define WARN(node, ...) report_warning(&node->location, __VA_ARGS__)
 
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-	//if (type_from == type_to) return true;
 	if (ast_type_are_equal(type_from, type_to)) return true;
 	else if (g_compiler->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
@@ -24,22 +23,6 @@ bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, A
         (*exp_ptr) = cast;
         return true;
     } else return false;
-}
-
-void compute_struct_size (Ast_Struct_Type* _struct) {
-	if (_struct->byte_size == 0) {
-		size_t byte_offset = 0;
-		for (size_t i = 0; i < _struct->attributes.size(); i++) {
-			auto decl = _struct->attributes[i];
-			decl->attribute_byte_offset = byte_offset;
-			decl->attribute_index = i;
-
-			assert (decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
-			auto defn_ty = static_cast<Ast_Type_Instance*>(decl->type);
-			byte_offset += defn_ty->byte_size;
-		}
-		_struct->byte_size = byte_offset;
-	}
 }
 
 struct Type_Checking : Pipe {
@@ -108,6 +91,12 @@ struct Type_Checking : Pipe {
 		}
 	}
 
+	void handle (Ast_Expression** exp_ptr) {
+		if (!(*exp_ptr)->inferred_type) {
+			Pipe::handle(exp_ptr);
+		}
+	}
+
 	void handle (Ast_Cast** cast_ptr) {
 		auto cast = (*cast_ptr);
 
@@ -148,7 +137,20 @@ struct Type_Checking : Pipe {
 		for (auto &decl : _struct->attributes) {
 			Pipe::handle(&decl);
 		}
-	    compute_struct_size(_struct);
+
+		if (_struct->byte_size == 0) {
+			size_t byte_offset = 0;
+			for (size_t i = 0; i < _struct->attributes.size(); i++) {
+				auto decl = _struct->attributes[i];
+				decl->attribute_byte_offset = byte_offset;
+				decl->attribute_index = i;
+
+				assert (decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
+				auto defn_ty = static_cast<Ast_Type_Instance*>(decl->type);
+				byte_offset += defn_ty->byte_size;
+			}
+			_struct->byte_size = byte_offset;
+		}
 	}
 
 	void handle (Ast_Array_Type** arr_ptr) {
@@ -389,7 +391,7 @@ struct Type_Checking : Pipe {
 	            break;
 	        }
 	        case AST_LITERAL_STRING: {
-				lit->inferred_type = g_compiler->types->get_or_create_pointer_type(g_compiler->type_def_u8);
+				lit->inferred_type = g_compiler->type_def_u8_ptr;
 				Pipe::handle(&lit->inferred_type);
 	            break;
 	        }

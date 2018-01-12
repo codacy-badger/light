@@ -46,7 +46,6 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 		DECL_TYPE(g_compiler->type_def_u64);
 		DECL_TYPE(g_compiler->type_def_f32);
 		DECL_TYPE(g_compiler->type_def_f64);
-		DECL_TYPE(g_compiler->type_def_usize);
 	}
 
 	auto tmp = this->lexer;
