@@ -13,7 +13,10 @@ using namespace std;
 
 struct Compiler_Settings {
 	vector<const char*> input_files;
-	const char* output_file;
+	const char* output_file = NULL;
+
+	bool is_verbose = false;
+	bool is_debug = false;
 };
 
 struct Compiler {
