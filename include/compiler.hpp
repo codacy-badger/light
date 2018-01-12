@@ -20,8 +20,8 @@ struct Compiler {
 	Compiler_Settings* settings = new Compiler_Settings();
 
 	Interpreter* interp = new Interpreter();
+	Parser* parser = new Parser();
 	Types* types = new Types();
-	Parser* parser = NULL;
 
 	Ast_Struct_Type* type_def_type;
 	Ast_Struct_Type* type_def_void;

@@ -56,37 +56,35 @@ void print_compiler_metrics (Parser* parser, double total_time) {
 void Compiler::run () {
 	printf("%s v%s\n", LIGHT_NAME, LIGHT_VERSION);
 
+	os_get_current_directory(this->parser->current_path);
+
+	this->parser->append(new Foreign_Function());
+	this->parser->append(new Symbol_Resolution());
+	this->parser->append(new Constant_Folding());
+	this->parser->append(new Type_Checking());
+	this->parser->append(new Import_Modules());
+	this->parser->append(new Array_Attributes());
+
+	this->parser->append(new Bytecode_Generator());
+	this->parser->append(new Bytecode_Runner());
+
+	// @Incomplete: add output pipes (DLL, EXE, etc.)
+
 	auto total = os_get_time();
 	for (auto filename : this->settings->input_files) {
 		printf("\n%s\n", filename);
 
-		this->parser = new Parser();
-		os_get_current_directory(parser->current_path);
-
-		parser->append(new Foreign_Function());
-		parser->append(new Symbol_Resolution());
-		parser->append(new Constant_Folding());
-		parser->append(new Type_Checking());
-		parser->append(new Import_Modules());
-		parser->append(new Array_Attributes());
-
-		parser->append(new Bytecode_Generator());
-		parser->append(new Bytecode_Runner());
-
-		// @Incomplete: add output pipes (DLL, EXE, etc.)
-
 		auto start = os_get_time();
-		parser->run(filename);
-		parser->on_finish();
+		this->parser->run(filename);
+		this->parser->on_finish();
 
-		print_compiler_metrics(parser, os_clock_stop(start));
+		print_compiler_metrics(this->parser, os_clock_stop(start));
 	}
 
 	printf(COMPILER_DONE_FORMAT, os_clock_stop(total));
 }
 
 void Compiler::add_import (Ast_Import* import) {
-	assert(this->parser);
 	this->parser->pending_imports.push_back(import);
 }
 
