@@ -45,6 +45,17 @@ void compute_struct_size (Ast_Struct_Type* _struct) {
 struct Type_Checking : Pipe {
 	PIPE_NAME(Type_Checking)
 
+	void handle (Ast_Import** import_ptr) {
+		auto import = (*import_ptr);
+
+		if (import->target->exp_type == AST_EXPRESSION_LITERAL) {
+			auto lit = static_cast<Ast_Literal*>(import->target);
+			if (lit->literal_type == AST_LITERAL_STRING) {
+				return;
+			} else ERROR(import, "Import must be followed by a string literal");
+		} else ERROR(import, "Import must be followed by an expression");
+	}
+
 	void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);
 

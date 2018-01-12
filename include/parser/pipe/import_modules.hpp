@@ -9,7 +9,9 @@ struct Import_Modules : Pipe {
 
 	void on_statement(Ast_Statement** stm) {
 	    if ((*stm)->stm_type == AST_STATEMENT_IMPORT) {
+			auto start = os_get_time();
 			this->handle(reinterpret_cast<Ast_Import**>(stm));
+			this->accumulated_spans += os_clock_stop(start);
 		} else this->to_next(stm);
 	}
 
