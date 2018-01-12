@@ -8,6 +8,8 @@
 
 Compiler* g_compiler = NULL;
 
+#define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\" (Ignored)"
+
 #define CHECK_ARG(arg) (strcmp(argv[i], arg) == 0)
 #define CHECK_ARG_2(arg_short, arg_long) (CHECK_ARG(arg_short) || CHECK_ARG(arg_long))
 
@@ -20,7 +22,7 @@ void handle_compiler_arguments (Compiler_Settings* settings, int argc, char** ar
 				settings->is_verbose = true;
 			} else if (CHECK_ARG_2("-d", "-debug")) {
 				settings->is_debug = true;
-			}
+			} else report_warning(NULL, UKNOWN_ARG_FORMAT, i, argv[i]);
 		} else settings->input_files.push_back(argv[i]);
 	}
 }
