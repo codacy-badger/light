@@ -64,9 +64,8 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 void Parser::add (Ast_Statement* stm, Ast_Block* block) {
 	if (!block) block = this->current_block;
 	block->list.push_back(stm);
-	if (block->is_global) {
-		this->to_next(&stm);
-	} else {
+	if (block->is_global) this->to_next(&stm);
+	else {
 		if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 			auto decl = static_cast<Ast_Declaration*>(stm);
 			if (decl->is_constant()) this->to_next(&stm);

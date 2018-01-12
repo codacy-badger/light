@@ -60,6 +60,11 @@ struct Ast_Block : Ast_Statement {
 	const char* name = NULL;
 	vector<Ast_Statement*> list;
 
+	// @Fixme: we don't need this boolean, since the other attribute already
+	// provide enought information to know for sure if a scope is global or not.
+	// If a scope doesn't have parent -> it's the (only) global one.
+	// To keep finding declarations correctly we can combine check for parent
+	// scope & the scope_of (function)
 	bool is_global = false;
 	Ast_Block* parent = NULL;
 	Ast_Function* scope_of = NULL;
@@ -96,6 +101,10 @@ struct Ast_Break : Ast_Statement {
 };
 
 const uint8_t AST_DECL_FLAG_CONSTANT 	= 0x1;
+// @Fixme: WRONG WRONG WRONG, the question of if a declaration is global or not
+// can only be answered using it's scope, so it's not the declaration itself
+// who's global, but the content in which the declaration is defined
+// 		bool is_global () { this->scope->is_global(); }
 const uint8_t AST_DECL_FLAG_GLOBAL	 	= 0x2;
 const uint8_t AST_DECL_FLAG_UNINIT		= 0x3;
 
