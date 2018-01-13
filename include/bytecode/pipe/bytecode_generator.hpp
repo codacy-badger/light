@@ -11,7 +11,7 @@ struct Inst_Jump;
 #define POP_L(var_name) this->is_left_value = var_name
 
 struct Bytecode_Generator : Pipe {
-	size_t stack_offset = 0;
+	size_t data_offset = 0;
 
 	vector<Instruction*>* bytecode = NULL;
 	bool is_left_value = false;
@@ -111,11 +111,11 @@ struct Bytecode_Generator : Pipe {
 	            auto decl = func->arg_decls[i];
 
 	            auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
-	            decl->stack_offset = this->stack_offset;
-	            this->stack_offset += decl_type->byte_size;
+	            decl->data_offset = this->data_offset;
+	            this->data_offset += decl_type->byte_size;
 
 	            this->add_instruction(decl, new Inst_Stack_Allocate(decl_type->byte_size));
-	            this->add_instruction(decl, new Inst_Stack_Offset(free_reg, decl->stack_offset));
+	            this->add_instruction(decl, new Inst_Stack_Offset(free_reg, decl->data_offset));
 	            if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
 	                this->add_instruction(decl, new Inst_Copy_Memory(free_reg, i, decl_type->byte_size));
 	            } else {
@@ -147,26 +147,26 @@ struct Bytecode_Generator : Pipe {
 			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 	            auto func = static_cast<Ast_Function*>(decl->expression);
 	            if (!func->foreign_module_name) {
-	    			auto _tmp = this->stack_offset;
+	    			auto _tmp = this->data_offset;
 	    			this->fill(func);
-	                this->stack_offset = _tmp;
+	                this->data_offset = _tmp;
 	            }
 			}
 	    } else {
 			auto ty_decl = static_cast<Ast_Type_Instance*>(decl->type);
 			if (decl->is_global()) {
-				decl->global_offset = g_compiler->interp->globals->add(ty_decl->byte_size);
+				decl->data_offset = g_compiler->interp->globals->add(ty_decl->byte_size);
 			} else {
 	            this->add_instruction(decl, new Inst_Stack_Allocate(ty_decl->byte_size));
 
-				decl->stack_offset = this->stack_offset;
-				this->stack_offset += ty_decl->byte_size;
+				decl->data_offset = this->data_offset;
+				this->data_offset += ty_decl->byte_size;
 				if (decl->expression) {
 					PUSH_L(tmp, false);
 					Pipe::handle(&decl->expression);
 					POP_L(tmp);
 
-	                this->add_instruction(decl, new Inst_Stack_Offset(1, decl->stack_offset));
+	                this->add_instruction(decl, new Inst_Stack_Offset(1, decl->data_offset));
 					if (ty_decl->byte_size > INTERP_REGISTER_SIZE) {
 		                this->add_instruction(decl, new Inst_Copy_Memory(1, 0, ty_decl->byte_size));
 		            } else {
@@ -419,9 +419,9 @@ struct Bytecode_Generator : Pipe {
 		auto ident = (*ident_ptr);
 
 		if (ident->declaration->is_global()) {
-			this->add_instruction(ident, new Inst_Global_Offset(reg, ident->declaration->global_offset));
+			this->add_instruction(ident, new Inst_Global_Offset(reg, ident->declaration->data_offset));
 		} else {
-			this->add_instruction(ident, new Inst_Stack_Offset(reg, ident->declaration->stack_offset));
+			this->add_instruction(ident, new Inst_Stack_Offset(reg, ident->declaration->data_offset));
 		}
 		if (!this->is_left_value && ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
 			this->add_instruction(ident, new Inst_Load(reg, reg, ident->inferred_type->byte_size));
@@ -465,10 +465,10 @@ struct Bytecode_Generator : Pipe {
 		if (_tmp > 0) {
 			this->add_instruction(call, new Inst_Stack_Allocate(_tmp * INTERP_REGISTER_SIZE));
 			for (uint8_t i = 0; i < _tmp; i++) {
-		        this->add_instruction(call, new Inst_Stack_Offset(_tmp, this->stack_offset));
+		        this->add_instruction(call, new Inst_Stack_Offset(_tmp, this->data_offset));
 		        this->add_instruction(call, new Inst_Store(_tmp, i, INTERP_REGISTER_SIZE));
 
-				this->stack_offset += INTERP_REGISTER_SIZE;
+				this->data_offset += INTERP_REGISTER_SIZE;
 			}
 		}
 
@@ -506,9 +506,9 @@ struct Bytecode_Generator : Pipe {
 		// with the current expression
 		if (_tmp > 0) {
 			for (uint8_t i = _tmp; i > 0; i--) {
-				this->stack_offset -= INTERP_REGISTER_SIZE;
+				this->data_offset -= INTERP_REGISTER_SIZE;
 
-		        this->add_instruction(call, new Inst_Stack_Offset(_tmp, this->stack_offset));
+		        this->add_instruction(call, new Inst_Stack_Offset(_tmp, this->data_offset));
 		        this->add_instruction(call, new Inst_Load(i, _tmp, INTERP_REGISTER_SIZE));
 			}
 		}

@@ -96,7 +96,7 @@ struct Ast_Break : Ast_Statement {
 	Ast_Break () { this->stm_type = AST_STATEMENT_BREAK; }
 };
 
-const uint8_t AST_DECL_FLAG_CONSTANT 	= 0x1;
+const uint8_t AST_DECL_FLAG_CONSTANT = 0x1;
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
@@ -112,8 +112,7 @@ struct Ast_Declaration : Ast_Statement {
 	size_t attribute_byte_offset = 0;
 
 	// for bytecode
-	size_t stack_offset = 0;
-	size_t global_offset = 0;
+	size_t data_offset = 0;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 
