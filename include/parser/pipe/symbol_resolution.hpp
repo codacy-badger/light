@@ -2,26 +2,34 @@
 
 #include "parser/pipes.hpp"
 
+#include <assert.h>
 #include <string.h>
 #include <vector>
 #include <map>
 
 using namespace std;
 
-void try_replace_ident_by_const (Ast_Ident** ident_ptr2) {
-    auto decl = (*ident_ptr2)->declaration;
+void try_replace_ident_by_const (Ast_Ident** ident_ptr) {
+    auto decl = (*ident_ptr)->declaration;
     if (decl && decl->is_constant()) {
-        auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr2);
+        auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr);
         delete *_addr;
         (*_addr) = decl->expression;
     }
 }
 
-bool try_resolve (Ast_Ident** ident_ptr2, Ast_Declaration* decl) {
-    if (strcmp((*ident_ptr2)->name, decl->name) == 0) {
-        if ((*ident_ptr2)->scope->is_ancestor(decl->scope)) {
-            (*ident_ptr2)->declaration = decl;
-            try_replace_ident_by_const(ident_ptr2);
+bool try_resolve (Ast_Ident** ident_ptr, Ast_Declaration* decl) {
+    auto ident = (*ident_ptr);
+
+    // @Hack @Fixme we don't want to just ignore non-ident expression,
+    // since having one here means trying to resolve the same ident twice
+    //assert(ident->exp_type == AST_EXPRESSION_IDENT);
+    if (ident->exp_type != AST_EXPRESSION_IDENT) return true;
+
+    if (strcmp(ident->name, decl->name) == 0) {
+        if (ident->scope->is_ancestor(decl->scope)) {
+            ident->declaration = decl;
+            try_replace_ident_by_const(ident_ptr);
             return true;
         }
     }
@@ -150,4 +158,10 @@ struct Symbol_Resolution : Pipe {
 			} else this->collected_ident_ptrs.push_back(ident_ptr);
 		}
 	}
+
+    // @Incomplete @Fixme we don't want to keep recursing on inner functions,
+    // since that would make more than 1 statement depend on the same identifiers
+    // Good dependencies: [func -> inner_func] [inner_func -> some_ident]
+    // Bad dependencies: [func -> (inner_func, some_ident)] [inner_func -> some_ident]
+    void handle (Ast_Function** func_ptr) { Pipe::handle(func_ptr); }
 };
