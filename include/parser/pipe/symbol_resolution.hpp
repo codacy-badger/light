@@ -18,22 +18,25 @@ void try_replace_ident_by_const (Ast_Ident** ident_ptr) {
     }
 }
 
-bool try_resolve (Ast_Ident** ident_ptr, Ast_Declaration* decl) {
-    auto ident = (*ident_ptr);
+void try_resolve_idents (vector<Ast_Ident**>* idents, Ast_Declaration* decl) {
+    auto it = idents->begin();
+    while (it != idents->end()) {
+        auto ident_ptr = (*it);
+        auto ident = (*ident_ptr);
 
-    // @Hack @Fixme we don't want to just ignore non-ident expression,
-    // since having one here means trying to resolve the same ident twice
-    //assert(ident->exp_type == AST_EXPRESSION_IDENT);
-    if (ident->exp_type != AST_EXPRESSION_IDENT) return true;
+        // @Hack we don't want to just ignore non-ident expression,
+        // since having one here means trying to resolve the same ident twice
+        // assert(ident->exp_type == AST_EXPRESSION_IDENT);
 
-    if (strcmp(ident->name, decl->name) == 0) {
-        if (ident->scope->is_ancestor(decl->scope)) {
-            ident->declaration = decl;
-            try_replace_ident_by_const(ident_ptr);
-            return true;
-        }
+        if (ident->exp_type == AST_EXPRESSION_IDENT) {
+            if (strcmp(ident->name, decl->name) == 0
+                    && ident->scope->is_ancestor(decl->scope)) {
+                ident->declaration = decl;
+                try_replace_ident_by_const(ident_ptr);
+                it = idents->erase(it);
+            } else it++;
+        } else it = idents->erase(it);
     }
-    return false;
 }
 
 struct Symbol_Resolution : Pipe {
@@ -49,12 +52,7 @@ struct Symbol_Resolution : Pipe {
 	    Pipe::handle(stm);
 		if ((*stm)->stm_type == AST_STATEMENT_DECLARATION) {
 			auto decl = static_cast<Ast_Declaration*>((*stm));
-			auto it = this->collected_ident_ptrs.begin();
-			while (it != this->collected_ident_ptrs.end()) {
-	            if (try_resolve(*it, decl)) {
-	                it = this->collected_ident_ptrs.erase(it);
-	            } else it++;
-			}
+            try_resolve_idents(&this->collected_ident_ptrs, decl);
 		}
 		this->accumulated_spans += os_clock_stop(start);
 
@@ -92,7 +90,6 @@ struct Symbol_Resolution : Pipe {
 	            report_error(&ident->location, "Unresolved symbol: '%s'", ident->name);
 	        }
 	        g_compiler->stop();
-	        return;
 	    }
 	}
 
@@ -104,12 +101,7 @@ struct Symbol_Resolution : Pipe {
 	            vector<Ast_Statement*> resolved_stms;
 
 	            for (auto &stm_idents : this->unresolved) {
-	                auto ident_ptr2 = stm_idents.second.begin();
-	                while (ident_ptr2 != stm_idents.second.end()) {
-	                    if (try_resolve(*ident_ptr2, decl)) {
-	                        ident_ptr2 = stm_idents.second.erase(ident_ptr2);
-	                    } else ident_ptr2++;
-	                }
+                    try_resolve_idents(&stm_idents.second, decl);
 
 	                if (stm_idents.second.size() == 0) {
 	                    resolved_stms.push_back(stm_idents.first);
