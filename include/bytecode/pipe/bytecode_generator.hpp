@@ -157,9 +157,7 @@ struct Bytecode_Generator : Pipe {
 			if (decl->is_global()) {
 				decl->global_offset = g_compiler->interp->globals->add(ty_decl->byte_size);
 			} else {
-	            bool zero_init = !(decl->decl_flags & AST_DECL_FLAG_UNINIT);
-	            zero_init = zero_init && !decl->expression;
-	            this->add_instruction(decl, new Inst_Stack_Allocate(ty_decl->byte_size, zero_init));
+	            this->add_instruction(decl, new Inst_Stack_Allocate(ty_decl->byte_size));
 
 				decl->stack_offset = this->stack_offset;
 				this->stack_offset += ty_decl->byte_size;

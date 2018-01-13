@@ -185,11 +185,9 @@ struct Inst_Global_Offset : Instruction {
 
 struct Inst_Stack_Allocate : Instruction {
 	size_t size = 0;
-	bool zero_init;
 
-	Inst_Stack_Allocate (size_t size, bool zero_init = false) {
+	Inst_Stack_Allocate (size_t size) {
 		this->bytecode = BYTECODE_STACK_ALLOCATE;
-		this->zero_init = zero_init;
 		this->size = size;
 	}
 };

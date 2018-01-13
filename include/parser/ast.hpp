@@ -97,7 +97,6 @@ struct Ast_Break : Ast_Statement {
 };
 
 const uint8_t AST_DECL_FLAG_CONSTANT 	= 0x1;
-const uint8_t AST_DECL_FLAG_UNINIT		= 0x2;
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
