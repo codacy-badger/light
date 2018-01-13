@@ -31,7 +31,6 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 
 	if (!parent) {
 		parent = AST_NEW(Ast_Block);
-		parent->is_global = true;
 
 		DECL_TYPE(g_compiler->type_def_type);
 		DECL_TYPE(g_compiler->type_def_void);
@@ -70,7 +69,7 @@ void Parser::add (Ast_Statement* stm, Ast_Block* block) {
 	}
 
 	block->list.push_back(stm);
-	if (block->is_global) this->to_next(&stm);
+	if (block->is_global()) this->to_next(&stm);
 	else {
 		if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 			auto decl = static_cast<Ast_Declaration*>(stm);
@@ -222,10 +221,6 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 		report_error_stop(&other->location, "previous declaration here");
 	}
 
-	if (this->current_block->is_global) {
-		decl->decl_flags |= AST_DECL_FLAG_GLOBAL;
-	}
-
 	if (this->lexer->check_skip(TOKEN_COLON)) {
 		decl->type = this->type_instance();
 	}
@@ -335,7 +330,6 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 			auto decl = this->declaration();
 			while (decl != NULL) {
-				decl->decl_flags &= ~AST_DECL_FLAG_GLOBAL;
 				func->arg_decls.push_back(decl);
 
 				if (!this->lexer->optional_skip(TOKEN_COMMA)) break;
@@ -424,7 +418,6 @@ Ast_Function_Type* Parser::function_type () {
 	if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 		Ast_Declaration* decl = this->declaration_or_type();
 		while (decl != NULL) {
-			decl->decl_flags &= ~AST_DECL_FLAG_GLOBAL;
 			fn_type->arg_types.push_back(decl->type);
 
 			if (!this->lexer->optional_skip(TOKEN_COMMA)) break;

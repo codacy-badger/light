@@ -154,7 +154,7 @@ struct Bytecode_Generator : Pipe {
 			}
 	    } else {
 			auto ty_decl = static_cast<Ast_Type_Instance*>(decl->type);
-			if (decl->decl_flags & AST_DECL_FLAG_GLOBAL) {
+			if (decl->is_global()) {
 				decl->global_offset = g_compiler->interp->globals->add(ty_decl->byte_size);
 			} else {
 	            bool zero_init = !(decl->decl_flags & AST_DECL_FLAG_UNINIT);
@@ -420,7 +420,7 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Ident** ident_ptr) {
 		auto ident = (*ident_ptr);
 
-		if (ident->declaration->decl_flags && AST_DECL_FLAG_GLOBAL) {
+		if (ident->declaration->is_global()) {
 			this->add_instruction(ident, new Inst_Global_Offset(reg, ident->declaration->global_offset));
 		} else {
 			this->add_instruction(ident, new Inst_Stack_Offset(reg, ident->declaration->stack_offset));

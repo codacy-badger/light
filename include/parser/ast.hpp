@@ -60,12 +60,6 @@ struct Ast_Block : Ast_Statement {
 	const char* name = NULL;
 	vector<Ast_Statement*> list;
 
-	// @Fixme: we don't need this boolean, since the other attribute already
-	// provide enought information to know for sure if a scope is global or not.
-	// If a scope doesn't have parent -> it's the (only) global one.
-	// To keep finding declarations correctly we can combine check for parent
-	// scope & the scope_of (function)
-	bool is_global = false;
 	Ast_Block* parent = NULL;
 	Ast_Function* scope_of = NULL;
 
@@ -73,6 +67,8 @@ struct Ast_Block : Ast_Statement {
 		this->stm_type = AST_STATEMENT_BLOCK;
 		this->parent = parent;
 	}
+
+	bool is_global () { return !this->parent && !this->scope_of; }
 
 	Ast_Declaration* find_declaration (const char* name, bool recurse = true, bool is_out_scope = false);
 	Ast_Declaration* find_non_const_declaration (const char* name);
@@ -101,12 +97,7 @@ struct Ast_Break : Ast_Statement {
 };
 
 const uint8_t AST_DECL_FLAG_CONSTANT 	= 0x1;
-// @Fixme: WRONG WRONG WRONG, the question of if a declaration is global or not
-// can only be answered using it's scope, so it's not the declaration itself
-// who's global, but the content in which the declaration is defined
-// 		bool is_global () { this->scope->is_global(); }
-const uint8_t AST_DECL_FLAG_GLOBAL	 	= 0x2;
-const uint8_t AST_DECL_FLAG_UNINIT		= 0x3;
+const uint8_t AST_DECL_FLAG_UNINIT		= 0x2;
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
@@ -116,19 +107,19 @@ struct Ast_Declaration : Ast_Statement {
 	uint8_t decl_flags = 0;
 	Ast_Block* scope = NULL;
 
-	// for bytecode
-	size_t stack_offset = 0;
-	size_t global_offset = 0;
-
-	// If struct property
+	// for struct property
 	Ast_Struct_Type* _struct = NULL;
 	size_t attribute_index = 0;
 	size_t attribute_byte_offset = 0;
 
+	// for bytecode
+	size_t stack_offset = 0;
+	size_t global_offset = 0;
+
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 
 	bool is_constant () { return this->decl_flags & AST_DECL_FLAG_CONSTANT; }
-	bool is_global () { return this->decl_flags & AST_DECL_FLAG_GLOBAL; }
+	bool is_global () { return this->scope->is_global(); }
 };
 
 struct Ast_Return : Ast_Statement {
