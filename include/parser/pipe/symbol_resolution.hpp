@@ -54,7 +54,7 @@ struct Symbol_Resolution : Pipe {
 			auto decl = static_cast<Ast_Declaration*>((*stm));
             try_resolve_idents(&this->collected_ident_ptrs, decl);
 		}
-		this->accumulated_spans += os_clock_stop(start);
+		this->accumulated_spans += os_time_stop(start);
 
 	    if (this->collected_ident_ptrs.size() > 0) {
 	        this->unresolved[(*stm)] = this->collected_ident_ptrs;

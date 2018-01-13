@@ -77,10 +77,10 @@ void Compiler::run () {
 		this->parser->run(filename);
 		this->parser->on_finish();
 
-		print_compiler_metrics(this->parser, os_clock_stop(start));
+		print_compiler_metrics(this->parser, os_time_stop(start));
 	}
 
-	printf(COMPILER_DONE_FORMAT, os_clock_stop(total));
+	printf(COMPILER_DONE_FORMAT, os_time_stop(total));
 }
 
 void Compiler::add_import (Ast_Import* import) {

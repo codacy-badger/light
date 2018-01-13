@@ -16,7 +16,7 @@ struct Pipe {
 	virtual void on_statement (Ast_Statement** stm) {
 		auto start = os_get_time();
 		this->handle(stm);
-		this->accumulated_spans += os_clock_stop(start);
+		this->accumulated_spans += os_time_stop(start);
 		if (this->remove_stm_from_block) {
 			this->remove_stm_from_block = false;
 		} else this->to_next(stm);

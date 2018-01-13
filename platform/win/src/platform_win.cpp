@@ -17,7 +17,7 @@ uint64_t os_get_time () {
     return static_cast<uint64_t>(li.QuadPart);
 }
 
-double os_clock_stop (uint64_t start) {
+double os_time_stop (uint64_t start) {
 	LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
     return double(li.QuadPart - start) / PCFreq;
