@@ -5,6 +5,8 @@
 
 struct Inst_Jump;
 
+#define INST(node, name, ...) this->add_instruction(node, new Inst_##name(__VA_ARGS__));
+
 #define ERROR(node, ...) report_error_stop(&node->location, __VA_ARGS__)
 
 #define PUSH_L(var_name, value) auto var_name = this->is_left_value; this->is_left_value = value
@@ -114,12 +116,12 @@ struct Bytecode_Generator : Pipe {
 	            decl->data_offset = this->data_offset;
 	            this->data_offset += decl_type->byte_size;
 
-	            this->add_instruction(decl, new Inst_Stack_Allocate(decl_type->byte_size));
-	            this->add_instruction(decl, new Inst_Stack_Offset(free_reg, decl->data_offset));
+	            INST(decl, Stack_Allocate, decl_type->byte_size);
+	            INST(decl, Stack_Offset, free_reg, decl->data_offset);
 	            if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
-	                this->add_instruction(decl, new Inst_Copy_Memory(free_reg, i, decl_type->byte_size));
+	                INST(decl, Copy_Memory, free_reg, i, decl_type->byte_size);
 	            } else {
-	                this->add_instruction(decl, new Inst_Store(free_reg, i, decl_type->byte_size));
+	                INST(decl, Store, free_reg, i, decl_type->byte_size);
 	            }
 	        }
 
@@ -158,7 +160,7 @@ struct Bytecode_Generator : Pipe {
 			if (decl->is_global()) {
 				decl->data_offset = g_compiler->interp->globals->add(ty_decl->byte_size);
 			} else {
-	            this->add_instruction(decl, new Inst_Stack_Allocate(ty_decl->byte_size));
+	            INST(decl, Stack_Allocate, ty_decl->byte_size);
 
 				decl->data_offset = this->data_offset;
 				this->data_offset += ty_decl->byte_size;
@@ -167,11 +169,11 @@ struct Bytecode_Generator : Pipe {
 					Pipe::handle(&decl->expression);
 					POP_L(tmp);
 
-	                this->add_instruction(decl, new Inst_Stack_Offset(1, decl->data_offset));
+	                INST(decl, Stack_Offset, 1, decl->data_offset);
 					if (ty_decl->byte_size > INTERP_REGISTER_SIZE) {
-		                this->add_instruction(decl, new Inst_Copy_Memory(1, 0, ty_decl->byte_size));
+		                INST(decl, Copy_Memory, 1, 0, ty_decl->byte_size);
 		            } else {
-						this->add_instruction(decl, new Inst_Store(1, 0, ty_decl->byte_size));
+						INST(decl, Store, 1, 0, ty_decl->byte_size);
 		            }
 				}
 			}
@@ -187,7 +189,7 @@ struct Bytecode_Generator : Pipe {
 
 		auto type_from = bytecode_get_type(cast->value->inferred_type);
 		auto type_to = bytecode_get_type(cast->inferred_type);
-		this->add_instruction(cast, new Inst_Cast(this->reg - 1, type_from, type_to));
+		INST(cast, Cast, this->reg - 1, type_from, type_to);
 	}
 
 	void handle (Ast_Literal** lit_ptr) {
@@ -197,22 +199,22 @@ struct Bytecode_Generator : Pipe {
 			case AST_LITERAL_SIGNED_INT:
 			case AST_LITERAL_UNSIGNED_INT: {
 				auto bytecode_type = bytecode_get_type(lit->inferred_type);
-	            this->add_instruction(lit, new Inst_Set(this->reg++, bytecode_type, &lit->int_value));
+	            INST(lit, Set, this->reg++, bytecode_type, &lit->int_value);
 				break;
 			}
 			case AST_LITERAL_DECIMAL: {
 				auto bytecode_type = bytecode_get_type(lit->inferred_type);
 	            if (bytecode_type == BYTECODE_TYPE_F32) {
 	                auto _tmp = (float) lit->decimal_value;
-	                this->add_instruction(lit, new Inst_Set(this->reg++, bytecode_type, &_tmp));
+	                INST(lit, Set, this->reg++, bytecode_type, &_tmp);
 	            } else {
-	                this->add_instruction(lit, new Inst_Set(this->reg++, bytecode_type, &lit->decimal_value));
+	                INST(lit, Set, this->reg++, bytecode_type, &lit->decimal_value);
 	            }
 	            break;
 	        }
 			case AST_LITERAL_STRING: {
 				lit->data_offset = g_compiler->interp->constants->add(lit->string_value);
-	            this->add_instruction(lit, new Inst_Constant_Offset(this->reg++, lit->data_offset));
+	            INST(lit, Constant_Offset, this->reg++, lit->data_offset);
 				break;
 			}
 			default: ERROR(lit, "Literal type to bytecode conversion not supported!");
@@ -238,7 +240,7 @@ struct Bytecode_Generator : Pipe {
 
 				auto unop_type = get_bytecode_from_unop(unop->unary_op);
 	            auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
-	            this->add_instruction(unop, new Inst_Unary(unop_type, this->reg - 1, bytecode_type));
+	            INST(unop, Unary, unop_type, this->reg - 1, bytecode_type);
 				break;
 			}
 			case AST_UNARY_NEGATE: {
@@ -250,9 +252,9 @@ struct Bytecode_Generator : Pipe {
 	            auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
 				auto result_type = bytecode_unsigned_to_signed(bytecode_type);
 				if (bytecode_type != result_type) {
-					this->add_instruction(unop, new Inst_Cast(this->reg - 1, bytecode_type, result_type));
+					INST(unop, Cast, this->reg - 1, bytecode_type, result_type);
 				}
-	            this->add_instruction(unop, new Inst_Unary(unop_type, this->reg - 1, result_type));
+	            INST(unop, Unary, unop_type, this->reg - 1, result_type);
 				break;
 			}
 	        case AST_UNARY_DEREFERENCE: {
@@ -261,7 +263,7 @@ struct Bytecode_Generator : Pipe {
 				POP_L(tmp);
 
 				if (!this->is_left_value) {
-					this->add_instruction(unop, new Inst_Load(reg - 1, reg - 1, unop->inferred_type->byte_size));
+					INST(unop, Load, reg - 1, reg - 1, unop->inferred_type->byte_size);
 				}
 	            break;
 	        }
@@ -318,17 +320,17 @@ struct Bytecode_Generator : Pipe {
 	            while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
 	                auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
 	                type_def = static_cast<Ast_Type_Instance*>(ptr_type->base);
-	                this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, type_def->byte_size));
+	                INST(binop, Load, reg - 1, reg - 1, type_def->byte_size);
 	            }
 
 	            auto ident = static_cast<Ast_Ident*>(binop->rhs);
 	            auto decl = ident->declaration;
 				if (decl->attribute_byte_offset != 0) {
-					this->add_instruction(binop, new Inst_Add_Const(reg - 1, decl->attribute_byte_offset));
+					INST(binop, Add_Const, reg - 1, decl->attribute_byte_offset);
 				}
 
 	            if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-	                this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
+	                INST(binop, Load, reg - 1, reg - 1, binop->inferred_type->byte_size);
 	            }
 
 				break;
@@ -345,15 +347,13 @@ struct Bytecode_Generator : Pipe {
 					auto array_base_type = static_cast<Ast_Type_Instance*>(array_type->base);
 		            auto element_size = array_base_type->byte_size;
 
-		            if (element_size > 1) {
-						this->add_instruction(binop, new Inst_Mul_Const(reg - 1, element_size));
-		            }
+		            if (element_size > 1) INST(binop, Mul_Const, reg - 1, element_size);
 
 					this->reg -= 1;
-		            this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
+		            INST(binop, Binary, BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64);
 
 		            if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-	                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
+	                    INST(binop, Load, reg - 1, reg - 1, binop->inferred_type->byte_size);
 	                }
 				} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
 					auto struct_type = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
@@ -368,21 +368,19 @@ struct Bytecode_Generator : Pipe {
 				        	Pipe::handle(&binop->lhs);
 							POP_L(tmp);
 
-							this->add_instruction(binop, new Inst_Add_Const(reg - 1, data_decl->attribute_byte_offset));
-							this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, ptr_type->byte_size));
+							INST(binop, Add_Const, reg - 1, data_decl->attribute_byte_offset);
+							INST(binop, Load, reg - 1, reg - 1, ptr_type->byte_size);
 							Pipe::handle(&binop->rhs);
 
-				            if (element_size > 1) {
-								this->add_instruction(binop, new Inst_Mul_Const(reg - 1, element_size));
-				            }
+				            if (element_size > 1) INST(binop, Mul_Const, reg - 1, element_size);
 
 							this->reg -= 1;
-				            this->add_instruction(binop, new Inst_Binary(BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64));
+				            INST(binop, Binary, BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64);
 
 			                if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			                    this->add_instruction(binop, new Inst_Load(reg - 1, reg - 1, binop->inferred_type->byte_size));
+			                    INST(binop, Load, reg - 1, reg - 1, binop->inferred_type->byte_size);
 			                }
-						} else ERROR(binop, "Slice type doesn't have data attribute");
+						} else abort();
 					} else ERROR(binop->lhs, "Struct is not a slice");
 				}
 				break;
@@ -397,9 +395,9 @@ struct Bytecode_Generator : Pipe {
 
 	            this->reg -= 1;
 				if (size > INTERP_REGISTER_SIZE) {
-	                this->add_instruction(binop, new Inst_Copy_Memory(reg, reg - 1, size));
+	                INST(binop, Copy_Memory, reg, reg - 1, size);
 	            } else {
-					this->add_instruction(binop, new Inst_Store(reg, reg - 1, size));
+					INST(binop, Store, reg, reg - 1, size);
 	            }
 				break;
 			}
@@ -409,7 +407,7 @@ struct Bytecode_Generator : Pipe {
 	            this->reg -= 1;
 				auto binop_type = get_bytecode_from_binop(binop->binary_op);
 	            auto bytecode_type = bytecode_get_type(binop->lhs->inferred_type);
-	            this->add_instruction(binop, new Inst_Binary(binop_type, reg - 1, reg, bytecode_type));
+	            INST(binop, Binary, binop_type, reg - 1, reg, bytecode_type);
 
 				break;
 			}
@@ -420,23 +418,23 @@ struct Bytecode_Generator : Pipe {
 		auto ident = (*ident_ptr);
 
 		if (ident->declaration->is_global()) {
-			this->add_instruction(ident, new Inst_Global_Offset(reg, ident->declaration->data_offset));
+			INST(ident, Global_Offset, reg, ident->declaration->data_offset);
 		} else {
-			this->add_instruction(ident, new Inst_Stack_Offset(reg, ident->declaration->data_offset));
+			INST(ident, Stack_Offset, reg, ident->declaration->data_offset);
 		}
 		if (!this->is_left_value && ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			this->add_instruction(ident, new Inst_Load(reg, reg, ident->inferred_type->byte_size));
+			INST(ident, Load, reg, reg, ident->inferred_type->byte_size);
 		}
 		this->reg++;
 	}
 
     void handle (Ast_Function** func_ptr) {
 		auto func = (*func_ptr);
-		
+
 		if (func->is_native()) {
-			this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &func->foreign_function_pointer));
+			INST(func, Set, this->reg, BYTECODE_TYPE_POINTER, &func->foreign_function_pointer);
 		} else {
-			this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &func));
+			INST(func, Set, this->reg, BYTECODE_TYPE_POINTER, &func);
 		}
 	    this->reg++;
 	}
@@ -455,10 +453,10 @@ struct Bytecode_Generator : Pipe {
 		// store them in the stack and restore them after the call
 		auto _tmp = this->reg;
 		if (_tmp > 0) {
-			this->add_instruction(call, new Inst_Stack_Allocate(_tmp * INTERP_REGISTER_SIZE));
+			INST(call, Stack_Allocate, _tmp * INTERP_REGISTER_SIZE);
 			for (uint8_t i = 0; i < _tmp; i++) {
-		        this->add_instruction(call, new Inst_Stack_Offset(_tmp, this->data_offset));
-		        this->add_instruction(call, new Inst_Store(_tmp, i, INTERP_REGISTER_SIZE));
+		        INST(call, Stack_Offset, _tmp, this->data_offset);
+		        INST(call, Store, _tmp, i, INTERP_REGISTER_SIZE);
 
 				this->data_offset += INTERP_REGISTER_SIZE;
 			}
@@ -471,7 +469,7 @@ struct Bytecode_Generator : Pipe {
 		}
 		POP_L(tmp);
 
-		this->add_instruction(call, new Inst_Call_Setup(DC_CALL_C_X64_WIN64));
+		INST(call, Call_Setup, DC_CALL_C_X64_WIN64);
 
 		auto bytecode_type = BYTECODE_TYPE_VOID;
 		for (uint8_t i = 0; i < call->arguments.size(); i++) {
@@ -481,7 +479,7 @@ struct Bytecode_Generator : Pipe {
 	        } else {
 				bytecode_type = bytecode_get_type(exp->inferred_type);
 			}
-			this->add_instruction(call, new Inst_Call_Param(i, bytecode_type));
+			INST(call, Call_Param, i, bytecode_type);
 		}
 
 		PUSH_L(tmp2, false);
@@ -489,9 +487,9 @@ struct Bytecode_Generator : Pipe {
 		POP_L(tmp2);
 
 		auto ret_type = bytecode_get_type(call->inferred_type);
-	    this->add_instruction(call, new Inst_Call(this->reg - 1, ret_type));
+	    INST(call, Call, this->reg - 1, ret_type);
 	    if (_tmp != 0) {
-	        this->add_instruction(call, new Inst_Copy(_tmp, 0));
+	        INST(call, Copy, _tmp, 0);
 	    }
 
 		// Now we restore the values from previous registers so we can continue
@@ -500,8 +498,8 @@ struct Bytecode_Generator : Pipe {
 			for (uint8_t i = _tmp; i > 0; i--) {
 				this->data_offset -= INTERP_REGISTER_SIZE;
 
-		        this->add_instruction(call, new Inst_Stack_Offset(_tmp, this->data_offset));
-		        this->add_instruction(call, new Inst_Load(i, _tmp, INTERP_REGISTER_SIZE));
+		        INST(call, Stack_Offset, _tmp, this->data_offset);
+		        INST(call, Load, i, _tmp, INTERP_REGISTER_SIZE);
 			}
 		}
 
