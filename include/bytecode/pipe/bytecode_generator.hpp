@@ -13,6 +13,8 @@ struct Inst_Jump;
 #define POP_L(var_name) this->is_left_value = var_name
 
 struct Bytecode_Generator : Pipe {
+	Ast_Declaration* reg_declarations[INTERP_REGISTER_COUNT] = {};
+	bool reserved[INTERP_REGISTER_COUNT] = {};
 	size_t data_offset = 0;
 
 	vector<Instruction*>* bytecode = NULL;
@@ -22,6 +24,56 @@ struct Bytecode_Generator : Pipe {
 	vector<Inst_Jump*> pending_breaks;
 
 	PIPE_NAME(Bytecode_Generator)
+
+	uint8_t get_free_reg (int8_t preferred = -1) {
+		if (preferred == -1) {
+			for (uint8_t i = 0; i < INTERP_REGISTER_COUNT; i++) {
+				if (!this->reserved[i]) return i;
+			}
+		} else {
+			if (!this->is_occupied(preferred)) return preferred;
+			else {
+				for (uint8_t i = 0; i < INTERP_REGISTER_COUNT; i++) {
+					if (!this->reserved[i]) return i;
+				}
+			}
+		}
+		// @Incomplete we should spill memory to create a free register
+		abort();
+	}
+
+	uint8_t push_expression (Ast_Expression* exp) {
+		auto _reg = get_free_reg();
+		this->reserved[_reg] = true;
+		exp->reg = _reg;
+		return _reg;
+	}
+
+	void push_declaration (Ast_Declaration* decl, uint8_t _reg) {
+		this->reg_declarations[_reg] = decl;
+	}
+
+	void clear_registers () {
+		/*auto free_reg = get_free_reg();
+		for (uint8_t i = 0; i < INTERP_REGISTER_COUNT; i++) {
+			auto decl = this->reg_declarations[i];
+			if (decl) {
+				auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
+				INST(decl, Stack_Offset, free_reg, decl->data_offset);
+				if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
+					INST(decl, Copy_Memory, free_reg, i, decl_type->byte_size);
+				} else {
+					INST(decl, Store, free_reg, i, decl_type->byte_size);
+				}
+			}
+		}*/
+		memset(this->reg_declarations, 0, INTERP_REGISTER_COUNT * sizeof(Ast_Declaration*));
+		memset(this->reserved, 0, INTERP_REGISTER_COUNT * sizeof(bool));
+	}
+
+	bool is_occupied (uint8_t reg_index) {
+		return this->reg_declarations[reg_index];
+	}
 
 	void add_instruction (Ast* node, Instruction* intruction) {
 	    intruction->location = node->location;
@@ -34,6 +86,7 @@ struct Bytecode_Generator : Pipe {
 		this->reg = 0;
 		this->is_left_value = false;
 		Pipe::handle(stm_ptr);
+		this->clear_registers();
 	}
 
 	void handle (Ast_Block** block_ptr) {
@@ -43,18 +96,14 @@ struct Bytecode_Generator : Pipe {
 	}
 
 	void handle (Ast_Return** ret_ptr) {
-		PUSH_L(tmp, false);
 	    Pipe::handle(ret_ptr);
-		POP_L(tmp);
 	    this->add_instruction((*ret_ptr), new Inst_Return());
 	}
 
 	void handle (Ast_If** _if_ptr) {
 		auto _if = (*_if_ptr);
 
-		PUSH_L(tmp, false);
 		Pipe::handle(&_if->condition);
-		POP_L(tmp);
 
 		auto inst = new Inst_Jump_If_False(0);
 		this->add_instruction(_if, inst);
@@ -78,9 +127,7 @@ struct Bytecode_Generator : Pipe {
 
 		auto index1 = this->bytecode->size();
 
-		PUSH_L(tmp, false);
 		Pipe::handle(&_while->condition);
-		POP_L(tmp);
 
 		auto jmp1 = new Inst_Jump_If_False(0);
 		this->add_instruction(_while, jmp1);
@@ -169,6 +216,8 @@ struct Bytecode_Generator : Pipe {
 					Pipe::handle(&decl->expression);
 					POP_L(tmp);
 
+					this->push_declaration(decl, decl->expression->reg);
+
 	                INST(decl, Stack_Offset, 1, decl->data_offset);
 					if (ty_decl->byte_size > INTERP_REGISTER_SIZE) {
 		                INST(decl, Copy_Memory, 1, 0, ty_decl->byte_size);
@@ -187,94 +236,53 @@ struct Bytecode_Generator : Pipe {
 		Pipe::handle(&cast->value);
 		POP_L(tmp);
 
+		cast->reg = this->get_free_reg(cast->value->reg);
+
 		auto type_from = bytecode_get_type(cast->value->inferred_type);
 		auto type_to = bytecode_get_type(cast->inferred_type);
-		INST(cast, Cast, this->reg - 1, type_from, type_to);
-	}
-
-	void handle (Ast_Literal** lit_ptr) {
-		auto lit = (*lit_ptr);
-
-		switch (lit->literal_type) {
-			case AST_LITERAL_SIGNED_INT:
-			case AST_LITERAL_UNSIGNED_INT: {
-				auto bytecode_type = bytecode_get_type(lit->inferred_type);
-	            INST(lit, Set, this->reg++, bytecode_type, &lit->int_value);
-				break;
-			}
-			case AST_LITERAL_DECIMAL: {
-				auto bytecode_type = bytecode_get_type(lit->inferred_type);
-	            if (bytecode_type == BYTECODE_TYPE_F32) {
-	                auto _tmp = (float) lit->decimal_value;
-	                INST(lit, Set, this->reg++, bytecode_type, &_tmp);
-	            } else {
-	                INST(lit, Set, this->reg++, bytecode_type, &lit->decimal_value);
-	            }
-	            break;
-	        }
-			case AST_LITERAL_STRING: {
-				lit->data_offset = g_compiler->interp->constants->add(lit->string_value);
-	            INST(lit, Constant_Offset, this->reg++, lit->data_offset);
-				break;
-			}
-			default: ERROR(lit, "Literal type to bytecode conversion not supported!");
-		}
+		INST(cast, Cast, cast->reg, type_from, type_to);
 	}
 
 	uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {
 		switch (unop) {
-			case AST_UNARY_NEGATE:        return BYTECODE_ARITHMETIC_NEGATE;
-			case AST_UNARY_NOT:           return BYTECODE_LOGICAL_NEGATE;
+			case AST_UNARY_NEGATE:  return BYTECODE_ARITHMETIC_NEGATE;
+			case AST_UNARY_NOT:     return BYTECODE_LOGICAL_NEGATE;
+			default: 				return BYTECODE_NOOP;
 		}
-		return BYTECODE_NOOP;
 	}
 
 	void handle (Ast_Unary** unop_ptr) {
 		auto unop = (*unop_ptr);
 
+		PUSH_L(tmp, unop->unary_op == AST_UNARY_REFERENCE);
+		Pipe::handle(&unop->exp);
+		POP_L(tmp);
+
+		auto unop_type = get_bytecode_from_unop(unop->unary_op);
+		auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
+
+		unop->reg = this->get_free_reg(unop->exp->reg);
+
 		switch (unop->unary_op) {
 			case AST_UNARY_NOT: {
-				PUSH_L(tmp, false);
-	        	Pipe::handle(&unop->exp);
-				POP_L(tmp);
-
-				auto unop_type = get_bytecode_from_unop(unop->unary_op);
-	            auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
-	            INST(unop, Unary, unop_type, this->reg - 1, bytecode_type);
+	            INST(unop, Unary, unop_type, unop->exp->reg, bytecode_type);
 				break;
 			}
 			case AST_UNARY_NEGATE: {
-				PUSH_L(tmp, false);
-	        	Pipe::handle(&unop->exp);
-				POP_L(tmp);
-
-				auto unop_type = get_bytecode_from_unop(unop->unary_op);
-	            auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
 				auto result_type = bytecode_unsigned_to_signed(bytecode_type);
 				if (bytecode_type != result_type) {
-					INST(unop, Cast, this->reg - 1, bytecode_type, result_type);
+					INST(unop, Cast, unop->exp->reg, bytecode_type, result_type);
 				}
-	            INST(unop, Unary, unop_type, this->reg - 1, result_type);
+	            INST(unop, Unary, unop_type, unop->exp->reg, result_type);
 				break;
 			}
 	        case AST_UNARY_DEREFERENCE: {
-				PUSH_L(tmp, false);
-	            Pipe::handle(&unop->exp);
-				POP_L(tmp);
-
 				if (!this->is_left_value) {
-					INST(unop, Load, reg - 1, reg - 1, unop->inferred_type->byte_size);
+					INST(unop, Load, this->reg - 1, this->reg - 1, unop->inferred_type->byte_size);
 				}
 	            break;
 	        }
-	        case AST_UNARY_REFERENCE: {
-				PUSH_L(tmp, true);
-	            Pipe::handle(&unop->exp);
-				POP_L(tmp);
-
-	            break;
-	        }
-			default: return;
+			default: break;
 		}
 	}
 
@@ -368,17 +376,16 @@ struct Bytecode_Generator : Pipe {
 				        	Pipe::handle(&binop->lhs);
 							POP_L(tmp);
 
-							INST(binop, Add_Const, reg - 1, data_decl->attribute_byte_offset);
-							INST(binop, Load, reg - 1, reg - 1, ptr_type->byte_size);
+							INST(binop, Add_Const, binop->lhs->reg, data_decl->attribute_byte_offset);
+							INST(binop, Load, binop->lhs->reg, binop->lhs->reg, ptr_type->byte_size);
 							Pipe::handle(&binop->rhs);
 
-				            if (element_size > 1) INST(binop, Mul_Const, reg - 1, element_size);
+				            if (element_size > 1) INST(binop, Mul_Const, binop->lhs->reg, element_size);
 
-							this->reg -= 1;
-				            INST(binop, Binary, BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64);
+				            INST(binop, Binary, BYTECODE_ADD, binop->lhs->reg, binop->rhs->reg, BYTECODE_TYPE_U64);
 
 			                if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			                    INST(binop, Load, reg - 1, reg - 1, binop->inferred_type->byte_size);
+			                    INST(binop, Load, binop->lhs->reg, binop->lhs->reg, binop->inferred_type->byte_size);
 			                }
 						} else abort();
 					} else ERROR(binop->lhs, "Struct is not a slice");
@@ -395,9 +402,9 @@ struct Bytecode_Generator : Pipe {
 
 	            this->reg -= 1;
 				if (size > INTERP_REGISTER_SIZE) {
-	                INST(binop, Copy_Memory, reg, reg - 1, size);
+	                INST(binop, Copy_Memory, this->reg, this->reg - 1, size);
 	            } else {
-					INST(binop, Store, reg, reg - 1, size);
+					INST(binop, Store, this->reg, this->reg - 1, size);
 	            }
 				break;
 			}
@@ -407,35 +414,79 @@ struct Bytecode_Generator : Pipe {
 	            this->reg -= 1;
 				auto binop_type = get_bytecode_from_binop(binop->binary_op);
 	            auto bytecode_type = bytecode_get_type(binop->lhs->inferred_type);
-	            INST(binop, Binary, binop_type, reg - 1, reg, bytecode_type);
+	            INST(binop, Binary, binop_type, this->reg - 1, this->reg, bytecode_type);
 
 				break;
 			}
 		}
+
+		if (binop->reg == -1) binop->reg = binop->lhs->reg;
+	}
+
+	void handle (Ast_Literal** lit_ptr) {
+		auto lit = (*lit_ptr);
+
+		this->push_expression(lit);
+
+		switch (lit->literal_type) {
+			case AST_LITERAL_SIGNED_INT:
+			case AST_LITERAL_UNSIGNED_INT: {
+				auto bytecode_type = bytecode_get_type(lit->inferred_type);
+	            INST(lit, Set, this->reg, bytecode_type, &lit->int_value);
+				break;
+			}
+			case AST_LITERAL_DECIMAL: {
+				auto bytecode_type = bytecode_get_type(lit->inferred_type);
+	            if (bytecode_type == BYTECODE_TYPE_F32) {
+	                auto _tmp = (float) lit->decimal_value;
+	                INST(lit, Set, this->reg, bytecode_type, &_tmp);
+	            } else {
+	                INST(lit, Set, this->reg, bytecode_type, &lit->decimal_value);
+	            }
+	            break;
+	        }
+			case AST_LITERAL_STRING: {
+				lit->data_offset = g_compiler->interp->constants->add(lit->string_value);
+	            INST(lit, Constant_Offset, this->reg, lit->data_offset);
+				break;
+			}
+			default: ERROR(lit, "Literal type to bytecode conversion not supported!");
+		}
+
+	    this->reg++;
 	}
 
 	void handle (Ast_Ident** ident_ptr) {
 		auto ident = (*ident_ptr);
+
+		this->push_expression(ident);
+
+		this->push_declaration(ident->declaration, ident->reg);
 
 		if (ident->declaration->is_global()) {
 			INST(ident, Global_Offset, reg, ident->declaration->data_offset);
 		} else {
 			INST(ident, Stack_Offset, reg, ident->declaration->data_offset);
 		}
+
 		if (!this->is_left_value && ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
 			INST(ident, Load, reg, reg, ident->inferred_type->byte_size);
 		}
+
 		this->reg++;
 	}
 
     void handle (Ast_Function** func_ptr) {
 		auto func = (*func_ptr);
 
+		this->push_expression(func);
+
 		if (func->is_native()) {
 			INST(func, Set, this->reg, BYTECODE_TYPE_POINTER, &func->foreign_function_pointer);
 		} else {
 			INST(func, Set, this->reg, BYTECODE_TYPE_POINTER, &func);
 		}
+
 	    this->reg++;
 	}
 
@@ -488,9 +539,8 @@ struct Bytecode_Generator : Pipe {
 
 		auto ret_type = bytecode_get_type(call->inferred_type);
 	    INST(call, Call, this->reg - 1, ret_type);
-	    if (_tmp != 0) {
-	        INST(call, Copy, _tmp, 0);
-	    }
+	    if (_tmp != 0) INST(call, Copy, _tmp, 0);
+		call->reg = 0;
 
 		// Now we restore the values from previous registers so we can continue
 		// with the current expression

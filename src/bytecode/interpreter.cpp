@@ -118,14 +118,15 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_UNARY: {
 			auto unary = static_cast<Inst_Unary*>(inst);
-			bytecode_unary(unary->unop, this->registers[unary->reg],
-				unary->bytecode_type);
+			bytecode_unary(unary->unop, this->registers[unary->target],
+				this->registers[unary->reg], unary->bytecode_type);
 			return;
 		}
 		case BYTECODE_BINARY: {
 			auto binary = static_cast<Inst_Binary*>(inst);
-			bytecode_binary(binary->binop, this->registers[binary->reg1],
-				this->registers[binary->reg2], binary->bytecode_type);
+			bytecode_binary(binary->binop, this->registers[binary->target],
+				this->registers[binary->reg1], this->registers[binary->reg2],
+				binary->bytecode_type);
 			return;
 		}
 		case BYTECODE_ADD_CONST: {

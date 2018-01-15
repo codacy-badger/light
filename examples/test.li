@@ -16,7 +16,7 @@ main :: fn {
 	test_static_array();
 	test_slice();
 
-	print_f64(1.98);
+	print_f64(-9.81);
 	print("\n");
 }
 

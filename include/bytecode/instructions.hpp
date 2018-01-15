@@ -95,7 +95,7 @@ bool bytecode_has_sign (Bytecode_Type bytecode_type);
 Bytecode_Type bytecode_unsigned_to_signed (Bytecode_Type bytecode_type);
 
 struct Instruction {
-	uint8_t bytecode = BYTECODE_NOOP;
+	Inst_Bytecode bytecode = BYTECODE_NOOP;
 	Location location;
 };
 
@@ -231,12 +231,22 @@ struct Inst_Store : Instruction {
 
 struct Inst_Unary : Instruction {
 	uint8_t unop = 0;
+	uint8_t target = 0;
 	uint8_t reg = 0;
 	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
 
 	Inst_Unary (uint8_t unop, uint8_t reg, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_UNARY;
 		this->unop = unop;
+		this->target = reg;
+		this->reg = reg;
+		this->bytecode_type = bytecode_type;
+	}
+
+	Inst_Unary (uint8_t unop, uint8_t target, uint8_t reg, Bytecode_Type bytecode_type) {
+		this->bytecode = BYTECODE_UNARY;
+		this->unop = unop;
+		this->target = target;
 		this->reg = reg;
 		this->bytecode_type = bytecode_type;
 	}
@@ -244,6 +254,7 @@ struct Inst_Unary : Instruction {
 
 struct Inst_Binary : Instruction {
 	uint8_t binop = 0;
+	uint8_t target = 0;
 	uint8_t reg1 = 0;
 	uint8_t reg2 = 0;
 	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
@@ -251,6 +262,16 @@ struct Inst_Binary : Instruction {
 	Inst_Binary (uint8_t binop, uint8_t reg1, uint8_t reg2, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_BINARY;
 		this->binop = binop;
+		this->target = reg1;
+		this->reg1 = reg1;
+		this->reg2 = reg2;
+		this->bytecode_type = bytecode_type;
+	}
+
+	Inst_Binary (uint8_t binop, uint8_t target, uint8_t reg1, uint8_t reg2, Bytecode_Type bytecode_type) {
+		this->bytecode = BYTECODE_BINARY;
+		this->binop = binop;
+		this->target = target;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
 		this->bytecode_type = bytecode_type;

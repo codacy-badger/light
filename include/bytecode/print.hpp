@@ -90,7 +90,7 @@ void bytecode_print (size_t index, Instruction* inst) {
 				case BYTECODE_ARITHMETIC_NEGATE: 	printf("ARITHMETIC_NEGATE"); break;
 				case BYTECODE_BITWISE_NEGATE: 		printf("BITWISE_NEGATE"); break;
 			}
-			printf(" %d, %d", unary->reg, unary->bytecode_type);
+			printf(" %d, %d, %d", unary->target, unary->reg, unary->bytecode_type);
 			break;
 		}
 		case BYTECODE_BINARY: {
@@ -118,7 +118,7 @@ void bytecode_print (size_t index, Instruction* inst) {
 				case BYTECODE_GT: 					printf("GT"); break;
 				case BYTECODE_GTE: 					printf("GTE"); break;
 			}
-			printf(" %d, %d", binary->reg1, binary->reg2);
+			printf(" %d, %d, %d", binary->target, binary->reg1, binary->reg2);
 			break;
 		}
 		case BYTECODE_ADD_CONST: {

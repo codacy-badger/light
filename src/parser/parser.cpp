@@ -6,6 +6,10 @@ void _print_f64 (float number) {
 	printf("%lf", number);
 }
 
+void _print_u64 (uint64_t number) {
+	printf("%llu", number);
+}
+
 Ast* setup_ast_node (Lexer* lexer, Ast* node) {
 	if (lexer) node->location = lexer->buffer->location;
 	return node;
@@ -58,6 +62,15 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 		print_f64->arg_decls.push_back(param1);
 		print_f64->foreign_function_pointer = (void*)_print_f64;
 		this->add(ast_make_declaration("print_f64", print_f64), parent);
+
+		auto print_u64 = new Ast_Function();
+		print_u64->name = "_print_u64";
+		print_u64->ret_type = g_compiler->type_def_void;
+		param1 = ast_make_declaration("number", NULL, false);
+		param1->type = g_compiler->type_def_u64;
+		print_u64->arg_decls.push_back(param1);
+		print_u64->foreign_function_pointer = (void*)_print_u64;
+		this->add(ast_make_declaration("_print_u64", print_u64), parent);
 	}
 
 	auto tmp = this->lexer;
