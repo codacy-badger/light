@@ -15,6 +15,9 @@ main :: fn {
 	test_big_struct();
 	test_static_array();
 	test_slice();
+
+	print_f64(1.98);
+	print("\n");
 }
 
 test_factorial :: fn {
