@@ -236,7 +236,7 @@ struct Ast_Function : Ast_Expression {
 
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 
-	bool is_native () { return this->foreign_module_name; }
+	bool is_native () { return this->foreign_function_pointer; }
 };
 
 enum Ast_Binary_Type {

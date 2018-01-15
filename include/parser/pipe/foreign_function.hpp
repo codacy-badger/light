@@ -1,6 +1,9 @@
 #pragma once
 
 #include "parser/pipes.hpp"
+#include "report.hpp"
+
+#define ERROR(node, ...) report_error_stop(&node->location, __VA_ARGS__)
 
 char* extract_string_parameter (Ast_Expression* exp) {
 	if (exp->exp_type == AST_EXPRESSION_LITERAL) {
@@ -13,7 +16,6 @@ char* extract_string_parameter (Ast_Expression* exp) {
 }
 
 struct Foreign_Function : Pipe {
-
 	PIPE_NAME(Foreign_Function)
 
 	void handle (Ast_Declaration** decl_ptr) {
@@ -32,6 +34,15 @@ struct Foreign_Function : Pipe {
 						exp = note->arguments[1];
 						func->foreign_function_name = extract_string_parameter(exp);
 					} else func->foreign_function_name = func->name;
+
+					auto module = os_get_module(func->foreign_module_name);
+					if (module) {
+						func->foreign_function_pointer = os_get_function(module, func->foreign_function_name);
+						if (!func->foreign_function_pointer) {
+							ERROR(func, "Function '%s' not found in module '%s'!",
+								func->foreign_function_name, func->foreign_module_name);
+						}
+					} else ERROR(func, "Module '%s' not found!", func->foreign_module_name);
 				}
 			}
 		}

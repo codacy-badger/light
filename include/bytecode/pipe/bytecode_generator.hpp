@@ -432,18 +432,9 @@ struct Bytecode_Generator : Pipe {
 
     void handle (Ast_Function** func_ptr) {
 		auto func = (*func_ptr);
-
+		
 		if (func->is_native()) {
-			auto module = os_get_module(func->foreign_module_name);
-			if (module) {
-				auto function_pointer = os_get_function(module, func->foreign_function_name);
-				if (!function_pointer) {
-	                ERROR(func, "Function '%s' not found in module '%s'!",
-						func->foreign_function_name, func->foreign_module_name);
-				} else {
-					this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &function_pointer));
-				}
-			} else ERROR(func, "Module '%s' not found!", func->foreign_module_name);
+			this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &func->foreign_function_pointer));
 		} else {
 			this->add_instruction(func, new Inst_Set(this->reg, BYTECODE_TYPE_POINTER, &func));
 		}
