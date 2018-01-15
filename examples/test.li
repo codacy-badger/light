@@ -17,17 +17,6 @@ main :: fn {
 	test_slice();
 }
 
-assert :: fn (condition: bool) {
-	if !condition {
-		print("ASSERT: ");
-		print(__FILE__);
-		print(" ");
-		print_u64(__LINE__);
-		print("\n");
-		sys_exit(1);
-	}
-}
-
 test_factorial :: fn {
 	assert(factorial(5) == 120);
 
@@ -79,6 +68,17 @@ test_cast :: fn {
 	assert(55 == num1);
 	assert(num2 == 755);
 	assert(-55 == -num1);
+}
+
+assert :: fn (condition: bool) {
+	if !condition {
+		print("ASSERT: ");
+		print(__FILE__);
+		print(" ");
+		print_u64(__LINE__);
+		print("\n");
+		sys_exit(1);
+	}
 }
 
 test_pointers :: fn {

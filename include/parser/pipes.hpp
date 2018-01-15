@@ -161,7 +161,6 @@ struct Pipe {
 				break;
 			}
 		}
-
 	}
 
 	virtual void handle (Ast_Function** func) {

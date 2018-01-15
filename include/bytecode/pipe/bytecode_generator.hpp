@@ -136,6 +136,7 @@ struct Bytecode_Generator : Pipe {
 				}
 			}
 
+			g_compiler->parser->all_bytecodes += this->bytecode->size();
 	        this->bytecode = _tmp;
 		}
 	}
@@ -149,7 +150,6 @@ struct Bytecode_Generator : Pipe {
 	            if (!func->foreign_module_name) {
 	    			auto _tmp = this->data_offset;
 	    			this->fill(func);
-					g_compiler->parser->all_bytecodes += func->bytecode.size();
 	                this->data_offset = _tmp;
 	            }
 			}
