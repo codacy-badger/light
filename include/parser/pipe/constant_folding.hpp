@@ -45,23 +45,59 @@ T unary_fold (Ast_Unary_Type unary_op, T a) {
 	}
 }
 
-struct Constant_Folding : Pipe {
+Ast_Type_Instance* unary_type (Ast_Unary_Type unary_op, Ast_Expression* exp) {
+	switch (unary_op) {
+		case AST_UNARY_NEGATE: {
+				 if (exp->inferred_type == g_compiler->type_def_s8) 	return g_compiler->type_def_u8;
+			else if (exp->inferred_type == g_compiler->type_def_s16) 	return g_compiler->type_def_u8;
+			else if (exp->inferred_type == g_compiler->type_def_s32) 	return g_compiler->type_def_u16;
+			else if (exp->inferred_type == g_compiler->type_def_s64) 	return g_compiler->type_def_u32;
+			else if (exp->inferred_type == g_compiler->type_def_u8) 	return g_compiler->type_def_s16;
+			else if (exp->inferred_type == g_compiler->type_def_u16) 	return g_compiler->type_def_s32;
+			else if (exp->inferred_type == g_compiler->type_def_u32) 	return g_compiler->type_def_s64;
+			// @Incomplete @Fixme possible loss of data, we should notify the user somehow
+			else if (exp->inferred_type == g_compiler->type_def_u64) 	return g_compiler->type_def_s64;
+			else return exp->inferred_type;
+		}
+		case AST_UNARY_NOT: return g_compiler->type_def_bool;
+		default: abort();
+	}
+}
 
+struct Constant_Folding : Pipe {
 	PIPE_NAME(Constant_Folding)
 
+	void handle (Ast_Cast** cast_ptr) {
+		auto cast = (*cast_ptr);
+
+		Pipe::handle(cast_ptr);
+
+		if (cast->value->exp_type == AST_EXPRESSION_LITERAL) {
+			auto lit = static_cast<Ast_Literal*>(cast->value);
+
+			// @Incomplete decimal conversions won't work...
+			lit->inferred_type = static_cast<Ast_Type_Instance*>(cast->cast_to);
+
+			delete *cast_ptr;
+			*cast_ptr = reinterpret_cast<Ast_Cast*>(lit);
+		}
+	}
+
 	void handle (Ast_Unary** unary_ptr) {
-		Pipe::handle(unary_ptr);
 		auto unary = (*unary_ptr);
+
+		Pipe::handle(unary_ptr);
 
 		if (unary->exp->exp_type == AST_EXPRESSION_LITERAL) {
 			auto lit = reinterpret_cast<Ast_Literal*>(unary->exp);
+			auto unop = unary->unary_op;
 
-			Ast_Unary_Type unop = unary->unary_op;
+			lit->inferred_type = unary_type(unop, lit);
+
 			switch (lit->literal_type) {
 				case AST_LITERAL_UNSIGNED_INT: {
 					lit->int_value = unary_fold(unop, lit->int_value);
-					if (unop == AST_UNARY_NEGATE)
-						lit->literal_type = AST_LITERAL_SIGNED_INT;
+					if (unop == AST_UNARY_NEGATE) lit->literal_type = AST_LITERAL_SIGNED_INT;
 					break;
 				}
 				case AST_LITERAL_SIGNED_INT: {
@@ -83,29 +119,32 @@ struct Constant_Folding : Pipe {
 	}
 
 	void handle (Ast_Binary** binary_ptr) {
-		Pipe::handle(binary_ptr);
 		auto binary = (*binary_ptr);
 
-		if (binary->lhs->exp_type == AST_EXPRESSION_LITERAL
-			&& binary->rhs->exp_type == AST_EXPRESSION_LITERAL) {
-			auto litL = reinterpret_cast<Ast_Literal*>(binary->lhs);
-			auto litR = reinterpret_cast<Ast_Literal*>(binary->rhs);
+		Pipe::handle(binary_ptr);
+
+		auto lhs = binary->lhs;
+		auto rhs = binary->rhs;
+
+		if (lhs->exp_type == AST_EXPRESSION_LITERAL && rhs->exp_type == AST_EXPRESSION_LITERAL) {
+			/*auto l_lit = reinterpret_cast<Ast_Literal*>(lhs);
+			auto r_lit = reinterpret_cast<Ast_Literal*>(rhs);
 
 			auto tmp = new Ast_Literal();
 			tmp->location = binary->location;
-			tmp->literal_type = litL->literal_type;
+			tmp->literal_type = l_lit->literal_type;
 			Ast_Binary_Type binop = binary->binary_op;
-			switch (litL->literal_type) {
+			switch (l_lit->literal_type) {
 				case AST_LITERAL_UNSIGNED_INT: {
-					tmp->uint_value = binary_fold_logic(binop, litL->uint_value, litR->uint_value);
+					tmp->uint_value = binary_fold_logic(binop, l_lit->uint_value, r_lit->uint_value);
 					break;
 				}
 				case AST_LITERAL_SIGNED_INT: {
-					tmp->int_value = binary_fold_logic(binop, litL->int_value, litR->int_value);
+					tmp->int_value = binary_fold_logic(binop, l_lit->int_value, r_lit->int_value);
 					break;
 				}
 				case AST_LITERAL_DECIMAL: {
-					tmp->decimal_value = binary_fold(binop, litL->decimal_value, litR->decimal_value);
+					tmp->decimal_value = binary_fold(binop, l_lit->decimal_value, r_lit->decimal_value);
 					break;
 				}
 				case AST_LITERAL_STRING: {
@@ -114,7 +153,7 @@ struct Constant_Folding : Pipe {
 				}
 			}
 			delete *binary_ptr;
-			*binary_ptr = reinterpret_cast<Ast_Binary*>(tmp);
+			*binary_ptr = reinterpret_cast<Ast_Binary*>(tmp);*/
 		}
 	}
 };

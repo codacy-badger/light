@@ -53,7 +53,7 @@ test_arrays :: fn {
 }
 
 test_decimals :: fn {
-	dec1 : f64 = 1.23;
+	dec1 : f32 = 1.23;
 
 	assert(dec1 == 1.23);
 	assert(dec1 != 1.20);

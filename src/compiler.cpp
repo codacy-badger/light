@@ -63,9 +63,9 @@ void Compiler::run () {
 
 	this->parser->append(new Foreign_Function());
 	this->parser->append(new Symbol_Resolution());
-	this->parser->append(new Constant_Folding());
 	this->parser->append(new Type_Checking());
 	this->parser->append(new Import_Modules());
+	this->parser->append(new Constant_Folding());
 	this->parser->append(new Array_Attributes());
 
 	this->parser->append(new Bytecode_Generator());
