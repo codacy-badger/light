@@ -10,18 +10,20 @@ void _print_u64 (uint64_t number) {
 	printf("%llu", number);
 }
 
-Ast* setup_ast_node (Lexer* lexer, Ast* node) {
-	if (lexer) node->location = lexer->buffer->location;
-	return node;
-}
-
-#define AST_NEW(T, ...) ((T*)setup_ast_node(lexer, new T(__VA_ARGS__)))
+#define AST_NEW(T, ...) (this->setup_ast_node(lexer, new T(__VA_ARGS__)))
 
 #define SET_PATH(other) if (strcmp(other, this->current_path) != 0) {			\
 	os_set_current_directory(other);											\
 	strcpy_s(this->current_path, MAX_PATH_LENGTH, other); }
 
 #define DECL_TYPE(type) this->add(ast_make_declaration(type->name, type), parent);
+
+template<typename T>
+T* Parser::setup_ast_node (Lexer* lexer, T* node) {
+	if (lexer) node->location = lexer->buffer->location;
+	this->ast_node_count++;
+	return node;
+}
 
 Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	char* file_part = NULL;
@@ -36,6 +38,8 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	*file_part = '\0';
 	SET_PATH(abs_path);
 	*file_part = _c;
+
+	this->last_time_start = os_get_time();
 
 	if (!parent) {
 		parent = AST_NEW(Ast_Block);
@@ -76,6 +80,7 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	auto tmp = this->lexer;
 	this->lexer = new Lexer(abs_path, this->lexer);
 	this->block(parent);
+	this->accumulated_spans += os_time_stop(this->last_time_start);
 
 	this->all_lines += this->lexer->buffer->location.line;
 	this->global_notes.clear();
@@ -95,8 +100,11 @@ void Parser::add (Ast_Statement* stm, Ast_Block* block) {
 	}
 
 	block->list.push_back(stm);
-	if (block->is_global()) this->to_next(&stm);
-	else {
+	if (block->is_global()) {
+		this->accumulated_spans += os_time_stop(this->last_time_start);
+		this->to_next(&stm);
+		this->last_time_start = os_get_time();
+	} else {
 		if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 			auto decl = static_cast<Ast_Declaration*>(stm);
 			if (decl->is_constant()) this->to_next(&stm);
@@ -511,4 +519,9 @@ Ast_Ident* Parser::ident (const char* name) {
 	// the declaration should already be in the scope.
 	ident->declaration = this->current_block->find_non_const_declaration(ident->name);
 	return ident;
+}
+
+void Parser::print_pipe_metrics () {
+	PRINT_METRIC("Lines of Code:         %zd", this->all_lines);
+	PRINT_METRIC("AST nodes created:     %zd", this->ast_node_count);
 }

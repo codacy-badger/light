@@ -13,9 +13,7 @@
 #include "bytecode/pipe/bytecode_generator.hpp"
 #include "bytecode/pipe/bytecode_runner.hpp"
 
-#define COMPILER_LOC_FORMAT "\n  Lines of Code              %8zd   (%5.3f ms / line)\n"
-#define COMPILER_BYTECODE_FORMAT "  Bytecode Instructions      %8zd   (%5.3f ms / instruction)\n"
-#define COMPILER_TOTAL_FORMAT "  Total Time                 %8.6f s\n"
+#define COMPILER_TOTAL_FORMAT "\n  Total Time                 %8.6f s\n"
 #define COMPILER_DONE_FORMAT "\nCompleted in %8.6f s\n"
 
 Compiler::Compiler () {
@@ -44,15 +42,10 @@ void print_compiler_metrics (Parser* parser, double total_time) {
 			double percent = (current_pipe->accumulated_spans * 100.0) / total_time;
 			printf("  - %-25s%8.6f s (%5.2f %%)\n", current_pipe->pipe_name,
 				current_pipe->accumulated_spans, percent);
+			current_pipe->print_pipe_metrics();
 		}
 		current_pipe = current_pipe->next;
 	}
-
-	auto ms_per_line = (total_time * 1000) / parser->all_lines;
-	auto ms_per_bytecode = (total_time * 1000) / parser->all_bytecodes;
-
-	printf(COMPILER_LOC_FORMAT, parser->all_lines, ms_per_line);
-	printf(COMPILER_BYTECODE_FORMAT, parser->all_bytecodes, ms_per_bytecode);
 	printf(COMPILER_TOTAL_FORMAT, total_time);
 }
 

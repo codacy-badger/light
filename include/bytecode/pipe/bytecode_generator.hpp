@@ -23,6 +23,9 @@ struct Bytecode_Generator : Pipe {
 
 	vector<Inst_Jump*> pending_breaks;
 
+	// for metrics
+	size_t instruction_count = 0;
+
 	PIPE_NAME(Bytecode_Generator)
 
 	uint8_t get_free_reg (int8_t preferred = -1) {
@@ -78,6 +81,7 @@ struct Bytecode_Generator : Pipe {
 	void add_instruction (Ast* node, Instruction* intruction) {
 	    intruction->location = node->location;
 	    this->bytecode->push_back(intruction);
+		this->instruction_count += 1;
 	}
 
 	void handle (Ast_Note**) { /* Notes don't produce any bytecode by themselves */ }
@@ -185,7 +189,6 @@ struct Bytecode_Generator : Pipe {
 				}
 			}
 
-			g_compiler->parser->all_bytecodes += this->bytecode->size();
 	        this->bytecode = _tmp;
 		}
 	}
@@ -562,5 +565,9 @@ struct Bytecode_Generator : Pipe {
 			jump->offset = this->bytecode->size() - jump->offset;
 			this->pending_breaks.pop_back();
 		}
+	}
+
+	void print_pipe_metrics () {
+		PRINT_METRIC("Instructions created:  %zd", this->instruction_count);
 	}
 };

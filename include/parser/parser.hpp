@@ -27,8 +27,15 @@ struct Parser : Pipe {
 	vector<Ast_Note*> global_notes;
 	vector<Ast_Note*> notes;
 
-	size_t all_bytecodes = 0;
+	// for metrics
+	uint64_t last_time_start = 0;
+	size_t ast_node_count = 0;
 	size_t all_lines = 0;
+
+	Parser () { this->pipe_name = "Parser & Lexer"; }
+
+	template<typename T>
+	T* setup_ast_node (Lexer* lexer, T* node);
 
 	Ast_Block* run (const char* filepath, Ast_Block* parent = NULL);
 	void add (Ast_Statement* stm, Ast_Block* block = NULL);
@@ -45,4 +52,6 @@ struct Parser : Pipe {
 	Ast_Function_Type* function_type ();
 	Ast_Literal* literal ();
 	Ast_Ident* ident (const char* name = NULL);
+
+	virtual void print_pipe_metrics();
 };

@@ -6,6 +6,8 @@
 
 #define PIPE_NAME(name) name() { this->pipe_name = #name; }
 
+#define PRINT_METRIC(format, ...) printf("\t" format "\n", __VA_ARGS__)
+
 struct Pipe {
 	double accumulated_spans = 0;
 	const char* pipe_name = NULL;
@@ -39,6 +41,8 @@ struct Pipe {
 		while (last->next) last = last->next;
 		last->next = next_pipe;
 	}
+
+	virtual void print_pipe_metrics () { /* empty by default */ }
 
 	virtual void handle (Ast_Statement** stm) {
 		for (auto &note : (*stm)->notes) {
