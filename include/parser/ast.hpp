@@ -112,7 +112,7 @@ struct Ast_Declaration : Ast_Statement {
 	size_t attribute_byte_offset = 0;
 
 	// for bytecode
-	size_t data_offset = 0;
+	int64_t bytecode_data_offset = -1;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 

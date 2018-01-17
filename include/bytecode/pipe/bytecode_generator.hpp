@@ -45,6 +45,13 @@ struct Bytecode_Generator : Pipe {
 		abort();
 	}
 
+	int8_t get_declaration_index (Ast_Declaration* decl) {
+		for (uint8_t i = 0; i < INTERP_REGISTER_COUNT; i++) {
+			if (this->reg_declarations[i] == decl) return i;
+		}
+		return -1;
+	}
+
 	uint8_t push_expression (Ast_Expression* exp) {
 		auto _reg = get_free_reg();
 		this->reserved[_reg] = true;
@@ -56,20 +63,31 @@ struct Bytecode_Generator : Pipe {
 		this->reg_declarations[_reg] = decl;
 	}
 
-	void clear_registers () {
-		/*auto free_reg = get_free_reg();
-		for (uint8_t i = 0; i < INTERP_REGISTER_COUNT; i++) {
-			auto decl = this->reg_declarations[i];
-			if (decl) {
-				auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
-				INST(decl, Stack_Offset, free_reg, decl->data_offset);
-				if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
-					INST(decl, Copy_Memory, free_reg, i, decl_type->byte_size);
-				} else {
-					INST(decl, Store, free_reg, i, decl_type->byte_size);
-				}
+	void spill_register_if_necessary (uint8_t index) {
+		auto decl = this->reg_declarations[index];
+		if (decl) {
+			auto free_reg = get_free_reg();
+			auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
+
+			if (decl->bytecode_data_offset < 0) {
+				INST(decl, Stack_Allocate, decl_type->byte_size);
+				decl->bytecode_data_offset = this->data_offset;
+				this->data_offset += decl_type->byte_size;
 			}
-		}*/
+
+			INST(decl, Stack_Offset, free_reg, decl->bytecode_data_offset);
+			if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
+				INST(decl, Copy_Memory, free_reg, index, decl_type->byte_size);
+			} else {
+				INST(decl, Store, free_reg, index, decl_type->byte_size);
+			}
+		}
+	}
+
+	void clear_registers () {
+		for (uint8_t i = 0; i < INTERP_REGISTER_COUNT; i++) {
+			this->spill_register_if_necessary(i);
+		}
 		memset(this->reg_declarations, 0, INTERP_REGISTER_COUNT * sizeof(Ast_Declaration*));
 		memset(this->reserved, 0, INTERP_REGISTER_COUNT * sizeof(bool));
 	}
@@ -90,7 +108,7 @@ struct Bytecode_Generator : Pipe {
 		this->reg = 0;
 		this->is_left_value = false;
 		Pipe::handle(stm_ptr);
-		this->clear_registers();
+		//this->clear_registers();
 	}
 
 	void handle (Ast_Block** block_ptr) {
@@ -159,21 +177,9 @@ struct Bytecode_Generator : Pipe {
 	        auto _tmp = this->bytecode;
 	        this->bytecode = &func->bytecode;
 
-	        auto free_reg = (uint8_t) func->arg_decls.size();
 	        for (uint8_t i = 0; i < func->arg_decls.size(); i++) {
 	            auto decl = func->arg_decls[i];
-
-	            auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
-	            decl->data_offset = this->data_offset;
-	            this->data_offset += decl_type->byte_size;
-
-	            INST(decl, Stack_Allocate, decl_type->byte_size);
-	            INST(decl, Stack_Offset, free_reg, decl->data_offset);
-	            if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
-	                INST(decl, Copy_Memory, free_reg, i, decl_type->byte_size);
-	            } else {
-	                INST(decl, Store, free_reg, i, decl_type->byte_size);
-	            }
+				this->push_declaration(decl, i);
 	        }
 
 			this->handle(&func->scope);
@@ -196,7 +202,7 @@ struct Bytecode_Generator : Pipe {
     void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);
 
-	    if (decl->decl_flags & AST_DECL_FLAG_CONSTANT) {
+	    if (decl->is_constant()) {
 			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 	            auto func = static_cast<Ast_Function*>(decl->expression);
 	            if (!func->foreign_module_name) {
@@ -208,25 +214,14 @@ struct Bytecode_Generator : Pipe {
 	    } else {
 			auto ty_decl = static_cast<Ast_Type_Instance*>(decl->type);
 			if (decl->is_global()) {
-				decl->data_offset = g_compiler->interp->globals->add(ty_decl->byte_size);
+				decl->bytecode_data_offset = g_compiler->interp->globals->add(ty_decl->byte_size);
 			} else {
-	            INST(decl, Stack_Allocate, ty_decl->byte_size);
-
-				decl->data_offset = this->data_offset;
-				this->data_offset += ty_decl->byte_size;
 				if (decl->expression) {
 					PUSH_L(tmp, false);
 					Pipe::handle(&decl->expression);
 					POP_L(tmp);
 
 					this->push_declaration(decl, decl->expression->reg);
-
-	                INST(decl, Stack_Offset, 1, decl->data_offset);
-					if (ty_decl->byte_size > INTERP_REGISTER_SIZE) {
-		                INST(decl, Copy_Memory, 1, 0, ty_decl->byte_size);
-		            } else {
-						INST(decl, Store, 1, 0, ty_decl->byte_size);
-		            }
 				}
 			}
 		}
@@ -462,18 +457,21 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Ident** ident_ptr) {
 		auto ident = (*ident_ptr);
 
-		this->push_expression(ident);
+		auto _reg = this->get_declaration_index(ident->declaration);
+		if (_reg >= 0) ident->reg = _reg;
+		else {
+			this->push_expression(ident);
+			this->push_declaration(ident->declaration, ident->reg);
 
-		this->push_declaration(ident->declaration, ident->reg);
+			if (ident->declaration->is_global()) {
+				INST(ident, Global_Offset, reg, ident->declaration->bytecode_data_offset);
+			} else {
+				INST(ident, Stack_Offset, reg, ident->declaration->bytecode_data_offset);
+			}
 
-		if (ident->declaration->is_global()) {
-			INST(ident, Global_Offset, reg, ident->declaration->data_offset);
-		} else {
-			INST(ident, Stack_Offset, reg, ident->declaration->data_offset);
-		}
-
-		if (!this->is_left_value && ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			INST(ident, Load, reg, reg, ident->inferred_type->byte_size);
+			if (!this->is_left_value && ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+				INST(ident, Load, reg, reg, ident->inferred_type->byte_size);
+			}
 		}
 
 		this->reg++;
@@ -523,6 +521,10 @@ struct Bytecode_Generator : Pipe {
 		}
 		POP_L(tmp);
 
+		PUSH_L(tmp2, false);
+	    Pipe::handle(&call->fn);
+		POP_L(tmp2);
+
 		INST(call, Call_Setup, DC_CALL_C_X64_WIN64);
 
 		auto bytecode_type = BYTECODE_TYPE_VOID;
@@ -535,10 +537,6 @@ struct Bytecode_Generator : Pipe {
 			}
 			INST(call, Call_Param, i, bytecode_type);
 		}
-
-		PUSH_L(tmp2, false);
-	    Pipe::handle(&call->fn);
-		POP_L(tmp2);
 
 		auto ret_type = bytecode_get_type(call->inferred_type);
 	    INST(call, Call, this->reg - 1, ret_type);

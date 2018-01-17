@@ -1,0 +1,11 @@
+
+#run
+main :: fn {
+    number : u64 = 16;
+
+    other(number);
+}
+
+other :: fn (num: u64) {
+    _println_u64(num);
+}
