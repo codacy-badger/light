@@ -276,7 +276,7 @@ struct Bytecode_Generator : Pipe {
 			}
 	        case AST_UNARY_DEREFERENCE: {
 				if (!this->is_left_value) {
-					INST(unop, Load, this->reg - 1, this->reg - 1, unop->inferred_type->byte_size);
+					INST(unop, Load, unop->exp->reg, unop->exp->reg, unop->inferred_type->byte_size);
 				}
 	            break;
 	        }
@@ -491,28 +491,10 @@ struct Bytecode_Generator : Pipe {
 	    this->reg++;
 	}
 
-	// TODO: we should try to solve this in a better way...
-	// let's see how clang & gcc solve this, maybe we could
-	// scan the parameters for different patterns:
-	// start from left
-	// start from right
-	// start at index
 	void handle (Ast_Function_Call** call_ptr) {
 		auto call = (*call_ptr);
 
-		// If we're not the 1st argument in an expression or argument list,
-		// we're overriding the values in previous registers, so we have to
-		// store them in the stack and restore them after the call
 		auto _tmp = this->reg;
-		if (_tmp > 0) {
-			INST(call, Stack_Allocate, _tmp * INTERP_REGISTER_SIZE);
-			for (uint8_t i = 0; i < _tmp; i++) {
-		        INST(call, Stack_Offset, _tmp, this->data_offset);
-		        INST(call, Store, _tmp, i, INTERP_REGISTER_SIZE);
-
-				this->data_offset += INTERP_REGISTER_SIZE;
-			}
-		}
 
 		this->reg = 0;
 		PUSH_L(tmp, false);
@@ -542,17 +524,6 @@ struct Bytecode_Generator : Pipe {
 	    INST(call, Call, this->reg - 1, ret_type);
 	    if (_tmp != 0) INST(call, Copy, _tmp, 0);
 		call->reg = 0;
-
-		// Now we restore the values from previous registers so we can continue
-		// with the current expression
-		if (_tmp > 0) {
-			for (uint8_t i = _tmp; i > 0; i--) {
-				this->data_offset -= INTERP_REGISTER_SIZE;
-
-		        INST(call, Stack_Offset, _tmp, this->data_offset);
-		        INST(call, Load, i, _tmp, INTERP_REGISTER_SIZE);
-			}
-		}
 
 		this->reg = _tmp + 1;
 	}

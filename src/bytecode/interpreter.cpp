@@ -201,7 +201,14 @@ void Interpreter::run (Instruction* inst) {
 				auto _base = this->stack_base;
 				auto _inst = this->instruction_index;
 				this->stack_base = this->stack_index;
+
+				Bytecode_Register _regs[INTERP_REGISTER_COUNT - 1];
+				memcpy(_regs, this->registers + 1, sizeof(_regs));
+
 				this->run(func);
+
+				memcpy(this->registers + 1, _regs, sizeof(_regs));
+
 				this->stack_index = this->stack_base;
 				this->instruction_index = _inst;
 				this->stack_base = _base;
