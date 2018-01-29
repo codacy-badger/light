@@ -15,7 +15,7 @@
 
 #define IS_INTERNAL_FUNCTION(func) func->stm_type == AST_STATEMENT_EXPRESSION 	\
 	&& func->exp_type == AST_EXPRESSION_FUNCTION								\
-	&& !func->is_native()														\
+	&& !func->is_native()
 
 #define CLEAR(reg) memset(this->registers[reg], 0, INTERP_REGISTER_SIZE)
 #define MOVE(a, b) MOVE_SIZE(a, b, INTERP_REGISTER_SIZE)
