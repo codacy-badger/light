@@ -4,8 +4,8 @@ main :: fn {
     number1 : u64 = 16;
     number2 : u64 = 24;
 
-    other(number1);
     other(number2);
+    other(number1);
 }
 
 other :: fn (num: u64) {

@@ -13,6 +13,7 @@ struct Call_Parameter {
 template<typename T>
 struct Call_Record {
     Call_Parameter<T> parameters[MAX_CALL_PARAMETERS];
+    Call_Parameter<T> result;
     uint8_t calling_convention;
     uint8_t param_count;
 
@@ -21,9 +22,8 @@ struct Call_Record {
         memcpy(&this->parameters[index].value, value, sizeof(T));
     }
 
-    void reset (uint8_t cc, uint8_t count) {
-        memset(this->parameters, 0, sizeof(this->parameters));
-        this->calling_convention = cc;
-        this->param_count = count;
+    void set_result (Bytecode_Type bytecode_type, T* value) {
+        result.bytecode_type = bytecode_type;
+        memcpy(&result.value, value, sizeof(T));
     }
 };

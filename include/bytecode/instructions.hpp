@@ -371,5 +371,18 @@ struct Inst_Call_Const : Instruction {
 };
 
 struct Inst_Return : Instruction {
-	Inst_Return () { this->bytecode = BYTECODE_RETURN; }
+	uint8_t reg_index;
+	Bytecode_Type bytecode_type;
+
+	Inst_Return (uint8_t reg_index, Bytecode_Type bytecode_type) {
+		this->bytecode = BYTECODE_RETURN;
+		this->reg_index = reg_index;
+		this->bytecode_type = bytecode_type;
+	}
+
+	Inst_Return () {
+		this->bytecode = BYTECODE_RETURN;
+		this->bytecode_type = BYTECODE_TYPE_VOID;
+		this->reg_index = 0;
+	}
 };

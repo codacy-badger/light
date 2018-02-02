@@ -155,16 +155,26 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_CALL_SETUP: {
 			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
-			this->call_record->reset(call_setup->calling_convention, call_setup->param_count);
+			this->call_record = new Call_Record<Bytecode_Register>();
+	        this->call_record->calling_convention = call_setup->calling_convention;
+	        this->call_record->param_count = call_setup->param_count;
+			return;
+		}
+		case BYTECODE_RETURN: {
+			auto ret = static_cast<Inst_Return*>(inst);
+			this->call_record->set_result(ret->bytecode_type,
+				&this->registers[ret->reg_index]);
 			return;
 		}
 		case BYTECODE_CALL_PARAM: {
+			assert(this->call_record);
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
 			this->call_record->set_param(call_param->param_index,
 				call_param->bytecode_type, &this->registers[call_param->reg_index]);
 			return;
 		}
 		case BYTECODE_CALL: {
+			assert(this->call_record);
 			auto call = static_cast<Inst_Call*>(inst);
 			LOAD_REG(value, call->reg_function);
 			auto func = reinterpret_cast<Ast_Function*>(value);
@@ -174,11 +184,11 @@ void Interpreter::run (Instruction* inst) {
 				this->stack_base = this->stack_index;
 
 				Bytecode_Register _regs[INTERP_REGISTER_COUNT - 1];
-				memcpy(_regs, this->registers + 1, sizeof(_regs));
+				memcpy(_regs, this->registers, sizeof(_regs));
 
 				this->run(func, this->call_record);
 
-				memcpy(this->registers + 1, _regs, sizeof(_regs));
+				memcpy(this->registers, _regs, sizeof(_regs));
 
 				this->stack_index = this->stack_base;
 				this->instruction_index = _inst;

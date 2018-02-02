@@ -50,8 +50,14 @@ struct Bytecode_Generator : Pipe {
 	}
 
 	void handle (Ast_Return** ret_ptr) {
+		auto ret = (*ret_ptr);
+
 	    Pipe::handle(ret_ptr);
-	    this->add_instruction((*ret_ptr), new Inst_Return());
+		
+		if (ret->exp) {
+			auto bytecode_type = bytecode_get_type(ret->exp->inferred_type);
+			INST(ret, Return, ret->exp->reg, bytecode_type);
+		} else INST(ret, Return);
 	}
 
 	void handle (Ast_If** _if_ptr) {

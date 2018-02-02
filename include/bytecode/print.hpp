@@ -15,7 +15,11 @@ void bytecode_print (size_t index, Instruction* inst) {
 		inst->location.filename, inst->location.line);
 	switch (inst->bytecode) {
 		case BYTECODE_NOOP: printf("NOOP"); break;
-		case BYTECODE_RETURN: printf("RETURN"); break;
+		case BYTECODE_RETURN: {
+			auto ret = static_cast<Inst_Return*>(inst);
+			printf("RETURN %d, %d", ret->reg_index, ret->bytecode_type);
+			break;
+		}
 		case BYTECODE_COPY: {
 			auto cpy = static_cast<Inst_Copy*>(inst);
 			printf("COPY %d, %d", cpy->reg1, cpy->reg2);
