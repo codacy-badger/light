@@ -53,7 +53,7 @@ struct Bytecode_Generator : Pipe {
 		auto ret = (*ret_ptr);
 
 	    Pipe::handle(ret_ptr);
-		
+
 		if (ret->exp) {
 			auto bytecode_type = bytecode_get_type(ret->exp->inferred_type);
 			INST(ret, Return, ret->exp->reg, bytecode_type);
@@ -367,22 +367,28 @@ struct Bytecode_Generator : Pipe {
 
 	        	this->handle_left(&binop->lhs);
 
-	            this->reg -= 1;
-				if (size > INTERP_REGISTER_SIZE) {
-	                INST(binop, Copy_Memory, this->reg, this->reg - 1, size);
-	            } else {
-					INST(binop, Store, this->reg, this->reg - 1, size);
-	            }
+				if (binop->lhs->exp_type == AST_EXPRESSION_IDENT) {
+					auto ident = static_cast<Ast_Ident*>(binop->lhs);
+					if (ident->is_in_register) {
+						INST(binop, Copy, ident->reg, binop->rhs->reg);
+					} else {
+						if (size > INTERP_REGISTER_SIZE) {
+			                INST(binop, Copy_Memory, this->reg, this->reg - 1, size);
+			            } else {
+							INST(binop, Store, this->reg, this->reg - 1, size);
+			            }
+					}
+				}
 
 				break;
 			}
 			default: {
 				Pipe::handle(&binop->lhs);
 				Pipe::handle(&binop->rhs);
-	            this->reg -= 1;
+
 				auto binop_type = get_bytecode_from_binop(binop->binary_op);
 	            auto bytecode_type = bytecode_get_type(binop->lhs->inferred_type);
-	            INST(binop, Binary, binop_type, this->reg - 1, this->reg, bytecode_type);
+	            INST(binop, Binary, binop_type, binop->reg, binop->lhs->reg, binop->rhs->reg, bytecode_type);
 
 				break;
 			}

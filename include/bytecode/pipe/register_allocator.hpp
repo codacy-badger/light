@@ -82,10 +82,14 @@ struct Register_Allocator : Pipe {
     void handle (Ast_Binary** binop_ptr) {
         auto binop = (*binop_ptr);
 
-        if (binop->binary_op == AST_BINARY_ASSIGN) {
-            if (binop->lhs->exp_type == AST_EXPRESSION_IDENT) {
-                auto ident = static_cast<Ast_Ident*>(binop->lhs);
-                report_info(&binop->location, "ASSIGN: %s", ident->name);
+        switch (binop->binary_op) {
+            case AST_BINARY_ASSIGN: {
+                break;
+            }
+            default: {
+                Pipe::handle(&binop->lhs);
+                Pipe::handle(&binop->rhs);
+                binop->reg = reserve_next_reg();
             }
         }
 

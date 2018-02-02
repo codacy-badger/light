@@ -45,8 +45,9 @@ void Interpreter::run (Ast_Function* func, Call_Record<Bytecode_Register>* recor
 		}
 #endif
 
+		this->run(inst);
+
 		if (inst->bytecode == BYTECODE_RETURN) break;
-		else this->run(inst);
 	}
 	this->stack_index = _tmp;
 }
@@ -193,6 +194,10 @@ void Interpreter::run (Instruction* inst) {
 				this->stack_index = this->stack_base;
 				this->instruction_index = _inst;
 				this->stack_base = _base;
+
+				if (this->call_record->result.bytecode_type != BYTECODE_TYPE_VOID) {
+					memcpy(this->registers[call->reg_result], this->call_record->result.value, INTERP_REGISTER_SIZE);
+				}
 			} else {
 				auto function_pointer = reinterpret_cast<DCpointer>(value);
 
@@ -249,6 +254,7 @@ void Interpreter::run (Instruction* inst) {
 					case BYTECODE_TYPE_F64: 	result = (size_t) dcCallDouble(vm, function_pointer); break;
 					case BYTECODE_TYPE_POINTER: result = (size_t) dcCallPointer(vm, function_pointer); break;
 				}
+
 				if (call->bytecode_type != BYTECODE_TYPE_VOID) {
 					memcpy(this->registers[call->reg_result], &result, INTERP_REGISTER_SIZE);
 				}
