@@ -153,7 +153,7 @@ void bytecode_print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
-			printf("CALL %d", call->reg);
+			printf("CALL %d, %d", call->reg_result, call->reg_function);
 			break;
 		}
 		default: abort();

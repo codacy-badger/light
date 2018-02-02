@@ -194,7 +194,7 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
-			LOAD_REG(value, call->reg);
+			LOAD_REG(value, call->reg_function);
 			auto func = reinterpret_cast<Ast_Function*>(value);
 			if (IS_INTERNAL_FUNCTION(func)) {
 				//printf("\t ++ Call: %s\n", func->name);
@@ -231,7 +231,7 @@ void Interpreter::run (Instruction* inst) {
 					case BYTECODE_TYPE_POINTER: result = (size_t) dcCallPointer(vm, function_pointer); break;
 				}
 				if (call->bytecode_type != BYTECODE_TYPE_VOID) {
-					memcpy(this->registers[0], &result, INTERP_REGISTER_SIZE);
+					memcpy(this->registers[call->reg_result], &result, INTERP_REGISTER_SIZE);
 				}
 			}
 

@@ -469,8 +469,7 @@ struct Bytecode_Generator : Pipe {
 		}
 
 		auto ret_type = bytecode_get_type(call->inferred_type);
-	    INST(call, Call, call->fn->reg, ret_type);
-	    if (_tmp != 0) INST(call, Copy, _tmp, 0);
+	    INST(call, Call, _tmp, call->fn->reg, ret_type);
 
 		this->reg = _tmp + 1;
 	}
