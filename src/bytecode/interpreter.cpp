@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #include "compiler.hpp"
 #include "bytecode/print.hpp"
@@ -18,22 +17,22 @@
 	&& !func->is_native()
 
 #define CLEAR(reg) memset(this->registers[reg], 0, INTERP_REGISTER_SIZE)
-#define MOVE(a, b) MOVE_SIZE(a, b, INTERP_REGISTER_SIZE)
 #define MOVE_SIZE(a, b, size) memcpy((void*)(a), (void*)(b), size)
+#define MOVE(a, b) MOVE_SIZE(a, b, INTERP_REGISTER_SIZE)
 #define LOAD_REG(var_name, reg) size_t var_name;								\
 	memcpy(&var_name, this->registers[reg], INTERP_REGISTER_SIZE)
 
-Interpreter::Interpreter (size_t vm_size) {
-	assert(INTERP_REGISTER_SIZE >= sizeof(void*));
-	memset(&this->registers, 0, INTERP_REGISTER_COUNT * sizeof(Bytecode_Register));
-	this->vm = dcNewCallVM(vm_size);
-}
+void Interpreter::run (Ast_Function* func, Call_Record<Bytecode_Register>* record) {
+	if (record) {
+		for (uint8_t i = 0; i < record->param_count; i++) {
+			auto param = record->parameters[i];
 
-Interpreter::~Interpreter () {
-	dcFree(this->vm);
-}
+			size_t value;
+			memcpy(&value, param.value, INTERP_REGISTER_SIZE);
+			memcpy(this->registers[i], param.value, INTERP_REGISTER_SIZE);
+		}
+	}
 
-void Interpreter::run (Ast_Function* func) {
 	auto _tmp = this->stack_index;
 	for (instruction_index = 0; instruction_index < func->bytecode.size(); instruction_index++) {
 		auto inst = func->bytecode[instruction_index];
@@ -156,40 +155,13 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_CALL_SETUP: {
 			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
-			dcMode(vm, call_setup->calling_convention);
-			dcReset(vm);
+			this->call_record->reset(call_setup->calling_convention, call_setup->param_count);
 			return;
 		}
 		case BYTECODE_CALL_PARAM: {
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
-			LOAD_REG(value, call_param->index);
-			switch (call_param->bytecode_type) {
-				case BYTECODE_TYPE_BOOL:
-				case BYTECODE_TYPE_S8:
-				case BYTECODE_TYPE_U8:		dcArgChar(vm, (DCchar) value); break;
-				case BYTECODE_TYPE_S16:
-				case BYTECODE_TYPE_U16:		dcArgShort(vm, (DCshort) value); break;
-				case BYTECODE_TYPE_S32:
-				case BYTECODE_TYPE_U32:		dcArgInt(vm, (DCint) value); break;
-				case BYTECODE_TYPE_S64:
-				case BYTECODE_TYPE_U64:		dcArgLongLong(vm, (DClonglong) value); break;
-				case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (DCpointer) value); break;
-				case BYTECODE_TYPE_F32: {
-					DCfloat tmp;
-					assert(sizeof(DCfloat) <= sizeof(size_t));
-					memcpy(&tmp, &value, sizeof(DCfloat));
-					dcArgFloat(vm, (DCfloat) tmp);
-					break;
-				}
-				case BYTECODE_TYPE_F64: {
-					DCdouble tmp;
-					assert(sizeof(DCdouble) <= sizeof(size_t));
-					memcpy(&tmp, &value, sizeof(DCdouble));
-					dcArgDouble(vm, (DCdouble) tmp);
-					break;
-				}
-				default: 					abort();
-			}
+			this->call_record->set_param(call_param->param_index,
+				call_param->bytecode_type, &this->registers[call_param->reg_index]);
 			return;
 		}
 		case BYTECODE_CALL: {
@@ -197,7 +169,6 @@ void Interpreter::run (Instruction* inst) {
 			LOAD_REG(value, call->reg_function);
 			auto func = reinterpret_cast<Ast_Function*>(value);
 			if (IS_INTERNAL_FUNCTION(func)) {
-				//printf("\t ++ Call: %s\n", func->name);
 				auto _base = this->stack_base;
 				auto _inst = this->instruction_index;
 				this->stack_base = this->stack_index;
@@ -205,7 +176,7 @@ void Interpreter::run (Instruction* inst) {
 				Bytecode_Register _regs[INTERP_REGISTER_COUNT - 1];
 				memcpy(_regs, this->registers + 1, sizeof(_regs));
 
-				this->run(func);
+				this->run(func, this->call_record);
 
 				memcpy(this->registers + 1, _regs, sizeof(_regs));
 
@@ -214,6 +185,44 @@ void Interpreter::run (Instruction* inst) {
 				this->stack_base = _base;
 			} else {
 				auto function_pointer = reinterpret_cast<DCpointer>(value);
+
+				dcMode(vm, this->call_record->calling_convention);
+				dcReset(vm);
+
+				for (uint8_t i = 0; i < this->call_record->param_count; i++) {
+					auto param = this->call_record->parameters[i];
+
+					size_t param_value;
+					memcpy(&param_value, param.value, INTERP_REGISTER_SIZE);
+
+					switch (param.bytecode_type) {
+						case BYTECODE_TYPE_BOOL:
+						case BYTECODE_TYPE_S8:
+						case BYTECODE_TYPE_U8:		dcArgChar(vm, (DCchar) param_value); break;
+						case BYTECODE_TYPE_S16:
+						case BYTECODE_TYPE_U16:		dcArgShort(vm, (DCshort) param_value); break;
+						case BYTECODE_TYPE_S32:
+						case BYTECODE_TYPE_U32:		dcArgInt(vm, (DCint) param_value); break;
+						case BYTECODE_TYPE_S64:
+						case BYTECODE_TYPE_U64:		dcArgLongLong(vm, (DClonglong) param_value); break;
+						case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (DCpointer) param_value); break;
+						case BYTECODE_TYPE_F32: {
+							DCfloat tmp;
+							assert(sizeof(DCfloat) <= sizeof(size_t));
+							memcpy(&tmp, &param_value, sizeof(DCfloat));
+							dcArgFloat(vm, (DCfloat) tmp);
+							break;
+						}
+						case BYTECODE_TYPE_F64: {
+							DCdouble tmp;
+							assert(sizeof(DCdouble) <= sizeof(size_t));
+							memcpy(&tmp, &param_value, sizeof(DCdouble));
+							dcArgDouble(vm, (DCdouble) tmp);
+							break;
+						}
+						default: 					abort();
+					}
+				}
 
 				size_t result = 0;
 				switch (call->bytecode_type) {

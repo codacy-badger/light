@@ -21,7 +21,6 @@ struct Register_Allocator : Pipe {
         auto tmp = this->decl_regs;
         this->decl_regs.clear();
 
-        this->decl_regs.push_back(new Register_State());
         for (auto decl : func->arg_decls) {
             decl_regs.push_back(new Register_State(decl));
         }
@@ -95,6 +94,7 @@ struct Register_Allocator : Pipe {
 
     void handle (Ast_Function_Call** call_ptr) {
         auto call = (*call_ptr);
+        call->reg = reserve_next_reg();
 
         Pipe::handle(&call->fn);
 		for (auto &exp : call->arguments) {

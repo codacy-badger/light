@@ -324,20 +324,24 @@ struct Inst_Jump_If_False : Instruction {
 
 struct Inst_Call_Setup : Instruction {
 	uint8_t calling_convention;
+	uint8_t param_count;
 
-	Inst_Call_Setup (uint8_t calling_convention) {
+	Inst_Call_Setup (uint8_t calling_convention, uint8_t param_count) {
 		this->bytecode = BYTECODE_CALL_SETUP;
 		this->calling_convention = calling_convention;
+		this->param_count = param_count;
 	}
 };
 
 struct Inst_Call_Param : Instruction {
-	uint8_t index;
+	uint8_t reg_index;
+	uint8_t param_index;
 	Bytecode_Type bytecode_type;
 
-	Inst_Call_Param (uint8_t index, Bytecode_Type bytecode_type) {
+	Inst_Call_Param (uint8_t param_index, uint8_t reg_index, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_CALL_PARAM;
-		this->index = index;
+		this->reg_index = reg_index;
+		this->param_index = param_index;
 		this->bytecode_type = bytecode_type;
 	}
 };

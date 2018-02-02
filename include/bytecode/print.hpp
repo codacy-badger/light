@@ -143,12 +143,12 @@ void bytecode_print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_CALL_SETUP: {
 			auto call_setup = static_cast<Inst_Call_Setup*>(inst);
-			printf("CALL_SETUP %d", call_setup->calling_convention);
+			printf("CALL_SETUP %d, %d", call_setup->param_count, call_setup->calling_convention);
 			break;
 		}
 		case BYTECODE_CALL_PARAM: {
 			auto call_param = static_cast<Inst_Call_Param*>(inst);
-			printf("CALL_PARAM %d, %d", call_param->index, call_param->bytecode_type);
+			printf("CALL_PARAM %d, %d, %d", call_param->param_index, call_param->reg_index, call_param->bytecode_type);
 			break;
 		}
 		case BYTECODE_CALL: {

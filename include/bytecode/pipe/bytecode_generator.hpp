@@ -445,37 +445,32 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Function_Call** call_ptr) {
 		auto call = (*call_ptr);
 
-		auto _tmp = this->reg;
-		call->reg = 0;
-
-		this->reg = 1;
-		for (auto &exp : call->arguments) {
-			Pipe::handle(&exp);
-		}
-
-	    Pipe::handle(&call->fn);
-
-		INST(call, Call_Setup, DC_CALL_C_X64_WIN64);
+		INST(call, Call_Setup, DC_CALL_C_X64_WIN64, (uint8_t) call->arguments.size());
 
 		auto bytecode_type = BYTECODE_TYPE_VOID;
 		for (uint8_t i = 0; i < call->arguments.size(); i++) {
 			auto exp = call->arguments[i];
+
+			Pipe::handle(&exp);
+
 			if (exp->inferred_type->byte_size > INTERP_REGISTER_SIZE) {
 	            bytecode_type = BYTECODE_TYPE_POINTER;
 	        } else {
 				bytecode_type = bytecode_get_type(exp->inferred_type);
 			}
-			INST(call, Call_Param, i + 1, bytecode_type);
+
+			INST(call, Call_Param, i, exp->reg, bytecode_type);
 		}
 
+		Pipe::handle(&call->fn);
 		auto ret_type = bytecode_get_type(call->inferred_type);
-	    INST(call, Call, _tmp, call->fn->reg, ret_type);
+	    INST(call, Call, call->reg, call->fn->reg, ret_type);
 
-		this->reg = _tmp + 1;
+		this->reg++;
 	}
 
 	// @Incomplete @Fixme this will break for nested loops: inner loop will "resolve"
-	// the break already found from the outter loop. Break (& continue) STMs should be directly
+	// the break already found in the outter loop. Break (& continue) STMs should be directly
 	// associated with the loop statement itself, ideally prior to this pipe.
 	void update_pending_breaks () {
 		while (!this->pending_breaks.empty()) {
