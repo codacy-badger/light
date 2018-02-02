@@ -19,7 +19,6 @@ struct Bytecode_Generator : Pipe {
 
 	vector<Instruction*>* bytecode = NULL;
 	bool is_left_value = false;
-	uint8_t reg = 0;
 
 	vector<Inst_Jump*> pending_breaks;
 
@@ -37,7 +36,6 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Note**) { /* Notes don't produce any bytecode by themselves */ }
 
     void handle (Ast_Statement** stm_ptr) {
-		this->reg = 0;
 		this->is_left_value = false;
 		Pipe::handle(stm_ptr);
 		//this->clear_registers();
@@ -208,8 +206,6 @@ struct Bytecode_Generator : Pipe {
 
 		Pipe::handle(&cast->value);
 
-		cast->reg = cast->value->reg;
-
 		auto type_from = bytecode_get_type(cast->value->inferred_type);
 		auto type_to = bytecode_get_type(cast->inferred_type);
 		INST(cast, Cast, cast->reg, type_from, type_to);
@@ -228,8 +224,6 @@ struct Bytecode_Generator : Pipe {
 
 		auto unop_type = get_bytecode_from_unop(unop->unary_op);
 		auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
-
-		unop->reg = unop->exp->reg;
 
 		switch (unop->unary_op) {
 			case AST_UNARY_NOT: {
@@ -301,17 +295,17 @@ struct Bytecode_Generator : Pipe {
 	            while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
 	                auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
 	                type_def = static_cast<Ast_Type_Instance*>(ptr_type->base);
-	                INST(binop, Load, reg - 1, reg - 1, type_def->byte_size);
+	                INST(binop, Load, binop->lhs->reg, binop->lhs->reg, type_def->byte_size);
 	            }
 
 	            auto ident = static_cast<Ast_Ident*>(binop->rhs);
 	            auto decl = ident->declaration;
 				if (decl->attribute_byte_offset != 0) {
-					INST(binop, Add_Const, reg - 1, decl->attribute_byte_offset);
+					INST(binop, Add_Const, binop->lhs->reg, decl->attribute_byte_offset);
 				}
 
 	            if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-	                INST(binop, Load, reg - 1, reg - 1, binop->inferred_type->byte_size);
+	                INST(binop, Load, binop->lhs->reg, binop->lhs->reg, binop->inferred_type->byte_size);
 	            }
 
 				break;
@@ -326,13 +320,12 @@ struct Bytecode_Generator : Pipe {
 					auto array_base_type = static_cast<Ast_Type_Instance*>(array_type->base);
 		            auto element_size = array_base_type->byte_size;
 
-		            if (element_size > 1) INST(binop, Mul_Const, reg - 1, element_size);
+		            if (element_size > 1) INST(binop, Mul_Const, binop->rhs->reg, element_size);
 
-					this->reg -= 1;
-		            INST(binop, Binary, BYTECODE_ADD, reg - 1, reg, BYTECODE_TYPE_U64);
+		            INST(binop, Binary, BYTECODE_ADD, binop->lhs->reg, binop->rhs->reg, BYTECODE_TYPE_U64);
 
 		            if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-	                    INST(binop, Load, reg - 1, reg - 1, binop->inferred_type->byte_size);
+	                    INST(binop, Load, binop->lhs->reg, binop->lhs->reg, binop->inferred_type->byte_size);
 	                }
 				} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
 					auto struct_type = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
@@ -373,9 +366,9 @@ struct Bytecode_Generator : Pipe {
 						INST(binop, Copy, ident->reg, binop->rhs->reg);
 					} else {
 						if (size > INTERP_REGISTER_SIZE) {
-			                INST(binop, Copy_Memory, this->reg, this->reg - 1, size);
+			                INST(binop, Copy_Memory, binop->rhs->reg, binop->lhs->reg, size);
 			            } else {
-							INST(binop, Store, this->reg, this->reg - 1, size);
+							INST(binop, Store, binop->rhs->reg, binop->lhs->reg, size);
 			            }
 					}
 				}
@@ -393,8 +386,6 @@ struct Bytecode_Generator : Pipe {
 				break;
 			}
 		}
-
-		if (binop->reg == -1) binop->reg = binop->lhs->reg;
 	}
 
 	void handle (Ast_Literal** lit_ptr) {
@@ -424,8 +415,6 @@ struct Bytecode_Generator : Pipe {
 			}
 			default: ERROR(lit, "Literal type to bytecode conversion not supported!");
 		}
-
-	    this->reg++;
 	}
 
 	void handle (Ast_Ident** ident_ptr) {
@@ -474,11 +463,10 @@ struct Bytecode_Generator : Pipe {
 			INST(call, Call_Param, i, exp->reg, bytecode_type);
 		}
 
+		call->fn->reg = call->reg;
 		Pipe::handle(&call->fn);
 		auto ret_type = bytecode_get_type(call->inferred_type);
-	    INST(call, Call, call->reg, call->fn->reg, ret_type);
-
-		this->reg++;
+	    INST(call, Call, call->reg, call->reg, ret_type);
 	}
 
 	// @Incomplete @Fixme this will break for nested loops: inner loop will "resolve"

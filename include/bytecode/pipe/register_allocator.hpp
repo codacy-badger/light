@@ -83,24 +83,41 @@ struct Register_Allocator : Pipe {
         auto binop = (*binop_ptr);
 
         switch (binop->binary_op) {
-            case AST_BINARY_ASSIGN: {
-                break;
-            }
-            default: {
+			case AST_BINARY_ATTRIBUTE: {
                 Pipe::handle(&binop->lhs);
                 Pipe::handle(&binop->rhs);
-                binop->reg = reserve_next_reg();
-            }
-        }
 
-        Pipe::handle(binop_ptr);
+                binop->reg = reserve_reg(binop->lhs->reg, binop->rhs->reg);
+				break;
+			}
+			case AST_BINARY_SUBSCRIPT: {
+                Pipe::handle(&binop->lhs);
+                Pipe::handle(&binop->rhs);
+
+                binop->reg = reserve_reg(binop->lhs->reg, binop->rhs->reg);
+				break;
+			}
+			case AST_BINARY_ASSIGN: {
+                Pipe::handle(&binop->lhs);
+                Pipe::handle(&binop->rhs);
+				break;
+			}
+			default: {
+				Pipe::handle(&binop->lhs);
+				Pipe::handle(&binop->rhs);
+
+                binop->reg = reserve_reg(binop->lhs->reg, binop->rhs->reg);
+				break;
+			}
+		}
     }
 
     void handle (Ast_Function_Call** call_ptr) {
         auto call = (*call_ptr);
+
         call->reg = reserve_next_reg();
 
-        Pipe::handle(&call->fn);
+        //Pipe::handle(&call->fn);
 		for (auto &exp : call->arguments) {
 			Pipe::handle(&exp);
 		}
@@ -115,9 +132,22 @@ struct Register_Allocator : Pipe {
 
     uint8_t reserve_next_reg () {
         for (uint8_t i = 0; i < this->decl_regs.size(); i++) {
-            if (this->decl_regs[i]->expired) return i;
+            if (this->decl_regs[i]->expired) {
+                this->decl_regs[i]->expired = false;
+                return i;
+            }
         }
         decl_regs.push_back(new Register_State());
         return (uint8_t) decl_regs.size();
+    }
+
+    bool has_declaration (uint8_t index) {
+        return this->decl_regs[index]->decl;
+    }
+
+    uint8_t reserve_reg (uint8_t reg1, uint8_t reg2) {
+        if (!has_declaration(reg1)) return reg1;
+        if (!has_declaration(reg2)) return reg2;
+        return reserve_next_reg();
     }
 };
