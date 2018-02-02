@@ -1,9 +1,10 @@
 
 #run
 main :: fn {
-    number : u64 = 16;
+    number1 : u64 = 16;
+    number2 : u64 = 24;
 
-    other(number);
+    other(number2);
 }
 
 other :: fn (num: u64) {

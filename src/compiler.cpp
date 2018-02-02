@@ -10,6 +10,7 @@
 #include "parser/pipe/array_attributes.hpp"
 #include "parser/pipe/import_modules.hpp"
 
+#include "bytecode/pipe/register_allocator.hpp"
 #include "bytecode/pipe/bytecode_generator.hpp"
 #include "bytecode/pipe/bytecode_runner.hpp"
 
@@ -61,6 +62,7 @@ void Compiler::run () {
 	this->parser->append(new Constant_Folding());
 	this->parser->append(new Array_Attributes());
 
+	this->parser->append(new Register_Allocator());
 	this->parser->append(new Bytecode_Generator());
 	this->parser->append(new Bytecode_Runner());
 

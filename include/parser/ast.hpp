@@ -348,6 +348,9 @@ struct Ast_Ident : Ast_Expression {
 	Ast_Block* scope = NULL;
 	Ast_Declaration* declaration = NULL;
 
+	// for bytecode
+	bool is_in_register = false;
+
 	Ast_Ident (Ast_Block* scope = NULL) {
 		this->exp_type = AST_EXPRESSION_IDENT;
 		this->scope = scope;

@@ -109,7 +109,7 @@ struct Bytecode_Generator : Pipe {
 	        auto _tmp = this->bytecode;
 	        this->bytecode = &func->bytecode;
 
-			auto free_reg = (uint8_t) func->arg_decls.size();
+			/*auto free_reg = (uint8_t) func->arg_decls.size();
 	        for (uint8_t i = 0; i < func->arg_decls.size(); i++) {
 	            auto decl = func->arg_decls[i];
 				auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
@@ -124,7 +124,7 @@ struct Bytecode_Generator : Pipe {
 				} else {
 					INST(decl, Store, free_reg, i, decl_type->byte_size);
 				}
-	        }
+	        }*/
 
 			this->handle(&func->scope);
 
@@ -163,7 +163,7 @@ struct Bytecode_Generator : Pipe {
 				if (decl->expression) {
 					Pipe::handle(&decl->expression);
 
-					INST(decl, Stack_Allocate, decl_type->byte_size);
+					/*INST(decl, Stack_Allocate, decl_type->byte_size);
 					decl->bytecode_data_offset = this->data_offset;
 					this->data_offset += decl_type->byte_size;
 
@@ -173,7 +173,7 @@ struct Bytecode_Generator : Pipe {
 						INST(decl, Copy_Memory, free_reg, decl->expression->reg, decl_type->byte_size);
 					} else {
 						INST(decl, Store, free_reg, decl->expression->reg, decl_type->byte_size);
-					}
+					}*/
 				}
 			}
 		}
@@ -388,28 +388,26 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Literal** lit_ptr) {
 		auto lit = (*lit_ptr);
 
-		lit->reg = this->reg;
-
 		switch (lit->literal_type) {
 			case AST_LITERAL_SIGNED_INT:
 			case AST_LITERAL_UNSIGNED_INT: {
 				auto bytecode_type = bytecode_get_type(lit->inferred_type);
-	            INST(lit, Set, this->reg, bytecode_type, &lit->int_value);
+	            INST(lit, Set, lit->reg, bytecode_type, &lit->int_value);
 				break;
 			}
 			case AST_LITERAL_DECIMAL: {
 				auto bytecode_type = bytecode_get_type(lit->inferred_type);
 	            if (bytecode_type == BYTECODE_TYPE_F32) {
 	                auto _tmp = (float) lit->decimal_value;
-	                INST(lit, Set, this->reg, bytecode_type, &_tmp);
+	                INST(lit, Set, lit->reg, bytecode_type, &_tmp);
 	            } else {
-	                INST(lit, Set, this->reg, bytecode_type, &lit->decimal_value);
+	                INST(lit, Set, lit->reg, bytecode_type, &lit->decimal_value);
 	            }
 	            break;
 	        }
 			case AST_LITERAL_STRING: {
 				lit->data_offset = g_compiler->interp->constants->add(lit->string_value);
-	            INST(lit, Constant_Offset, this->reg, lit->data_offset);
+	            INST(lit, Constant_Offset, lit->reg, lit->data_offset);
 				break;
 			}
 			default: ERROR(lit, "Literal type to bytecode conversion not supported!");
@@ -421,37 +419,36 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Ident** ident_ptr) {
 		auto ident = (*ident_ptr);
 
-		if (ident->declaration->is_global()) {
-			INST(ident, Global_Offset, reg, ident->declaration->bytecode_data_offset);
-		} else {
-			INST(ident, Stack_Offset, reg, ident->declaration->bytecode_data_offset);
-		}
+		if (!ident->is_in_register) {
+			if (ident->declaration->is_global()) {
+				INST(ident, Global_Offset, ident->reg, ident->declaration->bytecode_data_offset);
+			} else {
+				INST(ident, Stack_Offset, ident->reg, ident->declaration->bytecode_data_offset);
+			}
 
-		if (!this->is_left_value && ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			INST(ident, Load, reg, reg, ident->inferred_type->byte_size);
+			if (!this->is_left_value && ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+				INST(ident, Load, ident->reg, ident->reg, ident->inferred_type->byte_size);
+			}
 		}
-
-		this->reg++;
 	}
 
     void handle (Ast_Function** func_ptr) {
 		auto func = (*func_ptr);
 
 		if (func->is_native()) {
-			INST(func, Set, this->reg, BYTECODE_TYPE_POINTER, &func->foreign_function_pointer);
+			INST(func, Set, func->reg, BYTECODE_TYPE_POINTER, &func->foreign_function_pointer);
 		} else {
-			INST(func, Set, this->reg, BYTECODE_TYPE_POINTER, &func);
+			INST(func, Set, func->reg, BYTECODE_TYPE_POINTER, &func);
 		}
-
-	    this->reg++;
 	}
 
 	void handle (Ast_Function_Call** call_ptr) {
 		auto call = (*call_ptr);
 
 		auto _tmp = this->reg;
+		call->reg = 0;
 
-		this->reg = 0;
+		this->reg = 1;
 		for (auto &exp : call->arguments) {
 			Pipe::handle(&exp);
 		}
@@ -468,17 +465,19 @@ struct Bytecode_Generator : Pipe {
 	        } else {
 				bytecode_type = bytecode_get_type(exp->inferred_type);
 			}
-			INST(call, Call_Param, i, bytecode_type);
+			INST(call, Call_Param, i + 1, bytecode_type);
 		}
 
 		auto ret_type = bytecode_get_type(call->inferred_type);
-	    INST(call, Call, this->reg - 1, ret_type);
+	    INST(call, Call, call->fn->reg, ret_type);
 	    if (_tmp != 0) INST(call, Copy, _tmp, 0);
-		call->reg = 0;
 
 		this->reg = _tmp + 1;
 	}
 
+	// @Incomplete @Fixme this will break for nested loops: inner loop will "resolve"
+	// the break already found from the outter loop. Break (& continue) STMs should be directly
+	// associated with the loop statement itself, ideally prior to this pipe.
 	void update_pending_breaks () {
 		while (!this->pending_breaks.empty()) {
 			auto jump = this->pending_breaks.back();
