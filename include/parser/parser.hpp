@@ -9,6 +9,7 @@
 #include "lexer/lexer.hpp"
 #include "parser/pipes.hpp"
 #include "parser/ast.hpp"
+#include "parser/types.hpp"
 
 #define MAX_PATH_LENGTH 260
 
@@ -18,6 +19,8 @@ struct Compiler;
 
 struct Parser : Pipe {
 	Lexer* lexer = NULL;
+	Types* types = new Types();
+
 	char current_path[MAX_PATH_LENGTH];
 	Ast_Block* current_block = NULL;
 

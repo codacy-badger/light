@@ -14,7 +14,7 @@
 
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
 	if (ast_type_are_equal(type_from, type_to)) return true;
-	else if (g_compiler->types->is_implicid_cast(type_from, type_to)) {
+	else if (g_compiler->parser->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
 		cast->location = (*exp_ptr)->location;
         cast->value = (*exp_ptr);
@@ -190,7 +190,7 @@ struct Type_Checking : Pipe {
 				Pipe::handle(&arg_decl);
 			}
 			Pipe::handle(&func->ret_type);
-		    func->inferred_type = g_compiler->types->get_or_create_function_type(func);
+		    func->inferred_type = g_compiler->parser->types->get_function_type(func);
 			Pipe::handle(&func->inferred_type);
 			if (func->scope) Pipe::handle(&func->scope);
 		}
@@ -261,7 +261,7 @@ struct Type_Checking : Pipe {
 					if (strcmp(ident->name, "length") == 0) {
 						binop->inferred_type = g_compiler->type_def_u64;
 					} else if (strcmp(ident->name, "data") == 0) {
-						binop->inferred_type = g_compiler->types->get_or_create_pointer_type(_array->base);
+						binop->inferred_type = g_compiler->parser->types->get_pointer_type(_array->base);
 					} else ERROR(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
 				} else ERROR(binop, "Right of attribute access is NOT an identifier");
 			} else ERROR(binop, "Left of attribute access has invalid type: '%s'", type_def->name);
@@ -347,7 +347,7 @@ struct Type_Checking : Pipe {
 	            break;
 			}
 			case AST_UNARY_REFERENCE: {
-			    unop->inferred_type = g_compiler->types->get_or_create_pointer_type(unop->exp->inferred_type);
+			    unop->inferred_type = g_compiler->parser->types->get_pointer_type(unop->exp->inferred_type);
 				Pipe::handle(&unop->inferred_type);
 	            break;
 			}

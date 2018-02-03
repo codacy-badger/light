@@ -2,7 +2,6 @@
 
 #include "bytecode/interpreter.hpp"
 #include "parser/parser.hpp"
-#include "types.hpp"
 
 #include <vector>
 
@@ -24,7 +23,6 @@ struct Compiler {
 
 	Interpreter* interp = new Interpreter();
 	Parser* parser = new Parser();
-	Types* types = new Types();
 
 	Ast_Struct_Type* type_def_type;
 	Ast_Struct_Type* type_def_void;

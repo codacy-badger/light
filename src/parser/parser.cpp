@@ -124,7 +124,7 @@ void Parser::block (Ast_Block* inner_block) {
 			auto import = this->pending_imports.front();
 			this->pending_imports.pop_front();
 
-			// @Incomplete: don't assume expression is a string
+			// @Incomplete don't assume expression is a string
 			auto literal = static_cast<Ast_Literal*>(import->target);
 			this->run(literal->string_value, this->current_block);
 		}
@@ -417,7 +417,7 @@ Ast_Expression* Parser::type_instance () {
 		return this->function_type();
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		auto base_type = this->type_instance();
-		return g_compiler->types->get_or_create_pointer_type(base_type);
+		return this->types->get_pointer_type(base_type);
 	} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
 		auto length = this->expression();
 		if (length) {
@@ -431,7 +431,7 @@ Ast_Expression* Parser::type_instance () {
 		} else {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 			auto base_type = this->type_instance();
-			return g_compiler->types->get_or_create_slice_type(base_type);
+			return this->types->get_slice_type(base_type);
 		}
 	} else {
 		auto ident = this->ident();

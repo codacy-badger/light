@@ -145,7 +145,7 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 
 	auto data_attr = new Ast_Declaration();
 	data_attr->name = "data";
-	data_attr->type = g_compiler->types->get_or_create_pointer_type(base_type);
+	data_attr->type = g_compiler->parser->types->get_pointer_type(base_type);
 	this->attributes.push_back(data_attr);
 }
 
