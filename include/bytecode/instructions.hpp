@@ -38,6 +38,8 @@ enum Inst_Bytecode : uint8_t {
 	BYTECODE_CALL_SETUP,
 	BYTECODE_CALL_PARAM,
 	BYTECODE_CALL,
+	BYTECODE_CALL_CONST,
+
 	BYTECODE_RETURN,
 };
 
@@ -347,6 +349,17 @@ struct Inst_Call : Instruction {
 	Inst_Call (uint8_t reg, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_CALL;
 		this->reg = reg;
+		this->bytecode_type = bytecode_type;
+	}
+};
+
+struct Inst_Call_Const : Instruction {
+	uint64_t address;
+	Bytecode_Type bytecode_type;
+
+	Inst_Call_Const (uint64_t address, Bytecode_Type bytecode_type) {
+		this->bytecode = BYTECODE_CALL_CONST;
+		this->address = address;
 		this->bytecode_type = bytecode_type;
 	}
 };

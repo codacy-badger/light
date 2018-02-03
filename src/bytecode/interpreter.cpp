@@ -237,6 +237,50 @@ void Interpreter::run (Instruction* inst) {
 
 			return;
 		}
+		case BYTECODE_CALL_CONST: {
+			auto call_const = static_cast<Inst_Call_Const*>(inst);
+			auto func = reinterpret_cast<Ast_Function*>(call_const->address);
+			if (IS_INTERNAL_FUNCTION(func)) {
+				//printf("\t ++ Call: %s\n", func->name);
+				auto _base = this->stack_base;
+				auto _inst = this->instruction_index;
+				this->stack_base = this->stack_index;
+
+				Bytecode_Register _regs[INTERP_REGISTER_COUNT - 1];
+				memcpy(_regs, this->registers + 1, sizeof(_regs));
+
+				this->run(func);
+
+				memcpy(this->registers + 1, _regs, sizeof(_regs));
+
+				this->stack_index = this->stack_base;
+				this->instruction_index = _inst;
+				this->stack_base = _base;
+			} else {
+				auto function_pointer = reinterpret_cast<DCpointer>(call_const->address);
+
+				size_t result = 0;
+				switch (call_const->bytecode_type) {
+					case BYTECODE_TYPE_VOID: 	dcCallVoid(vm, function_pointer); break;
+					case BYTECODE_TYPE_U8:
+					case BYTECODE_TYPE_S8: 		result = (size_t) dcCallChar(vm, function_pointer); break;
+					case BYTECODE_TYPE_U16:
+					case BYTECODE_TYPE_S16: 	result = (size_t) dcCallShort(vm, function_pointer); break;
+					case BYTECODE_TYPE_U32:
+					case BYTECODE_TYPE_S32: 	result = (size_t) dcCallInt(vm, function_pointer); break;
+					case BYTECODE_TYPE_U64:
+					case BYTECODE_TYPE_S64: 	result = (size_t) dcCallLongLong(vm, function_pointer); break;
+					case BYTECODE_TYPE_F32: 	result = (size_t) dcCallFloat(vm, function_pointer); break;
+					case BYTECODE_TYPE_F64: 	result = (size_t) dcCallDouble(vm, function_pointer); break;
+					case BYTECODE_TYPE_POINTER: result = (size_t) dcCallPointer(vm, function_pointer); break;
+				}
+				if (call_const->bytecode_type != BYTECODE_TYPE_VOID) {
+					memcpy(this->registers[0], &result, INTERP_REGISTER_SIZE);
+				}
+			}
+
+			return;
+		}
 		default: abort();
 	}
 }
