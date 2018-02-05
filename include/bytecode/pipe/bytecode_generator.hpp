@@ -463,10 +463,19 @@ struct Bytecode_Generator : Pipe {
 			INST(call, Call_Param, i, exp->reg, bytecode_type);
 		}
 
-		call->fn->reg = call->reg;
-		Pipe::handle(&call->fn);
 		auto ret_type = bytecode_get_type(call->inferred_type);
-	    INST(call, Call, call->reg, call->reg, ret_type);
+		if (call->fn->exp_type == AST_EXPRESSION_FUNCTION) {
+			auto func = static_cast<Ast_Function*>(call->fn);
+			if (func->is_native()) {
+				INST(call, Call_Const, (uint64_t) func->foreign_function_pointer, call->reg, ret_type);
+			} else {
+				INST(call, Call_Const, (uint64_t) func, call->reg, ret_type);
+			}
+		} else {
+			call->fn->reg = call->reg;
+			Pipe::handle(&call->fn);
+		    INST(call, Call, call->reg, call->reg, ret_type);
+		}
 	}
 
 	// @Incomplete @Fixme this will break for nested loops: inner loop will "resolve"

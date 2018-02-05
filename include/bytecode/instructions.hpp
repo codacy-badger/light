@@ -361,11 +361,13 @@ struct Inst_Call : Instruction {
 
 struct Inst_Call_Const : Instruction {
 	uint64_t address;
+	uint8_t reg_result;
 	Bytecode_Type bytecode_type;
 
-	Inst_Call_Const (uint64_t address, Bytecode_Type bytecode_type) {
+	Inst_Call_Const (uint64_t address, uint8_t reg_result, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_CALL_CONST;
 		this->address = address;
+		this->reg_result = reg_result;
 		this->bytecode_type = bytecode_type;
 	}
 };

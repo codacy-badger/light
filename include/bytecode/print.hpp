@@ -160,6 +160,11 @@ void bytecode_print (size_t index, Instruction* inst) {
 			printf("CALL %d, %d", call->reg_result, call->reg_function);
 			break;
 		}
+		case BYTECODE_CALL_CONST: {
+			auto call_const = static_cast<Inst_Call_Const*>(inst);
+			printf("CALL_CONST %d, 0x%llX", call_const->reg_result, call_const->address);
+			break;
+		}
 		default: abort();
 	}
 	printf("\n");
