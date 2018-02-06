@@ -3,7 +3,7 @@
 #include "compiler.hpp"
 
 void _print_f64 (float number) {
-	printf("%lf", number);
+	printf("%lf\n", number);
 }
 
 void _println_u64 (uint64_t number) {

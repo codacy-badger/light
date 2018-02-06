@@ -3,21 +3,18 @@ import "sys.li"
 
 #run
 main :: fn {
-	//test_factorial();
-	//test_cast();
-	//test_pointers();
-	//test_function_pointers();
-	//test_decimals();
-	//test_arrays();
-	//test_division();
-	//test_struct();
-	//test_scopes();
+	test_factorial();
+	test_cast();
+	test_pointers();
+	test_function_pointers();
+	test_decimals();
+	test_arrays();
+	test_division();
+	test_struct();
+	test_scopes();
 	test_big_struct();
-	//test_static_array(); TODO
-	//test_slice(); TODO
-
-	//print_f64(-9.81); TODO
-	//print("\n"); TODO
+	test_static_array();
+	test_slice();
 }
 
 test_factorial :: fn {
@@ -75,11 +72,11 @@ test_cast :: fn {
 
 assert :: fn (condition: bool) {
 	if !condition {
-		/*print("ASSERT: ");
+		print("ASSERT: ");
 		print(__FILE__);
 		print(" ");
 		print_u64(__LINE__);
-		print("\n");*/
+		print("\n");
 		sys_exit(1);
 	}
 }
@@ -262,8 +259,9 @@ test_slice :: fn {
 		print_u64(array.length);
 		print(") [ ");
 		if (array.length > 0) {
-			index := 1;
-			print_u64(array[0]);
+			index := 0;
+			print_u64(array[index]);
+			index = index + 1;
 			while (index < array.length) {
 				print(", ");
 				print_u64(array[index]);

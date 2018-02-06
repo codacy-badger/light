@@ -281,22 +281,40 @@ struct Inst_Binary : Instruction {
 };
 
 struct Inst_Add_Const : Instruction {
+	uint8_t target = 0;
 	uint8_t reg = 0;
 	uint64_t number = 0;
 
 	Inst_Add_Const (uint8_t reg, uint64_t number) {
 		this->bytecode = BYTECODE_ADD_CONST;
+		this->target = reg;
+		this->reg = reg;
+		this->number = number;
+	}
+
+	Inst_Add_Const (uint8_t target, uint8_t reg, uint64_t number) {
+		this->bytecode = BYTECODE_ADD_CONST;
+		this->target = target;
 		this->reg = reg;
 		this->number = number;
 	}
 };
 
 struct Inst_Mul_Const : Instruction {
+	uint8_t target = 0;
 	uint8_t reg = 0;
 	uint64_t number = 0;
 
 	Inst_Mul_Const (uint8_t reg, uint64_t number) {
 		this->bytecode = BYTECODE_MUL_CONST;
+		this->target = reg;
+		this->reg = reg;
+		this->number = number;
+	}
+
+	Inst_Mul_Const (uint8_t target, uint8_t reg, uint64_t number) {
+		this->bytecode = BYTECODE_MUL_CONST;
+		this->target = target;
 		this->reg = reg;
 		this->number = number;
 	}

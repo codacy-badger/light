@@ -10,7 +10,7 @@
 #include "bytecode/primitive_unary.hpp"
 #include "bytecode/primitive_binary.hpp"
 
-#define BYTECODE_DEBUG
+//#define BYTECODE_DEBUG
 
 #define IS_INTERNAL_FUNCTION(func) func->stm_type == AST_STATEMENT_EXPRESSION 	\
 	&& func->exp_type == AST_EXPRESSION_FUNCTION								\
@@ -134,14 +134,14 @@ void Interpreter::run (Instruction* inst) {
 			auto add_c = static_cast<Inst_Add_Const*>(inst);
 			LOAD_REG(reg_value, add_c->reg);
 			reg_value += add_c->number;
-			MOVE(this->registers[add_c->reg], &reg_value);
+			MOVE(this->registers[add_c->target], &reg_value);
 			return;
 		}
 		case BYTECODE_MUL_CONST: {
 			auto mul_c = static_cast<Inst_Mul_Const*>(inst);
 			LOAD_REG(reg_value, mul_c->reg);
 			reg_value *= mul_c->number;
-			MOVE(this->registers[mul_c->reg], &reg_value);
+			MOVE(this->registers[mul_c->target], &reg_value);
 			return;
 		}
 		case BYTECODE_JUMP: {

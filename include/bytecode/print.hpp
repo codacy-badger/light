@@ -127,12 +127,12 @@ void bytecode_print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_ADD_CONST: {
 			auto add_c = static_cast<Inst_Add_Const*>(inst);
-			printf("ADD_CONSTANT %d, %zd", add_c->reg, add_c->number);
+			printf("ADD_CONSTANT %d, %d, %zd", add_c->target, add_c->reg, add_c->number);
 			break;
 		}
 		case BYTECODE_MUL_CONST: {
 			auto mul_c = static_cast<Inst_Mul_Const*>(inst);
-			printf("MUL_CONSTANT %d, %zd", mul_c->reg, mul_c->number);
+			printf("MUL_CONSTANT %d, %d, %zd", mul_c->target, mul_c->reg, mul_c->number);
 			break;
 		}
 		case BYTECODE_JUMP: {

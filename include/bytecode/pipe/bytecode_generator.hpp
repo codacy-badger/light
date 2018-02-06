@@ -252,7 +252,7 @@ struct Bytecode_Generator : Pipe {
 	        case AST_UNARY_DEREFERENCE: {
 				Pipe::handle(&unop->exp);
 				if (!this->is_left_value) {
-					INST(unop, Load, unop->exp->reg, unop->exp->reg, unop->inferred_type->byte_size);
+					INST(unop, Load, unop->reg, unop->exp->reg, unop->inferred_type->byte_size);
 				}
 	            break;
 	        }
@@ -327,10 +327,10 @@ struct Bytecode_Generator : Pipe {
 
 		            if (element_size > 1) INST(binop, Mul_Const, binop->rhs->reg, element_size);
 
-		            INST(binop, Binary, BYTECODE_ADD, binop->lhs->reg, binop->rhs->reg, BYTECODE_TYPE_U64);
+		            INST(binop, Binary, BYTECODE_ADD, binop->reg, binop->lhs->reg, binop->rhs->reg, BYTECODE_TYPE_U64);
 
 		            if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-	                    INST(binop, Load, binop->lhs->reg, binop->lhs->reg, binop->inferred_type->byte_size);
+	                    INST(binop, Load, binop->reg, binop->reg, binop->inferred_type->byte_size);
 	                }
 				} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
 					auto struct_type = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
@@ -343,16 +343,16 @@ struct Bytecode_Generator : Pipe {
 
 				        	this->handle_left(&binop->lhs);
 
-							INST(binop, Add_Const, binop->lhs->reg, data_decl->attribute_byte_offset);
-							INST(binop, Load, binop->lhs->reg, binop->lhs->reg, ptr_type->byte_size);
+							INST(binop, Add_Const, binop->reg, binop->lhs->reg, data_decl->attribute_byte_offset);
+							INST(binop, Load, binop->reg, binop->reg, ptr_type->byte_size);
 							Pipe::handle(&binop->rhs);
 
-				            if (element_size > 1) INST(binop, Mul_Const, binop->lhs->reg, element_size);
+				            if (element_size > 1) INST(binop, Mul_Const, binop->reg, element_size);
 
-				            INST(binop, Binary, BYTECODE_ADD, binop->lhs->reg, binop->rhs->reg, BYTECODE_TYPE_U64);
+				            INST(binop, Binary, BYTECODE_ADD, binop->reg, binop->reg, binop->rhs->reg, BYTECODE_TYPE_U64);
 
 			                if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-			                    INST(binop, Load, binop->lhs->reg, binop->lhs->reg, binop->inferred_type->byte_size);
+			                    INST(binop, Load, binop->reg, binop->reg, binop->inferred_type->byte_size);
 			                }
 						} else abort();
 					} else ERROR(binop->lhs, "Struct is not a slice");
