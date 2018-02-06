@@ -18,19 +18,19 @@
 #define COMPILER_DONE_FORMAT "\nCompleted in %8.6f s\n"
 
 Compiler::Compiler () {
-	this->type_def_type 	= new Ast_Struct_Type("type");
-	this->type_def_void 	= new Ast_Struct_Type("void");
-	this->type_def_bool 	= new Ast_Struct_Type("bool", 1);
-	this->type_def_s8 		= new Ast_Struct_Type("s8", 1);
-	this->type_def_s16 		= new Ast_Struct_Type("s16", 2);
-	this->type_def_s32 		= new Ast_Struct_Type("s32", 4);
-	this->type_def_s64 		= new Ast_Struct_Type("s64", 8);
-	this->type_def_u8 		= new Ast_Struct_Type("u8", 1);
-	this->type_def_u16 		= new Ast_Struct_Type("u16", 2);
-	this->type_def_u32 		= new Ast_Struct_Type("u32", 4);
-	this->type_def_u64 		= new Ast_Struct_Type("u64", 8);
-	this->type_def_f32 		= new Ast_Struct_Type("f32", 4);
-	this->type_def_f64 		= new Ast_Struct_Type("f64", 8);
+	this->type_def_type 	= new Ast_Struct_Type("type", 	0);
+	this->type_def_void 	= new Ast_Struct_Type("void", 	0);
+	this->type_def_bool 	= new Ast_Struct_Type("bool", 	1, true);
+	this->type_def_s8 		= new Ast_Struct_Type("s8", 	1, true);
+	this->type_def_s16 		= new Ast_Struct_Type("s16", 	2, true);
+	this->type_def_s32 		= new Ast_Struct_Type("s32", 	4, true);
+	this->type_def_s64 		= new Ast_Struct_Type("s64", 	8, true);
+	this->type_def_u8 		= new Ast_Struct_Type("u8", 	1, true);
+	this->type_def_u16 		= new Ast_Struct_Type("u16", 	2, true);
+	this->type_def_u32 		= new Ast_Struct_Type("u32", 	4, true);
+	this->type_def_u64 		= new Ast_Struct_Type("u64", 	8, true);
+	this->type_def_f32 		= new Ast_Struct_Type("f32", 	4, true);
+	this->type_def_f64 		= new Ast_Struct_Type("f64", 	8, true);
 
 	this->type_def_u8_ptr 	= new Ast_Pointer_Type(this->type_def_u8);
 }

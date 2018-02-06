@@ -51,8 +51,10 @@ struct Register_Allocator : Pipe {
 	    } else {
             Pipe::handle(decl_ptr);
             if (decl->expression) {
-                this->set_declaration(decl);
-            }
+                if (decl->expression->inferred_type->is_primitive) {
+                    this->set_declaration(decl);
+                } else decl->is_spilled = true;
+            } else decl->is_spilled = true;
 		}
     }
 

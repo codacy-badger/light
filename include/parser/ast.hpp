@@ -171,6 +171,7 @@ struct Ast_Type_Instance : Ast_Expression {
 	Ast_Type_Instance_Type typedef_type = AST_TYPEDEF_UNDEFINED;
 	bool is_signed = false;
 	size_t byte_size = 0;
+	bool is_primitive = false;
 	char* name = NULL;
 
 	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
@@ -180,8 +181,9 @@ struct Ast_Struct_Type : Ast_Type_Instance {
 	vector<Ast_Declaration*> attributes;
 	bool is_slice = false;
 
-	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0) {
+	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0, bool is_primitive = false) {
 		this->typedef_type = AST_TYPEDEF_STRUCT;
+		this->is_primitive = is_primitive;
 		this->byte_size = byte_size;
 		this->name = name;
 	}
