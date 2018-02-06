@@ -4,20 +4,20 @@ import "sys.li"
 #run
 main :: fn {
 	test_factorial();
-	test_cast();
-	test_pointers();
-	test_function_pointers();
-	test_decimals();
-	test_arrays();
-	test_division();
-	test_struct();
-	test_scopes();
-	test_big_struct();
-	test_static_array();
-	test_slice();
+	//test_cast();
+	//test_pointers();
+	//test_function_pointers();
+	//test_decimals();
+	//test_arrays();
+	//test_division();
+	//test_struct();
+	//test_scopes();
+	//test_big_struct();
+	//test_static_array();
+	//test_slice();
 
-	print_f64(-9.81);
-	print("\n");
+	//print_f64(-9.81);
+	//print("\n");
 }
 
 test_factorial :: fn {
@@ -75,11 +75,11 @@ test_cast :: fn {
 
 assert :: fn (condition: bool) {
 	if !condition {
-		print("ASSERT: ");
+		/*print("ASSERT: ");
 		print(__FILE__);
 		print(" ");
 		print_u64(__LINE__);
-		print("\n");
+		print("\n");*/
 		sys_exit(1);
 	}
 }

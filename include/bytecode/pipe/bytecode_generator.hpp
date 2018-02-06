@@ -63,7 +63,7 @@ struct Bytecode_Generator : Pipe {
 
 		Pipe::handle(&_if->condition);
 
-		auto inst = new Inst_Jump_If_False(0);
+		auto inst = new Inst_Jump_If_False(_if->condition->reg);
 		this->add_instruction(_if, inst);
 
 		auto index1 = this->bytecode->size();
@@ -87,7 +87,7 @@ struct Bytecode_Generator : Pipe {
 
 		Pipe::handle(&_while->condition);
 
-		auto jmp1 = new Inst_Jump_If_False(0);
+		auto jmp1 = new Inst_Jump_If_False(_while->condition->reg);
 		this->add_instruction(_while, jmp1);
 		auto index2 = this->bytecode->size();
 
@@ -222,22 +222,23 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Unary** unop_ptr) {
 		auto unop = (*unop_ptr);
 
-		auto unop_type = get_bytecode_from_unop(unop->unary_op);
-		auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
-
 		switch (unop->unary_op) {
 			case AST_UNARY_NOT: {
 				Pipe::handle(&unop->exp);
-	            INST(unop, Unary, unop_type, unop->exp->reg, bytecode_type);
+				auto unop_type = get_bytecode_from_unop(unop->unary_op);
+				auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
+	            INST(unop, Unary, unop_type, unop->reg, unop->exp->reg, bytecode_type);
 				break;
 			}
 			case AST_UNARY_NEGATE: {
 				Pipe::handle(&unop->exp);
+				auto unop_type = get_bytecode_from_unop(unop->unary_op);
+				auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
 				auto result_type = bytecode_unsigned_to_signed(bytecode_type);
 				if (bytecode_type != result_type) {
 					INST(unop, Cast, unop->exp->reg, bytecode_type, result_type);
 				}
-	            INST(unop, Unary, unop_type, unop->exp->reg, result_type);
+	            INST(unop, Unary, unop_type, unop->reg, unop->exp->reg, result_type);
 				break;
 			}
 			case AST_UNARY_REFERENCE: {

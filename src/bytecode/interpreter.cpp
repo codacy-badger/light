@@ -164,8 +164,10 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_RETURN: {
 			auto ret = static_cast<Inst_Return*>(inst);
-			this->call_record->set_result(ret->bytecode_type,
-				&this->registers[ret->reg_index]);
+			if (this->call_record) {
+				this->call_record->set_result(ret->bytecode_type,
+					&this->registers[ret->reg_index]);
+			}
 			return;
 		}
 		case BYTECODE_CALL_PARAM: {

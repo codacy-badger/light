@@ -50,7 +50,9 @@ struct Register_Allocator : Pipe {
 			}
 	    } else {
             Pipe::handle(decl_ptr);
-            this->set_declaration(decl);
+            if (decl->expression) {
+                this->set_declaration(decl);
+            }
 		}
     }
 
@@ -97,6 +99,7 @@ struct Register_Allocator : Pipe {
 			case AST_BINARY_ASSIGN: {
                 Pipe::handle(&binop->lhs);
                 Pipe::handle(&binop->rhs);
+
 				break;
 			}
 			default: {
@@ -109,12 +112,50 @@ struct Register_Allocator : Pipe {
 		}
     }
 
+    void handle (Ast_Unary** unop_ptr) {
+        auto unop = (*unop_ptr);
+
+		switch (unop->unary_op) {
+			case AST_UNARY_NOT: {
+				Pipe::handle(&unop->exp);
+                unop->reg = reserve_reg(unop->exp->reg);
+				break;
+			}
+			case AST_UNARY_NEGATE: {
+				Pipe::handle(&unop->exp);
+                unop->reg = reserve_reg(unop->exp->reg);
+				break;
+			}
+			case AST_UNARY_REFERENCE: {
+				Pipe::handle(&unop->exp);
+                unop->reg = reserve_reg(unop->exp->reg);
+				break;
+			}
+	        case AST_UNARY_DEREFERENCE: {
+				Pipe::handle(&unop->exp);
+                unop->reg = reserve_reg(unop->exp->reg);
+	            break;
+	        }
+			default: abort();
+		}
+    }
+
+	void handle (Ast_Cast** cast_ptr) {
+		auto cast = (*cast_ptr);
+
+		Pipe::handle(&cast->value);
+        cast->reg = cast->value->reg;
+	}
+
     void handle (Ast_Function_Call** call_ptr) {
         auto call = (*call_ptr);
 
         call->reg = reserve_next_reg();
 
-        //Pipe::handle(&call->fn);
+        if (call->fn->exp_type != AST_EXPRESSION_FUNCTION) {
+            Pipe::handle(&call->fn);
+        }
+
 		for (auto &exp : call->arguments) {
 			Pipe::handle(&exp);
 		}
@@ -139,12 +180,18 @@ struct Register_Allocator : Pipe {
     }
 
     void set_declaration (Ast_Declaration* decl) {
+        assert(decl->expression->reg >= 0);
         assert(this->decl_regs[decl->expression->reg]);
         this->decl_regs[decl->expression->reg]->decl = decl;
     }
 
     bool has_declaration (uint8_t index) {
         return this->decl_regs[index]->decl;
+    }
+
+    uint8_t reserve_reg (uint8_t reg) {
+        if (!has_declaration(reg)) return reg;
+        return reserve_next_reg();
     }
 
     uint8_t reserve_reg (uint8_t reg1, uint8_t reg2) {
