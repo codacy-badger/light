@@ -113,22 +113,24 @@ struct Bytecode_Generator : Pipe {
 	        auto _tmp = this->bytecode;
 	        this->bytecode = &func->bytecode;
 
-			/*auto free_reg = (uint8_t) func->arg_decls.size();
+			auto free_reg = (uint8_t) func->arg_decls.size();
 	        for (uint8_t i = 0; i < func->arg_decls.size(); i++) {
 	            auto decl = func->arg_decls[i];
-				auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
+				if (decl->is_spilled) {
+					auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
 
-				INST(decl, Stack_Allocate, decl_type->byte_size);
-				decl->bytecode_data_offset = this->data_offset;
-				this->data_offset += decl_type->byte_size;
+					INST(decl, Stack_Allocate, decl_type->byte_size);
+					decl->bytecode_data_offset = this->data_offset;
+					this->data_offset += decl_type->byte_size;
 
-				INST(decl, Stack_Offset, free_reg, decl->bytecode_data_offset);
-				if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
-					INST(decl, Copy_Memory, free_reg, i, decl_type->byte_size);
-				} else {
-					INST(decl, Store, free_reg, i, decl_type->byte_size);
+					INST(decl, Stack_Offset, free_reg, decl->bytecode_data_offset);
+					if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
+						INST(decl, Copy_Memory, free_reg, i, decl_type->byte_size);
+					} else {
+						INST(decl, Store, free_reg, i, decl_type->byte_size);
+					}
 				}
-	        }*/
+	        }
 
 			this->handle(&func->scope);
 
@@ -164,14 +166,14 @@ struct Bytecode_Generator : Pipe {
 			if (decl->is_global()) {
 				decl->bytecode_data_offset = g_compiler->interp->globals->add(decl_type->byte_size);
 			} else {
-				if (decl->expression) {
-					Pipe::handle(&decl->expression);
+				if (decl->expression) Pipe::handle(&decl->expression);
 
-					if (decl->is_spilled) {
-						INST(decl, Stack_Allocate, decl_type->byte_size);
-						decl->bytecode_data_offset = this->data_offset;
-						this->data_offset += decl_type->byte_size;
+				if (decl->is_spilled) {
+					INST(decl, Stack_Allocate, decl_type->byte_size);
+					decl->bytecode_data_offset = this->data_offset;
+					this->data_offset += decl_type->byte_size;
 
+					if (decl->expression) {
 						uint8_t free_reg = decl->expression->reg + 1;
 						INST(decl, Stack_Offset, free_reg, decl->bytecode_data_offset);
 						if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
