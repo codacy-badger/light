@@ -300,7 +300,7 @@ struct Bytecode_Generator : Pipe {
 	            while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
 	                auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
 	                type_def = static_cast<Ast_Type_Instance*>(ptr_type->base);
-	                INST(binop, Load, binop->lhs->reg, binop->lhs->reg, type_def->byte_size);
+	                INST(binop, Load, binop->reg, binop->lhs->reg, type_def->byte_size);
 	            }
 
 	            auto ident = static_cast<Ast_Ident*>(binop->rhs);
@@ -310,7 +310,7 @@ struct Bytecode_Generator : Pipe {
 				}
 
 	            if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-	                INST(binop, Load, binop->lhs->reg, binop->lhs->reg, binop->inferred_type->byte_size);
+	                INST(binop, Load, binop->reg, binop->lhs->reg, binop->inferred_type->byte_size);
 	            }
 
 				break;

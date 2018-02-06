@@ -10,9 +10,9 @@ main :: fn {
 	//test_decimals();
 	//test_arrays();
 	//test_division();
-	test_struct();
+	//test_struct();
 	//test_scopes();
-	//test_big_struct(); TODO
+	test_big_struct();
 	//test_static_array(); TODO
 	//test_slice(); TODO
 
