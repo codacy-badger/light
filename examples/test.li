@@ -4,7 +4,7 @@ import "sys.li"
 #run
 main :: fn {
 	test_factorial();
-	//test_cast();
+	test_cast();
 	//test_pointers();
 	//test_function_pointers();
 	//test_decimals();

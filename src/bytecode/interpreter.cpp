@@ -150,9 +150,11 @@ void Interpreter::run (Instruction* inst) {
 			return;
 		}
 		case BYTECODE_JUMP_IF_FALSE: {
-			auto jump_if_true = static_cast<Inst_Jump_If_False*>(inst);
-			LOAD_REG(value, jump_if_true->reg);
-			if (value == 0) instruction_index += jump_if_true->offset;
+			auto jump_if_false = static_cast<Inst_Jump_If_False*>(inst);
+			size_t value = 0;
+			auto size = bytecode_get_size(BYTECODE_TYPE_BOOL);
+			memcpy(&value, this->registers[jump_if_false->reg], size);
+			if (value == 0) instruction_index += jump_if_false->offset;
 			return;
 		}
 		case BYTECODE_CALL_SETUP: {
