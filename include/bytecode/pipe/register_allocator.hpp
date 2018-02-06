@@ -74,7 +74,6 @@ struct Register_Allocator : Pipe {
             ident->reg = reserve_next_reg();
         } else {
             ident->reg = (uint8_t) decl_index;
-            ident->is_in_register = true;
         }
     }
 
@@ -129,6 +128,12 @@ struct Register_Allocator : Pipe {
 			case AST_UNARY_REFERENCE: {
 				Pipe::handle(&unop->exp);
                 unop->reg = reserve_reg(unop->exp->reg);
+
+                if (unop->exp->exp_type == AST_EXPRESSION_IDENT) {
+                    auto ident = static_cast<Ast_Ident*>(unop->exp);
+                    ident->declaration->is_spilled = true;
+                }
+
 				break;
 			}
 	        case AST_UNARY_DEREFERENCE: {

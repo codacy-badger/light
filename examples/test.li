@@ -3,21 +3,21 @@ import "sys.li"
 
 #run
 main :: fn {
-	test_factorial();
-	test_cast();
+	//test_factorial();
+	//test_cast();
 	//test_pointers();
 	//test_function_pointers();
 	//test_decimals();
-	//test_arrays();
+	//test_arrays(); TODO
 	//test_division();
-	//test_struct();
+	// test_struct(); TODO
 	//test_scopes();
-	//test_big_struct();
-	//test_static_array();
-	//test_slice();
+	//test_big_struct(); TODO
+	//test_static_array(); TODO
+	//test_slice(); TODO
 
-	//print_f64(-9.81);
-	//print("\n");
+	//print_f64(-9.81); TODO
+	//print("\n"); TODO
 }
 
 test_factorial :: fn {

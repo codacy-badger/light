@@ -113,6 +113,7 @@ struct Ast_Declaration : Ast_Statement {
 
 	// for bytecode
 	int64_t bytecode_data_offset = -1;
+	bool is_spilled = false;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 
@@ -347,9 +348,6 @@ struct Ast_Ident : Ast_Expression {
 
 	Ast_Block* scope = NULL;
 	Ast_Declaration* declaration = NULL;
-
-	// for bytecode
-	bool is_in_register = false;
 
 	Ast_Ident (Ast_Block* scope = NULL) {
 		this->exp_type = AST_EXPRESSION_IDENT;

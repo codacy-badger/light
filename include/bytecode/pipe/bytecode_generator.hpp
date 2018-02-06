@@ -167,17 +167,19 @@ struct Bytecode_Generator : Pipe {
 				if (decl->expression) {
 					Pipe::handle(&decl->expression);
 
-					/*INST(decl, Stack_Allocate, decl_type->byte_size);
-					decl->bytecode_data_offset = this->data_offset;
-					this->data_offset += decl_type->byte_size;
+					if (decl->is_spilled) {
+						INST(decl, Stack_Allocate, decl_type->byte_size);
+						decl->bytecode_data_offset = this->data_offset;
+						this->data_offset += decl_type->byte_size;
 
-					uint8_t free_reg = decl->expression->reg + 1;
-					INST(decl, Stack_Offset, free_reg, decl->bytecode_data_offset);
-					if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
-						INST(decl, Copy_Memory, free_reg, decl->expression->reg, decl_type->byte_size);
-					} else {
-						INST(decl, Store, free_reg, decl->expression->reg, decl_type->byte_size);
-					}*/
+						uint8_t free_reg = decl->expression->reg + 1;
+						INST(decl, Stack_Offset, free_reg, decl->bytecode_data_offset);
+						if (decl_type->byte_size > INTERP_REGISTER_SIZE) {
+							INST(decl, Copy_Memory, free_reg, decl->expression->reg, decl_type->byte_size);
+						} else {
+							INST(decl, Store, free_reg, decl->expression->reg, decl_type->byte_size);
+						}
+					}
 				}
 			}
 		}
@@ -361,16 +363,14 @@ struct Bytecode_Generator : Pipe {
 
 	        	this->handle_left(&binop->lhs);
 
-				if (binop->lhs->exp_type == AST_EXPRESSION_IDENT) {
-					auto ident = static_cast<Ast_Ident*>(binop->lhs);
-					if (ident->is_in_register) {
-						INST(binop, Copy, ident->reg, binop->rhs->reg);
+				auto ident = static_cast<Ast_Ident*>(binop->lhs);
+				if (binop->lhs->exp_type == AST_EXPRESSION_IDENT && !ident->declaration->is_spilled) {
+					INST(binop, Copy, ident->reg, binop->rhs->reg);
+				} else {
+					if (size > INTERP_REGISTER_SIZE) {
+						INST(binop, Copy_Memory, binop->lhs->reg, binop->rhs->reg, size);
 					} else {
-						if (size > INTERP_REGISTER_SIZE) {
-			                INST(binop, Copy_Memory, binop->rhs->reg, binop->lhs->reg, size);
-			            } else {
-							INST(binop, Store, binop->rhs->reg, binop->lhs->reg, size);
-			            }
+						INST(binop, Store, binop->lhs->reg, binop->rhs->reg, size);
 					}
 				}
 
@@ -421,7 +421,7 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Ident** ident_ptr) {
 		auto ident = (*ident_ptr);
 
-		if (!ident->is_in_register) {
+		if (ident->declaration->is_spilled) {
 			if (ident->declaration->is_global()) {
 				INST(ident, Global_Offset, ident->reg, ident->declaration->bytecode_data_offset);
 			} else {
@@ -475,9 +475,8 @@ struct Bytecode_Generator : Pipe {
 				INST(call, Call_Const, (uint64_t) func, call->reg, ret_type);
 			}
 		} else {
-			call->fn->reg = call->reg;
 			Pipe::handle(&call->fn);
-		    INST(call, Call, call->reg, call->reg, ret_type);
+		    INST(call, Call, call->reg, call->fn->reg, ret_type);
 		}
 	}
 
