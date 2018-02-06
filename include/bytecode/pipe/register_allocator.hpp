@@ -2,6 +2,7 @@
 
 #include "parser/pipes.hpp"
 
+#include <assert.h>
 #include <vector>
 
 using namespace std;
@@ -49,22 +50,18 @@ struct Register_Allocator : Pipe {
 			}
 	    } else {
             Pipe::handle(decl_ptr);
-			this->decl_regs[decl->expression->reg] = new Register_State(decl);
+            this->set_declaration(decl);
 		}
     }
 
     void handle (Ast_Function** func_ptr) {
         auto func = (*func_ptr);
-
-        func->reg = (uint8_t) this->decl_regs.size();
-        this->decl_regs.push_back(new Register_State());
+        func->reg = reserve_next_reg();
     }
 
     void handle (Ast_Literal** lit_ptr) {
         auto lit = (*lit_ptr);
-
-        lit->reg = (uint8_t) this->decl_regs.size();
-        this->decl_regs.push_back(new Register_State());
+        lit->reg = reserve_next_reg();
     }
 
     void handle (Ast_Ident** ident_ptr) {
@@ -138,7 +135,12 @@ struct Register_Allocator : Pipe {
             }
         }
         decl_regs.push_back(new Register_State());
-        return (uint8_t) decl_regs.size();
+        return (uint8_t) (decl_regs.size() - 1);
+    }
+
+    void set_declaration (Ast_Declaration* decl) {
+        assert(this->decl_regs[decl->expression->reg]);
+        this->decl_regs[decl->expression->reg]->decl = decl;
     }
 
     bool has_declaration (uint8_t index) {
