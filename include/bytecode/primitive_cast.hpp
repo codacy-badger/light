@@ -41,7 +41,12 @@ void bytecode_cast(void* reg_ptr, Bytecode_Type type_from, Bytecode_Type type_to
 	auto size_to = bytecode_get_size(type_to);
 	auto sign_from = bytecode_has_sign(type_from);
 
-	if (sign_from) {
+	if (type_to == BYTECODE_TYPE_BOOL) {
+		uint64_t value = 0;
+		memcpy(&value, reg_ptr, size_from);
+		value = !!value;
+		memcpy(reg_ptr, &value, 1);
+	} else if (sign_from) {
 		switch (size_from) {
 			case 1: _cast_signed<int8_t>(reg_ptr, size_to); break;
 			case 2: _cast_signed<int16_t>(reg_ptr, size_to); break;

@@ -45,6 +45,8 @@ bool Types::is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* t
 	} else if (type_from->is_signed && !type_to->is_signed) {
 		return false;
 	} else {
+		if (type_from->typedef_type == AST_TYPEDEF_POINTER
+			&& type_to == g_compiler->type_def_bool) return true;
 		// @Hack @Fixme this allows cast from u8 to *u8, which should not be allowed.
 		return type_to->byte_size >= type_from->byte_size;
 	}

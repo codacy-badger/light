@@ -66,6 +66,28 @@ struct Type_Checking : Pipe {
 		}
 	}
 
+	void handle (Ast_If** if_ptr) {
+		auto _if = (*if_ptr);
+
+		Pipe::handle(if_ptr);
+
+		if (!cast_if_possible(&_if->condition, _if->condition->inferred_type, g_compiler->type_def_bool)) {
+			ERROR(_if, "The condition for the IF statement must be of type boolean, but it is '%s'",
+				_if->condition->inferred_type->name);
+		}
+	}
+
+	void handle (Ast_While** while_ptr) {
+		auto _while = (*while_ptr);
+
+		Pipe::handle(while_ptr);
+
+		if (!cast_if_possible(&_while->condition, _while->condition->inferred_type, g_compiler->type_def_bool)) {
+			ERROR(_while, "The condition for the IF statement must be of type boolean, but it is '%s'",
+				_while->condition->inferred_type->name);
+		}
+	}
+
 	void handle (Ast_Return** ret_ptr) {
 		auto ret = (*ret_ptr);
 
@@ -336,6 +358,10 @@ struct Type_Checking : Pipe {
 					unop->inferred_type = unop->exp->inferred_type;
 				}
 	            break;
+			}
+			case AST_UNARY_NOT: {
+				unop->inferred_type = g_compiler->type_def_bool;
+				break;
 			}
 			case AST_UNARY_DEREFERENCE: {
 	            auto inf_type = unop->exp->inferred_type;
