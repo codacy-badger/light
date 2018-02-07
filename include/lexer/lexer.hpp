@@ -2,11 +2,11 @@
 
 #include <deque>
 
-#include "lexer/ring_buffer.hpp"
+#include "lexer_buffer.hpp"
 #include "tokens.hpp"
 
 struct Lexer {
-	Ring_Buffer* buffer;
+	Lexer_Buffer* buffer;
 
 	char* next_text;
 	Token_Type next_type;

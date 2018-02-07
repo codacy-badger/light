@@ -1,7 +1,9 @@
 #include "lexer/lexer.hpp"
 
 #include <assert.h>
+
 #include "compiler.hpp"
+#include "lexer/ring_buffer.hpp"
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
 #define DIGIT(c) (c >= '0' && c <= '9')
@@ -21,22 +23,9 @@
 
 const char* token_get_text (Token_Type type);
 
-FILE* open_file_or_stop (const char* filename, Location* location = NULL) {
-	FILE* file_ptr = NULL;
-	auto err = fopen_s(&file_ptr, filename, "r");
-	if (err) {
-		char buf[256];
-		strerror_s(buf, sizeof buf, err);
-		report_error_stop(location, "Cannot open file '%s': %s", filename, buf);
-	}
-	return file_ptr;
-}
-
 Lexer::Lexer (const char* filepath, Lexer* parent) {
-	FILE* file = parent
-		? open_file_or_stop(filepath, &parent->buffer->location)
-		: open_file_or_stop(filepath, NULL);
-	this->buffer = new Ring_Buffer(file, filepath);
+	Lexer_Buffer* buff = parent ? parent->buffer : NULL;
+	this->buffer = new Ring_Buffer(filepath, buff);
 	this->parse_next();
 }
 
