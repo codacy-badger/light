@@ -4,6 +4,7 @@
 
 #include "compiler.hpp"
 #include "lexer/ring_buffer.hpp"
+#include "lexer/full_buffer.hpp"
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
 #define DIGIT(c) (c >= '0' && c <= '9')
@@ -25,7 +26,7 @@ const char* token_get_text (Token_Type type);
 
 Lexer::Lexer (const char* filepath, Lexer* parent) {
 	Lexer_Buffer* buff = parent ? parent->buffer : NULL;
-	this->buffer = new Ring_Buffer(filepath, buff);
+	this->buffer = new Full_Buffer(filepath, buff);
 	this->parse_next();
 }
 
