@@ -24,9 +24,7 @@ void try_resolve_idents (vector<Ast_Ident**>* idents, Ast_Declaration* decl) {
         auto ident_ptr = (*it);
         auto ident = (*ident_ptr);
 
-        // @Hack we don't want to just ignore non-ident expression,
-        // since having one here means trying to resolve the same ident twice
-        // assert(ident->exp_type == AST_EXPRESSION_IDENT);
+        assert(ident->exp_type == AST_EXPRESSION_IDENT);
 
         if (ident->exp_type == AST_EXPRESSION_IDENT) {
             if (strcmp(ident->name, decl->name) == 0
@@ -153,7 +151,7 @@ struct Symbol_Resolution : Pipe {
 
     // @Incomplete @Fixme we don't want to keep recursing on inner functions,
     // since that would make more than 1 statement depend on the same identifiers
-    // Good dependencies: [func -> inner_func] [inner_func -> some_ident]
-    // Bad dependencies: [func -> (inner_func, some_ident)] [inner_func -> some_ident]
+    // Good: [func -> inner_func] [inner_func -> some_ident]
+    // Bad: [func -> (inner_func, some_ident)] [inner_func -> some_ident]
     void handle (Ast_Function** func_ptr) { Pipe::handle(func_ptr); }
 };
