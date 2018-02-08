@@ -176,8 +176,8 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Function_Call** func_call) {
-		if ((*func_call)->fn->exp_type != AST_EXPRESSION_FUNCTION) {
-			this->handle(&(*func_call)->fn);
+		if ((*func_call)->func->exp_type != AST_EXPRESSION_FUNCTION) {
+			this->handle(&(*func_call)->func);
 		}
 		for (auto &exp : (*func_call)->arguments) {
 			this->handle(&exp);
@@ -244,7 +244,7 @@ struct Pipe {
 
 	virtual void handle (Ast_Array_Type** arr) {
 		this->handle(&(*arr)->base);
-		if ((*arr)->length_exp) this->handle(&(*arr)->length_exp);
+		if ((*arr)->length) this->handle(&(*arr)->length);
 	}
 
 	virtual void handle (Ast_Slice_Type** slice) {

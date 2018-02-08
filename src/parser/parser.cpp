@@ -2,14 +2,6 @@
 
 #include "compiler.hpp"
 
-void _print_f64 (float number) {
-	printf("%lf\n", number);
-}
-
-void _println_u64 (uint64_t number) {
-	printf("%llu\n", number);
-}
-
 #define AST_NEW(T, ...) (this->setup_ast_node(lexer, new T(__VA_ARGS__)))
 
 #define SET_PATH(other) if (strcmp(other, this->current_path) != 0) {			\
@@ -57,24 +49,6 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 		DECL_TYPE(g_compiler->type_def_u64);
 		DECL_TYPE(g_compiler->type_def_f32);
 		DECL_TYPE(g_compiler->type_def_f64);
-
-		auto print_f64 = new Ast_Function();
-		print_f64->name = "print_f64";
-		print_f64->ret_type = g_compiler->type_def_void;
-		auto param1 = ast_make_declaration("number", NULL, false);
-		param1->type = g_compiler->type_def_f32;
-		print_f64->arg_decls.push_back(param1);
-		print_f64->foreign_function_pointer = (void*)_print_f64;
-		this->add(ast_make_declaration("print_f64", print_f64), parent);
-
-		auto println_u64 = new Ast_Function();
-		println_u64->name = "_println_u64";
-		println_u64->ret_type = g_compiler->type_def_void;
-		param1 = ast_make_declaration("number", NULL, false);
-		param1->type = g_compiler->type_def_u64;
-		println_u64->arg_decls.push_back(param1);
-		println_u64->foreign_function_pointer = (void*)_println_u64;
-		this->add(ast_make_declaration("_println_u64", println_u64), parent);
 	}
 
 	auto tmp = this->lexer;
@@ -104,11 +78,6 @@ void Parser::add (Ast_Statement* stm, Ast_Block* block) {
 		this->accumulated_spans += os_time_stop(this->last_time_start);
 		this->to_next(&stm);
 		this->last_time_start = os_get_time();
-	} else {
-		if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-			auto decl = static_cast<Ast_Declaration*>(stm);
-			if (decl->is_constant()) this->to_next(&stm);
-		}
 	}
 }
 
@@ -323,7 +292,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		auto output = initial ? initial : this->ident();
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			auto call = AST_NEW(Ast_Function_Call);
-			call->fn = output;
+			call->func = output;
 			this->comma_separated_arguments(&call->arguments);
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
 			return call;
@@ -417,7 +386,7 @@ Ast_Expression* Parser::type_instance () {
 		return this->function_type();
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		auto base_type = this->type_instance();
-		return this->types->get_pointer_type(base_type);
+		return g_compiler->types->get_pointer_type(base_type);
 	} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
 		auto length = this->expression();
 		if (length) {
@@ -425,13 +394,13 @@ Ast_Expression* Parser::type_instance () {
 			auto base_type = this->type_instance();
 
 			auto _array = AST_NEW(Ast_Array_Type);
-			_array->length_exp = length;
+			_array->length = length;
 			_array->base = base_type;
 			return _array;
 		} else {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 			auto base_type = this->type_instance();
-			return this->types->get_slice_type(base_type);
+			return g_compiler->types->get_slice_type(base_type);
 		}
 	} else {
 		auto ident = this->ident();

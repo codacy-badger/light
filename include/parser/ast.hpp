@@ -70,7 +70,6 @@ struct Ast_Block : Ast_Statement {
 
 	bool is_global () { return !this->parent && !this->scope_of; }
 
-	Ast_Declaration* find_declaration (const char* name, bool recurse = true, bool is_out_scope = false);
 	Ast_Declaration* find_non_const_declaration (const char* name);
 	Ast_Declaration* find_const_declaration (const char* name);
 	bool is_ancestor (Ast_Block* other);
@@ -197,19 +196,20 @@ struct Ast_Pointer_Type : Ast_Type_Instance {
 	Ast_Pointer_Type(Ast_Expression* base = NULL) {
 		this->typedef_type = AST_TYPEDEF_POINTER;
 		this->byte_size = AST_POINTER_SIZE;
+		this->is_primitive = true;
 		this->base = base;
 	}
 };
 
 struct Ast_Array_Type : Ast_Type_Instance {
 	Ast_Expression* base = NULL;
-	Ast_Expression* length_exp = NULL;
+	Ast_Expression* length = NULL;
 
-	uint64_t _length = 0;
+	uint64_t length_as_number = 0;
 
 	Ast_Array_Type() { this->typedef_type = AST_TYPEDEF_ARRAY; }
 
-	uint64_t length ();
+	uint64_t get_length ();
 };
 
 struct Ast_Slice_Type : Ast_Struct_Type {
@@ -315,7 +315,7 @@ struct Ast_Unary : Ast_Expression {
 };
 
 struct Ast_Function_Call : Ast_Expression {
-	Ast_Expression* fn;
+	Ast_Expression* func;
 	vector<Ast_Expression*> arguments;
 
 	Ast_Function_Call() { this->exp_type = AST_EXPRESSION_CALL; }
@@ -359,6 +359,7 @@ struct Ast_Ident : Ast_Expression {
 
 void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);
 bool ast_type_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2);
+
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);
 Ast_Ident* ast_make_ident (const char* name);

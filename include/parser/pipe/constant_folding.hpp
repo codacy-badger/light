@@ -55,9 +55,10 @@ Ast_Type_Instance* unary_type (Ast_Unary_Type unary_op, Ast_Expression* exp) {
 			else if (exp->inferred_type == g_compiler->type_def_u8) 	return g_compiler->type_def_s16;
 			else if (exp->inferred_type == g_compiler->type_def_u16) 	return g_compiler->type_def_s32;
 			else if (exp->inferred_type == g_compiler->type_def_u32) 	return g_compiler->type_def_s64;
-			// @Incomplete @Fixme possible loss of data, we should notify the user somehow
-			else if (exp->inferred_type == g_compiler->type_def_u64) 	return g_compiler->type_def_s64;
-			else return exp->inferred_type;
+			else if (exp->inferred_type == g_compiler->type_def_u64) {
+				report_warning(&exp->location, "negating a u64 integer may not give the right value");
+				return g_compiler->type_def_s64;
+			} else return exp->inferred_type;
 		}
 		case AST_UNARY_NOT: return g_compiler->type_def_bool;
 		default: abort();
@@ -154,6 +155,29 @@ struct Constant_Folding : Pipe {
 			}
 			delete *binary_ptr;
 			*binary_ptr = reinterpret_cast<Ast_Binary*>(tmp);*/
+		} else if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
+			auto ident = static_cast<Ast_Ident*>(rhs);
+			if (lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
+				auto arr_type = static_cast<Ast_Array_Type*>(lhs->inferred_type);
+				if (strcmp(ident->name, "length") == 0) {
+					auto lit = ast_make_literal(arr_type->get_length());
+					lit->inferred_type = g_compiler->type_def_u64;
+					lit->location = binary->location;
+
+					delete *binary_ptr;
+					(*binary_ptr) = reinterpret_cast<Ast_Binary*>(lit);
+					return;
+				} else if (strcmp(ident->name, "data") == 0) {
+					auto array_ref = ast_make_unary(AST_UNARY_REFERENCE, lhs);
+					array_ref->inferred_type = g_compiler->types->get_pointer_type(arr_type->base);
+					array_ref->location = binary->location;
+
+					delete *binary_ptr;
+					(*binary_ptr) = reinterpret_cast<Ast_Binary*>(array_ref);
+					Pipe::handle(reinterpret_cast<Ast_Unary**>(binary_ptr));
+					return;
+				}
+			}
 		}
 	}
 };

@@ -4,14 +4,20 @@
 #include "parser/ast.hpp"
 
 void print_location (FILE* buffer, Location* location) {
-	fprintf(buffer, "\t@ %s:%zd,%zd\n", location->filename, location->line, location->col);
+	if (location) {
+		if (location->filename) {
+			fprintf(buffer, "\t@ %s:%zd,%zd\n", location->filename, location->line, location->col);
+		} else {
+			fprintf(buffer, "\t@ [INTERNAL]\n");
+		}
+	}
 }
 
 void _report (const char* level, FILE* buffer, Location* location, char* format, va_list argptr) {
 	fprintf(buffer, "\n[%s] ", level);
     vfprintf(buffer, format, argptr);
 	fprintf(buffer, "\n");
-	if (location) print_location(buffer, location);
+	print_location(buffer, location);
 }
 
 void report_debug (Location* location, char* format, ...) {

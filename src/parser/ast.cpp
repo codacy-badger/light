@@ -24,39 +24,6 @@ Ast_Note* Ast_Statement::remove_note (const char* name) {
     return NULL;
 }
 
-Ast_Declaration* Ast_Block::find_declaration (const char* _name, bool recurse, bool is_out_scope) {
-    for (auto stm : this->list) {
-		// TODO: check why the F. do I have to check for null here
-		// there should never be null values inside this.
-		// not checking crashes in Unix build
-        if (stm && stm->stm_type == AST_STATEMENT_DECLARATION) {
-            auto decl = static_cast<Ast_Declaration*>(stm);
-            if (strcmp(decl->name, _name) == 0) {
-				if (is_out_scope) {
-					if (decl->is_constant() || decl->is_global()) return decl;
-				} else {
-					if (!decl->is_constant() && !decl->is_global()) {
-						return decl;
-					} else return decl;
-				}
-			}
-        }
-    }
-	if (this->scope_of) {
-		for (auto decl : this->scope_of->arg_decls) {
-			if (strcmp(decl->name, _name) == 0) {
-				if (is_out_scope) {
-					if (decl->is_constant() || decl->is_global()) return decl;
-				} else return decl;
-			}
-		}
-		is_out_scope = true;
-	}
-    if (recurse && this->parent) {
-        return this->parent->find_declaration(_name, recurse, is_out_scope);
-    } else return NULL;
-}
-
 Ast_Declaration* Ast_Block::find_non_const_declaration (const char* _name) {
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
@@ -124,13 +91,13 @@ Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
 	return NULL;
 }
 
-uint64_t Ast_Array_Type::length () {
-	if (!this->_length) {
-		assert(this->length_exp);
-		assert(this->length_exp->exp_type == AST_EXPRESSION_LITERAL);
-		this->_length = static_cast<Ast_Literal*>(this->length_exp)->uint_value;
+uint64_t Ast_Array_Type::get_length () {
+	if (!this->length_as_number) {
+		assert(this->length);
+		assert(this->length->exp_type == AST_EXPRESSION_LITERAL);
+		this->length_as_number = static_cast<Ast_Literal*>(this->length)->uint_value;
 	}
-	return this->_length;
+	return this->length_as_number;
 }
 
 Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
@@ -145,7 +112,7 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 
 	auto data_attr = new Ast_Declaration();
 	data_attr->name = "data";
-	data_attr->type = g_compiler->parser->types->get_pointer_type(base_type);
+	data_attr->type = g_compiler->types->get_pointer_type(base_type);
 	this->attributes.push_back(data_attr);
 }
 
@@ -166,7 +133,7 @@ Ast_Binary_Type token_to_binop (Token_Type tType) {
 
 		case TOKEN_AMP:				return AST_BINARY_BITWISE_AND;
 		case TOKEN_PIPE:			return AST_BINARY_BITWISE_OR;
-		case TOKEN_CARET:				return AST_BINARY_BITWISE_XOR;
+		case TOKEN_CARET:			return AST_BINARY_BITWISE_XOR;
 		case TOKEN_RIGHT_SHIFT:		return AST_BINARY_BITWISE_RIGHT_SHIFT;
 		case TOKEN_LEFT_SHIFT:		return AST_BINARY_BITWISE_LEFT_SHIFT;
 
@@ -300,7 +267,7 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 					auto base_name = _get_type_name(_arr->base);
 	        		auto base_name_length = strlen(base_name);
 					_arr->name = (char*) malloc(base_name_length + 23);
-					sprintf_s(_arr->name, base_name_length + 23, "[%lld]%s", _arr->length(), base_name);
+					sprintf_s(_arr->name, base_name_length + 23, "[%lld]%s", _arr->get_length(), base_name);
 	        	}
 	            return;
 	        }
@@ -370,7 +337,6 @@ bool ast_type_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_
                 auto base_type1 = static_cast<Ast_Type_Instance*>(ptr_type1->base);
                 auto base_type2 = static_cast<Ast_Type_Instance*>(ptr_type2->base);
                 return ast_type_are_equal(base_type1, base_type2);
-                break;
             }
             case AST_TYPEDEF_ARRAY: {
                 auto arr_type1 = static_cast<Ast_Array_Type*>(type_inst1);
@@ -378,7 +344,6 @@ bool ast_type_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_
                 auto base_type1 = static_cast<Ast_Type_Instance*>(arr_type1->base);
                 auto base_type2 = static_cast<Ast_Type_Instance*>(arr_type2->base);
                 return ast_type_are_equal(base_type1, base_type2);
-                break;
             }
             case AST_TYPEDEF_FUNCTION: {
                 auto func_type1 = static_cast<Ast_Function_Type*>(type_inst1);
@@ -391,7 +356,6 @@ bool ast_type_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_
                 auto ret_type1 = static_cast<Ast_Type_Instance*>(func_type1->ret_type);
                 auto ret_type2 = static_cast<Ast_Type_Instance*>(func_type2->ret_type);
                 return ast_type_are_equal(ret_type1, ret_type2);
-                break;
             }
         }
         return true;

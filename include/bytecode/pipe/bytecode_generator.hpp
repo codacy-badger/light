@@ -295,13 +295,20 @@ struct Bytecode_Generator : Pipe {
 			case AST_BINARY_ATTRIBUTE: {
 	        	this->handle_left(&binop->lhs);
 
+				if (binop->reg != binop->lhs->reg) {
+					INST(binop, Copy, binop->reg, binop->lhs->reg);
+				}
+
 	            // We follow the pointer until we hit a non-pointer type
-	            auto type_def = binop->lhs->inferred_type;
-	            while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
-	                auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
-	                type_def = static_cast<Ast_Type_Instance*>(ptr_type->base);
-	                INST(binop, Load, binop->reg, binop->lhs->reg, type_def->byte_size);
-	            }
+				if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
+					auto ptr_type = static_cast<Ast_Pointer_Type*>(binop->lhs->inferred_type);
+					auto base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+					while (base_type->typedef_type == AST_TYPEDEF_POINTER) {
+						INST(binop, Load, binop->reg, binop->reg, ptr_type->byte_size);
+						ptr_type = static_cast<Ast_Pointer_Type*>(base_type);
+						base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+					}
+				}
 
 	            auto ident = static_cast<Ast_Ident*>(binop->rhs);
 	            auto decl = ident->declaration;
@@ -469,16 +476,16 @@ struct Bytecode_Generator : Pipe {
 		}
 
 		auto ret_type = bytecode_get_type(call->inferred_type);
-		if (call->fn->exp_type == AST_EXPRESSION_FUNCTION) {
-			auto func = static_cast<Ast_Function*>(call->fn);
+		if (call->func->exp_type == AST_EXPRESSION_FUNCTION) {
+			auto func = static_cast<Ast_Function*>(call->func);
 			if (func->is_native()) {
 				INST(call, Call_Const, (uint64_t) func->foreign_function_pointer, call->reg, ret_type);
 			} else {
 				INST(call, Call_Const, (uint64_t) func, call->reg, ret_type);
 			}
 		} else {
-			Pipe::handle(&call->fn);
-		    INST(call, Call, call->reg, call->fn->reg, ret_type);
+			Pipe::handle(&call->func);
+		    INST(call, Call, call->reg, call->func->reg, ret_type);
 		}
 	}
 

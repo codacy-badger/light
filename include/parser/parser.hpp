@@ -19,7 +19,6 @@ struct Compiler;
 
 struct Parser : Pipe {
 	Lexer* lexer = NULL;
-	Types* types = new Types();
 
 	char current_path[MAX_PATH_LENGTH];
 	Ast_Block* current_block = NULL;

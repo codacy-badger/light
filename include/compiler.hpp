@@ -14,6 +14,8 @@ struct Compiler_Settings {
 	vector<const char*> input_files;
 	const char* output_file = NULL;
 
+	char initial_path[MAX_PATH_LENGTH];
+
 	bool is_verbose = false;
 	bool is_debug = false;
 };
@@ -23,6 +25,7 @@ struct Compiler {
 
 	Interpreter* interp = new Interpreter();
 	Parser* parser = new Parser();
+	Types* types = new Types();
 
 	Ast_Struct_Type* type_def_type;
 	Ast_Struct_Type* type_def_void;

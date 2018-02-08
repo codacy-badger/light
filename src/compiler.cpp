@@ -7,7 +7,6 @@
 #include "parser/pipe/constant_folding.hpp"
 #include "parser/pipe/type_checking.hpp"
 #include "parser/pipe/foreign_function.hpp"
-#include "parser/pipe/array_attributes.hpp"
 #include "parser/pipe/import_modules.hpp"
 
 #include "bytecode/pipe/register_allocator.hpp"
@@ -18,6 +17,8 @@
 #define COMPILER_DONE_FORMAT "\nCompleted in %8.6f s\n"
 
 Compiler::Compiler () {
+	os_get_current_directory(this->settings->initial_path);
+
 	this->type_def_type 	= new Ast_Struct_Type("type", 	0);
 	this->type_def_void 	= new Ast_Struct_Type("void", 	0);
 	this->type_def_bool 	= new Ast_Struct_Type("bool", 	1, true);
@@ -60,7 +61,6 @@ void Compiler::run () {
 	this->parser->append(new Type_Checking());
 	this->parser->append(new Import_Modules());
 	this->parser->append(new Constant_Folding());
-	this->parser->append(new Array_Attributes());
 
 	this->parser->append(new Register_Allocator());
 	this->parser->append(new Bytecode_Generator());

@@ -38,16 +38,12 @@ Ast_Function_Type* Types::get_function_type (Ast_Function* func) {
 }
 
 bool Types::is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-	if (type_from->is_signed && type_to->is_signed) {
-		return type_to->byte_size >= type_from->byte_size;
-	} else if (!type_from->is_signed && type_to->is_signed) {
-		return type_to->byte_size > type_from->byte_size;
-	} else if (type_from->is_signed && !type_to->is_signed) {
-		return false;
-	} else {
-		if (type_from->typedef_type == AST_TYPEDEF_POINTER
-			&& type_to == g_compiler->type_def_bool) return true;
-		// @Hack @Fixme this allows cast from u8 to *u8, which should not be allowed.
-		return type_to->byte_size >= type_from->byte_size;
-	}
+	if (type_from->is_primitive && type_to->is_primitive) {
+		if (type_to == g_compiler->type_def_bool) return true;
+		else if (type_from->is_signed == type_to->is_signed) {
+			return type_to->byte_size >= type_from->byte_size;
+		} else if (!type_from->is_signed && type_to->is_signed) {
+			return type_to->byte_size > type_from->byte_size;
+		} else return false;
+	} else return false;
 }

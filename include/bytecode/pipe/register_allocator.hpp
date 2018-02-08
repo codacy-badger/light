@@ -18,6 +18,8 @@ struct Register_State {
 struct Register_Allocator : Pipe {
     vector<Register_State*> decl_regs;
 
+	PIPE_NAME(Register_Allocator)
+
     void allocate_function (Ast_Function* func) {
         auto tmp = this->decl_regs;
         this->decl_regs.clear();
@@ -159,8 +161,8 @@ struct Register_Allocator : Pipe {
 
         call->reg = reserve_next_reg();
 
-        if (call->fn->exp_type != AST_EXPRESSION_FUNCTION) {
-            Pipe::handle(&call->fn);
+        if (call->func->exp_type != AST_EXPRESSION_FUNCTION) {
+            Pipe::handle(&call->func);
         }
 
 		for (auto &exp : call->arguments) {
