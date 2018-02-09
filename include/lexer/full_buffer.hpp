@@ -14,23 +14,27 @@ struct Full_Buffer : Lexer_Buffer {
 	size_t size = 0;
 
 	Full_Buffer (const char* filename, Lexer_Buffer* parent = NULL)
-		: Lexer_Buffer (filename, parent) {
-            fseek(this->file, 0L, SEEK_END);
-            this->size = ftell(this->file);
-            rewind(this->file);
+			: Lexer_Buffer (filename, parent) {
+        fseek(this->file, 0L, SEEK_END);
+        this->size = ftell(this->file);
+        rewind(this->file);
 
-            // @TODO @Incomplete check if the malloc call suceeded
-            this->buffer = (char*) malloc(this->size);
+        // @TODO @Incomplete check if the malloc call suceeded
+        this->buffer = (char*) malloc(this->size);
 
-            auto read_count = fread(this->buffer, 1, this->size, this->file);
-            while (!feof(this->file)) {
-                read_count += fread(this->buffer + read_count, 1, this->size, this->file);
-            }
-            this->size = read_count;
+        auto read_count = fread(this->buffer, 1, this->size, this->file);
+        while (!feof(this->file)) {
+            read_count += fread(this->buffer + read_count, 1, this->size, this->file);
+        }
+        this->size = read_count;
 
-            // @Speed do we really need to do this? Think!
-            this->buffer = (char*) realloc(this->buffer, this->size);
-		}
+        // @Speed do we really need to do this? Think!
+        this->buffer = (char*) realloc(this->buffer, this->size);
+	}
+
+	~Full_Buffer () {
+		free(this->buffer);
+	}
 
 	char next () {
 		char output = (char) this->buffer[this->index++];

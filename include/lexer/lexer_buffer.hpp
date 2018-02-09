@@ -21,6 +21,8 @@ struct Lexer_Buffer {
         this->file = file_ptr;
     }
 
+	virtual ~Lexer_Buffer () { /* empty */ };
+
 	virtual char next () = 0;
 	virtual bool has_next () = 0;
 	virtual char peek (size_t offset = 0) = 0;

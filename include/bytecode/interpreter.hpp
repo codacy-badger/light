@@ -18,10 +18,10 @@
 typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
 struct Interpreter {
+	Call_Record<Bytecode_Register>* call_record = new Call_Record<Bytecode_Register>();
 	Bytecode_Constants* constants = new Bytecode_Constants();
 	Bytecode_Globals* globals = new Bytecode_Globals();
-	Call_Record<Bytecode_Register>* call_record = NULL;
-	
+
 	Bytecode_Register registers[INTERP_REGISTER_COUNT];
 	uint8_t stack[INTERP_STACK_SIZE];
 	size_t instruction_index = 0;
@@ -40,4 +40,6 @@ struct Interpreter {
 
 	void run (Ast_Function* func, Call_Record<Bytecode_Register>* parameters = NULL);
 	void run (Instruction* inst);
+
+	void call (void* func_ptr, Bytecode_Type bytecode_type, uint8_t reg_result);
 };

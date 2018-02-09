@@ -26,4 +26,11 @@ struct Call_Record {
         result.bytecode_type = bytecode_type;
         memcpy(&result.value, value, sizeof(T));
     }
+
+    void reset () {
+        memset(this->parameters, 0, sizeof(this->parameters));
+        memset(&this->result, 0, sizeof(this->result));
+        this->calling_convention = 0;
+        this->param_count = 0;
+    }
 };
