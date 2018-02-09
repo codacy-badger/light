@@ -1,5 +1,8 @@
 @echo off
 
+if not exist build mkdir build
+if not exist bin mkdir bin
+
 pushd build
 set "SOURCES="
 
@@ -14,5 +17,4 @@ link /nologo /INCREMENTAL /ENTRY:mainCRTStartup /subsystem:console ^
     /OUT:"..\bin\light.exe" /DEBUG /NODEFAULTLIB:LIBCMT *.obj ^
     ..\dyncall\dyncall\libdyncall_s.lib user32.lib
 
-set "SOURCES="
 popd

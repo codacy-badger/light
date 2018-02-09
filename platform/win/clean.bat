@@ -1,7 +1,4 @@
 @echo off
 
-if exist build rmdir /s /q build
-if exist bin rmdir /s /q bin
-
-mkdir build
-mkdir bin
+if exist build del /F /S /Q build\*
+if exist bin del /F /S /Q bin\*
