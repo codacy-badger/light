@@ -16,6 +16,8 @@ using namespace std;
 
 bool ast_is_poly (Ast_Expression* exp);
 
+uint8_t ast_get_pointer_size ();
+
 struct Ast {
 	Location location;
 };
@@ -195,7 +197,7 @@ struct Ast_Pointer_Type : Ast_Type_Instance {
 
 	Ast_Pointer_Type(Ast_Expression* base = NULL) {
 		this->typedef_type = AST_TYPEDEF_POINTER;
-		this->byte_size = AST_POINTER_SIZE;
+		this->byte_size = ast_get_pointer_size();
 		this->is_primitive = true;
 		this->base = base;
 	}

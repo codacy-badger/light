@@ -11,7 +11,7 @@
 
 #include "dyncall/dyncall.h"
 
-#define INTERP_REGISTER_SIZE  sizeof(size_t)
+#define INTERP_REGISTER_SIZE  8
 #define INTERP_REGISTER_COUNT 16
 #define INTERP_STACK_SIZE 	  1073741824 // 1 MB
 

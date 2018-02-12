@@ -357,9 +357,13 @@ bool ast_type_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_
                 auto ret_type2 = static_cast<Ast_Type_Instance*>(func_type2->ret_type);
                 return ast_type_are_equal(ret_type1, ret_type2);
             }
+            default: abort();
         }
-        return true;
     }
+}
+
+uint8_t ast_get_pointer_size () {
+    return g_compiler->settings->register_size;
 }
 
 Ast_Literal* ast_make_literal (const char* value) {

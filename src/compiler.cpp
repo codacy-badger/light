@@ -32,8 +32,6 @@ Compiler::Compiler () {
 	this->type_def_u64 		= new Ast_Struct_Type("u64", 	8, true);
 	this->type_def_f32 		= new Ast_Struct_Type("f32", 	4, true);
 	this->type_def_f64 		= new Ast_Struct_Type("f64", 	8, true);
-
-	this->type_def_u8_ptr 	= new Ast_Pointer_Type(this->type_def_u8);
 }
 
 void print_compiler_metrics (Parser* parser, double total_time) {

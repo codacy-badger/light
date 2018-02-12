@@ -418,7 +418,7 @@ struct Type_Checking : Pipe {
 	            break;
 	        }
 	        case AST_LITERAL_STRING: {
-				lit->inferred_type = g_compiler->type_def_u8_ptr;
+				lit->inferred_type = g_compiler->types->get_pointer_type(g_compiler->type_def_u8);
 				Pipe::handle(&lit->inferred_type);
 	            break;
 	        }

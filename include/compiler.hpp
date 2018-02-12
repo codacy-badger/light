@@ -18,6 +18,8 @@ struct Compiler_Settings {
 
 	bool is_verbose = false;
 	bool is_debug = false;
+
+	uint8_t register_size = 8;
 };
 
 struct Compiler {
@@ -40,8 +42,6 @@ struct Compiler {
 	Ast_Struct_Type* type_def_u64;
 	Ast_Struct_Type* type_def_f32;
 	Ast_Struct_Type* type_def_f64;
-
-	Ast_Pointer_Type* type_def_u8_ptr;
 
 	Compiler ();
 
