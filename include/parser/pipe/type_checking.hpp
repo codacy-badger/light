@@ -13,7 +13,7 @@
 #define WARN(node, ...) report_warning(&node->location, __VA_ARGS__)
 
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-	if (ast_type_are_equal(type_from, type_to)) return true;
+	if (ast_types_are_equal(type_from, type_to)) return true;
 	else if (g_compiler->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
 		cast->location = (*exp_ptr)->location;
@@ -136,9 +136,8 @@ struct Type_Checking : Pipe {
 		Pipe::handle(type_inst_ptr);
 
 		if (type_inst && type_inst->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-			auto tmp = static_cast<Ast_Type_Instance*>(type_inst);
-			ast_compute_type_name_if_needed(tmp);
-		}
+			g_compiler->types->add_type_if_new(type_inst);
+		} else abort();
 	}
 
 	void handle (Ast_Function_Type** func_type_ptr) {
@@ -212,7 +211,7 @@ struct Type_Checking : Pipe {
 				Pipe::handle(&arg_decl);
 			}
 			Pipe::handle(&func->ret_type);
-		    func->inferred_type = g_compiler->types->get_function_type(func);
+		    func->inferred_type = g_compiler->types->build_function_type(func);
 			Pipe::handle(&func->inferred_type);
 			if (func->scope) Pipe::handle(&func->scope);
 		}
@@ -422,7 +421,7 @@ struct Type_Checking : Pipe {
 				Pipe::handle(&lit->inferred_type);
 	            break;
 	        }
-	        default: break;
+	        default: abort();
 	    }
 	}
 };

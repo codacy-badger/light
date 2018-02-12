@@ -14,8 +14,6 @@ struct Instruction;
 
 using namespace std;
 
-bool ast_is_poly (Ast_Expression* exp);
-
 uint8_t ast_get_pointer_size ();
 
 struct Ast {
@@ -170,10 +168,13 @@ enum Ast_Type_Instance_Type {
 
 struct Ast_Type_Instance : Ast_Expression {
 	Ast_Type_Instance_Type typedef_type = AST_TYPEDEF_UNDEFINED;
+	char* name = NULL;
+
 	bool is_signed = false;
 	size_t byte_size = 0;
 	bool is_primitive = false;
-	char* name = NULL;
+
+	int64_t guid = -1;
 
 	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
 };
@@ -360,7 +361,8 @@ struct Ast_Ident : Ast_Expression {
 };
 
 void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);
-bool ast_type_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2);
+bool ast_function_types_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2);
+bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2);
 
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);
