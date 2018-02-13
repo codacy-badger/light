@@ -437,7 +437,7 @@ struct Bytecode_Generator : Pipe {
 				INST(ident, Stack_Offset, ident->reg, ident->declaration->bytecode_data_offset);
 			}
 
-			if (!this->is_left_value && ident->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+			if (!this->is_left_value && ident->inferred_type->can_be_in_register(INTERP_REGISTER_SIZE)) {
 				INST(ident, Load, ident->reg, ident->reg, ident->inferred_type->byte_size);
 			}
 		}

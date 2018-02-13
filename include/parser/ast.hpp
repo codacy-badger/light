@@ -177,6 +177,8 @@ struct Ast_Type_Instance : Ast_Expression {
 	int64_t guid = -1;
 
 	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
+
+	bool can_be_in_register (uint8_t register_size) { return this->is_primitive && (this->byte_size <= register_size); }
 };
 
 struct Ast_Struct_Type : Ast_Type_Instance {

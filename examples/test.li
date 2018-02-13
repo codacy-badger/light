@@ -3,9 +3,6 @@ import "sys.li"
 
 #run
 main :: fn {
-	a : u64 = 1;
-	b := -a;
-
 	test_factorial();
 	test_cast();
 	test_pointers();
@@ -112,8 +109,8 @@ test_struct :: fn {
 	vecs2 : [2]Vec3;
 
 	Vec3 :: struct {
-		x: u64;
-		y: u64;
+		x: u8;
+		y: u8;
 	}
 
 	vecs[0].x = 12;
@@ -206,7 +203,7 @@ test_big_struct :: fn {
 }
 
 test_static_array :: fn {
-	ARRAY_SIZE :: 16;
+	ARRAY_SIZE :: 6;
 	numbers: [ARRAY_SIZE] u8;
 
 	numbers[0] = 200;

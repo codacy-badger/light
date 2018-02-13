@@ -13,7 +13,7 @@
 
 #define INTERP_REGISTER_SIZE  8
 #define INTERP_REGISTER_COUNT 16
-#define INTERP_STACK_SIZE 	  1073741824 // 1 MB
+#define INTERP_STACK_SIZE 	  (1024 * 1024 * 1024) // 1 MB
 
 typedef uint8_t Bytecode_Register[INTERP_REGISTER_SIZE];
 
