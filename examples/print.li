@@ -88,7 +88,7 @@ string_length :: fn (str: *u8) -> u32 {
 	if !str return 0;
 
 	result : u32 = 0;
-	char : u8 = &str;
+	char := &str;
 	while (char != 0) {
 		result = result + 1;
 		char = &(str + result);
