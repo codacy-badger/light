@@ -9,15 +9,6 @@
 
 using namespace std;
 
-void try_replace_ident_by_const (Ast_Ident** ident_ptr) {
-    auto decl = (*ident_ptr)->declaration;
-    if (decl && decl->is_constant()) {
-        auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr);
-        delete *_addr;
-        (*_addr) = decl->expression;
-    }
-}
-
 void try_resolve_idents (vector<Ast_Ident**>* idents, Ast_Declaration* decl) {
     auto it = idents->begin();
     while (it != idents->end()) {
@@ -30,7 +21,6 @@ void try_resolve_idents (vector<Ast_Ident**>* idents, Ast_Declaration* decl) {
             if (strcmp(ident->name, decl->name) == 0
                     && ident->scope->is_ancestor(decl->scope)) {
                 ident->declaration = decl;
-                try_replace_ident_by_const(ident_ptr);
                 it = idents->erase(it);
             } else it++;
         } else it = idents->erase(it);
@@ -144,12 +134,12 @@ struct Symbol_Resolution : Pipe {
 			if (ident->declaration) {
 				if (this->is_unresolved(ident->name)) {
 					this->collected_ident_ptrs.push_back(ident_ptr);
-				} else try_replace_ident_by_const(ident_ptr);
+				}
 			} else this->collected_ident_ptrs.push_back(ident_ptr);
 		}
 	}
 
-    // @Incomplete @Fixme we don't want to keep recursing on inner functions,
+    // We don't want to keep recursing on inner functions,
     // since that would make more than 1 statement depend on the same identifiers
     // Good: [func -> inner_func] [inner_func -> some_ident]
     // Bad: [func -> (inner_func, some_ident)] [inner_func -> some_ident]

@@ -25,6 +25,13 @@ bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, A
     } else return false;
 }
 
+void replace_ident_by_const (Ast_Ident** ident_ptr) {
+	auto decl = (*ident_ptr)->declaration;
+    auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr);
+    delete *_addr;
+    (*_addr) = decl->expression;
+}
+
 struct Type_Checking : Pipe {
 	PIPE_NAME(Type_Checking)
 
@@ -42,22 +49,27 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);
 
-		if (decl->type) Pipe::handle(&decl->type);
-
 		if (decl->expression) {
 			Pipe::handle(&decl->expression);
+
 			if (!decl->expression->inferred_type) {
 				ERROR(decl->expression, "Expression type could not be inferred");
 			}
 
-			if (!decl->type) {
-				decl->type = decl->expression->inferred_type;
-			}
-		} else {
-			if (!decl->type) {
-				ERROR(decl, "Cannot infer type without an expression");
-			}
-		}
+			if (decl->type) {
+				auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
+				if (!ast_types_are_equal(decl_type_inst, decl->expression->inferred_type)) {
+					if (!cast_if_possible(&decl->expression, decl->expression->inferred_type, decl_type_inst)) {
+						ERROR(decl, "Type mismatch on declaration: value is '%s' but declaration wants '%s'",
+							decl->expression->inferred_type->name, decl_type_inst->name);
+					}
+				}
+			} else decl->type = decl->expression->inferred_type;
+
+			Pipe::handle(&decl->type);
+		} else if (decl->type) {
+			Pipe::handle(&decl->type);
+		} else ERROR(decl, "Cannot infer type without an expression");
 
 	    if (!decl->type) {
 	        ERROR(decl, "Type could not be inferred");
@@ -179,6 +191,7 @@ struct Type_Checking : Pipe {
 
 	    arr->inferred_type = g_compiler->type_def_type;
 		Pipe::handle(&arr->base);
+		Pipe::handle(&arr->length);
 
 		if (arr->length->exp_type == AST_EXPRESSION_LITERAL) {
 			auto lit = static_cast<Ast_Literal*>(arr->length);
@@ -231,9 +244,10 @@ struct Type_Checking : Pipe {
 
 		if (call->arguments.size() == func_type->arg_types.size()) {
 			for (int i = 0; i < call->arguments.size(); i++) {
+				Pipe::handle(&call->arguments[i]);
+
 				auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_types[i]);
 				auto param_exp = call->arguments[i];
-				Pipe::handle(&call->arguments[i]);
 
 				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
 					ERROR(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
@@ -384,7 +398,12 @@ struct Type_Checking : Pipe {
 		auto ident = (*ident_ptr);
 
 		if (ident->declaration) {
-			ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
+			if (ident->declaration->is_constant()) {
+	            replace_ident_by_const(ident_ptr);
+				Pipe::handle(&ident->declaration);
+	        } else {
+				ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
+			}
 		} else ERROR(ident, "Indetifier '%s' has no declaration", ident->name);
 	}
 

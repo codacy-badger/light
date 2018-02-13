@@ -183,10 +183,11 @@ struct Ast_Struct_Type : Ast_Type_Instance {
 	vector<Ast_Declaration*> attributes;
 	bool is_slice = false;
 
-	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0, bool is_primitive = false) {
+	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0, bool is_primitive = false, bool is_signed = false) {
 		this->typedef_type = AST_TYPEDEF_STRUCT;
 		this->is_primitive = is_primitive;
 		this->byte_size = byte_size;
+		this->is_signed = is_signed;
 		this->name = name;
 	}
 
