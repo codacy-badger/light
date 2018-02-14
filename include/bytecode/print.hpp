@@ -36,7 +36,7 @@ void bytecode_print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_CAST: {
 			auto cast = static_cast<Inst_Cast*>(inst);
-			printf("CAST %d, %d, %d", cast->reg, cast->type_from, cast->type_to);
+			printf("CAST %d, %d, %d, %d", cast->reg_to, cast->reg_from, cast->type_from, cast->type_to);
 			break;
 		}
 		case BYTECODE_SET: {

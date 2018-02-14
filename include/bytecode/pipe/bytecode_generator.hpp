@@ -212,7 +212,7 @@ struct Bytecode_Generator : Pipe {
 
 		auto type_from = bytecode_get_type(cast->value->inferred_type);
 		auto type_to = bytecode_get_type(cast->inferred_type);
-		INST(cast, Cast, cast->reg, type_from, type_to);
+		INST(cast, Cast, cast->reg, cast->value->reg, type_from, type_to);
 	}
 
 	uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {

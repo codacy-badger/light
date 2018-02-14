@@ -153,7 +153,8 @@ struct Register_Allocator : Pipe {
 		auto cast = (*cast_ptr);
 
 		Pipe::handle(&cast->value);
-        cast->reg = cast->value->reg;
+
+        cast->reg = reserve_reg(cast->value->reg);
 	}
 
     void handle (Ast_Function_Call** call_ptr) {

@@ -126,13 +126,23 @@ struct Inst_Copy_Memory : Instruction {
 };
 
 struct Inst_Cast : Instruction {
-	uint8_t reg = 0;
+	uint8_t reg_to = 0;
+	uint8_t reg_from = 0;
 	Bytecode_Type type_from = BYTECODE_TYPE_UNINITIALIZED;
 	Bytecode_Type type_to = BYTECODE_TYPE_UNINITIALIZED;
 
+	Inst_Cast (uint8_t reg_to, uint8_t reg_from, Bytecode_Type type_from, Bytecode_Type type_to) {
+		this->bytecode = BYTECODE_CAST;
+		this->reg_to = reg_to;
+		this->reg_from = reg_from;
+		this->type_from = type_from;
+		this->type_to = type_to;
+	}
+
 	Inst_Cast (uint8_t reg, Bytecode_Type type_from, Bytecode_Type type_to) {
 		this->bytecode = BYTECODE_CAST;
-		this->reg = reg;
+		this->reg_to = reg;
+		this->reg_from = reg;
 		this->type_from = type_from;
 		this->type_to = type_to;
 	}

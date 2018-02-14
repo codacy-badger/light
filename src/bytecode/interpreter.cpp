@@ -70,7 +70,8 @@ void Interpreter::run (Instruction* inst) {
 		case BYTECODE_CAST: {
 			auto cast = static_cast<Inst_Cast*>(inst);
 
-			bytecode_cast(this->registers[cast->reg], cast->type_from, cast->type_to);
+			bytecode_cast(this->registers[cast->reg_to], this->registers[cast->reg_from],
+				cast->type_from, cast->type_to);
 			return;
 		}
 		case BYTECODE_SET: {
