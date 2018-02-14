@@ -6,7 +6,7 @@
 
 size_t run_function (Ast_Function* func, Ast_Note* run_note) {
 	if (func->is_native()) {
-		report_error_stop(&run_note->location, "#run can't go on foreign functions (for now)");
+		report_error_and_stop(&run_note->location, "#run can't go on foreign functions (for now)");
 	} else {
 		for (size_t i = 0; i < run_note->arguments.size(); i++) {
 			auto exp = run_note->arguments[i];
@@ -15,7 +15,7 @@ size_t run_function (Ast_Function* func, Ast_Note* run_note) {
 				auto reg = g_compiler->interp->registers[i];
 				memcpy(reg, &lit->int_value, INTERP_REGISTER_SIZE);
 			} else {
-				report_error_stop(&run_note->location, "#run can only have literal arguments!");
+				report_error_and_stop(&run_note->location, "#run can only have literal arguments!");
 			}
 		}
 		g_compiler->interp->run(func);

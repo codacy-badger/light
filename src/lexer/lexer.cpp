@@ -6,9 +6,6 @@
 #include "lexer/ring_buffer.hpp"
 #include "lexer/full_buffer.hpp"
 
-#define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
-#define DIGIT(c) (c >= '0' && c <= '9')
-#define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 #define LEXER_IGNORED " \n\t"
 
 #define STRING_TOKEN(literal, length, type)										\
@@ -18,9 +15,6 @@
 	{ handle_token(type); return true; }
 
 #define STRING_EQUAL(str1, str2) (strcmp(str1, str2) == 0)
-
-#define CONSUME(check, c) while (check(c)) { assert(count < LEXER_BUFFER_SIZE);	\
-	_buffer[count++] = c; this->buffer->skip(); c = this->buffer->peek(); }
 
 const char* token_get_text (Token_Type type);
 
@@ -99,7 +93,7 @@ bool Lexer::parse_next () {
 		return true;
 	} else if (next_is_string() || next_is_number()) return true;
 
-	report_error_stop(&this->buffer->location, "Unrecognized token: '%c'",
+	report_error_and_stop(&this->buffer->location, "Unrecognized token: '%c'",
 		this->buffer->peek());
 	return false;
 }
@@ -138,107 +132,36 @@ bool Lexer::optional_skip (Token_Type type) {
 
 void Lexer::report_unexpected (Token_Type expected) {
 	if (expected != TOKEN_EOF) {
-		report_error_stop(&this->buffer->location, "Parser: Expected '%s', but got '%s'",
+		report_error_and_stop(&this->buffer->location, "Parser: Expected '%s', but got '%s'",
 			token_get_text(expected), token_get_text(this->next_type));
 	} else {
-		report_error_stop(&this->buffer->location, "Parser: Unexpected token '%s'",
+		report_error_and_stop(&this->buffer->location, "Parser: Unexpected token '%s'",
 			token_get_text(this->next_type));
 	}
 }
 
-#define LEXER_BUFFER_SIZE 128
-char _buffer[LEXER_BUFFER_SIZE];
-
 bool Lexer::next_is_id () {
-	char c = this->buffer->peek();
-    if (ALPHA(c)) {
-		size_t count = 0;
-		CONSUME(ALPHANUM, c)
-		_buffer[count] = 0;
-
+	this->next_text = this->buffer->get_next_id();
+	if (this->next_text) {
 		this->next_type = TOKEN_ID;
-		this->next_text = _strdup(_buffer);
-        return true;
-    }
-    return false;
+		return true;
+	} else return false;
 }
 
 bool Lexer::next_is_string () {
-	char c = this->buffer->peek();
-    if (c == '"') {
-		this->buffer->skip();
-
-		size_t count = 0;
-		c = this->buffer->next();
-		while (c != '"') {
-			assert(count < LEXER_BUFFER_SIZE);
-			if (c == '\\') {
-				c = this->buffer->next();
-				switch (c) {
-					case 'n': _buffer[count++] = '\n'; break;
-					case 't': _buffer[count++] = '\t'; break;
-					case '0': _buffer[count++] = '\0'; break;
-					case '"': _buffer[count++] = '\"'; break;
-					default:  _buffer[count++] = c;    break;
-				}
-			} else _buffer[count++] = c;
-			c = this->buffer->next();
-		}
-		_buffer[count] = 0;
-
-        this->next_type = TOKEN_STRING;
-		this->next_text = _strdup(_buffer);
-        return true;
-    } else return false;
+	this->next_text = this->buffer->get_next_string();
+	if (this->next_text) {
+		this->next_type = TOKEN_STRING;
+		return true;
+	} else return false;
 }
 
 bool Lexer::next_is_number () {
-	size_t count = 0;
-	char c = this->buffer->peek();
-	if (c == '0' && this->buffer->peek(1) == 'x') {
-		_buffer[count++] = '0';
-		_buffer[count++] = 'x';
-		this->buffer->skip(2);
-		c = this->buffer->peek();
-		CONSUME(ALPHANUM, c)
-		_buffer[count] = 0;
-
+	this->next_text = this->buffer->get_next_number();
+	if (this->next_text) {
 		this->next_type = TOKEN_NUMBER;
-		this->next_text = _strdup(_buffer);
 		return true;
-	} else if (c == '0' && this->buffer->peek(1) == 'b') {
-		_buffer[count++] = '0';
-		_buffer[count++] = 'b';
-		this->buffer->skip(2);
-		c = this->buffer->peek();
-		CONSUME(DIGIT, c)
-		_buffer[count] = 0;
-
-		this->next_type = TOKEN_NUMBER;
-		this->next_text = _strdup(_buffer);
-		return true;
-	} else {
-	    if (c == '+' || c == '-') {
-	        _buffer[count++] = c;
-			this->buffer->skip();
-	        c = this->buffer->peek();
-	    }
-	    if (DIGIT(c) || c == '.') {
-			CONSUME(DIGIT, c)
-	        if (c == '.') {
-	            _buffer[count++] = c;
-	            this->buffer->skip();
-	            c = this->buffer->peek();
-				CONSUME(DIGIT, c)
-	        }
-			_buffer[count] = 0;
-
-	        this->next_type = TOKEN_NUMBER;
-			this->next_text = _strdup(_buffer);
-	        return true;
-	    }
-	}
-    return false;
+	} else return false;
 }
 
 void Lexer::handle_token (Token_Type type, const char* text) {

@@ -1,10 +1,21 @@
 #pragma once
 
+#include <assert.h>
+
+#include "lexer/lexer.hpp"
 #include "report.hpp"
+
+#define LEXER_BUFFER_SIZE 256
+
+#define CONSUME(check, c) while (check(c)) { this->_buffer[count++] = c;				\
+	this->skip(); c = this->peek(); }							\
+	assert(count < LEXER_BUFFER_SIZE);
 
 struct Lexer_Buffer {
 	FILE* file = NULL;
 	Location location;
+
+	char _buffer[LEXER_BUFFER_SIZE];
 
 	Lexer_Buffer (const char* filename, Lexer_Buffer* parent = NULL) {
         auto loc = parent ? &parent->location : NULL;
@@ -12,9 +23,8 @@ struct Lexer_Buffer {
         FILE* file_ptr = NULL;
     	auto err = fopen_s(&file_ptr, filename, "r");
     	if (err) {
-    		char buf[256];
-    		strerror_s(buf, sizeof buf, err);
-    		report_error_stop(loc, "Cannot open file '%s': %s", filename, buf);
+    		strerror_s(this->_buffer, sizeof this->_buffer, err);
+    		report_error_and_stop(loc, "Cannot open file '%s': %s", filename, this->_buffer);
     	}
 
         this->location.filename = filename;
@@ -26,6 +36,93 @@ struct Lexer_Buffer {
 	virtual char next () = 0;
 	virtual bool has_next () = 0;
 	virtual char peek (size_t offset = 0) = 0;
+
+	virtual char* get_next_id () {
+		char c = this->peek();
+	    if (ALPHA(c)) {
+			size_t count = 0;
+
+			while (ALPHANUM(c)) {
+				this->_buffer[count++] = c;
+				this->skip();
+				c = this->peek();
+			}
+			assert(count < LEXER_BUFFER_SIZE);
+
+			this->_buffer[count] = 0;
+			return _strdup(this->_buffer);
+	    }
+	    return NULL;
+	}
+
+	virtual char* get_next_string () {
+		char c = this->peek();
+	    if (c == '"') {
+			this->skip();
+			size_t count = 0;
+
+			c = this->next();
+			while (c != '"') {
+				assert(count < LEXER_BUFFER_SIZE);
+				if (c == '\\') {
+					c = this->next();
+					switch (c) {
+						case 'n': this->_buffer[count++] = '\n'; break;
+						case 't': this->_buffer[count++] = '\t'; break;
+						default:  this->_buffer[count++] = c;    break;
+					}
+				} else this->_buffer[count++] = c;
+				c = this->next();
+			}
+			this->_buffer[count] = 0;
+
+			return _strdup(this->_buffer);
+	    } else return NULL;
+	}
+
+	virtual char* get_next_number () {
+		size_t count = 0;
+		char c = this->peek();
+		if (c == '0' && this->peek(1) == 'x') {
+			this->_buffer[count++] = '0';
+			this->_buffer[count++] = 'x';
+			this->skip(2);
+			c = this->peek();
+			CONSUME(ALPHANUM, c)
+			this->_buffer[count] = 0;
+
+			return _strdup(this->_buffer);
+		} else if (c == '0' && this->peek(1) == 'b') {
+			this->_buffer[count++] = '0';
+			this->_buffer[count++] = 'b';
+			this->skip(2);
+			c = this->peek();
+			CONSUME(DIGIT, c)
+			this->_buffer[count] = 0;
+
+			return _strdup(this->_buffer);
+		} else {
+		    if (c == '+' || c == '-') {
+		        this->_buffer[count++] = c;
+				this->skip();
+		        c = this->peek();
+		    }
+		    if (DIGIT(c) || c == '.') {
+				CONSUME(DIGIT, c)
+		        if (c == '.') {
+		            this->_buffer[count++] = c;
+		            this->skip();
+		            c = this->peek();
+					CONSUME(DIGIT, c)
+		        }
+				this->_buffer[count] = 0;
+
+				return _strdup(this->_buffer);
+		    }
+		}
+	    return NULL;
+	}
+
 
     bool is_next (char c) {
     	return this->peek(0) == c;

@@ -55,7 +55,7 @@ void report_internal (Location* location, char* format, ...) {
     va_end(argptr);
 }
 
-void report_error_stop (Location* location, char* format, ...) {
+void report_error_and_stop (Location* location, char* format, ...) {
 	va_list argptr;
     va_start(argptr, format);
 	_report("ERROR", stderr, location, format, argptr);

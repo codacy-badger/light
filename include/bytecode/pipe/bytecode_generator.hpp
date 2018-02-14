@@ -7,7 +7,7 @@ struct Inst_Jump;
 
 #define INST(node, name, ...) this->add_instruction(node, new Inst_##name(__VA_ARGS__));
 
-#define ERROR(node, ...) report_error_stop(&node->location, __VA_ARGS__)
+#define ERROR(node, ...) report_error_and_stop(&node->location, __VA_ARGS__)
 
 #define PUSH_L(var_name, value) auto var_name = this->is_left_value; this->is_left_value = value
 #define POP_L(var_name) this->is_left_value = var_name

@@ -111,7 +111,7 @@ Ast_Note* Parser::note () {
 		note->is_global = this->lexer->optional_skip(TOKEN_EXCLAMATION);
 		if (this->lexer->is_next_type(TOKEN_ID)) {
 			note->name = this->lexer->text();
-		} else report_error_stop(&note->location, "All notes must have a name");
+		} else report_error_and_stop(&note->location, "All notes must have a name");
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			this->comma_separated_arguments(&note->arguments);
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
@@ -221,7 +221,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	auto other = this->current_block->find_non_const_declaration(decl->name);
 	if (other && decl->scope == other->scope) {
 		report_error(&decl->location, "re-declaration of variable '%s'", decl->name);
-		report_error_stop(&other->location, "previous declaration here");
+		report_error_and_stop(&other->location, "previous declaration here");
 	}
 
 	if (this->lexer->check_skip(TOKEN_COLON)) {
@@ -314,7 +314,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 					decl->_struct = _struct;
 					_struct->attributes.push_back(decl);
 				} else {
-					report_error_stop(&stm->location, "Only declarations can go inside a struct");
+					report_error_and_stop(&stm->location, "Only declarations can go inside a struct");
 				}
 			}
 			delete _block;

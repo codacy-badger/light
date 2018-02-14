@@ -17,4 +17,4 @@ void report_info 		(Location* location, char* format, ...);
 void report_warning 	(Location* location, char* format, ...);
 void report_error 		(Location* location, char* format, ...);
 void report_internal	(Location* location, char* format, ...);
-void report_error_stop 	(Location* location, char* format, ...);
+void report_error_and_stop 	(Location* location, char* format, ...);

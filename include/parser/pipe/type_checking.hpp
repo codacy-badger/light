@@ -9,7 +9,7 @@
 
 #define WARN_MAX_DEREF_COUNT 3
 
-#define ERROR(node, ...) report_error_stop(&node->location, __VA_ARGS__)
+#define ERROR(node, ...) report_error_and_stop(&node->location, __VA_ARGS__)
 #define WARN(node, ...) report_warning(&node->location, __VA_ARGS__)
 
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
