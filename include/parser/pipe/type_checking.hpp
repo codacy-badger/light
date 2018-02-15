@@ -158,8 +158,8 @@ struct Type_Checking : Pipe {
 	    func_type->inferred_type = g_compiler->type_def_type;
 
 		Pipe::handle(&func_type->ret_type);
-		for (int i = 0; i < func_type->arg_types.size(); i++) {
-			Pipe::handle(&func_type->arg_types[i]);
+		for (int i = 0; i < func_type->arg_decls.size(); i++) {
+			Pipe::handle(&func_type->arg_decls[i]);
 		}
 	}
 
@@ -242,11 +242,11 @@ struct Type_Checking : Pipe {
 		auto ret_ty = static_cast<Ast_Type_Instance*>(func_type->ret_type);
 		call->inferred_type = ret_ty;
 
-		if (call->arguments.size() == func_type->arg_types.size()) {
+		if (call->arguments.size() == func_type->arg_decls.size()) {
 			for (int i = 0; i < call->arguments.size(); i++) {
 				Pipe::handle(&call->arguments[i]);
 
-				auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_types[i]);
+				auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
 				auto param_exp = call->arguments[i];
 
 				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
@@ -256,7 +256,7 @@ struct Type_Checking : Pipe {
 			}
 		} else {
 			ERROR(call, "Wrong number of arguments, function has %d, but call has %d",
-				func_type->arg_types.size(), call->arguments.size());
+				func_type->arg_decls.size(), call->arguments.size());
 		}
 	}
 

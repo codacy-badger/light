@@ -131,9 +131,7 @@ Ast_Slice_Type* Types::get_slice_type (Ast_Expression* base_type) {
 Ast_Function_Type* Types::build_function_type (Ast_Function* func) {
     auto func_type = new Ast_Function_Type();
     func_type->location = func->location;
-    for (auto arg_decl : func->arg_decls) {
-        func_type->arg_types.push_back(arg_decl->type);
-    }
+	func_type->arg_decls = func->arg_decls;
     func_type->ret_type = func->ret_type;
     return func_type;
 }

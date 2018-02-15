@@ -140,11 +140,11 @@ void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool name_only) {
 
 void ASTPrinter::print (Ast_Function_Type* type, int tabs) {
 	printf("fn ( ");
-	if (type->arg_types.size() > 0) {
-		print(type->arg_types[0], tabs);
-		for (size_t i = 1; i < type->arg_types.size(); i++) {
+	if (type->arg_decls.size() > 0) {
+		print(type->arg_decls[0], tabs);
+		for (size_t i = 1; i < type->arg_decls.size(); i++) {
 			printf(", ");
-			print(type->arg_types[i], tabs);
+			print(type->arg_decls[i], tabs);
 		}
 
 	}

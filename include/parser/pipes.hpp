@@ -236,7 +236,7 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Function_Type** func_type) {
-		for (auto &arg_type : (*func_type)->arg_types) {
+		for (auto &arg_type : (*func_type)->arg_decls) {
 			this->handle(&arg_type);
 		}
 		this->handle(&(*func_type)->ret_type);

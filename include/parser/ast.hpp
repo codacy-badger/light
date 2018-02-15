@@ -225,7 +225,7 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 };
 
 struct Ast_Function_Type : Ast_Type_Instance {
-	vector<Ast_Expression*> arg_types;
+	vector<Ast_Declaration*> arg_decls;
 	Ast_Expression* ret_type = NULL;
 
 	Ast_Function_Type() {

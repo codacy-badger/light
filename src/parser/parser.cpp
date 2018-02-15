@@ -421,7 +421,7 @@ Ast_Function_Type* Parser::function_type () {
 	if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 		Ast_Declaration* decl = this->declaration_or_type();
 		while (decl != NULL) {
-			fn_type->arg_types.push_back(decl->type);
+			fn_type->arg_decls.push_back(decl);
 
 			if (!this->lexer->optional_skip(TOKEN_COMMA)) break;
 			decl = this->declaration_or_type();

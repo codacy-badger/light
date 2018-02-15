@@ -274,15 +274,15 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 	        case AST_TYPEDEF_FUNCTION: {
 	            auto _func = static_cast<Ast_Function_Type*>(type_inst);
 	            if (_func->name == NULL) {
-	        		auto arg_types = _func->arg_types;
+	        		auto arg_decls = _func->arg_decls;
 
 	        		size_t name_size = strlen("fn (");
-	        		if (arg_types.size() > 0) {
-						auto param_name = _get_type_name(arg_types[0]);
+	        		if (arg_decls.size() > 0) {
+						auto param_name = _get_type_name(arg_decls[0]->type);
 	        			name_size += strlen(param_name);
-	        			for (int i = 1; i < arg_types.size(); i++) {
+	        			for (int i = 1; i < arg_decls.size(); i++) {
 	        				name_size += strlen(", ");
-	        				param_name = _get_type_name(arg_types[i]);
+	        				param_name = _get_type_name(arg_decls[i]->type);
 	        				name_size += strlen(param_name);
 	        			}
 	        		}
@@ -296,15 +296,15 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 	        		offset += 4;
 
 					size_t par_type_name_length;
-	        		if (arg_types.size() > 0) {
-						auto param_name = _get_type_name(arg_types[0]);
+	        		if (arg_decls.size() > 0) {
+						auto param_name = _get_type_name(arg_decls[0]->type);
 						par_type_name_length = strlen(param_name);
 	        			memcpy(_func->name + offset, param_name, par_type_name_length);
 	        			offset += par_type_name_length;
-	        			for (int i = 1; i < arg_types.size(); i++) {
+	        			for (int i = 1; i < arg_decls.size(); i++) {
 	        				memcpy(_func->name + offset, ", ", 2);
 	        				offset += 2;
-	        				param_name = _get_type_name(arg_types[i]);
+	        				param_name = _get_type_name(arg_decls[i]->type);
 							par_type_name_length = strlen(param_name);
 	        				memcpy(_func->name + offset, param_name, par_type_name_length);
 	        				offset += par_type_name_length;
@@ -326,14 +326,14 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 }
 
 bool ast_function_types_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
-    if (func_type1->arg_types.size() != func_type2->arg_types.size()) return false;
+    if (func_type1->arg_decls.size() != func_type2->arg_decls.size()) return false;
 
-    for (size_t i = 0; i < func_type1->arg_types.size(); i++) {
-        auto arg_type1 = static_cast<Ast_Type_Instance*>(func_type1->arg_types[i]);
-        auto arg_type2 = static_cast<Ast_Type_Instance*>(func_type2->arg_types[i]);
+    for (size_t i = 0; i < func_type1->arg_decls.size(); i++) {
+        auto arg_type1 = static_cast<Ast_Type_Instance*>(func_type1->arg_decls[i]->type);
+        auto arg_type2 = static_cast<Ast_Type_Instance*>(func_type2->arg_decls[i]->type);
         if (!ast_types_are_equal(arg_type1, arg_type2)) return false;
     }
-    
+
     auto ret_type1 = static_cast<Ast_Type_Instance*>(func_type1->ret_type);
     auto ret_type2 = static_cast<Ast_Type_Instance*>(func_type2->ret_type);
     return ast_types_are_equal(ret_type1, ret_type2);
