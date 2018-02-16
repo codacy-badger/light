@@ -28,7 +28,8 @@ bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, A
 void replace_ident_by_const (Ast_Ident** ident_ptr) {
 	auto decl = (*ident_ptr)->declaration;
     auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr);
-    delete *_addr;
+	// We should send this Ident to the parser factory so it can be re-used.
+    //delete *ident_ptr;
     (*_addr) = decl->expression;
 }
 

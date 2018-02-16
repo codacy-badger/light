@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 
+#include "parser/ast_factory.hpp"
 #include "lexer/lexer.hpp"
 #include "parser/pipes.hpp"
 #include "parser/ast.hpp"
@@ -15,9 +16,8 @@
 
 using namespace std;
 
-struct Compiler;
-
 struct Parser : Pipe {
+	Ast_Factory* factory = new Ast_Factory();
 	Lexer* lexer = NULL;
 
 	char current_path[MAX_PATH_LENGTH];

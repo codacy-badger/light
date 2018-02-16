@@ -2,7 +2,9 @@
 
 #include "compiler.hpp"
 
-#define AST_NEW(T, ...) (this->setup_ast_node(lexer, new T(__VA_ARGS__)))
+//#define AST_NEW(T, ...) (this->setup_ast_node(lexer, new T(__VA_ARGS__)))
+
+#define AST_NEW(T, ...) (this->setup_ast_node(lexer, this->factory->new_node<T>(__VA_ARGS__)))
 
 #define SET_PATH(other) if (strcmp(other, this->current_path) != 0) {			\
 	os_set_current_directory(other);											\
@@ -216,7 +218,6 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	auto decl = AST_NEW(Ast_Declaration);
 	decl->scope = this->current_block;
 	decl->name = ident->name;
-	delete ident;
 
 	auto other = this->current_block->find_non_const_declaration(decl->name);
 	if (other && decl->scope == other->scope) {
@@ -408,7 +409,7 @@ Ast_Expression* Parser::type_instance () {
 			auto decl = this->current_block->find_const_declaration(ident->name);
 			if (decl && decl->expression
 					&& decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-				delete ident;
+				this->factory->delete_ident(ident);
 				return decl->expression;
 			} else return ident;
 		} else return NULL;
@@ -481,7 +482,7 @@ void Parser::comma_separated_arguments (vector<Ast_Expression*>* arguments) {
 Ast_Ident* Parser::ident (const char* name) {
 	if (!name && !this->lexer->is_next_type(TOKEN_ID)) return NULL;
 
-	auto ident = AST_NEW(Ast_Ident, this->current_block);
+	auto ident = this->factory->new_ident(this->current_block);
 	ident->name = name ? name : this->lexer->text();
 
 	// this is the right time to do this, since on a non-constant reference

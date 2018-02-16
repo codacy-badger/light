@@ -357,10 +357,7 @@ struct Ast_Ident : Ast_Expression {
 	Ast_Block* scope = NULL;
 	Ast_Declaration* declaration = NULL;
 
-	Ast_Ident (Ast_Block* scope = NULL) {
-		this->exp_type = AST_EXPRESSION_IDENT;
-		this->scope = scope;
-	}
+	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };
 
 void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);

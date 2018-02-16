@@ -6,7 +6,7 @@
 
 #define PIPE_NAME(name) name() { this->pipe_name = #name; }
 
-#define PRINT_METRIC(format, ...) printf("\t" format "\n", __VA_ARGS__)
+#define PRINT_METRIC(format, ...) printf("        " format "\n", __VA_ARGS__)
 
 struct Pipe {
 	double accumulated_spans = 0;
