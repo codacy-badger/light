@@ -33,10 +33,11 @@ void Types::add_type_if_new (Ast_Type_Instance* type) {
 void Types::add_struct_type_if_new (Ast_Struct_Type* _struct) {
 	if (_struct->is_slice) {
 		auto slice = static_cast<Ast_Slice_Type*>(_struct);
-		auto it = this->sli_types.find(slice->base);
+		auto base_type = static_cast<Ast_Type_Instance*>(slice->base);
+		auto it = this->sli_types.find(base_type);
 	    if (it == this->sli_types.end()) {
 			ast_compute_type_name_if_needed(slice);
-			this->sli_types[slice->base] = slice;
+			this->sli_types[base_type] = slice;
 			this->add_new_global_unique_type(slice);
 		}
 	} else {
@@ -49,10 +50,11 @@ void Types::add_struct_type_if_new (Ast_Struct_Type* _struct) {
 }
 
 void Types::add_pointer_type_if_new (Ast_Pointer_Type* ptr_type) {
-	auto it = this->ptr_types.find(ptr_type->base);
+	auto base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+	auto it = this->ptr_types.find(base_type);
 	if (it == this->ptr_types.end()) {
 		ast_compute_type_name_if_needed(ptr_type);
-		this->ptr_types[ptr_type->base] = ptr_type;
+		this->ptr_types[base_type] = ptr_type;
 		this->add_new_global_unique_type(ptr_type);
 	}
 }
@@ -96,36 +98,36 @@ void Types::add_new_global_unique_type (Ast_Type_Instance* type_inst) {
 	this->all_types.push_back(type_inst);
 }
 
-Ast_Pointer_Type* Types::get_pointer_type (Ast_Expression* base_type) {
-	auto it = this->ptr_types.find(base_type);
-    if (it != this->ptr_types.end()) {
-		return it->second;
-    } else {
-		auto ptr_type = new Ast_Pointer_Type(base_type);
-		if (base_type->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-			auto type = static_cast<Ast_Type_Instance*>(base_type);
+Ast_Pointer_Type* Types::get_pointer_type (Ast_Expression* base) {
+	if (base->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+		auto base_type = static_cast<Ast_Type_Instance*>(base);
+
+		auto it = this->ptr_types.find(base_type);
+	    if (it != this->ptr_types.end()) return it->second;
+	    else {
+			auto ptr_type = new Ast_Pointer_Type(base_type);
 			ast_compute_type_name_if_needed(ptr_type);
 			this->add_new_global_unique_type(ptr_type);
-			this->ptr_types[type] = ptr_type;
+			this->ptr_types[base_type] = ptr_type;
+			return ptr_type;
 		}
-		return ptr_type;
-	}
+	} else return new Ast_Pointer_Type(base);
 }
 
-Ast_Slice_Type* Types::get_slice_type (Ast_Expression* base_type) {
-	auto it = this->sli_types.find(base_type);
-    if (it != this->sli_types.end()) {
-		return it->second;
-    } else {
-		auto sli_type = new Ast_Slice_Type(base_type);
-		if (base_type->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-			auto type = static_cast<Ast_Type_Instance*>(base_type);
+Ast_Slice_Type* Types::get_slice_type (Ast_Expression* base) {
+	if (base->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+		auto base_type = static_cast<Ast_Type_Instance*>(base);
+
+		auto it = this->sli_types.find(base_type);
+	    if (it != this->sli_types.end()) return it->second;
+	    else {
+			auto sli_type = new Ast_Slice_Type(base_type);
 			ast_compute_type_name_if_needed(sli_type);
 			this->add_new_global_unique_type(sli_type);
-			this->sli_types[type] = sli_type;
+			this->sli_types[base_type] = sli_type;
+			return sli_type;
 		}
-		return sli_type;
-	}
+	} else return new Ast_Slice_Type(base);
 }
 
 Ast_Function_Type* Types::build_function_type (Ast_Function* func) {

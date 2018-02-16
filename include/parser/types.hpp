@@ -11,8 +11,8 @@ using namespace std;
 struct Types {
     vector<Ast_Type_Instance*> all_types;
 
-    map<Ast_Expression*, Ast_Pointer_Type*> ptr_types;
-    map<Ast_Expression*, Ast_Slice_Type*> sli_types;
+    map<Ast_Type_Instance*, Ast_Pointer_Type*> ptr_types;
+    map<Ast_Type_Instance*, Ast_Slice_Type*> sli_types;
     map<Ast_Expression*, map<uint64_t, Ast_Array_Type*>> arr_types;
     vector<Ast_Function_Type*> func_types;
 

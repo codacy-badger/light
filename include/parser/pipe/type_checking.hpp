@@ -149,6 +149,7 @@ struct Type_Checking : Pipe {
 
 		if (type_inst && type_inst->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 			g_compiler->types->add_type_if_new(type_inst);
+			assert(type_inst->guid >= 0);
 		} else abort();
 	}
 
