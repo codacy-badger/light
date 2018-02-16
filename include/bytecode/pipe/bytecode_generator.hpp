@@ -134,7 +134,7 @@ struct Bytecode_Generator : Pipe {
 
 			this->handle(&func->scope);
 
-			if (func->ret_type == g_compiler->type_def_void) {
+			if (func->ret_type == g_compiler->types->type_def_void) {
 				if (this->bytecode->size() == 0) {
 					this->add_instruction(func->scope, new Inst_Return());
 				} else {

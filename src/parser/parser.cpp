@@ -36,19 +36,19 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	if (!parent) {
 		parent = AST_NEW(Ast_Block);
 
-		DECL_TYPE(g_compiler->type_def_type);
-		DECL_TYPE(g_compiler->type_def_void);
-		DECL_TYPE(g_compiler->type_def_bool);
-		DECL_TYPE(g_compiler->type_def_s8);
-		DECL_TYPE(g_compiler->type_def_s16);
-		DECL_TYPE(g_compiler->type_def_s32);
-		DECL_TYPE(g_compiler->type_def_s64);
-		DECL_TYPE(g_compiler->type_def_u8);
-		DECL_TYPE(g_compiler->type_def_u16);
-		DECL_TYPE(g_compiler->type_def_u32);
-		DECL_TYPE(g_compiler->type_def_u64);
-		DECL_TYPE(g_compiler->type_def_f32);
-		DECL_TYPE(g_compiler->type_def_f64);
+		DECL_TYPE(g_compiler->types->type_def_type);
+		DECL_TYPE(g_compiler->types->type_def_void);
+		DECL_TYPE(g_compiler->types->type_def_bool);
+		DECL_TYPE(g_compiler->types->type_def_s8);
+		DECL_TYPE(g_compiler->types->type_def_s16);
+		DECL_TYPE(g_compiler->types->type_def_s32);
+		DECL_TYPE(g_compiler->types->type_def_s64);
+		DECL_TYPE(g_compiler->types->type_def_u8);
+		DECL_TYPE(g_compiler->types->type_def_u16);
+		DECL_TYPE(g_compiler->types->type_def_u32);
+		DECL_TYPE(g_compiler->types->type_def_u64);
+		DECL_TYPE(g_compiler->types->type_def_f32);
+		DECL_TYPE(g_compiler->types->type_def_f64);
 	}
 
 	auto tmp = this->lexer;
@@ -345,7 +345,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 		if (this->lexer->optional_skip(TOKEN_ARROW)) {
 			func->ret_type = this->type_instance();
-		} else func->ret_type = g_compiler->type_def_void;
+		} else func->ret_type = g_compiler->types->type_def_void;
 
 		if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
 			this->block(func->scope);
@@ -431,7 +431,7 @@ Ast_Function_Type* Parser::function_type () {
 
 	if (this->lexer->optional_skip(TOKEN_ARROW)) {
 		fn_type->ret_type = this->type_instance();
-	} else fn_type->ret_type = g_compiler->type_def_void;
+	} else fn_type->ret_type = g_compiler->types->type_def_void;
 
 	return fn_type;
 }

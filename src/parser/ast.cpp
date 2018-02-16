@@ -107,7 +107,7 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 
 	auto length_attr = new Ast_Declaration();
 	length_attr->name = "length";
-	length_attr->type = g_compiler->type_def_u64;
+	length_attr->type = g_compiler->types->type_def_u64;
 	this->attributes.push_back(length_attr);
 
 	auto data_attr = new Ast_Declaration();

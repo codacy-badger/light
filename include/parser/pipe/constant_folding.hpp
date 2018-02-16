@@ -48,19 +48,19 @@ T unary_fold (Ast_Unary_Type unary_op, T a) {
 Ast_Type_Instance* unary_type (Ast_Unary_Type unary_op, Ast_Expression* exp) {
 	switch (unary_op) {
 		case AST_UNARY_NEGATE: {
-				 if (exp->inferred_type == g_compiler->type_def_s8) 	return g_compiler->type_def_u8;
-			else if (exp->inferred_type == g_compiler->type_def_s16) 	return g_compiler->type_def_u8;
-			else if (exp->inferred_type == g_compiler->type_def_s32) 	return g_compiler->type_def_u16;
-			else if (exp->inferred_type == g_compiler->type_def_s64) 	return g_compiler->type_def_u32;
-			else if (exp->inferred_type == g_compiler->type_def_u8) 	return g_compiler->type_def_s16;
-			else if (exp->inferred_type == g_compiler->type_def_u16) 	return g_compiler->type_def_s32;
-			else if (exp->inferred_type == g_compiler->type_def_u32) 	return g_compiler->type_def_s64;
-			else if (exp->inferred_type == g_compiler->type_def_u64) {
+				 if (exp->inferred_type == g_compiler->types->type_def_s8) 	return g_compiler->types->type_def_u8;
+			else if (exp->inferred_type == g_compiler->types->type_def_s16) 	return g_compiler->types->type_def_u8;
+			else if (exp->inferred_type == g_compiler->types->type_def_s32) 	return g_compiler->types->type_def_u16;
+			else if (exp->inferred_type == g_compiler->types->type_def_s64) 	return g_compiler->types->type_def_u32;
+			else if (exp->inferred_type == g_compiler->types->type_def_u8) 	return g_compiler->types->type_def_s16;
+			else if (exp->inferred_type == g_compiler->types->type_def_u16) 	return g_compiler->types->type_def_s32;
+			else if (exp->inferred_type == g_compiler->types->type_def_u32) 	return g_compiler->types->type_def_s64;
+			else if (exp->inferred_type == g_compiler->types->type_def_u64) {
 				report_warning(&exp->location, "negating a u64 integer may not give the right value");
-				return g_compiler->type_def_s64;
+				return g_compiler->types->type_def_s64;
 			} else return exp->inferred_type;
 		}
-		case AST_UNARY_NOT: return g_compiler->type_def_bool;
+		case AST_UNARY_NOT: return g_compiler->types->type_def_bool;
 		default: abort();
 	}
 }
@@ -161,7 +161,7 @@ struct Constant_Folding : Pipe {
 				auto arr_type = static_cast<Ast_Array_Type*>(lhs->inferred_type);
 				if (strcmp(ident->name, "length") == 0) {
 					auto lit = ast_make_literal(arr_type->get_length());
-					lit->inferred_type = g_compiler->type_def_u64;
+					lit->inferred_type = g_compiler->types->type_def_u64;
 					lit->location = binary->location;
 
 					delete *binary_ptr;

@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bytecode/interpreter.hpp"
-#include "back/coff/coff_object.hpp"
 #include "compiler.hpp"
 #include "report.hpp"
 

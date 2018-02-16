@@ -18,20 +18,6 @@
 
 Compiler::Compiler () {
 	os_get_current_directory(this->settings->initial_path);
-
-	this->type_def_type 	= new Ast_Struct_Type("type", 	0);
-	this->type_def_void 	= new Ast_Struct_Type("void", 	0);
-	this->type_def_bool 	= new Ast_Struct_Type("bool", 	1, true);
-	this->type_def_s8 		= new Ast_Struct_Type("s8", 	1, true, true);
-	this->type_def_s16 		= new Ast_Struct_Type("s16", 	2, true, true);
-	this->type_def_s32 		= new Ast_Struct_Type("s32", 	4, true, true);
-	this->type_def_s64 		= new Ast_Struct_Type("s64", 	8, true, true);
-	this->type_def_u8 		= new Ast_Struct_Type("u8", 	1, true);
-	this->type_def_u16 		= new Ast_Struct_Type("u16", 	2, true);
-	this->type_def_u32 		= new Ast_Struct_Type("u32", 	4, true);
-	this->type_def_u64 		= new Ast_Struct_Type("u64", 	8, true);
-	this->type_def_f32 		= new Ast_Struct_Type("f32", 	4, true);
-	this->type_def_f64 		= new Ast_Struct_Type("f64", 	8, true);
 }
 
 void print_compiler_metrics (Parser* parser, double total_time) {
