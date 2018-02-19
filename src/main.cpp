@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "platform.hpp"
 #include "compiler.hpp"
 #include "report.hpp"
 
@@ -26,6 +27,7 @@ void handle_compiler_arguments (Compiler_Settings* settings, int argc, char** ar
 }
 
 int main (int argc, char** argv) {
+
 	g_compiler = new Compiler();
 
 	handle_compiler_arguments(g_compiler->settings, argc, argv);

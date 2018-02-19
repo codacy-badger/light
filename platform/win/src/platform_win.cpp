@@ -2,25 +2,39 @@
 
 #include <windows.h>
 
-double PCFreq = 0;
+double g_clock_frequency = 0;
+HANDLE g_pid = GetCurrentProcess();
 
-uint64_t os_get_time () {
+uint64_t os_get_wall_time () {
 	LARGE_INTEGER li;
-
-	if (PCFreq == 0) {
-	    if(!QueryPerformanceFrequency(&li))
-			fprintf(stderr, "[ERROR] QueryPerformanceFrequency failed!\n");
-		else PCFreq = double(li.QuadPart);
-	}
-
     QueryPerformanceCounter(&li);
     return static_cast<uint64_t>(li.QuadPart);
 }
 
-double os_time_stop (uint64_t start) {
-	LARGE_INTEGER li;
-    QueryPerformanceCounter(&li);
-    return double(li.QuadPart - start) / PCFreq;
+uint64_t os_get_user_time () {
+	uint64_t user_system_clocks = 0;
+	if (QueryProcessCycleTime(g_pid, &user_system_clocks)) {
+		return user_system_clocks / 1000;
+	} else abort();
+}
+
+double os_time_stop (uint64_t start, Timer_Function func) {
+	if (g_clock_frequency == 0) {
+		LARGE_INTEGER li;
+		if(!QueryPerformanceFrequency(&li))
+			fprintf(stderr, "[ERROR] QueryPerformanceFrequency failed!\n");
+		else g_clock_frequency = double(li.QuadPart);
+	}
+
+    return double(func() - start) / g_clock_frequency;
+}
+
+double os_time_wall_stop (uint64_t start) {
+	return os_time_stop(start, os_get_wall_time);
+}
+
+double os_time_user_stop (uint64_t start) {
+	return os_time_stop(start, os_get_user_time);
 }
 
 void* os_get_module (const char* module_name) {

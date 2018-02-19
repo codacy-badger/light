@@ -33,7 +33,7 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	SET_PATH(abs_path);
 	*file_part = _c;
 
-	this->last_time_start = os_get_time();
+	this->last_time_start = os_get_user_time();
 
 	if (!parent) {
 		parent = AST_NEW(Ast_Block);
@@ -56,7 +56,7 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	auto tmp = this->lexer;
 	this->lexer = new Lexer(abs_path, this->lexer);
 	this->block(parent);
-	this->accumulated_spans += os_time_stop(this->last_time_start);
+	this->accumulated_spans += os_time_user_stop(this->last_time_start);
 
 	this->all_lines += this->lexer->buffer->location.line;
 	this->global_notes.clear();
@@ -77,9 +77,9 @@ void Parser::add (Ast_Statement* stm, Ast_Block* block) {
 
 	block->list.push_back(stm);
 	if (block->is_global()) {
-		this->accumulated_spans += os_time_stop(this->last_time_start);
+		this->accumulated_spans += os_time_user_stop(this->last_time_start);
 		this->to_next(&stm);
-		this->last_time_start = os_get_time();
+		this->last_time_start = os_get_user_time();
 	}
 }
 

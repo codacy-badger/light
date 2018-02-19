@@ -13,8 +13,8 @@
 #include "bytecode/pipe/bytecode_generator.hpp"
 #include "bytecode/pipe/bytecode_runner.hpp"
 
-#define COMPILER_TOTAL_FORMAT "\n  Total Time                 %8.6f s\n"
-#define COMPILER_DONE_FORMAT "\nCompleted in %8.6f s\n"
+#define COMPILER_TOTAL_FORMAT "\n  Total Time                 %8.6fs\n"
+#define COMPILER_DONE_FORMAT "\nCompleted in %8.6fs (%8.6fs)\n"
 
 Compiler::Compiler () {
 	os_get_current_directory(this->settings->initial_path);
@@ -51,19 +51,18 @@ void Compiler::run () {
 	this->parser->append(new Bytecode_Runner());
 
 	// @Incomplete: add output pipes (DLL, EXE, etc.)
-
-	auto total = os_get_time();
+	auto totalWall = os_get_wall_time();
+	auto totalUser = os_get_user_time();
 	for (auto filename : this->settings->input_files) {
 		printf("\n%s\n", filename);
 
-		auto start = os_get_time();
+		auto start = os_get_user_time();
 		this->parser->run(filename);
 		this->parser->on_finish();
 
-		print_compiler_metrics(this->parser, os_time_stop(start));
+		print_compiler_metrics(this->parser, os_time_user_stop(start));
 	}
-
-	printf(COMPILER_DONE_FORMAT, os_time_stop(total));
+	printf(COMPILER_DONE_FORMAT, os_time_user_stop(totalUser), os_time_wall_stop(totalWall));
 }
 
 void Compiler::add_import (Ast_Import* import) {

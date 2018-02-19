@@ -36,13 +36,13 @@ struct Symbol_Resolution : Pipe {
 	void on_statement(Ast_Statement** stm) {
 	    this->collected_ident_ptrs.clear();
 
-		auto start = os_get_time();
+		auto start = os_get_user_time();
 	    Pipe::handle(stm);
 		if ((*stm)->stm_type == AST_STATEMENT_DECLARATION) {
 			auto decl = static_cast<Ast_Declaration*>((*stm));
             try_resolve_idents(&this->collected_ident_ptrs, decl);
 		}
-		this->accumulated_spans += os_time_stop(start);
+		this->accumulated_spans += os_time_user_stop(start);
 
 	    if (this->collected_ident_ptrs.size() > 0) {
 	        this->unresolved[(*stm)] = this->collected_ident_ptrs;
