@@ -2,22 +2,13 @@
 
 #include "compiler.hpp"
 
-//#define AST_NEW(T, ...) (this->setup_ast_node(lexer, new T(__VA_ARGS__)))
-
-#define AST_NEW(T, ...) (this->setup_ast_node(lexer, this->factory->new_node<T>(__VA_ARGS__)))
+#define AST_NEW(T, ...) this->factory->new_node<T>(__VA_ARGS__)
 
 #define SET_PATH(other) if (strcmp(other, this->current_path) != 0) {			\
 	os_set_current_directory(other);											\
 	strcpy_s(this->current_path, MAX_PATH_LENGTH, other); }
 
 #define DECL_TYPE(type) this->add(ast_make_declaration(type->name, type), parent);
-
-template<typename T>
-T* Parser::setup_ast_node (Lexer* lexer, T* node) {
-	if (lexer) node->location = lexer->buffer->location;
-	this->ast_node_count++;
-	return node;
-}
 
 Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	char* file_part = NULL;
@@ -55,6 +46,7 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 
 	auto tmp = this->lexer;
 	this->lexer = new Lexer(abs_path, this->lexer);
+	this->factory->lexer = this->lexer;
 	this->block(parent);
 	this->accumulated_spans += os_time_user_stop(this->last_time_start);
 
@@ -62,6 +54,7 @@ Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
 	this->global_notes.clear();
 	delete this->lexer;
 	this->lexer = tmp;
+	this->factory->lexer = this->lexer;
 
 	SET_PATH(last_path);
 	return parent;
@@ -409,7 +402,7 @@ Ast_Expression* Parser::type_instance () {
 			auto decl = this->current_block->find_const_declaration(ident->name);
 			if (decl && decl->expression
 					&& decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-				this->factory->delete_ident(ident);
+				//this->factory->delete_ident(ident);
 				return decl->expression;
 			} else return ident;
 		} else return NULL;
@@ -482,7 +475,7 @@ void Parser::comma_separated_arguments (vector<Ast_Expression*>* arguments) {
 Ast_Ident* Parser::ident (const char* name) {
 	if (!name && !this->lexer->is_next_type(TOKEN_ID)) return NULL;
 
-	auto ident = this->factory->new_ident(this->current_block);
+	auto ident = AST_NEW(Ast_Ident, this->current_block);
 	ident->name = name ? name : this->lexer->text();
 
 	// this is the right time to do this, since on a non-constant reference
