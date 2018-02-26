@@ -390,6 +390,14 @@ Ast_Literal* ast_make_literal (unsigned long long value) {
 	return lit;
 }
 
+Ast_Literal* ast_make_literal (bool value) {
+	auto lit = new Ast_Literal();
+    lit->inferred_type = g_compiler->types->type_def_bool;
+	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
+	lit->uint_value = value;
+	return lit;
+}
+
 Ast_Ident* ast_make_ident (const char* name) {
 	auto out = new Ast_Ident();
 	out->name = name;

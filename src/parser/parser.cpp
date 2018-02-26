@@ -365,10 +365,10 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		auto result = this->expression();
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		return result;
-	} else if (this->lexer->optional_skip(TOKEN_FILE)) {
-		return ast_make_literal(this->lexer->buffer->location.filename);
-	} else if (this->lexer->optional_skip(TOKEN_LINE)) {
-		return ast_make_literal(this->lexer->buffer->location.line);
+	} else if (this->lexer->optional_skip(TOKEN_FALSE)) {
+		return g_compiler->types->value_false;
+	} else if (this->lexer->optional_skip(TOKEN_TRUE)) {
+		return g_compiler->types->value_true;
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_EXCLAMATION)) {

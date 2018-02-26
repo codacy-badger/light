@@ -29,9 +29,9 @@ enum Token_Type : uint8_t {
 	TOKEN_FUNCTION,			// FUNCTION
 	TOKEN_RETURN,			// RETURN
 	TOKEN_IMPORT,			// IMPORT
-
-	TOKEN_FILE,				// Replaced by filename
-	TOKEN_LINE,				// Replaced by line number
+	TOKEN_FALSE,			// NULL
+	TOKEN_TRUE,				// NULL
+	TOKEN_NULL,				// NULL
 
 	TOKEN_EXCLAMATION		= '!',
 	TOKEN_DOLLAR			= '$',

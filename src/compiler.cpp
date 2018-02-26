@@ -26,7 +26,7 @@ void print_compiler_metrics (Parser* parser, double total_time) {
 	while (current_pipe) {
 		if (current_pipe->pipe_name) {
 			double percent = (current_pipe->accumulated_spans * 100.0) / total_time;
-			printf("  - %-25s%8.6f s (%5.2f %%)\n", current_pipe->pipe_name,
+			printf("  - %-25s%8.6fs (%5.2f%%)\n", current_pipe->pipe_name,
 				current_pipe->accumulated_spans, percent);
 			current_pipe->print_pipe_metrics();
 		}

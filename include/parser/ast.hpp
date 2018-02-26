@@ -366,6 +366,7 @@ bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type
 
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);
+Ast_Literal* ast_make_literal (bool value);
 Ast_Ident* ast_make_ident (const char* name);
 Ast_Unary* ast_make_unary (Ast_Unary_Type type, Ast_Expression* expression);
 Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expression* rhs);
