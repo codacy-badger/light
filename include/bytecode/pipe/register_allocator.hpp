@@ -24,7 +24,7 @@ struct Register_Allocator : Pipe {
         auto tmp = this->decl_regs;
         this->decl_regs.clear();
 
-        for (auto decl : func->arg_decls) {
+        for (auto decl : func->type->arg_decls) {
             decl_regs.push_back(new Register_State(decl));
         }
 

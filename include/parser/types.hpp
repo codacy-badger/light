@@ -63,7 +63,5 @@ struct Types {
 
 	Ast_Slice_Type* get_slice_type (Ast_Expression* base_type);
 
-    Ast_Function_Type* build_function_type (Ast_Function* func);
-
     bool is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to);
 };

@@ -130,14 +130,6 @@ Ast_Slice_Type* Types::get_slice_type (Ast_Expression* base) {
 	} else return new Ast_Slice_Type(base);
 }
 
-Ast_Function_Type* Types::build_function_type (Ast_Function* func) {
-    auto func_type = new Ast_Function_Type();
-    func_type->location = func->location;
-	func_type->arg_decls = func->arg_decls;
-    func_type->ret_type = func->ret_type;
-    return func_type;
-}
-
 bool Types::is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
 	if (type_from->is_primitive && type_to->is_primitive) {
 		if (type_to == g_compiler->types->type_def_bool) return true;

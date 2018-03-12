@@ -33,8 +33,8 @@ Ast_Declaration* Ast_Block::find_non_const_declaration (const char* _name) {
 			}
         }
     }
-	if (this->scope_of) {
-		for (auto decl : this->scope_of->arg_decls) {
+	if (this->scope_of && this->scope_of->type) {
+		for (auto decl : this->scope_of->type->arg_decls) {
 			if (strcmp(decl->name, _name) == 0) {
 				return decl;
 			}

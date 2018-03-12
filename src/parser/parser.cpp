@@ -321,25 +321,12 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		func->scope = AST_NEW(Ast_Block, this->current_block);
 		func->scope->scope_of = func;
 
-		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-			auto _tmp = this->current_block;
-			this->current_block = func->scope;
+		auto tmp = this->current_block;
+		this->current_block = func->scope;
 
-			auto decl = this->declaration();
-			while (decl != NULL) {
-				func->arg_decls.push_back(decl);
+		func->type = this->function_type();
 
-				if (!this->lexer->optional_skip(TOKEN_COMMA)) break;
-				decl = this->declaration();
-			}
-			this->lexer->check_skip(TOKEN_PAR_CLOSE);
-
-			this->current_block = _tmp;
-		}
-
-		if (this->lexer->optional_skip(TOKEN_ARROW)) {
-			func->ret_type = this->type_instance();
-		} else func->ret_type = g_compiler->types->type_def_void;
+		this->current_block = tmp;
 
 		if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
 			this->block(func->scope);

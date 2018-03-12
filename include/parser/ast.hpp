@@ -236,8 +236,7 @@ struct Ast_Function_Type : Ast_Type_Instance {
 
 struct Ast_Function : Ast_Expression {
 	const char* name = NULL;
-	vector<Ast_Declaration*> arg_decls;
-	Ast_Expression* ret_type = NULL;
+	Ast_Function_Type* type = NULL;
 	Ast_Block* scope = NULL;
 
 	const char* foreign_module_name = NULL;

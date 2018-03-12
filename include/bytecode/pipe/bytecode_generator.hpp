@@ -113,9 +113,9 @@ struct Bytecode_Generator : Pipe {
 	        auto _tmp = this->bytecode;
 	        this->bytecode = &func->bytecode;
 
-			auto free_reg = (uint8_t) func->arg_decls.size();
-	        for (uint8_t i = 0; i < func->arg_decls.size(); i++) {
-	            auto decl = func->arg_decls[i];
+			auto free_reg = (uint8_t) func->type->arg_decls.size();
+	        for (uint8_t i = 0; i < func->type->arg_decls.size(); i++) {
+	            auto decl = func->type->arg_decls[i];
 				if (decl->is_spilled) {
 					auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
 
@@ -134,7 +134,7 @@ struct Bytecode_Generator : Pipe {
 
 			this->handle(&func->scope);
 
-			if (func->ret_type == g_compiler->types->type_def_void) {
+			if (func->type->ret_type == g_compiler->types->type_def_void) {
 				if (this->bytecode->size() == 0) {
 					this->add_instruction(func->scope, new Inst_Return());
 				} else {

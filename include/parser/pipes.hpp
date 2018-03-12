@@ -168,10 +168,7 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Function** func) {
-		for (auto &arg : (*func)->arg_decls) {
-			this->handle(&arg);
-		}
-		this->handle(&(*func)->ret_type);
+		this->handle(&(*func)->type);
 		if ((*func)->scope) this->handle(&(*func)->scope);
 	}
 

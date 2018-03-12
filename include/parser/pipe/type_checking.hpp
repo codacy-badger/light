@@ -107,20 +107,20 @@ struct Type_Checking : Pipe {
 		if (ret->exp) Pipe::handle(&ret->exp);
 
 		auto fn = ret->block->get_function();
-		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->ret_type);
+		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->type->ret_type);
 		if (!fn) {
 			ERROR(ret, "Return statement must be inside a function");
 		} else if (ret->exp) {
-			if (fn->ret_type == g_compiler->types->type_def_void)
+			if (fn->type->ret_type == g_compiler->types->type_def_void)
 				ERROR(ret, "Return statment has expression, but function returns void");
-			else if (ret->exp->inferred_type != fn->ret_type) {
+			else if (ret->exp->inferred_type != fn->type->ret_type) {
 	            if (!cast_if_possible(&ret->exp, ret->exp->inferred_type, ret_type_def)) {
 	    			ERROR(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
 	    				ret->exp->inferred_type->name, ret_type_def->name);
 	            }
 			}
 		} else {
-			if (fn->ret_type != g_compiler->types->type_def_void)
+			if (fn->type->ret_type != g_compiler->types->type_def_void)
 				ERROR(ret, "Return statment has no expression, but function returns '%s'!",
 					ret_type_def->name);
 		}
@@ -222,11 +222,11 @@ struct Type_Checking : Pipe {
 		auto func = (*func_ptr);
 
 		if (func->inferred_type == NULL) {
-			for (auto &arg_decl : func->arg_decls) {
+			for (auto &arg_decl : func->type->arg_decls) {
 				Pipe::handle(&arg_decl);
 			}
-			Pipe::handle(&func->ret_type);
-		    func->inferred_type = g_compiler->types->build_function_type(func);
+			Pipe::handle(&func->type->ret_type);
+		    func->inferred_type = func->type;
 			Pipe::handle(&func->inferred_type);
 			if (func->scope) Pipe::handle(&func->scope);
 		}
