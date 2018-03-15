@@ -246,16 +246,6 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	return decl;
 }
 
-Ast_Declaration* Parser::declaration_or_type () {
-	auto decl = this->declaration();
-	if (decl) return decl;
-	else {
-		decl = AST_NEW(Ast_Declaration);
-		decl->type = this->type_instance();
-		return decl;
-	}
-}
-
 Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
 	Ast_Expression* output = this->_atom(initial);
     if (output != NULL) {
@@ -317,23 +307,25 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 		return _struct;
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
-		auto func = AST_NEW(Ast_Function);
-		func->scope = AST_NEW(Ast_Block, this->current_block);
-		func->scope->scope_of = func;
-
+		auto sub_scope = AST_NEW(Ast_Block, this->current_block);
 		auto tmp = this->current_block;
-		this->current_block = func->scope;
+		this->current_block = sub_scope;
 
-		func->type = this->function_type();
+		auto func_type = this->function_type();
 
 		this->current_block = tmp;
 
 		if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
+			auto func = AST_NEW(Ast_Function);
+			sub_scope->scope_of = func;
+			func->scope = sub_scope;
+			func->type = func_type;
+
 			this->block(func->scope);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-		}
 
-		return func;
+			return func;
+		} else return func_type;
 	} else if (this->lexer->optional_skip(TOKEN_CAST)) {
 		auto cast = AST_NEW(Ast_Cast);
 		this->lexer->check_skip(TOKEN_PAR_OPEN);
@@ -359,7 +351,10 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		return AST_NEW(Ast_Unary, AST_UNARY_DEREFERENCE, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_ADD)) {
 		return this->expression();
-	} else return this->literal();
+	} else {
+		auto lit = this->literal();
+		return lit ? lit : this->type_instance();
+	}
 }
 
 Ast_Expression* Parser::type_instance () {
@@ -400,12 +395,12 @@ Ast_Function_Type* Parser::function_type () {
 	auto fn_type = AST_NEW(Ast_Function_Type);
 
 	if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-		Ast_Declaration* decl = this->declaration_or_type();
+		auto decl = this->declaration();
 		while (decl != NULL) {
 			fn_type->arg_decls.push_back(decl);
 
 			if (!this->lexer->optional_skip(TOKEN_COMMA)) break;
-			decl = this->declaration_or_type();
+			decl = this->declaration();
 		}
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 	}
@@ -444,6 +439,7 @@ Ast_Literal* Parser::literal () {
 			}
 			break;
 		}
+		default: break;
 	}
 	return output;
 }

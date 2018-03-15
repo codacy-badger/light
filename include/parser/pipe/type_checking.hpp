@@ -250,6 +250,7 @@ struct Type_Checking : Pipe {
 
 				auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
 				auto param_exp = call->arguments[i];
+				assert(param_exp->inferred_type);
 
 				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
 					ERROR(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
@@ -401,8 +402,8 @@ struct Type_Checking : Pipe {
 
 		if (ident->declaration) {
 			if (ident->declaration->is_constant()) {
-	            replace_ident_by_const(ident_ptr);
 				Pipe::handle(&ident->declaration);
+	            replace_ident_by_const(ident_ptr);
 	        } else {
 				ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
 			}

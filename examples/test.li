@@ -89,15 +89,17 @@ test_pointers :: fn {
 	}
 }
 
+FUNC :: fn (num: u64) -> u64;
+
 test_function_pointers :: fn {
 	num := repeat_3(sqrt, 3);
 	assert(num == 6561);
 
-	repeat_3 :: fn (func: fn (num: u64) -> u64, num: u64) -> u64 {
+	repeat_3 :: fn (func: FUNC, num: u64) -> u64 {
 		return func(func(func(num)));
 	}
 
-	sqrt :: fn (n: u64) -> u64 { n * n }
+	sqrt :: fn (num: u64) -> u64 { num * num }
 }
 
 test_struct :: fn {
