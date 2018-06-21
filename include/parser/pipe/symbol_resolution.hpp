@@ -3,7 +3,6 @@
 #include "parser/pipes.hpp"
 
 #include <assert.h>
-#include <string.h>
 #include <vector>
 #include <map>
 

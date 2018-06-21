@@ -2,8 +2,6 @@
 
 #include "compiler.hpp"
 
-#include <string.h>
-
 Ast_Note* Ast_Statement::get_note (const char* name) {
     for (auto note : this->notes) {
         if (strcmp(note->name, name) == 0) return note;

@@ -1,14 +1,15 @@
 #pragma once
 
 #include <assert.h>
+#include <deque>
 
 #include "lexer/lexer.hpp"
 #include "report.hpp"
 
 #define LEXER_BUFFER_SIZE 256
 
-#define CONSUME(check, c) while (check(c)) { this->_buffer[count++] = c;				\
-	this->skip(); c = this->peek(); }							\
+#define CONSUME(check, c) while (check(c)) { this->_buffer[count++] = c;		\
+	this->skip(); c = this->peek(); }											\
 	assert(count < LEXER_BUFFER_SIZE);
 
 struct Lexer_Buffer {

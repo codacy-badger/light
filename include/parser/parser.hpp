@@ -1,10 +1,7 @@
 #pragma once
 
-#include <stdlib.h>
 #include <vector>
 #include <deque>
-#include <string>
-#include <map>
 
 #include "parser/ast_factory.hpp"
 #include "lexer/lexer.hpp"

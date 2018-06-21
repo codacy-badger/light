@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdio.h>
 #include <map>
 
 struct Global_Info {

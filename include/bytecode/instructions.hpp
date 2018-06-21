@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <malloc.h>
-#include <string.h>
 
 #include "parser/ast.hpp"
 #include "report.hpp"

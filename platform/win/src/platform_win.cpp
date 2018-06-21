@@ -1,5 +1,6 @@
 #include "platform.hpp"
 
+#include <stdio.h>
 #include <windows.h>
 
 double g_clock_frequency = 0;

@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-struct Ast;
-
 struct Location {
 	const char* filename = NULL;
 	size_t line = 1, col = 1;

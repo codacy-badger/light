@@ -49,12 +49,12 @@ Ast_Type_Instance* unary_type (Ast_Unary_Type unary_op, Ast_Expression* exp) {
 	switch (unary_op) {
 		case AST_UNARY_NEGATE: {
 				 if (exp->inferred_type == g_compiler->types->type_def_s8) 	return g_compiler->types->type_def_u8;
-			else if (exp->inferred_type == g_compiler->types->type_def_s16) 	return g_compiler->types->type_def_u8;
-			else if (exp->inferred_type == g_compiler->types->type_def_s32) 	return g_compiler->types->type_def_u16;
-			else if (exp->inferred_type == g_compiler->types->type_def_s64) 	return g_compiler->types->type_def_u32;
+			else if (exp->inferred_type == g_compiler->types->type_def_s16) return g_compiler->types->type_def_u8;
+			else if (exp->inferred_type == g_compiler->types->type_def_s32) return g_compiler->types->type_def_u16;
+			else if (exp->inferred_type == g_compiler->types->type_def_s64) return g_compiler->types->type_def_u32;
 			else if (exp->inferred_type == g_compiler->types->type_def_u8) 	return g_compiler->types->type_def_s16;
-			else if (exp->inferred_type == g_compiler->types->type_def_u16) 	return g_compiler->types->type_def_s32;
-			else if (exp->inferred_type == g_compiler->types->type_def_u32) 	return g_compiler->types->type_def_s64;
+			else if (exp->inferred_type == g_compiler->types->type_def_u16) return g_compiler->types->type_def_s32;
+			else if (exp->inferred_type == g_compiler->types->type_def_u32) return g_compiler->types->type_def_s64;
 			else if (exp->inferred_type == g_compiler->types->type_def_u64) {
 				report_warning(&exp->location, "negating a u64 integer may not give the right value");
 				return g_compiler->types->type_def_s64;
@@ -127,35 +127,7 @@ struct Constant_Folding : Pipe {
 		auto lhs = binary->lhs;
 		auto rhs = binary->rhs;
 
-		if (lhs->exp_type == AST_EXPRESSION_LITERAL && rhs->exp_type == AST_EXPRESSION_LITERAL) {
-			/*auto l_lit = reinterpret_cast<Ast_Literal*>(lhs);
-			auto r_lit = reinterpret_cast<Ast_Literal*>(rhs);
-
-			auto tmp = new Ast_Literal();
-			tmp->location = binary->location;
-			tmp->literal_type = l_lit->literal_type;
-			Ast_Binary_Type binop = binary->binary_op;
-			switch (l_lit->literal_type) {
-				case AST_LITERAL_UNSIGNED_INT: {
-					tmp->uint_value = binary_fold_logic(binop, l_lit->uint_value, r_lit->uint_value);
-					break;
-				}
-				case AST_LITERAL_SIGNED_INT: {
-					tmp->int_value = binary_fold_logic(binop, l_lit->int_value, r_lit->int_value);
-					break;
-				}
-				case AST_LITERAL_DECIMAL: {
-					tmp->decimal_value = binary_fold(binop, l_lit->decimal_value, r_lit->decimal_value);
-					break;
-				}
-				case AST_LITERAL_STRING: {
-					report_warning(&binary->location, "String literal folding not supported yet!");
-					break;
-				}
-			}
-			delete *binary_ptr;
-			*binary_ptr = reinterpret_cast<Ast_Binary*>(tmp);*/
-		} else if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
+		if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
 			auto ident = static_cast<Ast_Ident*>(rhs);
 			if (lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 				auto arr_type = static_cast<Ast_Array_Type*>(lhs->inferred_type);

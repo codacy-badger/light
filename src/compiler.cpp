@@ -1,7 +1,5 @@
 #include "compiler.hpp"
 
-#include <stdio.h>
-
 #include "platform.hpp"
 #include "parser/pipe/symbol_resolution.hpp"
 #include "parser/pipe/constant_folding.hpp"

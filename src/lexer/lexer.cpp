@@ -1,7 +1,5 @@
 #include "lexer/lexer.hpp"
 
-#include <assert.h>
-
 #include "compiler.hpp"
 #include "lexer/ring_buffer.hpp"
 #include "lexer/full_buffer.hpp"

@@ -1,7 +1,5 @@
 #include "parser/printer.hpp"
 
-#include <stdio.h>
-
 void _tabs (int count) {
 	for (int i = 0; i < count; i++) printf("    ");
 }

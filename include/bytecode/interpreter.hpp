@@ -6,7 +6,6 @@
 #include "bytecode/globals.hpp"
 #include "bytecode/call_record.hpp"
 
-#include <deque>
 #include <assert.h>
 
 #include "dyncall/dyncall.h"

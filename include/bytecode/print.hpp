@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string.h>
 #include "bytecode/interpreter.hpp"
 
 template<typename T>

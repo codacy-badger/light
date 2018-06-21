@@ -3,9 +3,6 @@
 #include "lexer/lexer.hpp"
 #include "parser/ast.hpp"
 
-#include <stdio.h>
-#include <typeinfo>
-
 struct Ast_Factory {
     Lexer* lexer = NULL;
 

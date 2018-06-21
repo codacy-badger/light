@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
-
 #include "platform.hpp"
 #include "compiler.hpp"
 #include "report.hpp"

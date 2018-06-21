@@ -1,7 +1,5 @@
 #pragma once
 
-#include <deque>
-
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
 #define DIGIT(c) (c >= '0' && c <= '9')
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))

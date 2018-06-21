@@ -1,6 +1,5 @@
 #pragma once
 
-#include <assert.h>
 #include "parser/ast.hpp"
 #include "platform.hpp"
 
