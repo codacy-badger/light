@@ -62,15 +62,4 @@ main :: fn {
 		print_u64(err);
 		print("\n");
 	}
-
-
 }
-
-/*import "examples/nix.li"
-
-#run
-main :: fn {
-	str := "This is asdqweasadsaewqeqweasdasd\tasd text!\n";
-	len := string_length(str);
-	write(stdout, str, len);
-}*/
