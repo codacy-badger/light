@@ -6,8 +6,6 @@
 #include "bytecode/primitive_unary.hpp"
 #include "bytecode/primitive_binary.hpp"
 
-//#define BYTECODE_DEBUG
-
 #define IS_INTERNAL_FUNCTION(func) func->stm_type == AST_STATEMENT_EXPRESSION 	\
 	&& func->exp_type == AST_EXPRESSION_FUNCTION								\
 	&& !func->is_native()
@@ -33,14 +31,14 @@ void Interpreter::run (Ast_Function* func, Call_Record<Bytecode_Register>* recor
 	for (instruction_index = 0; instruction_index < func->bytecode.size(); instruction_index++) {
 		auto inst = func->bytecode[instruction_index];
 
-#ifdef BYTECODE_DEBUG
-		bytecode_print(instruction_index, inst);
-		if (inst->bytecode == BYTECODE_RETURN
-			|| inst->bytecode == BYTECODE_CALL
-			|| inst->bytecode == BYTECODE_CALL_CONST) {
-			printf("\n");
+		if (g_compiler->settings->is_debug) {
+			bytecode_print(instruction_index, inst);
+			if (inst->bytecode == BYTECODE_RETURN
+				|| inst->bytecode == BYTECODE_CALL
+				|| inst->bytecode == BYTECODE_CALL_CONST) {
+				printf("\n");
+			}
 		}
-#endif
 
 		this->run(inst);
 
