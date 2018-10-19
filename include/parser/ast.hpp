@@ -70,6 +70,7 @@ struct Ast_Block : Ast_Statement {
 
 	bool is_global () { return !this->parent && !this->scope_of; }
 
+	Ast_Declaration* find_declaration_in_same_scope (const char* name);
 	Ast_Declaration* find_non_const_declaration (const char* name);
 	Ast_Declaration* find_const_declaration (const char* name);
 	bool is_ancestor (Ast_Block* other);

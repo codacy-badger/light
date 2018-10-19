@@ -22,6 +22,18 @@ Ast_Note* Ast_Statement::remove_note (const char* name) {
     return NULL;
 }
 
+Ast_Declaration* Ast_Block::find_declaration_in_same_scope (const char* _name) {
+    for (auto stm : this->list) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            if (strcmp(decl->name, _name) == 0) {
+				return decl;
+			}
+        }
+    }
+    return NULL;
+}
+
 Ast_Declaration* Ast_Block::find_non_const_declaration (const char* _name) {
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {

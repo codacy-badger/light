@@ -212,9 +212,9 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	decl->scope = this->current_block;
 	decl->name = ident->name;
 
-	auto other = this->current_block->find_non_const_declaration(decl->name);
-	if (other && decl->scope == other->scope) {
-		report_error(&decl->location, "re-declaration of variable '%s'", decl->name);
+	auto other = this->current_block->find_declaration_in_same_scope(decl->name);
+	if (other) {
+		report_error(&decl->location, "re-declaration of variable or constant '%s'", decl->name);
 		report_error_and_stop(&other->location, "previous declaration here");
 	}
 
