@@ -16,10 +16,10 @@
 #define LOAD_REG(var_name, reg) size_t var_name;								\
 	memcpy(&var_name, this->registers[reg], INTERP_REGISTER_SIZE)
 
-void Interpreter::run (Ast_Function* func, Call_Record<Bytecode_Register>* record) {
-	if (record) {
-		for (uint8_t i = 0; i < record->param_count; i++) {
-			auto param = record->parameters[i];
+void Interpreter::run (Ast_Function* func) {
+	if (this->call_record) {
+		for (uint8_t i = 0; i < this->call_record->param_count; i++) {
+			auto param = this->call_record->parameters[i];
 
 			size_t value;
 			memcpy(&value, param.value, INTERP_REGISTER_SIZE);
@@ -196,7 +196,7 @@ void Interpreter::call (void* func_ptr, Bytecode_Type bytecode_type, uint8_t reg
 		Bytecode_Register _regs[INTERP_REGISTER_COUNT - 1];
 		memcpy(_regs, this->registers, sizeof(_regs));
 
-		this->run(func, this->call_record);
+		this->run(func);
 
 		memcpy(this->registers, _regs, sizeof(_regs));
 
