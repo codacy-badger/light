@@ -73,7 +73,7 @@ void Compiler::add_import (Ast_Import* import) {
 	this->parser->pending_imports.push_back(import);
 }
 
-void Compiler::stop () {
+void Compiler::quit () {
 	fprintf(stdout, "\nStopping compilation...\n");
 	exit(1);
 }

@@ -7,8 +7,6 @@ struct Inst_Jump;
 
 #define INST(node, name, ...) this->add_instruction(node, new Inst_##name(__VA_ARGS__));
 
-#define ERROR(node, ...) report_error_and_stop(&node->location, __VA_ARGS__)
-
 #define PUSH_L(var_name, value) auto var_name = this->is_left_value; this->is_left_value = value
 #define POP_L(var_name) this->is_left_value = var_name
 
@@ -362,7 +360,7 @@ struct Bytecode_Generator : Pipe {
 			                    INST(binop, Load, binop->reg, binop->reg, binop->inferred_type->byte_size);
 			                }
 						} else abort();
-					} else ERROR(binop->lhs, "Struct is not a slice");
+					} else ERROR_STOP(binop->lhs, "Struct is not a slice");
 				}
 				break;
 			}
@@ -423,7 +421,7 @@ struct Bytecode_Generator : Pipe {
 	            INST(lit, Constant_Offset, lit->reg, lit->data_offset);
 				break;
 			}
-			default: ERROR(lit, "Literal type to bytecode conversion not supported!");
+			default: ERROR_STOP(lit, "Literal type to bytecode conversion not supported!");
 		}
 	}
 

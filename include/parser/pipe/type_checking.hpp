@@ -9,9 +9,6 @@
 
 #define WARN_MAX_DEREF_COUNT 3
 
-#define ERROR(node, ...) report_error_and_stop(&node->location, __VA_ARGS__)
-#define WARN(node, ...) report_warning(&node->location, __VA_ARGS__)
-
 bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
 	if (ast_types_are_equal(type_from, type_to)) return true;
 	else if (Compiler::instance->types->is_implicid_cast(type_from, type_to)) {
@@ -43,8 +40,8 @@ struct Type_Checking : Pipe {
 			auto lit = static_cast<Ast_Literal*>(import->target);
 			if (lit->literal_type == AST_LITERAL_STRING) {
 				return;
-			} else ERROR(import, "Import must be followed by a string literal");
-		} else ERROR(import, "Import must be followed by an expression");
+			} else ERROR_STOP(import, "Import must be followed by a string literal");
+		} else ERROR_STOP(import, "Import must be followed by an expression");
 	}
 
 	void handle (Ast_Declaration** decl_ptr) {
@@ -54,14 +51,14 @@ struct Type_Checking : Pipe {
 			Pipe::handle(&decl->expression);
 
 			if (!decl->expression->inferred_type) {
-				ERROR(decl->expression, "Expression type could not be inferred");
+				ERROR_STOP(decl->expression, "Expression type could not be inferred");
 			}
 
 			if (decl->type) {
 				auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
 				if (!ast_types_are_equal(decl_type_inst, decl->expression->inferred_type)) {
 					if (!cast_if_possible(&decl->expression, decl->expression->inferred_type, decl_type_inst)) {
-						ERROR(decl, "Type mismatch on declaration: value is '%s' but declaration wants '%s'",
+						ERROR_STOP(decl, "Type mismatch on declaration: value is '%s' but declaration wants '%s'",
 							decl->expression->inferred_type->name, decl_type_inst->name);
 					}
 				}
@@ -70,12 +67,12 @@ struct Type_Checking : Pipe {
 			Pipe::handle(&decl->type);
 		} else if (decl->type) {
 			Pipe::handle(&decl->type);
-		} else ERROR(decl, "Cannot infer type without an expression");
+		} else ERROR_STOP(decl, "Cannot infer type without an expression");
 
 	    if (!decl->type) {
-	        ERROR(decl, "Type could not be inferred");
+	        ERROR_STOP(decl, "Type could not be inferred");
 	    } else if (decl->type->inferred_type != Compiler::instance->types->type_def_type) {
-			ERROR(decl, "Expression is not a type");
+			ERROR_STOP(decl, "Expression is not a type");
 		}
 	}
 
@@ -85,7 +82,7 @@ struct Type_Checking : Pipe {
 		Pipe::handle(if_ptr);
 
 		if (!cast_if_possible(&_if->condition, _if->condition->inferred_type, Compiler::instance->types->type_def_bool)) {
-			ERROR(_if, "The condition for the IF statement must be of type boolean, but it is '%s'",
+			ERROR_STOP(_if, "The condition for the IF statement must be of type boolean, but it is '%s'",
 				_if->condition->inferred_type->name);
 		}
 	}
@@ -96,7 +93,7 @@ struct Type_Checking : Pipe {
 		Pipe::handle(while_ptr);
 
 		if (!cast_if_possible(&_while->condition, _while->condition->inferred_type, Compiler::instance->types->type_def_bool)) {
-			ERROR(_while, "The condition for the IF statement must be of type boolean, but it is '%s'",
+			ERROR_STOP(_while, "The condition for the IF statement must be of type boolean, but it is '%s'",
 				_while->condition->inferred_type->name);
 		}
 	}
@@ -109,19 +106,19 @@ struct Type_Checking : Pipe {
 		auto fn = ret->block->get_function();
 		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->type->ret_type);
 		if (!fn) {
-			ERROR(ret, "Return statement must be inside a function");
+			ERROR_STOP(ret, "Return statement must be inside a function");
 		} else if (ret->exp) {
 			if (fn->type->ret_type == Compiler::instance->types->type_def_void)
-				ERROR(ret, "Return statment has expression, but function returns void");
+				ERROR_STOP(ret, "Return statment has expression, but function returns void");
 			else if (ret->exp->inferred_type != fn->type->ret_type) {
 	            if (!cast_if_possible(&ret->exp, ret->exp->inferred_type, ret_type_def)) {
-	    			ERROR(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
+	    			ERROR_STOP(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
 	    				ret->exp->inferred_type->name, ret_type_def->name);
 	            }
 			}
 		} else {
 			if (fn->type->ret_type != Compiler::instance->types->type_def_void)
-				ERROR(ret, "Return statment has no expression, but function returns '%s'!",
+				ERROR_STOP(ret, "Return statment has no expression, but function returns '%s'!",
 					ret_type_def->name);
 		}
 	}
@@ -140,7 +137,7 @@ struct Type_Checking : Pipe {
 
 		if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 			cast->inferred_type = static_cast<Ast_Type_Instance*>(cast->cast_to);
-		} else ERROR(cast, "Cast target is not a type");
+		} else ERROR_STOP(cast, "Cast target is not a type");
 	}
 
 	void handle (Ast_Type_Instance** type_inst_ptr) {
@@ -198,9 +195,9 @@ struct Type_Checking : Pipe {
 		if (arr->length->exp_type == AST_EXPRESSION_LITERAL) {
 			auto lit = static_cast<Ast_Literal*>(arr->length);
 			if (lit->literal_type != AST_LITERAL_UNSIGNED_INT) {
-				ERROR(arr, "Arrays size must be an unsigned integer");
+				ERROR_STOP(arr, "Arrays size must be an unsigned integer");
 			}
-		} else ERROR(arr, "Arrays can only have constant size");
+		} else ERROR_STOP(arr, "Arrays can only have constant size");
 
 		auto type_def = static_cast<Ast_Type_Instance*>(arr->base);
 		arr->byte_size = arr->get_length() * type_def->byte_size;
@@ -238,7 +235,7 @@ struct Type_Checking : Pipe {
 		Pipe::handle(&call->func);
 
 	    if (call->func->inferred_type->typedef_type != AST_TYPEDEF_FUNCTION)
-			ERROR(call, "Function calls can only be performed to functions types");
+			ERROR_STOP(call, "Function calls can only be performed to functions types");
 
 		auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
 		auto ret_ty = static_cast<Ast_Type_Instance*>(func_type->ret_type);
@@ -253,12 +250,12 @@ struct Type_Checking : Pipe {
 				assert(param_exp->inferred_type);
 
 				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
-					ERROR(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
+					ERROR_STOP(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
 						i + 1, arg_type->name, param_exp->inferred_type->name);
 				}
 			}
 		} else {
-			ERROR(call, "Wrong number of arguments, function has %d, but call has %d",
+			ERROR_STOP(call, "Wrong number of arguments, function has %d, but call has %d",
 				func_type->arg_decls.size(), call->arguments.size());
 		}
 	}
@@ -291,8 +288,8 @@ struct Type_Checking : Pipe {
 	                    ident->inferred_type = attr_type;
 	                    binop->inferred_type = attr_type;
 	                    ident->declaration = attribute;
-	                } else ERROR(binop, "The type '%s' has no attribute named '%s'", _struct->name, ident->name);
-	            } else ERROR(binop, "Right of attribute access is NOT an identifier");
+	                } else ERROR_STOP(binop, "The type '%s' has no attribute named '%s'", _struct->name, ident->name);
+	            } else ERROR_STOP(binop, "Right of attribute access is NOT an identifier");
 	        } else if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
 				auto _array = static_cast<Ast_Array_Type*>(type_def);
 				if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
@@ -301,9 +298,9 @@ struct Type_Checking : Pipe {
 						binop->inferred_type = Compiler::instance->types->type_def_u64;
 					} else if (strcmp(ident->name, "data") == 0) {
 						binop->inferred_type = Compiler::instance->types->get_pointer_type(_array->base);
-					} else ERROR(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
-				} else ERROR(binop, "Right of attribute access is NOT an identifier");
-			} else ERROR(binop, "Left of attribute access has invalid type: '%s'", type_def->name);
+					} else ERROR_STOP(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
+				} else ERROR_STOP(binop, "Right of attribute access is NOT an identifier");
+			} else ERROR_STOP(binop, "Left of attribute access has invalid type: '%s'", type_def->name);
 	    } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
 			if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 				auto arr_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
@@ -311,7 +308,7 @@ struct Type_Checking : Pipe {
 
 				Pipe::handle(&binop->rhs);
 				if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, Compiler::instance->types->type_def_u64)) {
-					ERROR(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
+					ERROR_STOP(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
 				}
 			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
 				auto _struct = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
@@ -321,14 +318,14 @@ struct Type_Checking : Pipe {
 						Pipe::handle(&binop->rhs);
 						auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
 						binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
-					} else ERROR(binop, "Slice type doesn't have data attribute");
-				} else ERROR(binop, "Left struct is not a slice");
-			} else ERROR(binop, "Left of array access is not of array or slice type");
+					} else ERROR_STOP(binop, "Slice type doesn't have data attribute");
+				} else ERROR_STOP(binop, "Left struct is not a slice");
+			} else ERROR_STOP(binop, "Left of array access is not of array or slice type");
 		} else if (binop->binary_op == AST_BINARY_ASSIGN) {
 			Pipe::handle(&binop->rhs);
 			if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
 	            if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, binop->lhs->inferred_type)) {
-	                ERROR(binop, "Type mismatch on assign: from '%s' to '%s'",
+	                ERROR_STOP(binop, "Type mismatch on assign: from '%s' to '%s'",
 	                    binop->rhs->inferred_type->name, binop->lhs->inferred_type->name);
 	            }
 	    	}
@@ -340,7 +337,7 @@ struct Type_Checking : Pipe {
 	            // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...
 	            if (!cast_if_possible(&binop->lhs, binop->lhs->inferred_type, binop->rhs->inferred_type)) {
 	                if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, binop->lhs->inferred_type)) {
-	                    ERROR(binop, "Type mismatch on binary expression: '%s' and '%s'",
+	                    ERROR_STOP(binop, "Type mismatch on binary expression: '%s' and '%s'",
 	                        binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
 	                }
 	            }
@@ -386,7 +383,7 @@ struct Type_Checking : Pipe {
 	                auto ptr_type = static_cast<Ast_Pointer_Type*>(inf_type);
 	                auto base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 	                unop->inferred_type = base_type;
-	            } else ERROR(unop, "Can't dereference a non-pointer type expression");
+	            } else ERROR_STOP(unop, "Can't dereference a non-pointer type expression");
 	            break;
 			}
 			case AST_UNARY_REFERENCE: {
@@ -407,7 +404,7 @@ struct Type_Checking : Pipe {
 	        } else {
 				ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
 			}
-		} else ERROR(ident, "Indetifier '%s' has no declaration", ident->name);
+		} else ERROR_STOP(ident, "Indetifier '%s' has no declaration", ident->name);
 	}
 
 	void handle (Ast_Literal** lit_ptr) {

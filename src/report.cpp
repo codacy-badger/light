@@ -3,6 +3,12 @@
 #include "compiler.hpp"
 #include "parser/ast.hpp"
 
+#define VA_REPORT(name, buffer)													\
+	va_list argptr;																\
+	va_start(argptr, format);													\
+	_report(name, buffer, location, format, argptr);							\
+	va_end(argptr)
+
 void print_location (FILE* buffer, Location* location) {
 	if (location) {
 		if (location->filename) {
@@ -21,44 +27,26 @@ void _report (const char* level, FILE* buffer, Location* location, char* format,
 }
 
 void report_debug (Location* location, char* format, ...) {
-	va_list argptr;
-    va_start(argptr, format);
-	_report("DEBUG", stdout, location, format, argptr);
-    va_end(argptr);
+	VA_REPORT("DEBUG", stdout);
 }
 
 void report_info (Location* location, char* format, ...) {
-	va_list argptr;
-    va_start(argptr, format);
-	_report("INFO", stdout, location, format, argptr);
-    va_end(argptr);
+	VA_REPORT("INFO", stdout);
 }
 
 void report_warning (Location* location, char* format, ...) {
-	va_list argptr;
-    va_start(argptr, format);
-	_report("WARNING", stdout, location, format, argptr);
-    va_end(argptr);
+	VA_REPORT("WARNING", stdout);
 }
 
 void report_error (Location* location, char* format, ...) {
-	va_list argptr;
-    va_start(argptr, format);
-	_report("ERROR", stderr, location, format, argptr);
-    va_end(argptr);
+	VA_REPORT("ERROR", stderr);
 }
 
 void report_internal (Location* location, char* format, ...) {
-	va_list argptr;
-    va_start(argptr, format);
-	_report("INTERNAL ERROR", stderr, location, format, argptr);
-    va_end(argptr);
+	VA_REPORT("INTERNAL ERROR", stderr);
 }
 
 void report_error_and_stop (Location* location, char* format, ...) {
-	va_list argptr;
-    va_start(argptr, format);
-	_report("ERROR", stderr, location, format, argptr);
-    va_end(argptr);
-	Compiler::instance->stop();
+	VA_REPORT("ERROR", stderr);
+	Compiler::instance->quit();
 }

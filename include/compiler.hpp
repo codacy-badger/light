@@ -51,7 +51,7 @@ struct Compiler {
 	Compiler (Compiler_Settings* settings = NULL);
 
 	void run ();
-	void stop ();
+	void quit ();
 
 	void add_import (Ast_Import* import);
 
