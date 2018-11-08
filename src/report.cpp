@@ -60,5 +60,5 @@ void report_error_and_stop (Location* location, char* format, ...) {
     va_start(argptr, format);
 	_report("ERROR", stderr, location, format, argptr);
     va_end(argptr);
-	g_compiler->stop();
+	Compiler::instance->stop();
 }

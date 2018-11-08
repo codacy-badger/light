@@ -31,7 +31,7 @@ void Interpreter::run (Ast_Function* func) {
 	for (instruction_index = 0; instruction_index < func->bytecode.size(); instruction_index++) {
 		auto inst = func->bytecode[instruction_index];
 
-		if (g_compiler->settings->is_debug) {
+		if (Compiler::instance->settings->is_debug) {
 			bytecode_print(instruction_index, inst);
 			if (inst->bytecode == BYTECODE_RETURN
 				|| inst->bytecode == BYTECODE_CALL

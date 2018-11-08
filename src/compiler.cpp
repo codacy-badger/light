@@ -14,7 +14,13 @@
 #define COMPILER_TOTAL_FORMAT "\n  Total Time                 %8.6fs\n"
 #define COMPILER_DONE_FORMAT "\nCompleted in %8.6fs (%8.6fs)\n"
 
-Compiler::Compiler () {
+Compiler* Compiler::instance = NULL;
+
+Compiler::Compiler (Compiler_Settings* settings) {
+	if (settings == NULL) {
+		this->settings = new Compiler_Settings();
+	} else this->settings = settings;
+
 	os_get_current_directory(this->settings->initial_path);
 }
 
@@ -70,4 +76,20 @@ void Compiler::add_import (Ast_Import* import) {
 void Compiler::stop () {
 	fprintf(stdout, "\nStopping compilation...\n");
 	exit(1);
+}
+
+Compiler* Compiler::create(int argc, char** argv) {
+	Compiler::instance = new Compiler();
+	Compiler::instance->settings->handle_arguments(argc, argv);
+	return Compiler::instance;
+}
+
+Compiler* Compiler::create(Compiler_Settings* settings) {
+	Compiler::instance = new Compiler(settings);
+	return Compiler::instance;
+}
+
+void Compiler::destroy() {
+	delete Compiler::instance;
+	Compiler::instance = NULL;
 }

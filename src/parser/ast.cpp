@@ -117,12 +117,12 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 
 	auto length_attr = new Ast_Declaration();
 	length_attr->name = "length";
-	length_attr->type = g_compiler->types->type_def_u64;
+	length_attr->type = Compiler::instance->types->type_def_u64;
 	this->attributes.push_back(length_attr);
 
 	auto data_attr = new Ast_Declaration();
 	data_attr->name = "data";
-	data_attr->type = g_compiler->types->get_pointer_type(base_type);
+	data_attr->type = Compiler::instance->types->get_pointer_type(base_type);
 	this->attributes.push_back(data_attr);
 }
 
@@ -383,7 +383,7 @@ bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type
 }
 
 uint8_t ast_get_pointer_size () {
-    return g_compiler->settings->register_size;
+    return Compiler::instance->settings->register_size;
 }
 
 Ast_Literal* ast_make_literal (const char* value) {
@@ -402,7 +402,7 @@ Ast_Literal* ast_make_literal (unsigned long long value) {
 
 Ast_Literal* ast_make_literal (bool value) {
 	auto lit = new Ast_Literal();
-    lit->inferred_type = g_compiler->types->type_def_bool;
+    lit->inferred_type = Compiler::instance->types->type_def_bool;
 	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
 	lit->uint_value = value;
 	return lit;

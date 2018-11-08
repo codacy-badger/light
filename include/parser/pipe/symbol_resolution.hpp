@@ -76,7 +76,7 @@ struct Symbol_Resolution : Pipe {
 	        for (auto ident : idents) {
 	            report_error(&ident->location, "Unresolved symbol: '%s'", ident->name);
 	        }
-	        g_compiler->stop();
+	        Compiler::instance->stop();
 	    }
 	}
 

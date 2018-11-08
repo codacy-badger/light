@@ -12,13 +12,13 @@ size_t run_function (Ast_Function* func, Ast_Note* run_note) {
 			auto exp = run_note->arguments[i];
 			if (exp->exp_type == AST_EXPRESSION_LITERAL) {
 				auto lit = static_cast<Ast_Literal*>(exp);
-				auto reg = g_compiler->interp->registers[i];
+				auto reg = Compiler::instance->interp->registers[i];
 				memcpy(reg, &lit->int_value, INTERP_REGISTER_SIZE);
 			} else {
 				report_error_and_stop(&run_note->location, "#run can only have literal arguments!");
 			}
 		}
-		g_compiler->interp->run(func);
+		Compiler::instance->interp->run(func);
 	}
 	return NULL;
 }

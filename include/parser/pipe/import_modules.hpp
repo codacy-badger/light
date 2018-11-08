@@ -12,8 +12,8 @@ struct Import_Modules : Pipe {
 
 		this->remove_stm_from_block = true;
 
-		assert(g_compiler->parser);
-		auto parser = g_compiler->parser;
+		assert(Compiler::instance->parser);
+		auto parser = Compiler::instance->parser;
 
 		auto literal = static_cast<Ast_Literal*>(import->target);
 
@@ -25,6 +25,6 @@ struct Import_Modules : Pipe {
 				return;
 		}
 
-		g_compiler->add_import(import);
+		Compiler::instance->add_import(import);
 	}
 };

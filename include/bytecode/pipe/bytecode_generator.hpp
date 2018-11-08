@@ -134,7 +134,7 @@ struct Bytecode_Generator : Pipe {
 
 			this->handle(&func->scope);
 
-			if (func->type->ret_type == g_compiler->types->type_def_void) {
+			if (func->type->ret_type == Compiler::instance->types->type_def_void) {
 				if (this->bytecode->size() == 0) {
 					this->add_instruction(func->scope, new Inst_Return());
 				} else {
@@ -164,7 +164,7 @@ struct Bytecode_Generator : Pipe {
 	    } else {
 			auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
 			if (decl->is_global()) {
-				decl->bytecode_data_offset = g_compiler->interp->globals->add(decl_type->byte_size);
+				decl->bytecode_data_offset = Compiler::instance->interp->globals->add(decl_type->byte_size);
 			} else {
 				if (decl->expression) Pipe::handle(&decl->expression);
 
@@ -419,7 +419,7 @@ struct Bytecode_Generator : Pipe {
 	            break;
 	        }
 			case AST_LITERAL_STRING: {
-				lit->data_offset = g_compiler->interp->constants->add(lit->string_value);
+				lit->data_offset = Compiler::instance->interp->constants->add(lit->string_value);
 	            INST(lit, Constant_Offset, lit->reg, lit->data_offset);
 				break;
 			}
