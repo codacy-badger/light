@@ -1,10 +1,12 @@
 #pragma once
 
-#include "parser/pipes.hpp"
+#include "pipeline/pipe.hpp"
 
 #include <assert.h>
 #include <vector>
 #include <map>
+
+#include "compiler.hpp"
 
 using namespace std;
 
@@ -41,8 +43,9 @@ struct Symbol_Resolution : Pipe {
 			auto decl = static_cast<Ast_Declaration*>((*stm));
             try_resolve_idents(&this->collected_ident_ptrs, decl);
 		}
-		this->accumulated_spans += os_time_user_stop(start);
+		this->total_time += os_time_user_stop(start);
 
+        this->stop_processing = true;
 	    if (this->collected_ident_ptrs.size() > 0) {
 	        this->unresolved[(*stm)] = this->collected_ident_ptrs;
 	    } else this->on_resolved(stm);
@@ -81,7 +84,8 @@ struct Symbol_Resolution : Pipe {
 	}
 
 	void on_resolved (Ast_Statement** stm) {
-	    this->to_next(stm);
+	    this->pending_stms.push_back(*stm);
+
 	    if ((*stm)->stm_type == AST_STATEMENT_DECLARATION) {
 	        auto decl = static_cast<Ast_Declaration*>(*stm);
 			if (decl->is_constant()) {
@@ -103,11 +107,11 @@ struct Symbol_Resolution : Pipe {
 	    }
 	}
 
-	bool is_unresolved (const char* name) {
+	bool is_unresolved (const char* decl_name) {
 	    for (auto stm_idents : this->unresolved) {
 	        if (stm_idents.first->stm_type == AST_STATEMENT_DECLARATION) {
 	            auto decl = static_cast<Ast_Declaration*>(stm_idents.first);
-	            if (strcmp(decl->name, name) == 0) {
+	            if (strcmp(decl->name, decl_name) == 0) {
 	                return true;
 	            }
 	        }

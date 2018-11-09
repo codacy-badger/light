@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parser/pipes.hpp"
+#include "pipeline/pipe.hpp"
 #include "bytecode/interpreter.hpp"
 
 struct Inst_Jump;
@@ -38,6 +38,8 @@ struct Bytecode_Generator : Pipe {
 		Pipe::handle(stm_ptr);
 		//this->clear_registers();
 	}
+
+	void handle (Ast_Import**) { /* empty */ }
 
 	void handle (Ast_Block** block_ptr) {
 		for (auto &stm : (*block_ptr)->list) {

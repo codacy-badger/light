@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pipeline/pipeline.hpp"
+
 #include "bytecode/interpreter.hpp"
 #include "parser/parser.hpp"
 
@@ -26,26 +28,15 @@ struct Compiler_Settings {
 
 	uint8_t register_size = 8;
 
-    void handle_arguments (int argc, char** argv) {
-        for (int i = 1; i < argc; i++) {
-            if (argv[i][0] == '-') {
-                if (CHECK_ARG_2("-o", "-output")) {
-                    this->output_file = argv[++i];
-                } else if (CHECK_ARG_2("-v", "-verbose")) {
-                    this->is_verbose = true;
-                } else if (CHECK_ARG_2("-d", "-debug")) {
-                    this->is_debug = true;
-                } else report_warning(NULL, UKNOWN_ARG_FORMAT, i, argv[i]);
-            } else this->input_files.push_back(argv[i]);
-        }
-    }
+    void handle_arguments (int argc, char** argv);
 };
 
 struct Compiler {
 	Compiler_Settings* settings = NULL;
 
+	Pipeline* pipeline = new Pipeline();
+
 	Interpreter* interp = new Interpreter();
-	Parser* parser = new Parser();
 	Types* types = new Types();
 
 	Compiler (Compiler_Settings* settings = NULL);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parser/pipes.hpp"
+#include "pipeline/pipe.hpp"
 
 #include "compiler.hpp"
 

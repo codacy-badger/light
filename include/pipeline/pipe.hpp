@@ -3,43 +3,28 @@
 #include "parser/ast.hpp"
 #include "platform.hpp"
 
+#include <stdint.h>
+
 #define PIPE_NAME(name) name() { this->pipe_name = #name; }
 
 #define PRINT_METRIC(format, ...) printf("        " format "\n", __VA_ARGS__)
 
 struct Pipe {
-	double accumulated_spans = 0;
 	const char* pipe_name = NULL;
-	Pipe* next = NULL;
+	double total_time = 0;
 
-	bool remove_stm_from_block = false;
+	bool stop_processing = false;
+	deque<Ast_Statement*> pending_stms;
+
+	uint16_t priority = 0;
 
 	virtual void on_statement (Ast_Statement** stm) {
 		auto start = os_get_user_time();
 		this->handle(stm);
-		this->accumulated_spans += os_time_user_stop(start);
-		if (this->remove_stm_from_block) {
-			this->remove_stm_from_block = false;
-		} else this->to_next(stm);
+		this->total_time += os_time_user_stop(start);
 	}
 
-	virtual void on_finish () {
-		this->try_finish();
-	}
-
-	void to_next (Ast_Statement** stm) {
-		if (next) next->on_statement(stm);
-	}
-
-	void try_finish() {
-		if (next) next->on_finish();
-	}
-
-	void append (Pipe* next_pipe) {
-		Pipe* last = this;
-		while (last->next) last = last->next;
-		last->next = next_pipe;
-	}
+	virtual void on_finish () { /* empty */ }
 
 	virtual void print_pipe_metrics () { /* empty by default */ }
 
@@ -94,10 +79,7 @@ struct Pipe {
 		auto it = (*_block)->list.begin();
 		while (it != (*_block)->list.end()) {
 			this->handle(&(*it));
-			if (this->remove_stm_from_block) {
-				it = (*_block)->list.erase(it);
-				this->remove_stm_from_block = false;
-			} else it++;
+			it++;
 		}
 	}
 

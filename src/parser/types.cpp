@@ -2,6 +2,20 @@
 
 #include "compiler.hpp"
 
+Ast_Struct_Type* Types::type_def_type = new Ast_Struct_Type("type",   0);
+Ast_Struct_Type* Types::type_def_void = new Ast_Struct_Type("void",   0);
+Ast_Struct_Type* Types::type_def_bool = new Ast_Struct_Type("bool",   1, true /* primitive */ );
+Ast_Struct_Type* Types::type_def_s8   = new Ast_Struct_Type("s8", 	   1, true, true /* signed */ );
+Ast_Struct_Type* Types::type_def_s16  = new Ast_Struct_Type("s16",    2, true, true);
+Ast_Struct_Type* Types::type_def_s32  = new Ast_Struct_Type("s32",    4, true, true);
+Ast_Struct_Type* Types::type_def_s64  = new Ast_Struct_Type("s64",    8, true, true);
+Ast_Struct_Type* Types::type_def_u8   = new Ast_Struct_Type("u8",     1, true);
+Ast_Struct_Type* Types::type_def_u16  = new Ast_Struct_Type("u16",    2, true);
+Ast_Struct_Type* Types::type_def_u32  = new Ast_Struct_Type("u32",    4, true);
+Ast_Struct_Type* Types::type_def_u64  = new Ast_Struct_Type("u64",    8, true);
+Ast_Struct_Type* Types::type_def_f32  = new Ast_Struct_Type("f32",    4, true);
+Ast_Struct_Type* Types::type_def_f64  = new Ast_Struct_Type("f64",    8, true);
+
 void Types::add_type_if_new (Ast_Type_Instance* type) {
 	if (type->guid < 0) {
 		switch (type->typedef_type) {

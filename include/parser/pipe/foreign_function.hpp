@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parser/pipes.hpp"
+#include "pipeline/pipe.hpp"
 #include "report.hpp"
 
 char* extract_string_parameter (Ast_Expression* exp) {

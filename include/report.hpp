@@ -10,13 +10,16 @@ struct Location {
 
 void print_location (FILE* buffer, Location* location);
 
-void report_debug 		(Location* location, char* format, ...);
-void report_info 		(Location* location, char* format, ...);
-void report_warning 	(Location* location, char* format, ...);
-void report_error 		(Location* location, char* format, ...);
-void report_internal	(Location* location, char* format, ...);
+void report_debug 			(Location* location, char* format, ...);
+void report_info 			(Location* location, char* format, ...);
+void report_warning 		(Location* location, char* format, ...);
+void report_error 			(Location* location, char* format, ...);
+void report_internal		(Location* location, char* format, ...);
 void report_error_and_stop 	(Location* location, char* format, ...);
 
-#define WARN(node, ...) report_warning(&node->location, __VA_ARGS__)
-#define ERROR(node, ...) report_error(&node->location, __VA_ARGS__)
-#define ERROR_STOP(node, ...) report_error_and_stop(&node->location, __VA_ARGS__)
+#define DEBUG(node, ...) 		report_debug(&node->location, __VA_ARGS__)
+#define INFO(node, ...) 		report_info(&node->location, __VA_ARGS__)
+#define WARN(node, ...) 		report_warning(&node->location, __VA_ARGS__)
+#define ERROR(node, ...) 		report_error(&node->location, __VA_ARGS__)
+#define INTERNAL(node, ...) 	report_internal(&node->location, __VA_ARGS__)
+#define ERROR_STOP(node, ...) 	report_error_and_stop(&node->location, __VA_ARGS__)

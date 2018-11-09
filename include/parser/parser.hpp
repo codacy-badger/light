@@ -5,7 +5,7 @@
 
 #include "parser/ast_factory.hpp"
 #include "lexer/lexer.hpp"
-#include "parser/pipes.hpp"
+#include "pipeline/pipe.hpp"
 #include "parser/ast.hpp"
 #include "parser/types.hpp"
 
@@ -18,10 +18,8 @@ struct Parser : Pipe {
 	Lexer* lexer = NULL;
 
 	char current_path[MAX_PATH_LENGTH];
+	char last_path[MAX_PATH_LENGTH];
 	Ast_Block* current_block = NULL;
-
-	deque<Ast_Import*> pending_imports;
-	vector<char*> imported_files;
 
 	vector<Ast_Note*> global_notes;
 	vector<Ast_Note*> notes;
@@ -36,8 +34,12 @@ struct Parser : Pipe {
 	template<typename T>
 	T* setup_ast_node (Lexer* lexer, T* node);
 
-	Ast_Block* run (const char* filepath, Ast_Block* parent = NULL);
-	void add (Ast_Statement* stm, Ast_Block* block = NULL);
+	Lexer* setup (const char* filepath, Ast_Block* parent = NULL);
+	void teardown (Lexer* parent);
+	Lexer* push_lexer(char* filepath);
+	void pop_lexer(Lexer* parent);
+
+	void add (Ast_Statement* stm);
 
 	void block (Ast_Block* inner_block);
 	Ast_Note* note ();

@@ -8,72 +8,52 @@
 	os_set_current_directory(other);											\
 	strcpy_s(this->current_path, MAX_PATH_LENGTH, other); }
 
-#define DECL_TYPE(type) this->add(ast_make_declaration(type->name, type), parent);
-
-Ast_Block* Parser::run (const char* filepath, Ast_Block* parent) {
+Lexer* Parser::setup (const char* filepath, Ast_Block* parent) {
 	char* file_part = NULL;
 	auto abs_path = (char*) malloc(MAX_PATH_LENGTH);
 	os_get_absolute_path(filepath, abs_path, &file_part);
-	this->imported_files.push_back(abs_path);
+	Compiler::instance->pipeline->imported_files.push_back(abs_path);
 
-	char last_path[MAX_PATH_LENGTH];
-	strcpy_s(last_path, MAX_PATH_LENGTH, this->current_path);
+	os_get_current_directory(this->last_path);
 
 	auto _c = *file_part;
 	*file_part = '\0';
-	SET_PATH(abs_path);
+	os_set_current_directory(abs_path);
 	*file_part = _c;
 
-	this->last_time_start = os_get_user_time();
-
-	if (!parent) {
-		parent = AST_NEW(Ast_Block);
-
-		DECL_TYPE(Compiler::instance->types->type_def_type);
-		DECL_TYPE(Compiler::instance->types->type_def_void);
-		DECL_TYPE(Compiler::instance->types->type_def_bool);
-		DECL_TYPE(Compiler::instance->types->type_def_s8);
-		DECL_TYPE(Compiler::instance->types->type_def_s16);
-		DECL_TYPE(Compiler::instance->types->type_def_s32);
-		DECL_TYPE(Compiler::instance->types->type_def_s64);
-		DECL_TYPE(Compiler::instance->types->type_def_u8);
-		DECL_TYPE(Compiler::instance->types->type_def_u16);
-		DECL_TYPE(Compiler::instance->types->type_def_u32);
-		DECL_TYPE(Compiler::instance->types->type_def_u64);
-		DECL_TYPE(Compiler::instance->types->type_def_f32);
-		DECL_TYPE(Compiler::instance->types->type_def_f64);
-	}
-
-	auto tmp = this->lexer;
-	this->lexer = new Lexer(abs_path, this->lexer);
-	this->factory->lexer = this->lexer;
-	this->block(parent);
-	this->accumulated_spans += os_time_user_stop(this->last_time_start);
-
-	this->all_lines += this->lexer->buffer->location.line;
-	this->global_notes.clear();
-	delete this->lexer;
-	this->lexer = tmp;
-	this->factory->lexer = this->lexer;
-
-	SET_PATH(last_path);
-	return parent;
+	this->current_block = parent;
+	return this->push_lexer(abs_path);
 }
 
-void Parser::add (Ast_Statement* stm, Ast_Block* block) {
-	if (!block) block = this->current_block;
+void Parser::teardown (Lexer* parent) {
+	this->all_lines += this->lexer->buffer->location.line;
+	this->global_notes.clear();
 
+	this->pop_lexer(parent);
+
+	os_set_current_directory(this->last_path);
+}
+
+Lexer* Parser::push_lexer(char* filepath) {
+	auto tmp = this->lexer;
+	this->lexer = new Lexer(filepath, this->lexer);
+	this->factory->lexer = this->lexer;
+	return tmp;
+}
+
+void Parser::pop_lexer(Lexer* parent) {
+	delete this->lexer;
+	this->lexer = parent;
+	this->factory->lexer = this->lexer;
+}
+
+void Parser::add (Ast_Statement* stm) {
 	if (this->global_notes.size()) {
 		stm->notes.insert(stm->notes.end(),
 			this->global_notes.begin(), this->global_notes.end());
 	}
 
-	block->list.push_back(stm);
-	if (block->is_global()) {
-		this->accumulated_spans += os_time_user_stop(this->last_time_start);
-		this->to_next(&stm);
-		this->last_time_start = os_get_user_time();
-	}
+	this->current_block->list.push_back(stm);
 }
 
 void Parser::block (Ast_Block* inner_block) {
@@ -83,15 +63,6 @@ void Parser::block (Ast_Block* inner_block) {
 	auto stm = this->statement();
 	while (stm != NULL) {
 		this->add(stm);
-
-		while (this->pending_imports.size()) {
-			auto import = this->pending_imports.front();
-			this->pending_imports.pop_front();
-
-			// @Incomplete don't assume expression is a string
-			auto literal = static_cast<Ast_Literal*>(import->target);
-			this->run(literal->string_value, this->current_block);
-		}
 
 		if (this->lexer->is_next_type(TOKEN_EOF)) break;
 		else stm = this->statement();

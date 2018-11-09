@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parser/pipes.hpp"
+#include "pipeline/pipe.hpp"
 
 template<typename T>
 T binary_fold (Ast_Binary_Type binary_op, T a, T b) {
