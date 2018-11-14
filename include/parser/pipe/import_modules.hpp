@@ -15,12 +15,15 @@ struct Import_Modules : Pipe {
 
 		auto literal = static_cast<Ast_Literal*>(import->target);
 
-		auto abs_path = (char*) malloc(MAX_PATH_LENGTH);
-		os_get_absolute_path(literal->string_value, abs_path, NULL);
+		import->absolute_path = (char*) malloc(MAX_PATH_LENGTH);
+		os_get_absolute_path(literal->string_value, import->absolute_path);
 
 		for (auto imported_file : pipeline->imported_files) {
-			if (strcmp(imported_file, abs_path) == 0)
+			if (strcmp(imported_file, import->absolute_path) == 0) {
+				free(import->absolute_path);
+				import->absolute_path = NULL;
 				return;
+			}
 		}
 
 		Compiler::instance->add_import(import);

@@ -35,9 +35,9 @@ struct Parser : Pipe {
 	T* setup_ast_node (Lexer* lexer, T* node);
 
 	Lexer* setup (const char* filepath, Ast_Block* parent = NULL);
-	void teardown (Lexer* parent);
-	Lexer* push_lexer(char* filepath);
-	void pop_lexer(Lexer* parent);
+	void teardown ();
+	Lexer* push_lexer(const char* filepath);
+	void pop_lexer();
 
 	void add (Ast_Statement* stm);
 

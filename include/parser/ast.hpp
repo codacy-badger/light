@@ -50,6 +50,8 @@ struct Ast_Statement : Ast {
 struct Ast_Import : Ast_Statement {
 	Ast_Expression* target;
 
+	char* absolute_path = NULL;
+
 	Ast_Import (Ast_Expression* target = NULL) {
 		this->stm_type = AST_STATEMENT_IMPORT;
 		this->target = target;

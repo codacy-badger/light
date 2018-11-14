@@ -16,7 +16,11 @@ void Compiler_Settings::handle_arguments (int argc, char** argv) {
 			} else if (CHECK_ARG_2("-d", "-debug")) {
 				this->is_debug = true;
 			} else report_warning(NULL, UKNOWN_ARG_FORMAT, i, argv[i]);
-		} else this->input_files.push_back(argv[i]);
+		} else {
+			auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
+			os_get_absolute_path(argv[i], absolute_path);
+			this->input_files.push_back(absolute_path);
+		}
 	}
 }
 

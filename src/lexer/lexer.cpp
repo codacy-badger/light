@@ -19,6 +19,7 @@ const char* token_get_text (Token_Type type);
 Lexer::Lexer (const char* filepath, Lexer* parent) {
 	Lexer_Buffer* buff = parent ? parent->buffer : NULL;
 	this->buffer = new Full_Buffer(filepath, buff);
+	this->parent = parent;
 	this->parse_next();
 }
 

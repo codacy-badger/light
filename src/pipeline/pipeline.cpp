@@ -64,7 +64,8 @@ void Pipeline::run(const char* filepath) {
 }
 
 void Pipeline::handle_file(const char* filepath) {
-    auto last_lexer = this->parser->setup(filepath, this->global_scope);
+    this->parser->setup(filepath, this->global_scope);
+	this->imported_files.push_back(filepath);
 
 	auto start = os_get_user_time();
     auto stm = this->parser->statement();
@@ -84,7 +85,7 @@ void Pipeline::handle_file(const char* filepath) {
         pipe->on_finish();
     }
 
-    this->parser->teardown(last_lexer);
+    this->parser->teardown();
 }
 
 void Pipeline::handle_stm(Ast_Statement* stm, int from_index) {
@@ -104,9 +105,12 @@ void Pipeline::handle_stm(Ast_Statement* stm, int from_index) {
             auto import = this->pending_imports.front();
             this->pending_imports.pop_front();
 
-            // @Incomplete don't assume expression is a string
-            auto literal = static_cast<Ast_Literal*>(import->target);
-            this->handle_file(literal->string_value);
+            if (import->absolute_path) {
+                this->handle_file(import->absolute_path);
+            } else {
+                auto literal = static_cast<Ast_Literal*>(import->target);
+                INTERNAL(import, "Absolute path for import is NULL (%s)", literal->string_value);
+            }
         }
 
         if (pipe->stop_processing) {

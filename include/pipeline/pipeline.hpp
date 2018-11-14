@@ -14,7 +14,7 @@ struct Pipeline {
     Ast_Block* global_scope = NULL;
 
 	deque<Ast_Import*> pending_imports;
-	vector<char*> imported_files;
+	vector<const char*> imported_files;
 
     Pipeline ();
 

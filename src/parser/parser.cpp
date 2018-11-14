@@ -4,47 +4,35 @@
 
 #define AST_NEW(T, ...) this->factory->new_node<T>(__VA_ARGS__)
 
-#define SET_PATH(other) if (strcmp(other, this->current_path) != 0) {			\
-	os_set_current_directory(other);											\
-	strcpy_s(this->current_path, MAX_PATH_LENGTH, other); }
-
 Lexer* Parser::setup (const char* filepath, Ast_Block* parent) {
-	char* file_part = NULL;
-	auto abs_path = (char*) malloc(MAX_PATH_LENGTH);
-	os_get_absolute_path(filepath, abs_path, &file_part);
-	Compiler::instance->pipeline->imported_files.push_back(abs_path);
-
 	os_get_current_directory(this->last_path);
-
-	auto _c = *file_part;
-	*file_part = '\0';
-	os_set_current_directory(abs_path);
-	*file_part = _c;
+	os_set_current_directory_path(filepath);
 
 	this->current_block = parent;
-	return this->push_lexer(abs_path);
+	return this->push_lexer(filepath);
 }
 
-void Parser::teardown (Lexer* parent) {
+void Parser::teardown () {
 	this->all_lines += this->lexer->buffer->location.line;
 	this->global_notes.clear();
 
-	this->pop_lexer(parent);
+	this->pop_lexer();
 
 	os_set_current_directory(this->last_path);
 }
 
-Lexer* Parser::push_lexer(char* filepath) {
+Lexer* Parser::push_lexer(const char* filepath) {
 	auto tmp = this->lexer;
 	this->lexer = new Lexer(filepath, this->lexer);
 	this->factory->lexer = this->lexer;
 	return tmp;
 }
 
-void Parser::pop_lexer(Lexer* parent) {
-	delete this->lexer;
-	this->lexer = parent;
+void Parser::pop_lexer() {
+	auto tmp = this->lexer;
+	this->lexer = tmp->parent;
 	this->factory->lexer = this->lexer;
+	delete tmp;
 }
 
 void Parser::add (Ast_Statement* stm) {

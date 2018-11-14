@@ -9,6 +9,7 @@
 
 struct Lexer {
 	Lexer_Buffer* buffer;
+	Lexer* parent;
 
 	char* next_text;
 	Token_Type next_type;

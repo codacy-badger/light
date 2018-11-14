@@ -50,10 +50,26 @@ void os_get_current_directory (char* buffer) {
 	GetCurrentDirectory(MAX_PATH, buffer);
 }
 
-void os_get_absolute_path (const char* relative_path, char* buffer, char** file_part) {
-	GetFullPathName(relative_path, MAX_PATH, buffer, file_part);
+void os_get_absolute_path (const char* relative_path, char* buffer) {
+	GetFullPathName(relative_path, MAX_PATH, buffer, NULL);
 }
 
-bool os_set_current_directory (char* new_path) {
+bool os_set_current_directory (const char* new_path) {
 	return SetCurrentDirectory(new_path);
+}
+
+bool os_set_current_directory_path (const char* new_file_path) {
+	auto file_part = os_get_file_part(new_file_path);
+	auto tmp = *file_part;
+	*file_part = '\0';
+	auto result = os_set_current_directory(new_file_path);
+	*file_part = tmp;
+	return result;
+}
+
+char* os_get_file_part (const char* path) {
+	auto last_index_of = strrchr(path, '\\');
+	if (*(last_index_of + 1) != '\0') {
+		return (char*)(last_index_of + 1);
+	} else return NULL;
 }
