@@ -24,6 +24,9 @@ Lexer::Lexer (const char* filepath, Lexer* parent) {
 }
 
 Lexer::~Lexer () {
+	if (this->parent) {
+		this->parent->ancestor_line_count += this->buffer->location.line;
+	}
 	fclose(this->buffer->file);
 	delete this->buffer;
 }
@@ -187,6 +190,10 @@ bool Lexer::skip_ignored_and_comments () {
 	return false;
 }
 
+size_t Lexer::get_total_ancestor_lines() {
+	return this->ancestor_line_count + this->buffer->location.line;
+}
+
 #define CASE_ENUM_TEXT(T, str) case T: return str;
 
 const char* token_get_text (Token_Type type) {
@@ -250,6 +257,7 @@ const char* token_get_text (Token_Type type) {
 		CASE_ENUM_TEXT(TOKEN_COMMA,			",")
 		CASE_ENUM_TEXT(TOKEN_DOT,			".")
 		CASE_ENUM_TEXT(TOKEN_AT,			"@")
+		
 		default: return "--- UNDEFINED ---";
 	}
 }

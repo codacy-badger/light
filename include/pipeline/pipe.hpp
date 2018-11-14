@@ -16,7 +16,7 @@ struct Pipe {
 	bool stop_processing = false;
 	deque<Ast_Statement*> pending_stms;
 
-	uint16_t priority = 0;
+	size_t priority = 0;
 
 	virtual void on_statement (Ast_Statement** stm) {
 		auto start = os_get_user_time();

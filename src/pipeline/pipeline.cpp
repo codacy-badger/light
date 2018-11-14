@@ -1,14 +1,14 @@
 #include "pipeline/pipeline.hpp"
 
-#include "parser/pipe/symbol_resolution.hpp"
-#include "parser/pipe/constant_folding.hpp"
-#include "parser/pipe/type_checking.hpp"
-#include "parser/pipe/foreign_function.hpp"
-#include "parser/pipe/import_modules.hpp"
+#include "pipeline/pipes/symbol_resolution.hpp"
+#include "pipeline/pipes/constant_folding.hpp"
+#include "pipeline/pipes/type_checking.hpp"
+#include "pipeline/pipes/foreign_function.hpp"
+#include "pipeline/pipes/import_modules.hpp"
 
-#include "bytecode/pipe/register_allocator.hpp"
-#include "bytecode/pipe/bytecode_generator.hpp"
-#include "bytecode/pipe/bytecode_runner.hpp"
+#include "pipeline/pipes/register_allocator.hpp"
+#include "pipeline/pipes/bytecode_generator.hpp"
+#include "pipeline/pipes/bytecode_runner.hpp"
 
 #include <algorithm>
 
@@ -21,8 +21,6 @@ bool sort_pipes (const Pipe* lhs, const Pipe* rhs) {
 }
 
 Pipeline::Pipeline() {
-    os_get_current_directory(this->parser->current_path);
-
     this->pipes.push_back(new Foreign_Function());
     this->pipes.push_back(new Symbol_Resolution());
     this->pipes.push_back(new Type_Checking());

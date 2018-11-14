@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#define MAX_PATH_LENGTH 260
+
 typedef uint64_t Timer_Function();
 
 uint64_t os_get_wall_time ();

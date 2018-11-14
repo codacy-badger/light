@@ -9,15 +9,12 @@
 #include "parser/ast.hpp"
 #include "parser/types.hpp"
 
-#define MAX_PATH_LENGTH 260
-
 using namespace std;
 
 struct Parser : Pipe {
 	Ast_Factory* factory = new Ast_Factory();
 	Lexer* lexer = NULL;
 
-	char current_path[MAX_PATH_LENGTH];
 	char last_path[MAX_PATH_LENGTH];
 	Ast_Block* current_block = NULL;
 
@@ -25,8 +22,6 @@ struct Parser : Pipe {
 	vector<Ast_Note*> notes;
 
 	// for metrics
-	uint64_t last_time_start = 0;
-	size_t ast_node_count = 0;
 	size_t all_lines = 0;
 
 	Parser () { this->pipe_name = "Parser & Lexer"; }

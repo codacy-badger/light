@@ -13,7 +13,7 @@ Lexer* Parser::setup (const char* filepath, Ast_Block* parent) {
 }
 
 void Parser::teardown () {
-	this->all_lines += this->lexer->buffer->location.line;
+	this->all_lines += this->lexer->get_total_ancestor_lines();
 	this->global_notes.clear();
 
 	this->pop_lexer();
@@ -428,5 +428,5 @@ Ast_Ident* Parser::ident (const char* name) {
 
 void Parser::print_pipe_metrics () {
 	PRINT_METRIC("Lines of Code:         %zd", this->all_lines);
-	PRINT_METRIC("AST nodes created:     %zd", this->ast_node_count);
+	PRINT_METRIC("AST nodes created:     %zd", this->factory->node_count);
 }

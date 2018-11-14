@@ -5,6 +5,7 @@
 
 struct Ast_Factory {
     Lexer* lexer = NULL;
+    uint64_t node_count = 0;
 
     template<typename T, typename ... Arguments>
     T* new_node (Arguments ... args) {
@@ -12,6 +13,7 @@ struct Ast_Factory {
         if (this->lexer) {
             node->location = this->lexer->buffer->location;
         }
+        node_count++;
         return node;
     }
 };

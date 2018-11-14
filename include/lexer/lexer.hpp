@@ -14,6 +14,8 @@ struct Lexer {
 	char* next_text;
 	Token_Type next_type;
 
+	uint64_t ancestor_line_count = 0;
+
 	Lexer (const char* filepath, Lexer* parent);
 	~Lexer ();
 
@@ -32,4 +34,6 @@ struct Lexer {
 	bool next_is_number ();
 	void handle_token (Token_Type type, const char* text = NULL);
 	bool skip_ignored_and_comments ();
+
+	size_t get_total_ancestor_lines();
 };
