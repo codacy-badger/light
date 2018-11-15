@@ -34,8 +34,12 @@ Pipeline::Pipeline() {
     // @Incomplete: add output pipes (DLL, EXE, etc.)
 
     sort(this->pipes.begin(), this->pipes.begin(), sort_pipes);
+}
 
-    this->global_scope = this->parser->factory->new_node<Ast_Block>();
+void Pipeline::run(const char* filepath) {
+    printf("\n%s\n", filepath);
+
+    this->global_scope = this->parser->factory->create_node<Ast_Block>();
     DECL_TYPE(Types::type_def_type);
     DECL_TYPE(Types::type_def_void);
     DECL_TYPE(Types::type_def_bool);
@@ -49,16 +53,16 @@ Pipeline::Pipeline() {
     DECL_TYPE(Types::type_def_u64);
     DECL_TYPE(Types::type_def_f32);
     DECL_TYPE(Types::type_def_f64);
-}
-
-void Pipeline::run(const char* filepath) {
-    printf("\n%s\n", filepath);
+    this->imported_files.clear();
 
     auto start = os_get_user_time();
 
     this->handle_file(filepath);
 
     print_compiler_metrics(os_time_user_stop(start));
+
+    delete this->global_scope;
+    this->global_scope = NULL;
 }
 
 void Pipeline::handle_file(const char* filepath) {

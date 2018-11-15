@@ -3,11 +3,11 @@
 #include <vector>
 #include <deque>
 
-#include "parser/ast_factory.hpp"
+#include "ast/ast_factory.hpp"
 #include "lexer/lexer.hpp"
 #include "pipeline/pipe.hpp"
-#include "parser/ast.hpp"
-#include "parser/types.hpp"
+#include "ast/ast.hpp"
+#include "ast/types.hpp"
 
 using namespace std;
 

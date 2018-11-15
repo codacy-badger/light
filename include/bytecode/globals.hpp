@@ -2,13 +2,15 @@
 
 #include <map>
 
+using namespace std;
+
 struct Global_Info {
 	void* pointer = NULL;
 	size_t size = 0;
 };
 
 struct Bytecode_Globals {
-    std::map<size_t, Global_Info*> allocated;
+    map<size_t, Global_Info*> allocated;
 	size_t current_offset = 0;
 
 	size_t add (size_t size) {

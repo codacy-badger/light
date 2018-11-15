@@ -43,7 +43,6 @@ struct Ast_Statement : Ast {
 
 	vector<Ast_Note*> notes;
 
-	Ast_Note* get_note (const char* name);
 	Ast_Note* remove_note (const char* name);
 };
 

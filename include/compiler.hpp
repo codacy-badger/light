@@ -3,7 +3,7 @@
 #include "pipeline/pipeline.hpp"
 
 #include "bytecode/interpreter.hpp"
-#include "parser/parser.hpp"
+#include "ast/parser.hpp"
 
 #include <vector>
 

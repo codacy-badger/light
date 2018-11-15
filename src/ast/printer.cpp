@@ -1,4 +1,4 @@
-#include "parser/printer.hpp"
+#include "ast/printer.hpp"
 
 void _tabs (int count) {
 	for (int i = 0; i < count; i++) printf("    ");

@@ -1,13 +1,6 @@
-#include "parser/ast.hpp"
+#include "ast/ast.hpp"
 
 #include "compiler.hpp"
-
-Ast_Note* Ast_Statement::get_note (const char* name) {
-    for (auto note : this->notes) {
-        if (strcmp(note->name, name) == 0) return note;
-    }
-    return NULL;
-}
 
 Ast_Note* Ast_Statement::remove_note (const char* name) {
     auto it = this->notes.begin();

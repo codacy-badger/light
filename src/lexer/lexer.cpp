@@ -96,8 +96,7 @@ bool Lexer::parse_next () {
 		return true;
 	} else if (next_is_string() || next_is_number()) return true;
 
-	report_error_and_stop(&this->buffer->location, "Unrecognized token: '%c'",
-		this->buffer->peek());
+	ERROR_STOP(this->buffer, "Unrecognized token: '%c'", this->buffer->peek());
 	return false;
 }
 
@@ -134,13 +133,8 @@ bool Lexer::optional_skip (Token_Type type) {
 }
 
 void Lexer::report_unexpected (Token_Type expected) {
-	if (expected != TOKEN_EOF) {
-		report_error_and_stop(&this->buffer->location, "Parser: Expected '%s', but got '%s'",
-			token_get_text(expected), token_get_text(this->next_type));
-	} else {
-		report_error_and_stop(&this->buffer->location, "Parser: Unexpected token '%s'",
-			token_get_text(this->next_type));
-	}
+	ERROR_STOP(this->buffer, "Expected '%s', but got '%s'",
+		token_get_text(expected), token_get_text(this->next_type));
 }
 
 bool Lexer::next_is_id () {
@@ -257,7 +251,7 @@ const char* token_get_text (Token_Type type) {
 		CASE_ENUM_TEXT(TOKEN_COMMA,			",")
 		CASE_ENUM_TEXT(TOKEN_DOT,			".")
 		CASE_ENUM_TEXT(TOKEN_AT,			"@")
-		
+
 		default: return "--- UNDEFINED ---";
 	}
 }

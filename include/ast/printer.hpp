@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parser/ast.hpp"
+#include "ast/ast.hpp"
 
 struct ASTPrinter {
 	static void print (Ast_Statement* stm, int tabs = 0);

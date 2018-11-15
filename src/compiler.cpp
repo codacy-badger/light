@@ -37,7 +37,7 @@ void Compiler::run () {
 
     auto totalWall = os_get_wall_time();
     auto totalUser = os_get_user_time();
-    for (auto filename : Compiler::instance->settings->input_files) {
+    for (auto filename : this->settings->input_files) {
 		this->pipeline->run(filename);
     }
     printf(COMPILER_DONE_FORMAT, os_time_user_stop(totalUser), os_time_wall_stop(totalWall));

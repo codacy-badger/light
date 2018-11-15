@@ -1,7 +1,7 @@
 #include "report.hpp"
 
 #include "compiler.hpp"
-#include "parser/ast.hpp"
+#include "ast/ast.hpp"
 
 #define VA_REPORT(name, buffer)													\
 	va_list argptr;																\

@@ -1,8 +1,8 @@
-#include "parser/parser.hpp"
+#include "ast/parser.hpp"
 
 #include "compiler.hpp"
 
-#define AST_NEW(T, ...) this->factory->new_node<T>(__VA_ARGS__)
+#define AST_NEW(T, ...) this->factory->create_node<T>(__VA_ARGS__)
 
 Lexer* Parser::setup (const char* filepath, Ast_Block* parent) {
 	os_get_current_directory(this->last_path);
@@ -297,9 +297,9 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		return result;
 	} else if (this->lexer->optional_skip(TOKEN_FALSE)) {
-		return Compiler::instance->types->value_false;
+		return Types::value_false;
 	} else if (this->lexer->optional_skip(TOKEN_TRUE)) {
-		return Compiler::instance->types->value_true;
+		return Types::value_true;
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_EXCLAMATION)) {
@@ -343,7 +343,7 @@ Ast_Expression* Parser::type_instance () {
 			auto decl = this->current_block->find_const_declaration(ident->name);
 			if (decl && decl->expression
 					&& decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-				//this->factory->delete_ident(ident);
+				this->factory->delete_node(ident);
 				return decl->expression;
 			} else return ident;
 		} else return NULL;

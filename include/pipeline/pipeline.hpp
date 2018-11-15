@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pipe.hpp"
-#include "parser/parser.hpp"
+#include "ast/parser.hpp"
 
 #include <vector>
 

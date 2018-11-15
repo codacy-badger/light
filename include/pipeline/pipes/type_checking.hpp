@@ -5,7 +5,7 @@
 #include <assert.h>
 
 #include "compiler.hpp"
-#include "parser/ast.hpp"
+#include "ast/ast.hpp"
 
 #define WARN_MAX_DEREF_COUNT 3
 

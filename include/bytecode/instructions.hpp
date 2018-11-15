@@ -3,10 +3,8 @@
 #include <stdint.h>
 #include <malloc.h>
 
-#include "parser/ast.hpp"
+#include "ast/ast.hpp"
 #include "report.hpp"
-
-struct Interpreter;
 
 enum Inst_Bytecode : uint8_t {
 	BYTECODE_NOOP = 0,

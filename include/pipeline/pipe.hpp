@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parser/ast.hpp"
+#include "ast/ast.hpp"
 #include "platform.hpp"
 
 #include <stdint.h>

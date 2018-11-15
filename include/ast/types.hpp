@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 
-#include "parser/ast.hpp"
+#include "ast/ast.hpp"
 
 using namespace std;
 
@@ -15,8 +15,8 @@ struct Types {
     map<Ast_Expression*, map<uint64_t, Ast_Array_Type*>> arr_types;
     vector<Ast_Function_Type*> func_types;
 
-    Ast_Expression* value_false = NULL;
-    Ast_Expression* value_true = NULL;
+    static Ast_Expression* value_false;
+    static Ast_Expression* value_true;
 
 	static Ast_Struct_Type* type_def_type;
 	static Ast_Struct_Type* type_def_void;
@@ -31,20 +31,6 @@ struct Types {
 	static Ast_Struct_Type* type_def_u64;
 	static Ast_Struct_Type* type_def_f32;
 	static Ast_Struct_Type* type_def_f64;
-
-    Types () {
-        auto lit = new Ast_Literal();
-        lit->inferred_type = this->type_def_bool;
-    	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
-    	lit->uint_value = 0;
-        this->value_false = lit;
-
-        lit = new Ast_Literal();
-        lit->inferred_type = this->type_def_bool;
-    	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
-    	lit->uint_value = 1;
-        this->value_true = lit;
-    }
 
     void add_type_if_new (Ast_Type_Instance* type);
 
