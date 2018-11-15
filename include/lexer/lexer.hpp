@@ -4,12 +4,12 @@
 #define DIGIT(c) (c >= '0' && c <= '9')
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 
-#include "lexer_buffer.hpp"
+#include "buffer/lexer_buffer.hpp"
 #include "tokens.hpp"
 
 struct Lexer {
 	Lexer_Buffer* buffer;
-	Lexer* parent;
+	Lexer* parent = NULL;
 
 	char* next_text;
 	Token_Type next_type;

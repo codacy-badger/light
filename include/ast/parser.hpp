@@ -1,13 +1,11 @@
 #pragma once
 
 #include <vector>
-#include <deque>
 
 #include "ast/ast_factory.hpp"
 #include "lexer/lexer.hpp"
 #include "pipeline/pipe.hpp"
 #include "ast/ast.hpp"
-#include "ast/types.hpp"
 
 using namespace std;
 
@@ -26,15 +24,8 @@ struct Parser : Pipe {
 
 	Parser () { this->pipe_name = "Parser & Lexer"; }
 
-	template<typename T>
-	T* setup_ast_node (Lexer* lexer, T* node);
-
 	Lexer* setup (const char* filepath, Ast_Block* parent = NULL);
 	void teardown ();
-	Lexer* push_lexer(const char* filepath);
-	void pop_lexer();
-
-	void add (Ast_Statement* stm);
 
 	void block (Ast_Block* inner_block);
 	Ast_Note* note ();

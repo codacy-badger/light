@@ -4,6 +4,7 @@
 
 #include "bytecode/interpreter.hpp"
 #include "ast/parser.hpp"
+#include "ast/types.hpp"
 
 #include <vector>
 

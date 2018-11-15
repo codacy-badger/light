@@ -74,7 +74,12 @@ void Pipeline::handle_file(const char* filepath) {
 	this->parser->total_time += os_time_user_stop(start);
 
     while (stm != NULL) {
-        this->parser->add(stm);
+        if (this->parser->global_notes.size()) {
+			stm->notes.insert(stm->notes.end(),
+				this->parser->global_notes.begin(), this->parser->global_notes.end());
+		}
+        
+        this->parser->current_block->list.push_back(stm);
 
         this->handle_stm(stm);
 

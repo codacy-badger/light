@@ -1,8 +1,8 @@
 #include "lexer/lexer.hpp"
 
 #include "compiler.hpp"
-#include "lexer/ring_buffer.hpp"
-#include "lexer/full_buffer.hpp"
+#include "lexer/buffer/ring_buffer.hpp"
+#include "lexer/buffer/full_buffer.hpp"
 
 #define LEXER_IGNORED " \n\t"
 

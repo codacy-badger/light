@@ -9,39 +9,23 @@ Lexer* Parser::setup (const char* filepath, Ast_Block* parent) {
 	os_set_current_directory_path(filepath);
 
 	this->current_block = parent;
-	return this->push_lexer(filepath);
-}
 
-void Parser::teardown () {
-	this->all_lines += this->lexer->get_total_ancestor_lines();
-	this->global_notes.clear();
-
-	this->pop_lexer();
-
-	os_set_current_directory(this->last_path);
-}
-
-Lexer* Parser::push_lexer(const char* filepath) {
 	auto tmp = this->lexer;
 	this->lexer = new Lexer(filepath, this->lexer);
 	this->factory->lexer = this->lexer;
 	return tmp;
 }
 
-void Parser::pop_lexer() {
+void Parser::teardown () {
+	this->all_lines += this->lexer->get_total_ancestor_lines();
+	this->global_notes.clear();
+
 	auto tmp = this->lexer;
 	this->lexer = tmp->parent;
 	this->factory->lexer = this->lexer;
 	delete tmp;
-}
 
-void Parser::add (Ast_Statement* stm) {
-	if (this->global_notes.size()) {
-		stm->notes.insert(stm->notes.end(),
-			this->global_notes.begin(), this->global_notes.end());
-	}
-
-	this->current_block->list.push_back(stm);
+	os_set_current_directory(this->last_path);
 }
 
 void Parser::block (Ast_Block* inner_block) {
@@ -50,7 +34,12 @@ void Parser::block (Ast_Block* inner_block) {
 
 	auto stm = this->statement();
 	while (stm != NULL) {
-		this->add(stm);
+		if (this->global_notes.size()) {
+			stm->notes.insert(stm->notes.end(),
+				this->global_notes.begin(), this->global_notes.end());
+		}
+
+		this->current_block->list.push_back(stm);
 
 		if (this->lexer->is_next_type(TOKEN_EOF)) break;
 		else stm = this->statement();
