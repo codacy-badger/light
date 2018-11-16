@@ -2,18 +2,15 @@
 
 #include "compiler.hpp"
 
+#define GLOBAL_NOTE_END "end"
+
 #define AST_NEW(T, ...) this->factory->create_node<T>(__VA_ARGS__)
 
-Lexer* Parser::setup (const char* filepath, Ast_Block* parent) {
-	os_get_current_directory(this->last_path);
-	os_set_current_directory_path(filepath);
-
+void Parser::setup (const char* filepath, Ast_Block* parent) {
 	this->current_block = parent;
 
-	auto tmp = this->lexer;
 	this->lexer = new Lexer(filepath, this->lexer);
 	this->factory->lexer = this->lexer;
-	return tmp;
 }
 
 void Parser::teardown () {
@@ -24,8 +21,6 @@ void Parser::teardown () {
 	this->lexer = tmp->parent;
 	this->factory->lexer = this->lexer;
 	delete tmp;
-
-	os_set_current_directory(this->last_path);
 }
 
 void Parser::block (Ast_Block* inner_block) {
@@ -79,7 +74,7 @@ Ast_Statement* Parser::statement () {
 		case TOKEN_HASH: {
 			auto note = this->note();
 			if (note->is_global) {
-				if (strcmp(note->name, "end") == 0) {
+				if (strcmp(note->name, GLOBAL_NOTE_END) == 0) {
 					this->global_notes.clear();
 					delete note;
 				} else {

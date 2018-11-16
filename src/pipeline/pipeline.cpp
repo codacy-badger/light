@@ -66,6 +66,10 @@ void Pipeline::run(const char* filepath) {
 }
 
 void Pipeline::handle_file(const char* filepath) {
+    char last_path[MAX_PATH_LENGTH];
+    os_get_current_directory(last_path);
+    os_set_current_directory_path(filepath);
+
     this->parser->setup(filepath, this->global_scope);
 	this->imported_files.push_back(filepath);
 
@@ -78,7 +82,7 @@ void Pipeline::handle_file(const char* filepath) {
 			stm->notes.insert(stm->notes.end(),
 				this->parser->global_notes.begin(), this->parser->global_notes.end());
 		}
-        
+
         this->parser->current_block->list.push_back(stm);
 
         this->handle_stm(stm);
@@ -93,6 +97,8 @@ void Pipeline::handle_file(const char* filepath) {
     }
 
     this->parser->teardown();
+
+    os_set_current_directory(last_path);
 }
 
 void Pipeline::handle_stm(Ast_Statement* stm, int from_index) {

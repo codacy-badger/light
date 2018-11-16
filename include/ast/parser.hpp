@@ -13,7 +13,6 @@ struct Parser : Pipe {
 	Ast_Factory* factory = new Ast_Factory();
 	Lexer* lexer = NULL;
 
-	char last_path[MAX_PATH_LENGTH];
 	Ast_Block* current_block = NULL;
 
 	vector<Ast_Note*> global_notes;
@@ -24,7 +23,7 @@ struct Parser : Pipe {
 
 	Parser () { this->pipe_name = "Parser & Lexer"; }
 
-	Lexer* setup (const char* filepath, Ast_Block* parent = NULL);
+	void setup (const char* filepath, Ast_Block* parent = NULL);
 	void teardown ();
 
 	void block (Ast_Block* inner_block);
