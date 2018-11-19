@@ -39,7 +39,7 @@ Pipeline::Pipeline() {
 void Pipeline::run(const char* filepath) {
     printf("\n%s\n", filepath);
 
-    this->global_scope = this->parser->factory->create_node<Ast_Block>();
+    this->global_scope = Ast_Factory::create_node<Ast_Block>();
     DECL_TYPE(Types::type_def_type);
     DECL_TYPE(Types::type_def_void);
     DECL_TYPE(Types::type_def_bool);
@@ -78,12 +78,7 @@ void Pipeline::handle_file(const char* filepath) {
 	this->parser->total_time += os_time_user_stop(start);
 
     while (stm != NULL) {
-        if (this->parser->global_notes.size()) {
-			stm->notes.insert(stm->notes.end(),
-				this->parser->global_notes.begin(), this->parser->global_notes.end());
-		}
-
-        this->parser->current_block->list.push_back(stm);
+		this->parser->push(stm);
 
         this->handle_stm(stm);
 

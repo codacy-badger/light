@@ -2,25 +2,27 @@
 
 #include "compiler.hpp"
 
-#define GLOBAL_NOTE_END "end"
+uint64_t Ast_Factory::node_count = 0;
 
-#define AST_NEW(T, ...) this->factory->create_node<T>(__VA_ARGS__)
+#define AST_NEW(T, ...) Ast_Factory::create_node<T>(&this->lexer->buffer->location, __VA_ARGS__)
 
 void Parser::setup (const char* filepath, Ast_Block* parent) {
 	this->current_block = parent;
-
 	this->lexer = new Lexer(filepath, this->lexer);
-	this->factory->lexer = this->lexer;
 }
 
 void Parser::teardown () {
 	this->all_lines += this->lexer->get_total_ancestor_lines();
-	this->global_notes.clear();
+	this->notes->clear_global();
 
 	auto tmp = this->lexer;
 	this->lexer = tmp->parent;
-	this->factory->lexer = this->lexer;
 	delete tmp;
+}
+
+void Parser::push (Ast_Statement* stm) {
+	this->notes->push_global_into(stm);
+	this->current_block->list.push_back(stm);
 }
 
 void Parser::block (Ast_Block* inner_block) {
@@ -29,15 +31,11 @@ void Parser::block (Ast_Block* inner_block) {
 
 	auto stm = this->statement();
 	while (stm != NULL) {
-		if (this->global_notes.size()) {
-			stm->notes.insert(stm->notes.end(),
-				this->global_notes.begin(), this->global_notes.end());
-		}
+		this->push(stm);
 
-		this->current_block->list.push_back(stm);
-
-		if (this->lexer->is_next_type(TOKEN_EOF)) break;
-		else stm = this->statement();
+		if (this->lexer->is_next_type(TOKEN_EOF)) {
+			break;
+		} else stm = this->statement();
 	}
 
 	this->current_block = _tmp;
@@ -73,20 +71,13 @@ Ast_Statement* Parser::statement () {
 		}
 		case TOKEN_HASH: {
 			auto note = this->note();
-			if (note->is_global) {
-				if (strcmp(note->name, GLOBAL_NOTE_END) == 0) {
-					this->global_notes.clear();
-					delete note;
-				} else {
-					this->global_notes.push_back(note);
-				}
-			} else notes.push_back(note);
+			while (note != NULL) {
+				this->notes->push(note);
+				note = this->note();
+			}
 
 			auto stm = this->statement();
-			if (stm) {
-				stm->notes.insert(stm->notes.end(), this->notes.begin(), this->notes.end());
-				this->notes.clear();
-			}
+			this->notes->push_into(stm);
 			return stm;
 		}
 		case TOKEN_BRAC_OPEN: {
@@ -155,6 +146,7 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	decl->scope = this->current_block;
 	decl->name = ident->name;
 
+	// TODO: should this really be here? maybe Ast_Validation pipe?
 	auto other = this->current_block->find_declaration_in_same_scope(decl->name);
 	if (other) {
 		report_error(&decl->location, "re-declaration of variable or constant '%s'", decl->name);
@@ -190,18 +182,20 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 }
 
 Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
-	Ast_Expression* output = this->_atom(initial);
+	auto output = this->_atom(initial);
     if (output != NULL) {
-        Token_Type tt = this->lexer->next_type;
+        auto tt = this->lexer->next_type;
 		auto precedence = Ast_Binary::get_precedence(tt);
 		while (precedence >= min_precedence) {
 			this->lexer->skip();
 
-			short nextMinPrec = precedence;
-			if (Ast_Binary::is_left_associative(tt)) nextMinPrec += 1;
+			auto next_min_precedence = precedence;
+			if (Ast_Binary::is_left_associative(tt)) {
+				next_min_precedence += 1;
+			}
 
 			Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
-			_tmp->rhs = this->expression(NULL, nextMinPrec);
+			_tmp->rhs = this->expression(NULL, next_min_precedence);
 			_tmp->lhs = output;
 			output = _tmp;
 
@@ -350,7 +344,7 @@ Ast_Function_Type* Parser::function_type () {
 
 	if (this->lexer->optional_skip(TOKEN_ARROW)) {
 		fn_type->ret_type = this->type_instance();
-	} else fn_type->ret_type = Compiler::instance->types->type_def_void;
+	} else fn_type->ret_type = Types::type_def_void;
 
 	return fn_type;
 }
@@ -360,25 +354,25 @@ Ast_Literal* Parser::literal () {
 	switch (this->lexer->next_type) {
 		case TOKEN_STRING: {
 			output = AST_NEW(Ast_Literal);
-			output->literal_type = AST_LITERAL_STRING;
 			output->string_value = this->lexer->text();
+			output->literal_type = AST_LITERAL_STRING;
 			break;
 		}
 		case TOKEN_NUMBER: {
 			output = AST_NEW(Ast_Literal);
-			auto number_str = this->lexer->text();
-			if (number_str[0] == '0' && number_str[1] == 'x') {
+			output->string_value = this->lexer->text();
+			if (output->is_hexadecimal()) {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
-				output->uint_value = strtoull(number_str + 2, NULL, 16);
-			} else if (number_str[0] == '0' && number_str[1] == 'b') {
+				output->uint_value = strtoull(output->string_value + 2, NULL, 16);
+			} else if (output->is_binary()) {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
-				output->uint_value = strtoull(number_str + 2, NULL, 2);
-			} else if (strstr(number_str, ".") != NULL) {
+				output->uint_value = strtoull(output->string_value + 2, NULL, 2);
+			} else if (output->is_decimal()) {
 				output->literal_type = AST_LITERAL_DECIMAL;
-				output->decimal_value = atof(number_str);
+				output->decimal_value = atof(output->string_value);
 			} else {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
-				output->uint_value = strtoull(number_str, NULL, 10);
+				output->uint_value = strtoull(output->string_value, NULL, 10);
 			}
 			break;
 		}
@@ -389,20 +383,19 @@ Ast_Literal* Parser::literal () {
 
 void Parser::comma_separated_arguments (vector<Ast_Expression*>* arguments) {
 	auto exp = this->expression();
-	if (exp) {
-		while (exp != NULL) {
-			arguments->push_back(exp);
-			this->lexer->optional_skip(TOKEN_COMMA);
-			exp = this->expression();
-		}
+	while (exp != NULL) {
+		arguments->push_back(exp);
+
+		this->lexer->optional_skip(TOKEN_COMMA);
+		exp = this->expression();
 	}
 }
 
-Ast_Ident* Parser::ident (const char* name) {
-	if (!name && !this->lexer->is_next_type(TOKEN_ID)) return NULL;
+Ast_Ident* Parser::ident () {
+	if (!this->lexer->is_next_type(TOKEN_ID)) return NULL;
 
 	auto ident = AST_NEW(Ast_Ident, this->current_block);
-	ident->name = name ? name : this->lexer->text();
+	ident->name = this->lexer->text();
 
 	// this is the right time to do this, since on a non-constant reference
 	// the declaration should already be in the scope.

@@ -1,24 +1,22 @@
 #pragma once
 
-#include "lexer/lexer.hpp"
 #include "ast/ast.hpp"
 
 struct Ast_Factory {
-    Lexer* lexer = NULL;
-    uint64_t node_count = 0;
+    static uint64_t node_count;
 
     template<typename T, typename ... Arguments>
-    T* create_node (Arguments ... args) {
-        T* node = new T(args...);
-        if (this->lexer) {
-            node->location = this->lexer->buffer->location;
+    static T* create_node (Location* loc = NULL, Arguments ... args) {
+        Ast_Factory::node_count++;
+        auto node = new T(args...);
+        if (loc != NULL) {
+            memcpy(&node->location, loc, sizeof(Location));
         }
-        this->node_count++;
         return node;
     }
 
-    void delete_node (Ast* node) {
-        this->node_count--;
+    static void delete_node (Ast* node) {
+        Ast_Factory::node_count--;
         delete node;
     }
 };

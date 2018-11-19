@@ -71,7 +71,7 @@ struct Type_Checking : Pipe {
 
 	    if (!decl->type) {
 	        ERROR_STOP(decl, "Type could not be inferred");
-	    } else if (decl->type->inferred_type != Compiler::instance->types->type_def_type) {
+	    } else if (decl->type->inferred_type != Types::type_def_type) {
 			ERROR_STOP(decl, "Expression is not a type");
 		}
 	}
@@ -81,7 +81,7 @@ struct Type_Checking : Pipe {
 
 		Pipe::handle(if_ptr);
 
-		if (!cast_if_possible(&_if->condition, _if->condition->inferred_type, Compiler::instance->types->type_def_bool)) {
+		if (!cast_if_possible(&_if->condition, _if->condition->inferred_type, Types::type_def_bool)) {
 			ERROR_STOP(_if, "The condition for the IF statement must be of type boolean, but it is '%s'",
 				_if->condition->inferred_type->name);
 		}
@@ -92,7 +92,7 @@ struct Type_Checking : Pipe {
 
 		Pipe::handle(while_ptr);
 
-		if (!cast_if_possible(&_while->condition, _while->condition->inferred_type, Compiler::instance->types->type_def_bool)) {
+		if (!cast_if_possible(&_while->condition, _while->condition->inferred_type, Types::type_def_bool)) {
 			ERROR_STOP(_while, "The condition for the IF statement must be of type boolean, but it is '%s'",
 				_while->condition->inferred_type->name);
 		}
@@ -108,7 +108,7 @@ struct Type_Checking : Pipe {
 		if (!fn) {
 			ERROR_STOP(ret, "Return statement must be inside a function");
 		} else if (ret->exp) {
-			if (fn->type->ret_type == Compiler::instance->types->type_def_void)
+			if (fn->type->ret_type == Types::type_def_void)
 				ERROR_STOP(ret, "Return statment has expression, but function returns void");
 			else if (ret->exp->inferred_type != fn->type->ret_type) {
 	            if (!cast_if_possible(&ret->exp, ret->exp->inferred_type, ret_type_def)) {
@@ -117,7 +117,7 @@ struct Type_Checking : Pipe {
 	            }
 			}
 		} else {
-			if (fn->type->ret_type != Compiler::instance->types->type_def_void)
+			if (fn->type->ret_type != Types::type_def_void)
 				ERROR_STOP(ret, "Return statment has no expression, but function returns '%s'!",
 					ret_type_def->name);
 		}
@@ -154,7 +154,7 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Function_Type** func_type_ptr) {
 		auto func_type = (*func_type_ptr);
 
-	    func_type->inferred_type = Compiler::instance->types->type_def_type;
+	    func_type->inferred_type = Types::type_def_type;
 
 		Pipe::handle(&func_type->ret_type);
 		for (int i = 0; i < func_type->arg_decls.size(); i++) {
@@ -165,7 +165,7 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Struct_Type** _struct_ptr) {
 		auto _struct = (*_struct_ptr);
 
-	    _struct->inferred_type = Compiler::instance->types->type_def_type;
+	    _struct->inferred_type = Types::type_def_type;
 		for (auto &decl : _struct->attributes) {
 			Pipe::handle(&decl);
 		}
@@ -188,7 +188,7 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Array_Type** arr_ptr) {
 		auto arr = (*arr_ptr);
 
-	    arr->inferred_type = Compiler::instance->types->type_def_type;
+	    arr->inferred_type = Types::type_def_type;
 		Pipe::handle(&arr->base);
 		Pipe::handle(&arr->length);
 
@@ -206,7 +206,7 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Pointer_Type** ptr_type_ptr) {
 		auto ptr_type = (*ptr_type_ptr);
 
-	    ptr_type->inferred_type = Compiler::instance->types->type_def_type;
+	    ptr_type->inferred_type = Types::type_def_type;
 		Pipe::handle(&ptr_type->base);
 		if (ptr_type->base->exp_type == AST_EXPRESSION_IDENT) {
 			auto ident = static_cast<Ast_Ident*>(ptr_type->base);
@@ -295,7 +295,7 @@ struct Type_Checking : Pipe {
 				if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
 					auto ident = static_cast<Ast_Ident*>(binop->rhs);
 					if (strcmp(ident->name, "length") == 0) {
-						binop->inferred_type = Compiler::instance->types->type_def_u64;
+						binop->inferred_type = Types::type_def_u64;
 					} else if (strcmp(ident->name, "data") == 0) {
 						binop->inferred_type = Compiler::instance->types->get_pointer_type(_array->base);
 					} else ERROR_STOP(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
@@ -307,7 +307,7 @@ struct Type_Checking : Pipe {
 				binop->inferred_type = static_cast<Ast_Type_Instance*>(arr_type->base);
 
 				Pipe::handle(&binop->rhs);
-				if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, Compiler::instance->types->type_def_u64)) {
+				if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, Types::type_def_u64)) {
 					ERROR_STOP(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
 				}
 			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
@@ -348,7 +348,7 @@ struct Type_Checking : Pipe {
 	    		case AST_BINARY_LT:
 	    		case AST_BINARY_LTE:
 	    		case AST_BINARY_GT:
-	    		case AST_BINARY_GTE: 	binop->inferred_type = Compiler::instance->types->type_def_bool; break;
+	    		case AST_BINARY_GTE: 	binop->inferred_type = Types::type_def_bool; break;
 	    		default: 				binop->inferred_type = binop->lhs->inferred_type; break;
 	    	}
 	    }
@@ -360,21 +360,21 @@ struct Type_Checking : Pipe {
 		Pipe::handle(&unop->exp);
 		switch (unop->unary_op) {
 			case AST_UNARY_NEGATE: {
-				if (unop->exp->inferred_type == Compiler::instance->types->type_def_u8) {
-					unop->inferred_type = Compiler::instance->types->type_def_s16;
-				} else if (unop->exp->inferred_type == Compiler::instance->types->type_def_u16) {
-					unop->inferred_type = Compiler::instance->types->type_def_s32;
-				} else if (unop->exp->inferred_type == Compiler::instance->types->type_def_u32) {
-					unop->inferred_type = Compiler::instance->types->type_def_s64;
-				} else if (unop->exp->inferred_type == Compiler::instance->types->type_def_u64) {
-					unop->inferred_type = Compiler::instance->types->type_def_s64;
+				if (unop->exp->inferred_type == Types::type_def_u8) {
+					unop->inferred_type = Types::type_def_s16;
+				} else if (unop->exp->inferred_type == Types::type_def_u16) {
+					unop->inferred_type = Types::type_def_s32;
+				} else if (unop->exp->inferred_type == Types::type_def_u32) {
+					unop->inferred_type = Types::type_def_s64;
+				} else if (unop->exp->inferred_type == Types::type_def_u64) {
+					unop->inferred_type = Types::type_def_s64;
 				} else {
 					unop->inferred_type = unop->exp->inferred_type;
 				}
 	            break;
 			}
 			case AST_UNARY_NOT: {
-				unop->inferred_type = Compiler::instance->types->type_def_bool;
+				unop->inferred_type = Types::type_def_bool;
 				break;
 			}
 			case AST_UNARY_DEREFERENCE: {
@@ -415,28 +415,28 @@ struct Type_Checking : Pipe {
 				if (lit->uint_value <= UINT32_MAX) {
 					if (lit->uint_value <= UINT16_MAX) {
 						if (lit->uint_value <= UINT8_MAX) {
-							lit->inferred_type = Compiler::instance->types->type_def_u8;
-						} else lit->inferred_type = Compiler::instance->types->type_def_u16;
-					} else lit->inferred_type = Compiler::instance->types->type_def_u32;
-				} else lit->inferred_type = Compiler::instance->types->type_def_u64;
+							lit->inferred_type = Types::type_def_u8;
+						} else lit->inferred_type = Types::type_def_u16;
+					} else lit->inferred_type = Types::type_def_u32;
+				} else lit->inferred_type = Types::type_def_u64;
 	            break;
 	        }
 	        case AST_LITERAL_SIGNED_INT: {
 				if (lit->int_value <= INT32_MAX && lit->int_value >= INT32_MIN) {
 					if (lit->int_value <= INT16_MAX && lit->int_value >= INT16_MIN) {
 						if (lit->int_value <= INT8_MAX && lit->int_value >= INT8_MIN) {
-							lit->inferred_type = Compiler::instance->types->type_def_s8;
-						} else lit->inferred_type = Compiler::instance->types->type_def_s16;
-					} else lit->inferred_type = Compiler::instance->types->type_def_s32;
-				} else lit->inferred_type = Compiler::instance->types->type_def_s64;
+							lit->inferred_type = Types::type_def_s8;
+						} else lit->inferred_type = Types::type_def_s16;
+					} else lit->inferred_type = Types::type_def_s32;
+				} else lit->inferred_type = Types::type_def_s64;
 	            break;
 	        }
 	        case AST_LITERAL_DECIMAL: {
-				lit->inferred_type = Compiler::instance->types->type_def_f32;
+				lit->inferred_type = Types::type_def_f32;
 	            break;
 	        }
 	        case AST_LITERAL_STRING: {
-				lit->inferred_type = Compiler::instance->types->get_pointer_type(Compiler::instance->types->type_def_u8);
+				lit->inferred_type = Compiler::instance->types->get_pointer_type(Types::type_def_u8);
 				Pipe::handle(&lit->inferred_type);
 	            break;
 	        }

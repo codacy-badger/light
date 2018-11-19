@@ -58,7 +58,6 @@ struct Ast_Import : Ast_Statement {
 };
 
 struct Ast_Block : Ast_Statement {
-	const char* name = NULL;
 	vector<Ast_Statement*> list;
 
 	Ast_Block* parent = NULL;
@@ -350,6 +349,10 @@ struct Ast_Literal : Ast_Expression {
 	size_t data_offset = 0;
 
 	Ast_Literal () { this->exp_type = AST_EXPRESSION_LITERAL; }
+
+	bool is_hexadecimal () 	{ return string_value[0] == '0' && string_value[1] == 'x'; }
+	bool is_binary () 		{ return string_value[0] == '0' && string_value[1] == 'b'; }
+	bool is_decimal () 		{ return strstr(string_value, ".") != NULL; }
 };
 
 struct Ast_Ident : Ast_Expression {

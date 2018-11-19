@@ -110,7 +110,7 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 
 	auto length_attr = new Ast_Declaration();
 	length_attr->name = "length";
-	length_attr->type = Compiler::instance->types->type_def_u64;
+	length_attr->type = Types::type_def_u64;
 	this->attributes.push_back(length_attr);
 
 	auto data_attr = new Ast_Declaration();
@@ -395,7 +395,7 @@ Ast_Literal* ast_make_literal (unsigned long long value) {
 
 Ast_Literal* ast_make_literal (bool value) {
 	auto lit = new Ast_Literal();
-    lit->inferred_type = Compiler::instance->types->type_def_bool;
+    lit->inferred_type = Types::type_def_bool;
 	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
 	lit->uint_value = value;
 	return lit;
