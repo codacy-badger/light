@@ -4,7 +4,6 @@
 #include "pipeline/pipes/constant_folding.hpp"
 #include "pipeline/pipes/type_checking.hpp"
 #include "pipeline/pipes/foreign_function.hpp"
-#include "pipeline/pipes/import_modules.hpp"
 
 #include "pipeline/pipes/register_allocator.hpp"
 #include "pipeline/pipes/bytecode_generator.hpp"
@@ -21,19 +20,22 @@ bool sort_pipes (const Pipe* lhs, const Pipe* rhs) {
 }
 
 Pipeline::Pipeline() {
-    this->pipes.push_back(new Foreign_Function());
-    this->pipes.push_back(new Symbol_Resolution());
-    this->pipes.push_back(new Type_Checking());
-    this->pipes.push_back(new Import_Modules());
-    this->pipes.push_back(new Constant_Folding());
+    this->add_pipe(new Foreign_Function());
+    this->add_pipe(new Symbol_Resolution());
+    this->add_pipe(new Type_Checking());
+    this->add_pipe(new Constant_Folding());
 
-    this->pipes.push_back(new Register_Allocator());
-    this->pipes.push_back(new Bytecode_Generator());
-    this->pipes.push_back(new Bytecode_Runner());
+    this->add_pipe(new Register_Allocator());
+    this->add_pipe(new Bytecode_Generator());
+    this->add_pipe(new Bytecode_Runner());
 
     // @Incomplete: add output pipes (DLL, EXE, etc.)
 
     sort(this->pipes.begin(), this->pipes.begin(), sort_pipes);
+}
+
+void Pipeline::add_pipe(Pipe* pipe) {
+    this->pipes.push_back(pipe);
 }
 
 void Pipeline::run(const char* filepath) {
@@ -97,6 +99,12 @@ void Pipeline::handle_file(const char* filepath) {
 }
 
 void Pipeline::handle_stm(Ast_Statement* stm, int from_index) {
+    if (stm->stm_type == AST_STATEMENT_IMPORT) {
+        auto import = static_cast<Ast_Import*>(stm);
+        this->handle_import(import);
+        return;
+    }
+
     for (int i = from_index; i < this->pipes.size(); i++) {
         auto pipe = this->pipes[i];
 
@@ -109,23 +117,28 @@ void Pipeline::handle_stm(Ast_Statement* stm, int from_index) {
             this->handle_stm(_stm, i + 1);
         }
 
-        while (this->pending_imports.size()) {
-            auto import = this->pending_imports.front();
-            this->pending_imports.pop_front();
-
-            if (import->absolute_path) {
-                this->handle_file(import->absolute_path);
-            } else {
-                auto literal = static_cast<Ast_Literal*>(import->target);
-                INTERNAL(import, "Absolute path for import is NULL (%s)", literal->string_value);
-            }
-        }
-
         if (pipe->stop_processing) {
             pipe->stop_processing = false;
             break;
         }
     }
+}
+
+void Pipeline::handle_import(Ast_Import* import) {
+    auto literal = static_cast<Ast_Literal*>(import->target);
+
+    import->absolute_path = (char*) malloc(MAX_PATH_LENGTH);
+    os_get_absolute_path(literal->string_value, import->absolute_path);
+
+    for (auto imported_file : this->imported_files) {
+        if (strcmp(imported_file, import->absolute_path) == 0) {
+            free(import->absolute_path);
+            import->absolute_path = NULL;
+            return;
+        }
+    }
+
+    this->handle_file(import->absolute_path);
 }
 
 void Pipeline::print_compiler_metrics (double total_time) {
