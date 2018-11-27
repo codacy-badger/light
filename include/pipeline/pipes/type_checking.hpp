@@ -103,7 +103,7 @@ struct Type_Checking : Pipe {
 
 		if (ret->exp) Pipe::handle(&ret->exp);
 
-		auto fn = ret->block->get_function();
+		auto fn = ret->scope->get_function();
 		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->type->ret_type);
 		if (!fn) {
 			ERROR_STOP(ret, "Return statement must be inside a function");

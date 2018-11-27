@@ -77,7 +77,7 @@ void Pipeline::handle_file(const char* filepath) {
 
 	auto start = os_get_user_time();
     auto stm = this->parser->statement();
-	this->parser->total_time += os_time_user_stop(start);
+	this->parser->parsing_time += os_time_user_stop(start);
 
     while (stm != NULL) {
 		this->parser->push(stm);
@@ -86,7 +86,7 @@ void Pipeline::handle_file(const char* filepath) {
 
         start = os_get_user_time();
         stm = this->parser->statement();
-    	this->parser->total_time += os_time_user_stop(start);
+    	this->parser->parsing_time += os_time_user_stop(start);
     }
 
     for (auto pipe : this->pipes) {
@@ -144,10 +144,10 @@ void Pipeline::handle_import(Ast_Import* import) {
 void Pipeline::print_compiler_metrics (double total_time) {
 	printf("\n");
 
-    double percent = (this->parser->total_time * 100.0) / total_time;
-    printf("  - %-25s%8.6fs (%5.2f%%)\n", this->parser->pipe_name,
-        this->parser->total_time, percent);
-    this->parser->print_pipe_metrics();
+    double percent = (this->parser->parsing_time * 100.0) / total_time;
+    printf("  - %-25s%8.6fs (%5.2f%%)\n", "Parser & Lexer",
+        this->parser->parsing_time, percent);
+    this->parser->print_metrics();
 
     for (auto pipe : this->pipes) {
         if (pipe->pipe_name) {

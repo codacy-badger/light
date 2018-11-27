@@ -45,9 +45,11 @@ Ast_Note* Parser::note () {
 	if (this->lexer->optional_skip(TOKEN_HASH)) {
 		auto note = AST_NEW(Ast_Note);
 		note->is_global = this->lexer->optional_skip(TOKEN_EXCLAMATION);
+
 		if (this->lexer->is_next_type(TOKEN_ID)) {
 			note->name = this->lexer->text();
 		} else report_error_and_stop(&note->location, "All notes must have a name");
+
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			this->comma_separated_arguments(&note->arguments);
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
@@ -113,7 +115,7 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip();
 			auto output = AST_NEW(Ast_Return);
 			output->exp = this->expression();
-			output->block = this->current_block;
+			output->scope = this->current_block;
 			this->lexer->optional_skip(TOKEN_STM_END);
 			return output;
 		}
@@ -128,7 +130,7 @@ Ast_Statement* Parser::statement () {
 						return exp;
 					} else {
 						auto output = AST_NEW(Ast_Return);
-						output->block = this->current_block;
+						output->scope = this->current_block;
 						output->exp = exp;
 						return output;
 					}
@@ -319,8 +321,7 @@ Ast_Expression* Parser::type_instance () {
 		auto ident = this->ident();
 		if (ident) {
 			auto decl = this->current_block->find_const_declaration(ident->name);
-			if (decl && decl->expression
-					&& decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+			if (decl && decl->expression && decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 				this->factory->delete_node(ident);
 				return decl->expression;
 			} else return ident;
@@ -403,7 +404,7 @@ Ast_Ident* Parser::ident () {
 	return ident;
 }
 
-void Parser::print_pipe_metrics () {
+void Parser::print_metrics () {
 	PRINT_METRIC("Lines of Code:         %zd", this->all_lines);
 	PRINT_METRIC("AST nodes created:     %zd", this->factory->node_count);
 }

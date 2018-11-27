@@ -123,7 +123,7 @@ struct Ast_Declaration : Ast_Statement {
 
 struct Ast_Return : Ast_Statement {
 	Ast_Expression* exp = NULL;
-	Ast_Block* block = NULL;
+	Ast_Block* scope = NULL;
 
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
 };

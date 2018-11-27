@@ -10,7 +10,7 @@
 
 using namespace std;
 
-struct Parser : Pipe {
+struct Parser {
 	Ast_Factory* factory = new Ast_Factory();
 	Notes* notes = new Notes();
 	Lexer* lexer = NULL;
@@ -19,8 +19,7 @@ struct Parser : Pipe {
 
 	// for metrics
 	size_t all_lines = 0;
-
-	Parser () { this->pipe_name = "Parser & Lexer"; }
+	double parsing_time = 0;
 
 	void setup (const char* filepath, Ast_Block* parent = NULL);
 	void teardown ();
@@ -40,5 +39,5 @@ struct Parser : Pipe {
 	Ast_Literal* literal ();
 	Ast_Ident* ident ();
 
-	virtual void print_pipe_metrics();
+	virtual void print_metrics();
 };
