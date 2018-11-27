@@ -172,6 +172,7 @@ struct Type_Checking : Pipe {
 
 		if (_struct->byte_size == 0) {
 			size_t byte_offset = 0;
+			// TODO: use byte_alignment to correctly assign byte_offsets
 			for (size_t i = 0; i < _struct->attributes.size(); i++) {
 				auto decl = _struct->attributes[i];
 				decl->attribute_byte_offset = byte_offset;
