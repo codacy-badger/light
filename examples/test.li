@@ -230,24 +230,14 @@ test_static_array :: fn {
 	}
 }
 
-/*make_slice :: fn (length: u64, data: *$T) -> []T {
-	tmp : []T;
-	tmp.length = length;
-	tmp.data = data;
-	return tmp;
-}*/
-
 test_slice :: fn {
-	numbers: [3]u8;
+	numbers: [4]u8;
 	numbers[0] = 13;
 	numbers[1] = 14;
 	numbers[2] = 15;
 
-	tmp : []u8;
-	tmp.length = numbers.length;
-	tmp.data = numbers.data;
+	tmp : []u8 = numbers;
 	print_u8_slice(tmp);
-	//print_u8_slice(make_slice(numbers.length, numbers.data));
 
 	print_u8_slice :: fn (array : []u8) {
 		print("Slice data -> (");

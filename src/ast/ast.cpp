@@ -425,3 +425,10 @@ Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bo
     decl->name = name;
     return decl;
 }
+
+Ast_Declaration* ast_make_declaration_with_type (const char* name, Ast_Expression* type) {
+    auto decl = new Ast_Declaration();
+    decl->type = type;
+    decl->name = name;
+    return decl;
+}

@@ -155,5 +155,19 @@ bool Types::is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* t
 		} else if (!type_from->is_signed && type_to->is_signed) {
 			return type_to->byte_size > type_from->byte_size;
 		} else return false;
-	} else return false;
+	} else if (!type_from->is_primitive && !type_to->is_primitive) {
+		if (type_from->typedef_type == AST_TYPEDEF_ARRAY && type_to->typedef_type == AST_TYPEDEF_STRUCT) {
+			auto array_type = static_cast<Ast_Array_Type*>(type_from);
+			auto struct_type = static_cast<Ast_Struct_Type*>(type_to);
+			if (struct_type->is_slice) {
+				// TODO: we're assuming both base types are instance of types
+				// (we should check that once in the whole code!)
+				auto slice_type = static_cast<Ast_Slice_Type*>(struct_type);
+				auto base_type1 = static_cast<Ast_Type_Instance*>(array_type->base);
+				auto base_type2 = static_cast<Ast_Type_Instance*>(slice_type->base);
+				return ast_types_are_equal(base_type1, base_type2);
+			}
+		}
+	}
+	return false;
 }

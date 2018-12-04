@@ -154,6 +154,8 @@ struct Ast_Cast : Ast_Expression {
 	Ast_Expression* value = NULL;
 	Ast_Expression* cast_to = NULL;
 
+	bool is_array_cast = false;
+
 	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
 };
 
@@ -381,3 +383,4 @@ Ast_Ident* ast_make_ident (const char* name);
 Ast_Unary* ast_make_unary (Ast_Unary_Type type, Ast_Expression* expression);
 Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expression* rhs);
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const = true);
+Ast_Declaration* ast_make_declaration_with_type (const char* name, Ast_Expression* type);

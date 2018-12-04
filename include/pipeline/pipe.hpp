@@ -76,10 +76,16 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Block** _block) {
-		auto it = (*_block)->list.begin();
-		while (it != (*_block)->list.end()) {
-			this->handle(&(*it));
-			it++;
+		size_t initial_size = (*_block)->list.size();
+		for (uint64_t i = 0; i < (*_block)->list.size(); i++) {
+			this->handle(&((*_block)->list[i]));
+
+			// INFO: if we add something to the scope, we have to increment
+			// the counter the same amount of items
+			if ((*_block)->list.size() > initial_size) {
+				initial_size = (*_block)->list.size();
+				i -= 1;
+			}
 		}
 	}
 

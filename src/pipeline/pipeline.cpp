@@ -2,6 +2,7 @@
 
 #include "pipeline/pipes/symbol_resolution.hpp"
 #include "pipeline/pipes/constant_folding.hpp"
+#include "pipeline/pipes/cast_arrays.hpp"
 #include "pipeline/pipes/type_checking.hpp"
 #include "pipeline/pipes/foreign_function.hpp"
 
@@ -23,6 +24,7 @@ Pipeline::Pipeline() {
     this->add_pipe(new Foreign_Function());
     this->add_pipe(new Symbol_Resolution());
     this->add_pipe(new Type_Checking());
+    this->add_pipe(new Cast_Arrays());
     this->add_pipe(new Constant_Folding());
 
     this->add_pipe(new Register_Allocator());

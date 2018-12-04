@@ -17,6 +17,12 @@ bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, A
         cast->value = (*exp_ptr);
         cast->cast_to = type_to;
         cast->inferred_type = type_to;
+
+		// INFO: if the cast comes from an implicid array cast, mark it!
+		if (type_from->typedef_type == AST_TYPEDEF_ARRAY) {
+			cast->is_array_cast = true;
+		}
+
         (*exp_ptr) = cast;
         return true;
     } else return false;
