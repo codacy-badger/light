@@ -54,11 +54,12 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
 
 	if (decl->type) print(decl->type, tabs, true);
 
-	if (decl->is_constant()) printf(": ");
-	else printf("= ");
+	if (decl->expression) {
+		if (decl->is_constant()) printf(" : ");
+		else printf(" = ");
 
-	if (decl->expression) print(decl->expression, tabs);
-	else printf("??");
+		print(decl->expression, tabs);
+	}
 }
 
 void ASTPrinter::print (Ast_Return* ret, int tabs) {
@@ -116,15 +117,19 @@ void ASTPrinter::print (Ast_Type_Instance* tydef, int tabs, bool name_only) {
 			print(static_cast<Ast_Pointer_Type*>(tydef), tabs);
 			break;
 		}
+		case AST_TYPEDEF_ARRAY: {
+			print(static_cast<Ast_Array_Type*>(tydef), tabs);
+			break;
+		}
 		default: printf("(-TYPE?-)");
 	}
 }
 
 void ASTPrinter::print (Ast_Struct_Type* type, int tabs, bool name_only) {
-	if (type->name) printf("[%s] ", type->name);
+	if (type->name) printf("%s", type->name);
 	if (!name_only) {
 		if (type->attributes.size() > 0) {
-			printf("{\n");
+			printf(" {\n");
 			for (auto attr : type->attributes) {
 				_tabs(tabs + 1);
 				print(attr, tabs + 1);
@@ -152,6 +157,11 @@ void ASTPrinter::print (Ast_Function_Type* type, int tabs) {
 
 void ASTPrinter::print (Ast_Pointer_Type* type, int tabs) {
 	printf("*");
+	print(type->base, tabs, true);
+}
+
+void ASTPrinter::print (Ast_Array_Type* type, int tabs) {
+	printf("[%zd]", type->length_as_number);
 	print(type->base, tabs, true);
 }
 

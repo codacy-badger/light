@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pipeline/pipe.hpp"
+#include "ast/printer.hpp"
 
 #include "pipeline/pipes/type_checking.hpp"
 
@@ -29,12 +30,12 @@ struct Cast_Arrays : Pipe {
                 slice_declaration->scope = this->current_scope;
                 type_checker->handle(&slice_declaration);
 
-                auto tmp_ident = ast_make_ident("$tmp1");
-                tmp_ident->declaration = slice_declaration;
-                tmp_ident->inferred_type = slice_type;
-
                 // $tmp.length = array.length;
-                auto tmp_length_property = ast_make_binary(AST_BINARY_ATTRIBUTE, tmp_ident, ast_make_ident("length"));
+                auto tmp_ident1 = ast_make_ident("$tmp1");
+                tmp_ident1->declaration = slice_declaration;
+                tmp_ident1->inferred_type = slice_type;
+
+                auto tmp_length_property = ast_make_binary(AST_BINARY_ATTRIBUTE, tmp_ident1, ast_make_ident("length"));
                 auto arr_length_property = ast_make_binary(AST_BINARY_ATTRIBUTE, cast->value, ast_make_ident("length"));
                 auto assign_length = ast_make_binary(AST_BINARY_ASSIGN, tmp_length_property, arr_length_property);
                 tmp_length_property->inferred_type = Types::type_def_u64;
@@ -43,7 +44,11 @@ struct Cast_Arrays : Pipe {
                 type_checker->handle(&assign_length);
 
                 // $tmp.data = array.data;
-                auto tmp_data_property = ast_make_binary(AST_BINARY_ATTRIBUTE, tmp_ident, ast_make_ident("data"));
+                auto tmp_ident2 = ast_make_ident("$tmp1");
+                tmp_ident2->declaration = slice_declaration;
+                tmp_ident2->inferred_type = slice_type;
+
+                auto tmp_data_property = ast_make_binary(AST_BINARY_ATTRIBUTE, tmp_ident2, ast_make_ident("data"));
                 auto arr_data_property = ast_make_binary(AST_BINARY_ATTRIBUTE, cast->value, ast_make_ident("data"));
                 auto assign_data = ast_make_binary(AST_BINARY_ASSIGN, tmp_data_property, arr_data_property);
                 tmp_data_property->inferred_type = base_type;
@@ -54,7 +59,11 @@ struct Cast_Arrays : Pipe {
                 stm_location = this->current_scope->list.insert(stm_location, assign_data);
                 stm_location = this->current_scope->list.insert(stm_location, assign_length);
                 stm_location = this->current_scope->list.insert(stm_location, slice_declaration);
-                *cast_ptr = reinterpret_cast<Ast_Cast*>(tmp_ident);
+
+                auto tmp_ident3 = ast_make_ident("$tmp1");
+                tmp_ident3->declaration = slice_declaration;
+                tmp_ident3->inferred_type = slice_type;
+                *cast_ptr = reinterpret_cast<Ast_Cast*>(tmp_ident3);
 
                 delete type_checker;
             }

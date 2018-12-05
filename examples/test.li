@@ -236,8 +236,7 @@ test_slice :: fn {
 	numbers[1] = 14;
 	numbers[2] = 15;
 
-	tmp : []u8 = numbers;
-	print_u8_slice(tmp);
+	print_u8_slice(numbers);
 
 	print_u8_slice :: fn (array : []u8) {
 		print("Slice data -> (");
