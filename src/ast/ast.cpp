@@ -386,6 +386,25 @@ bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type
     }
 }
 
+bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
+	if (ast_types_are_equal(type_from, type_to)) return true;
+	else if (Compiler::instance->types->is_implicid_cast(type_from, type_to)) {
+        auto cast = new Ast_Cast();
+		cast->location = (*exp_ptr)->location;
+        cast->value = (*exp_ptr);
+        cast->cast_to = type_to;
+        cast->inferred_type = type_to;
+
+		// INFO: if the cast comes from an implicid array cast, mark it!
+		if (type_from->typedef_type == AST_TYPEDEF_ARRAY) {
+			cast->is_array_cast = true;
+		}
+
+        (*exp_ptr) = cast;
+        return true;
+    } else return false;
+}
+
 uint8_t ast_get_pointer_size () {
     return Compiler::instance->settings->register_size;
 }

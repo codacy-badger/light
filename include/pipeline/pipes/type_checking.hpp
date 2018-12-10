@@ -9,33 +9,6 @@
 
 #define WARN_MAX_DEREF_COUNT 3
 
-bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-	if (ast_types_are_equal(type_from, type_to)) return true;
-	else if (Compiler::instance->types->is_implicid_cast(type_from, type_to)) {
-        auto cast = new Ast_Cast();
-		cast->location = (*exp_ptr)->location;
-        cast->value = (*exp_ptr);
-        cast->cast_to = type_to;
-        cast->inferred_type = type_to;
-
-		// INFO: if the cast comes from an implicid array cast, mark it!
-		if (type_from->typedef_type == AST_TYPEDEF_ARRAY) {
-			cast->is_array_cast = true;
-		}
-
-        (*exp_ptr) = cast;
-        return true;
-    } else return false;
-}
-
-void replace_ident_by_const (Ast_Ident** ident_ptr) {
-	auto decl = (*ident_ptr)->declaration;
-    auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr);
-	// We should send this Ident to the parser factory so it can be re-used.
-    //delete *ident_ptr;
-    (*_addr) = decl->expression;
-}
-
 struct Type_Checking : Pipe {
 	PIPE_NAME(Type_Checking)
 
@@ -407,7 +380,9 @@ struct Type_Checking : Pipe {
 		if (ident->declaration) {
 			if (ident->declaration->is_constant()) {
 				Pipe::handle(&ident->declaration);
-	            replace_ident_by_const(ident_ptr);
+
+			    auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr);
+			    (*_addr) = (*ident_ptr)->declaration->expression;
 	        } else {
 				ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
 			}
