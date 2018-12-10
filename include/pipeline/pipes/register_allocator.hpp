@@ -96,7 +96,7 @@ struct Register_Allocator : Pipe {
                 Pipe::handle(&binop->lhs);
                 Pipe::handle(&binop->rhs);
 
-                binop->reg = reserve_reg(binop->lhs->reg, binop->rhs->reg);
+                binop->reg = reserve_next_reg();
 				break;
 			}
 			case AST_BINARY_ASSIGN: {

@@ -349,9 +349,9 @@ struct Bytecode_Generator : Pipe {
 				            auto element_size = array_base_type->byte_size;
 
 				        	this->handle_left(&binop->lhs);
-
 							INST(binop, Add_Const, binop->reg, binop->lhs->reg, data_decl->attribute_byte_offset);
 							INST(binop, Load, binop->reg, binop->reg, ptr_type->byte_size);
+							
 							Pipe::handle(&binop->rhs);
 
 				            if (element_size > 1) INST(binop, Mul_Const, binop->reg, element_size);

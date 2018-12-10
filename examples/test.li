@@ -243,9 +243,8 @@ test_slice :: fn {
 		print_u64(array.length);
 		print(") [ ");
 		if (array.length > 0) {
-			index := 0;
-			print_u64(array[index]);
-			index = index + 1;
+			print_u64(array[0]);
+			index := 1;
 			while (index < array.length) {
 				print(", ");
 				print_u64(array[index]);
