@@ -8,17 +8,17 @@ T binary_fold (Ast_Binary_Type binary_op, T a, T b) {
 		case AST_BINARY_LOGICAL_AND: 	return a && b;
 		case AST_BINARY_LOGICAL_OR: 	return a || b;
 
-		case AST_BINARY_ADD: return a + b;
-		case AST_BINARY_SUB: return a - b;
-		case AST_BINARY_MUL: return a * b;
-		case AST_BINARY_DIV: return a / b;
+		case AST_BINARY_ADD: 			return a + b;
+		case AST_BINARY_SUB: 			return a - b;
+		case AST_BINARY_MUL: 			return a * b;
+		case AST_BINARY_DIV: 			return a / b;
 
-		case AST_BINARY_EQ: 	return a == b;
-		case AST_BINARY_NEQ: 	return a != b;
-		case AST_BINARY_LT: 	return a < b;
-		case AST_BINARY_LTE: 	return a <= b;
-		case AST_BINARY_GT: 	return a > b;
-		case AST_BINARY_GTE: 	return a >= b;
+		case AST_BINARY_EQ: 			return a == b;
+		case AST_BINARY_NEQ: 			return a != b;
+		case AST_BINARY_LT: 			return a < b;
+		case AST_BINARY_LTE: 			return a <= b;
+		case AST_BINARY_GT: 			return a > b;
+		case AST_BINARY_GTE: 			return a >= b;
 		default: return 0;
 	}
 }
@@ -56,7 +56,7 @@ Ast_Type_Instance* unary_type (Ast_Unary_Type unary_op, Ast_Expression* exp) {
 			else if (exp->inferred_type == Types::type_def_u16) return Types::type_def_s32;
 			else if (exp->inferred_type == Types::type_def_u32) return Types::type_def_s64;
 			else if (exp->inferred_type == Types::type_def_u64) {
-				report_warning(&exp->location, "negating a u64 integer may not give the right value");
+				WARN(exp, "negating a u64 integer may not give the right value");
 				return Types::type_def_s64;
 			} else return exp->inferred_type;
 		}
@@ -91,22 +91,22 @@ struct Constant_Folding : Pipe {
 
 		if (unary->exp->exp_type == AST_EXPRESSION_LITERAL) {
 			auto lit = reinterpret_cast<Ast_Literal*>(unary->exp);
-			auto unop = unary->unary_op;
-
-			lit->inferred_type = unary_type(unop, lit);
+			lit->inferred_type = unary_type(unary->unary_op, lit);
 
 			switch (lit->literal_type) {
 				case AST_LITERAL_UNSIGNED_INT: {
-					lit->int_value = unary_fold(unop, lit->int_value);
-					if (unop == AST_UNARY_NEGATE) lit->literal_type = AST_LITERAL_SIGNED_INT;
+					lit->int_value = unary_fold(unary->unary_op, lit->int_value);
+					if (unary->unary_op == AST_UNARY_NEGATE) {
+						lit->literal_type = AST_LITERAL_SIGNED_INT;
+					}
 					break;
 				}
 				case AST_LITERAL_SIGNED_INT: {
-					lit->int_value = unary_fold(unop, lit->int_value);
+					lit->int_value = unary_fold(unary->unary_op, lit->int_value);
 					break;
 				}
 				case AST_LITERAL_DECIMAL: {
-					lit->decimal_value = unary_fold(unop, lit->decimal_value);
+					lit->decimal_value = unary_fold(unary->unary_op, lit->decimal_value);
 					break;
 				}
 				case AST_LITERAL_STRING: {
@@ -124,13 +124,10 @@ struct Constant_Folding : Pipe {
 
 		Pipe::handle(binary_ptr);
 
-		auto lhs = binary->lhs;
-		auto rhs = binary->rhs;
-
 		if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
-			auto ident = static_cast<Ast_Ident*>(rhs);
-			if (lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
-				auto arr_type = static_cast<Ast_Array_Type*>(lhs->inferred_type);
+			auto ident = static_cast<Ast_Ident*>(binary->rhs);
+			if (binary->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
+				auto arr_type = static_cast<Ast_Array_Type*>(binary->lhs->inferred_type);
 				if (strcmp(ident->name, "length") == 0) {
 					auto lit = ast_make_literal(arr_type->get_length());
 					lit->inferred_type = Types::type_def_u64;
@@ -139,7 +136,7 @@ struct Constant_Folding : Pipe {
 					delete *binary_ptr;
 					(*binary_ptr) = reinterpret_cast<Ast_Binary*>(lit);
 				} else if (strcmp(ident->name, "data") == 0) {
-					auto array_ref = ast_make_unary(AST_UNARY_REFERENCE, lhs);
+					auto array_ref = ast_make_unary(AST_UNARY_REFERENCE, binary->lhs);
 					array_ref->inferred_type = Compiler::instance->types->get_pointer_type(arr_type->base);
 					array_ref->location = binary->location;
 

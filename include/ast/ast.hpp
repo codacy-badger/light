@@ -24,6 +24,8 @@ struct Ast_Note : Ast {
 	bool is_global = false;
 	const char* name = NULL;
 	vector<Ast_Expression*> arguments;
+
+	char* get_string_parameter (int index);
 };
 
 enum Ast_Statement_Type {
@@ -74,7 +76,7 @@ struct Ast_Block : Ast_Statement {
 	Ast_Declaration* find_non_const_declaration (const char* name);
 	Ast_Declaration* find_const_declaration (const char* name);
 	bool is_ancestor (Ast_Block* other);
-	Ast_Function* get_function ();
+	Ast_Function* get_parent_function ();
 };
 
 struct Ast_If : Ast_Statement {

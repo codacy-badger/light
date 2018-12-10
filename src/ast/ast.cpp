@@ -2,6 +2,17 @@
 
 #include "compiler.hpp"
 
+char* Ast_Note::get_string_parameter (int index) {
+    auto exp = this->arguments[index];
+    if (exp->exp_type == AST_EXPRESSION_LITERAL) {
+        auto lit = static_cast<Ast_Literal*>(exp);
+        if (lit->literal_type == AST_LITERAL_STRING) {
+            return lit->string_value;
+        }
+    }
+    return NULL;
+}
+
 Ast_Note* Ast_Statement::remove_note (const char* name) {
     auto it = this->notes.begin();
     while (it != this->notes.end()) {
@@ -75,7 +86,7 @@ bool Ast_Block::is_ancestor (Ast_Block* other) {
 	}
 }
 
-Ast_Function* Ast_Block::get_function () {
+Ast_Function* Ast_Block::get_parent_function () {
 	if (this->scope_of) return this->scope_of;
 	else {
 		Ast_Block* block = this;
