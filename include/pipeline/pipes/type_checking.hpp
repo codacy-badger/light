@@ -2,8 +2,6 @@
 
 #include "pipeline/pipe.hpp"
 
-#include <assert.h>
-
 #include "compiler.hpp"
 #include "ast/ast.hpp"
 
@@ -12,19 +10,10 @@
 struct Type_Checking : Pipe {
 	PIPE_NAME(Type_Checking)
 
-	void handle (Ast_Import** import_ptr) {
-		auto import = (*import_ptr);
-
-		if (import->target->exp_type == AST_EXPRESSION_LITERAL) {
-			auto lit = static_cast<Ast_Literal*>(import->target);
-			if (lit->literal_type == AST_LITERAL_STRING) {
-				return;
-			} else ERROR_STOP(import, "Import must be followed by a string literal");
-		} else ERROR_STOP(import, "Import must be followed by an expression");
-	}
-
 	void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);
+
+		ASSERT(decl != NULL);
 
 		if (decl->expression) {
 			Pipe::handle(&decl->expression);
@@ -126,7 +115,7 @@ struct Type_Checking : Pipe {
 
 		if (type_inst && type_inst->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 			Compiler::instance->types->add_type_if_new(type_inst);
-			assert(type_inst->guid >= 0);
+			ASSERT(type_inst->guid >= 0);
 		} else abort();
 	}
 
@@ -157,7 +146,7 @@ struct Type_Checking : Pipe {
 				decl->attribute_byte_offset = byte_offset;
 				decl->attribute_index = i;
 
-				assert (decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
+				ASSERT(decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
 				auto defn_ty = static_cast<Ast_Type_Instance*>(decl->type);
 				byte_offset += defn_ty->byte_size;
 			}
@@ -227,7 +216,7 @@ struct Type_Checking : Pipe {
 
 				auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
 				auto param_exp = call->arguments[i];
-				assert(param_exp->inferred_type);
+				ASSERT(param_exp->inferred_type);
 
 				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
 					ERROR_STOP(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",

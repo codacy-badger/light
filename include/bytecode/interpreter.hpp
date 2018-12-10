@@ -6,8 +6,6 @@
 #include "bytecode/globals.hpp"
 #include "bytecode/call_record.hpp"
 
-#include <assert.h>
-
 #include "dyncall/dyncall.h"
 
 #define INTERP_REGISTER_SIZE  8
@@ -30,7 +28,7 @@ struct Interpreter {
 	DCCallVM* vm = NULL;
 
 	Interpreter (size_t vm_size = 512) {
-		assert(INTERP_REGISTER_SIZE >= sizeof(void*));
+		ASSERT(INTERP_REGISTER_SIZE >= sizeof(void*));
 		memset(&this->registers, 0, INTERP_REGISTER_COUNT * sizeof(Bytecode_Register));
 		this->vm = dcNewCallVM(vm_size);
 	}

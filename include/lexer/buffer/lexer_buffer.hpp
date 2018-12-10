@@ -1,6 +1,5 @@
 #pragma once
 
-#include <assert.h>
 #include <deque>
 
 #include "lexer/lexer.hpp"
@@ -10,7 +9,7 @@
 
 #define CONSUME(check, c) while (check(c)) { this->_buffer[count++] = c;		\
 	this->skip(); c = this->peek(); }											\
-	assert(count < LEXER_BUFFER_SIZE);
+	ASSERT(count < LEXER_BUFFER_SIZE);
 
 struct Lexer_Buffer {
 	FILE* file = NULL;
@@ -48,7 +47,7 @@ struct Lexer_Buffer {
 				this->skip();
 				c = this->peek();
 			}
-			assert(count < LEXER_BUFFER_SIZE);
+			ASSERT(count < LEXER_BUFFER_SIZE);
 
 			this->_buffer[count] = 0;
 			return _strdup(this->_buffer);
@@ -64,7 +63,7 @@ struct Lexer_Buffer {
 
 			c = this->next();
 			while (c != '"') {
-				assert(count < LEXER_BUFFER_SIZE);
+				ASSERT(count < LEXER_BUFFER_SIZE);
 				if (c == '\\') {
 					c = this->next();
 					switch (c) {

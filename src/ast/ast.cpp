@@ -107,8 +107,8 @@ Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
 
 uint64_t Ast_Array_Type::get_length () {
 	if (!this->length_as_number) {
-		assert(this->length);
-		assert(this->length->exp_type == AST_EXPRESSION_LITERAL);
+		ASSERT(this->length);
+		ASSERT(this->length->exp_type == AST_EXPRESSION_LITERAL);
 		this->length_as_number = static_cast<Ast_Literal*>(this->length)->uint_value;
 	}
 	return this->length_as_number;

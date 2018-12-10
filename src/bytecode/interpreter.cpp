@@ -89,7 +89,7 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_STACK_ALLOCATE: {
 			auto alloca = static_cast<Inst_Stack_Allocate*>(inst);
-			assert((this->stack_index + alloca->size) < INTERP_STACK_SIZE);
+			ASSERT((this->stack_index + alloca->size) < INTERP_STACK_SIZE);
 			this->stack_index += alloca->size;
 			return;
 		}
@@ -232,14 +232,14 @@ void Interpreter::call (void* func_ptr, Bytecode_Type bytecode_type, uint8_t reg
 				case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (DCpointer) param_value); break;
 				case BYTECODE_TYPE_F32: {
 					DCfloat tmp;
-					assert(sizeof(DCfloat) <= sizeof(size_t));
+					ASSERT(sizeof(DCfloat) <= sizeof(size_t));
 					memcpy(&tmp, &param_value, sizeof(DCfloat));
 					dcArgFloat(vm, (DCfloat) tmp);
 					break;
 				}
 				case BYTECODE_TYPE_F64: {
 					DCdouble tmp;
-					assert(sizeof(DCdouble) <= sizeof(size_t));
+					ASSERT(sizeof(DCdouble) <= sizeof(size_t));
 					memcpy(&tmp, &param_value, sizeof(DCdouble));
 					dcArgDouble(vm, (DCdouble) tmp);
 					break;

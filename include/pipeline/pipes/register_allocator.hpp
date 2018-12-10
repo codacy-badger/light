@@ -2,7 +2,6 @@
 
 #include "pipeline/pipe.hpp"
 
-#include <assert.h>
 #include <vector>
 
 using namespace std;
@@ -190,8 +189,8 @@ struct Register_Allocator : Pipe {
     }
 
     void set_declaration (Ast_Declaration* decl) {
-        assert(decl->expression->reg >= 0);
-        assert(this->decl_regs[decl->expression->reg]);
+        ASSERT(decl->expression->reg >= 0);
+        ASSERT(this->decl_regs[decl->expression->reg]);
         this->decl_regs[decl->expression->reg]->decl = decl;
     }
 

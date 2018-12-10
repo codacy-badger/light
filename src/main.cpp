@@ -1,3 +1,5 @@
+__pragma(warning(disable:4127))
+
 #include "platform.hpp"
 #include "compiler.hpp"
 #include "report.hpp"

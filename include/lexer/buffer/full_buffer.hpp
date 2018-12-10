@@ -1,7 +1,5 @@
 #pragma once
 
-#include <assert.h>
-
 #include "lexer_buffer.hpp"
 
 void replace_special_characters (char* buffer, size_t length) {
@@ -57,7 +55,7 @@ struct Full_Buffer : Lexer_Buffer {
 				length += 1;
 				c = this->buffer[this->index + length];
 			}
-			assert(length < LEXER_BUFFER_SIZE);
+			ASSERT(length < LEXER_BUFFER_SIZE);
 
 			auto str = (char*) malloc(length + 1);
 			memcpy(str, &this->buffer[this->index], length);
@@ -81,7 +79,7 @@ struct Full_Buffer : Lexer_Buffer {
 				} else length += 1;
 				c = this->buffer[this->index + length];
 			}
-			assert(length < LEXER_BUFFER_SIZE);
+			ASSERT(length < LEXER_BUFFER_SIZE);
 
 			auto str = (char*) malloc(length);
 			memcpy(str, &this->buffer[this->index + 1], length - 1);

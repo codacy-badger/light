@@ -2,7 +2,6 @@
 
 #include "pipeline/pipe.hpp"
 
-#include <assert.h>
 #include <vector>
 #include <map>
 
@@ -16,7 +15,7 @@ void try_resolve_idents (vector<Ast_Ident**>* idents, Ast_Declaration* decl) {
         auto ident_ptr = (*it);
         auto ident = (*ident_ptr);
 
-        assert(ident->exp_type == AST_EXPRESSION_IDENT);
+        ASSERT(ident->exp_type == AST_EXPRESSION_IDENT);
 
         if (ident->exp_type == AST_EXPRESSION_IDENT) {
             if (strcmp(ident->name, decl->name) == 0

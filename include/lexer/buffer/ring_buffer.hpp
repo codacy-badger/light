@@ -1,7 +1,5 @@
 #pragma once
 
-#include <assert.h>
-
 #include "lexer_buffer.hpp"
 
 #define RING_BUFFER_SIZE 512
@@ -20,7 +18,7 @@ struct Ring_Buffer : Lexer_Buffer {
 		: Lexer_Buffer (filename, parent) {
 			// If this rule doesn't get satisfied the sections of the buffer will
 			// have different sizes, messing up the data
-			assert((RING_BUFFER_SIZE % RING_BUFFER_SECTIONS) == 0);
+			ASSERT((RING_BUFFER_SIZE % RING_BUFFER_SECTIONS) == 0);
 
 			this->remaining += fread(this->buffer, 1, RING_BUFFER_SIZE, this->file);
 		}
