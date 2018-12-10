@@ -212,7 +212,9 @@ struct Bytecode_Generator : Pipe {
 
 		auto type_from = bytecode_get_type(cast->value->inferred_type);
 		auto type_to = bytecode_get_type(cast->inferred_type);
-		INST(cast, Cast, cast->reg, cast->value->reg, type_from, type_to);
+		if (type_from != type_to) {
+			INST(cast, Cast, cast->reg, cast->value->reg, type_from, type_to);
+		}
 	}
 
 	uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {
@@ -351,7 +353,7 @@ struct Bytecode_Generator : Pipe {
 				        	this->handle_left(&binop->lhs);
 							INST(binop, Add_Const, binop->reg, binop->lhs->reg, data_decl->attribute_byte_offset);
 							INST(binop, Load, binop->reg, binop->reg, ptr_type->byte_size);
-							
+
 							Pipe::handle(&binop->rhs);
 
 				            if (element_size > 1) INST(binop, Mul_Const, binop->reg, element_size);

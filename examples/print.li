@@ -48,7 +48,7 @@ print_u64 :: fn (number: u64) {
 			count = count + 1;
 		}
 
-		print(cast(*u8) *_number_buffer);
+		print(*_number_buffer);
 	}
 }
 
@@ -80,7 +80,7 @@ print_u64_hex :: fn (number: u64) {
 			count = count + 1;
 		}
 
-		print(cast(*u8) *_number_buffer);
+		print(*_number_buffer);
 	}
 }
 

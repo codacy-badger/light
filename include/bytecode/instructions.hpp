@@ -106,6 +106,10 @@ struct Inst_Copy : Instruction {
 		this->bytecode = BYTECODE_COPY;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
+
+		if (reg1 == reg2) {
+			report_warning(NULL, "BYTECODE GENERATOR: Copying to the same register: %d", reg1);
+		}
 	}
 };
 
@@ -119,6 +123,13 @@ struct Inst_Copy_Memory : Instruction {
 		this->reg_to = reg_to;
 		this->reg_from = reg_from;
 		this->size = size;
+
+		if (reg_to == reg_from) {
+			report_warning(NULL, "BYTECODE GENERATOR: Copying memory to the same register: %d", reg_to);
+		}
+		if (size == 0) {
+			report_warning(NULL, "BYTECODE GENERATOR: Copying 0-sized memory");
+		}
 	}
 };
 
@@ -134,15 +145,14 @@ struct Inst_Cast : Instruction {
 		this->reg_from = reg_from;
 		this->type_from = type_from;
 		this->type_to = type_to;
+
+		if (type_from == type_to) {
+			report_warning(NULL, "BYTECODE GENERATOR: casting value to the same type: %d", type_from);
+		}
 	}
 
-	Inst_Cast (uint8_t reg, Bytecode_Type type_from, Bytecode_Type type_to) {
-		this->bytecode = BYTECODE_CAST;
-		this->reg_to = reg;
-		this->reg_from = reg;
-		this->type_from = type_from;
-		this->type_to = type_to;
-	}
+	Inst_Cast (uint8_t reg, Bytecode_Type type_from, Bytecode_Type type_to)
+	 	: Inst_Cast(reg, reg, type_from, type_to) { /* empty */ }
 };
 
 struct Inst_Set : Instruction {
@@ -198,6 +208,10 @@ struct Inst_Stack_Allocate : Instruction {
 	Inst_Stack_Allocate (size_t size) {
 		this->bytecode = BYTECODE_STACK_ALLOCATE;
 		this->size = size;
+
+		if (size == 0) {
+			report_warning(NULL, "BYTECODE GENERATOR: allocation 0 bytes in stack");
+		}
 	}
 };
 
@@ -222,6 +236,10 @@ struct Inst_Load : Instruction {
 		this->dest = dest;
 		this->src = src;
 		this->size = size;
+
+		if (size == 0) {
+			report_warning(NULL, "BYTECODE GENERATOR: loading 0-sized bytes");
+		}
 	}
 };
 
@@ -235,6 +253,10 @@ struct Inst_Store : Instruction {
 		this->dest = dest;
 		this->src = src;
 		this->size = size;
+
+		if (size == 0) {
+			report_warning(NULL, "BYTECODE GENERATOR: storing 0-sized bytes");
+		}
 	}
 };
 
@@ -244,14 +266,6 @@ struct Inst_Unary : Instruction {
 	uint8_t reg = 0;
 	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
 
-	Inst_Unary (uint8_t unop, uint8_t reg, Bytecode_Type bytecode_type) {
-		this->bytecode = BYTECODE_UNARY;
-		this->unop = unop;
-		this->target = reg;
-		this->reg = reg;
-		this->bytecode_type = bytecode_type;
-	}
-
 	Inst_Unary (uint8_t unop, uint8_t target, uint8_t reg, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_UNARY;
 		this->unop = unop;
@@ -259,6 +273,9 @@ struct Inst_Unary : Instruction {
 		this->reg = reg;
 		this->bytecode_type = bytecode_type;
 	}
+
+	Inst_Unary (uint8_t unop, uint8_t reg, Bytecode_Type bytecode_type)
+	 	: Inst_Unary(unop, reg, reg, bytecode_type) { /* empty */ }
 };
 
 struct Inst_Binary : Instruction {
@@ -268,15 +285,6 @@ struct Inst_Binary : Instruction {
 	uint8_t reg2 = 0;
 	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
 
-	Inst_Binary (uint8_t binop, uint8_t reg1, uint8_t reg2, Bytecode_Type bytecode_type) {
-		this->bytecode = BYTECODE_BINARY;
-		this->binop = binop;
-		this->target = reg1;
-		this->reg1 = reg1;
-		this->reg2 = reg2;
-		this->bytecode_type = bytecode_type;
-	}
-
 	Inst_Binary (uint8_t binop, uint8_t target, uint8_t reg1, uint8_t reg2, Bytecode_Type bytecode_type) {
 		this->bytecode = BYTECODE_BINARY;
 		this->binop = binop;
@@ -285,6 +293,9 @@ struct Inst_Binary : Instruction {
 		this->reg2 = reg2;
 		this->bytecode_type = bytecode_type;
 	}
+
+	Inst_Binary (uint8_t binop, uint8_t reg1, uint8_t reg2, Bytecode_Type bytecode_type) :
+	 	Inst_Binary (binop, reg1, reg1, reg2, bytecode_type) { /* empty */ }
 };
 
 struct Inst_Add_Const : Instruction {
@@ -292,19 +303,19 @@ struct Inst_Add_Const : Instruction {
 	uint8_t reg = 0;
 	uint64_t number = 0;
 
-	Inst_Add_Const (uint8_t reg, uint64_t number) {
-		this->bytecode = BYTECODE_ADD_CONST;
-		this->target = reg;
-		this->reg = reg;
-		this->number = number;
-	}
-
 	Inst_Add_Const (uint8_t target, uint8_t reg, uint64_t number) {
 		this->bytecode = BYTECODE_ADD_CONST;
 		this->target = target;
 		this->reg = reg;
 		this->number = number;
+
+		if (number == 0) {
+			report_warning(NULL, "BYTECODE GENERATOR: adding 0");
+		}
 	}
+
+	Inst_Add_Const (uint8_t reg, uint64_t number)
+		: Inst_Add_Const (reg, reg, number) { /* empty */ }
 };
 
 struct Inst_Mul_Const : Instruction {
@@ -312,19 +323,23 @@ struct Inst_Mul_Const : Instruction {
 	uint8_t reg = 0;
 	uint64_t number = 0;
 
-	Inst_Mul_Const (uint8_t reg, uint64_t number) {
-		this->bytecode = BYTECODE_MUL_CONST;
-		this->target = reg;
-		this->reg = reg;
-		this->number = number;
-	}
-
 	Inst_Mul_Const (uint8_t target, uint8_t reg, uint64_t number) {
 		this->bytecode = BYTECODE_MUL_CONST;
 		this->target = target;
 		this->reg = reg;
 		this->number = number;
+
+		if (number == 0) {
+			report_warning(NULL, "BYTECODE GENERATOR: multiplying by 0");
+		}
+
+		if (number == 1) {
+			report_warning(NULL, "BYTECODE GENERATOR: multiplying by 1, duh");
+		}
 	}
+
+	Inst_Mul_Const (uint8_t reg, uint64_t number)
+	 	: Inst_Mul_Const (reg, reg, number) { /* empty */ }
 };
 
 struct Inst_Jump : Instruction {
@@ -407,9 +422,5 @@ struct Inst_Return : Instruction {
 		this->bytecode_type = bytecode_type;
 	}
 
-	Inst_Return () {
-		this->bytecode = BYTECODE_RETURN;
-		this->bytecode_type = BYTECODE_TYPE_VOID;
-		this->reg_index = 0;
-	}
+	Inst_Return () : Inst_Return (0, BYTECODE_TYPE_VOID) { /* empty */ }
 };
