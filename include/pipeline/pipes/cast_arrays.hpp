@@ -5,8 +5,6 @@
 
 #include "pipeline/pipes/type_checking.hpp"
 
-#include <algorithm>
-
 using namespace std;
 
 struct Cast_Arrays : Pipe {

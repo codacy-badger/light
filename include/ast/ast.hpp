@@ -195,10 +195,10 @@ struct Ast_Struct_Type : Ast_Type_Instance {
 
 	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0, size_t byte_alignment = 0, bool is_primitive = false, bool is_signed = false) {
 		this->typedef_type = AST_TYPEDEF_STRUCT;
+		this->byte_alignment = byte_alignment;
 		this->is_primitive = is_primitive;
 		this->is_signed = is_signed;
 		this->byte_size = byte_size;
-		this->byte_alignment = byte_alignment;
 		this->name = name;
 	}
 
@@ -250,10 +250,12 @@ struct Ast_Function : Ast_Expression {
 	Ast_Function_Type* type = NULL;
 	Ast_Scope* scope = NULL;
 
+	// for foreign functions
 	const char* foreign_module_name = NULL;
 	const char* foreign_function_name = NULL;
 	void* foreign_function_pointer = NULL;
 
+	// for bytecode
 	vector<Instruction*> bytecode;
 
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }

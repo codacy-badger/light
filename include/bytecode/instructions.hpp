@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <malloc.h>
 
 #include "ast/ast.hpp"
 #include "report.hpp"

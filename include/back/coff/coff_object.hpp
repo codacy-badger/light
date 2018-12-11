@@ -54,8 +54,6 @@ struct COFF_Section_Header {
 	uint32_t	characteristics;
 };
 
-// Binary operations
-
 void write_1b (FILE* file, int number) {
 	fputc(number, file);
 }

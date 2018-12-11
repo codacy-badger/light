@@ -8,6 +8,10 @@
 struct Type_Checking : Pipe {
 	PIPE_NAME(Type_Checking)
 
+	// @Info this pipe ensures that all expressions have a valid inferred_type
+	// and that all types in the tree make sense (binary ops, func calls, etc.).
+	// After this pipe has run, we can assume all inferred_types have value
+
 	void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);
 

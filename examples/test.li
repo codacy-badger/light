@@ -142,7 +142,7 @@ test_scopes :: fn {
 
 	assert(func() == 13);
 
-	if true {
+	{
 		assert(func() == 12);
 		func :: fn -> u8 { var }
 		assert(func() == 12);
@@ -155,7 +155,7 @@ test_scopes :: fn {
 		assert(var2 == 3);
 	}
 
-	if true {
+	{
 		assert(var == 1);
 		//assert(var2 == 3);
 	}
