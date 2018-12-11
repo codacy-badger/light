@@ -11,7 +11,7 @@ struct Pipeline {
     Parser* parser = new Parser();
     vector<Pipe*> pipes;
 
-    Ast_Block* global_scope = NULL;
+    Ast_Scope* global_scope = NULL;
 
 	deque<Ast_Import*> pending_imports;
 	vector<const char*> imported_files;

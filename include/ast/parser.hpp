@@ -15,18 +15,18 @@ struct Parser {
 	Notes* notes = new Notes();
 	Lexer* lexer = NULL;
 
-	Ast_Block* current_block = NULL;
+	Ast_Scope* current_block = NULL;
 
 	// for metrics
 	size_t all_lines = 0;
 	double parsing_time = 0;
 
-	void setup (const char* filepath, Ast_Block* parent = NULL);
+	void setup (const char* filepath, Ast_Scope* parent = NULL);
 	void teardown ();
 
 	void push (Ast_Statement* stm);
 
-	void block (Ast_Block* inner_block);
+	void block (Ast_Scope* inner_block);
 	Ast_Note* note ();
 	Ast_Statement* statement ();
 	Ast_Declaration* declaration (Ast_Ident* ident = NULL);

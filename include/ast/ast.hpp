@@ -61,13 +61,13 @@ struct Ast_Import : Ast_Statement {
 	}
 };
 
-struct Ast_Block : Ast_Statement {
+struct Ast_Scope : Ast_Statement {
 	vector<Ast_Statement*> list;
 
-	Ast_Block* parent = NULL;
+	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
 
-	Ast_Block (Ast_Block* parent = NULL) {
+	Ast_Scope (Ast_Scope* parent = NULL) {
 		this->stm_type = AST_STATEMENT_BLOCK;
 		this->parent = parent;
 	}
@@ -77,7 +77,7 @@ struct Ast_Block : Ast_Statement {
 	Ast_Declaration* find_declaration_in_same_scope (const char* name);
 	Ast_Declaration* find_non_const_declaration (const char* name);
 	Ast_Declaration* find_const_declaration (const char* name);
-	bool is_ancestor (Ast_Block* other);
+	bool is_ancestor (Ast_Scope* other);
 	Ast_Function* get_parent_function ();
 };
 
@@ -108,7 +108,7 @@ struct Ast_Declaration : Ast_Statement {
 	Ast_Expression* expression = NULL;
 
 	uint8_t decl_flags = 0;
-	Ast_Block* scope = NULL;
+	Ast_Scope* scope = NULL;
 
 	// for struct property
 	Ast_Struct_Type* _struct = NULL;
@@ -126,7 +126,7 @@ struct Ast_Declaration : Ast_Statement {
 
 struct Ast_Return : Ast_Statement {
 	Ast_Expression* expression = NULL;
-	Ast_Block* scope = NULL;
+	Ast_Scope* scope = NULL;
 
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
 };
@@ -248,7 +248,7 @@ struct Ast_Function_Type : Ast_Type_Instance {
 struct Ast_Function : Ast_Expression {
 	const char* name = NULL;
 	Ast_Function_Type* type = NULL;
-	Ast_Block* scope = NULL;
+	Ast_Scope* scope = NULL;
 
 	const char* foreign_module_name = NULL;
 	const char* foreign_function_name = NULL;
@@ -370,10 +370,10 @@ struct Ast_Literal : Ast_Expression {
 struct Ast_Ident : Ast_Expression {
 	const char* name = NULL;
 
-	Ast_Block* scope = NULL;
+	Ast_Scope* scope = NULL;
 	Ast_Declaration* declaration = NULL;
 
-	Ast_Ident (Ast_Block* scope = NULL) {
+	Ast_Ident (Ast_Scope* scope = NULL) {
 		this->exp_type = AST_EXPRESSION_IDENT;
 		this->scope = scope;
 	}

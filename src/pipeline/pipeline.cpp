@@ -43,20 +43,20 @@ void Pipeline::add_pipe(Pipe* pipe) {
 void Pipeline::run(const char* filepath) {
     printf("\n%s\n", filepath);
 
-    this->global_scope = Ast_Factory::create_node<Ast_Block>();
-    DECL_TYPE(Types::type_def_type);
-    DECL_TYPE(Types::type_def_void);
-    DECL_TYPE(Types::type_def_bool);
-    DECL_TYPE(Types::type_def_s8);
-    DECL_TYPE(Types::type_def_s16);
-    DECL_TYPE(Types::type_def_s32);
-    DECL_TYPE(Types::type_def_s64);
-    DECL_TYPE(Types::type_def_u8);
-    DECL_TYPE(Types::type_def_u16);
-    DECL_TYPE(Types::type_def_u32);
-    DECL_TYPE(Types::type_def_u64);
-    DECL_TYPE(Types::type_def_f32);
-    DECL_TYPE(Types::type_def_f64);
+    this->global_scope = Ast_Factory::create_node<Ast_Scope>();
+    DECL_TYPE(Types::type_type);
+    DECL_TYPE(Types::type_void);
+    DECL_TYPE(Types::type_bool);
+    DECL_TYPE(Types::type_s8);
+    DECL_TYPE(Types::type_s16);
+    DECL_TYPE(Types::type_s32);
+    DECL_TYPE(Types::type_s64);
+    DECL_TYPE(Types::type_u8);
+    DECL_TYPE(Types::type_u16);
+    DECL_TYPE(Types::type_u32);
+    DECL_TYPE(Types::type_u64);
+    DECL_TYPE(Types::type_f32);
+    DECL_TYPE(Types::type_f64);
     this->imported_files.clear();
 
     auto start = os_get_user_time();

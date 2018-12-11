@@ -41,7 +41,7 @@ struct Bytecode_Generator : Pipe {
 
 	void handle (Ast_Import**) { /* empty */ }
 
-	void handle (Ast_Block** block_ptr) {
+	void handle (Ast_Scope** block_ptr) {
 		for (auto &stm : (*block_ptr)->list) {
 			this->handle(&stm);
 		}
@@ -134,7 +134,7 @@ struct Bytecode_Generator : Pipe {
 
 			this->handle(&func->scope);
 
-			if (func->type->ret_type == Types::type_def_void) {
+			if (func->type->ret_type == Types::type_void) {
 				if (this->bytecode->size() == 0) {
 					this->add_instruction(func->scope, new Inst_Return());
 				} else {

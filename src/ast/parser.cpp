@@ -6,7 +6,7 @@ uint64_t Ast_Factory::node_count = 0;
 
 #define AST_NEW(T, ...) Ast_Factory::create_node<T>(&this->lexer->buffer->location, __VA_ARGS__)
 
-void Parser::setup (const char* filepath, Ast_Block* parent) {
+void Parser::setup (const char* filepath, Ast_Scope* parent) {
 	this->current_block = parent;
 	this->lexer = new Lexer(filepath, this->lexer);
 }
@@ -25,7 +25,7 @@ void Parser::push (Ast_Statement* stm) {
 	this->current_block->list.push_back(stm);
 }
 
-void Parser::block (Ast_Block* inner_block) {
+void Parser::block (Ast_Scope* inner_block) {
 	auto _tmp = this->current_block;
 	this->current_block = inner_block;
 
@@ -84,7 +84,7 @@ Ast_Statement* Parser::statement () {
 		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip();
-			auto _block = AST_NEW(Ast_Block, this->current_block);
+			auto _block = AST_NEW(Ast_Scope, this->current_block);
 			this->block(_block);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 			return _block;
@@ -229,7 +229,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		if (this->lexer->is_next_type(TOKEN_BRAC_OPEN)) {
 			this->lexer->skip();
 
-			auto _block = AST_NEW(Ast_Block, this->current_block);
+			auto _block = AST_NEW(Ast_Scope, this->current_block);
 			this->block(_block);
 			for (auto stm : _block->list) {
 				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
@@ -246,7 +246,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 		return _struct;
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
-		auto sub_scope = AST_NEW(Ast_Block, this->current_block);
+		auto sub_scope = AST_NEW(Ast_Scope, this->current_block);
 		auto tmp = this->current_block;
 		this->current_block = sub_scope;
 
@@ -345,7 +345,7 @@ Ast_Function_Type* Parser::function_type () {
 
 	if (this->lexer->optional_skip(TOKEN_ARROW)) {
 		fn_type->ret_type = this->type_instance();
-	} else fn_type->ret_type = Types::type_def_void;
+	} else fn_type->ret_type = Types::type_void;
 
 	return fn_type;
 }

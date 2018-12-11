@@ -2,19 +2,19 @@
 
 #include "compiler.hpp"
 
-Ast_Struct_Type* Types::type_def_type = new Ast_Struct_Type("type", 0);
-Ast_Struct_Type* Types::type_def_void = new Ast_Struct_Type("void", 0);
-Ast_Struct_Type* Types::type_def_bool = new Ast_Struct_Type("bool", 1, 1, true /* primitive */ );
-Ast_Struct_Type* Types::type_def_s8   = new Ast_Struct_Type("s8", 	1, 1, true, true /* signed */ );
-Ast_Struct_Type* Types::type_def_s16  = new Ast_Struct_Type("s16",  2, 2, true, true);
-Ast_Struct_Type* Types::type_def_s32  = new Ast_Struct_Type("s32",  4, 4, true, true);
-Ast_Struct_Type* Types::type_def_s64  = new Ast_Struct_Type("s64",  8, 8, true, true);
-Ast_Struct_Type* Types::type_def_u8   = new Ast_Struct_Type("u8",   1, 1, true);
-Ast_Struct_Type* Types::type_def_u16  = new Ast_Struct_Type("u16",  2, 2, true);
-Ast_Struct_Type* Types::type_def_u32  = new Ast_Struct_Type("u32",  4, 4, true);
-Ast_Struct_Type* Types::type_def_u64  = new Ast_Struct_Type("u64",  8, 8, true);
-Ast_Struct_Type* Types::type_def_f32  = new Ast_Struct_Type("f32",  4, 4, true);
-Ast_Struct_Type* Types::type_def_f64  = new Ast_Struct_Type("f64",  8, 8, true);
+Ast_Struct_Type* Types::type_type = new Ast_Struct_Type("type", 0);
+Ast_Struct_Type* Types::type_void = new Ast_Struct_Type("void", 0);
+Ast_Struct_Type* Types::type_bool = new Ast_Struct_Type("bool", 1, 1, true /* primitive */ );
+Ast_Struct_Type* Types::type_s8   = new Ast_Struct_Type("s8", 	1, 1, true, true /* signed */ );
+Ast_Struct_Type* Types::type_s16  = new Ast_Struct_Type("s16",  2, 2, true, true);
+Ast_Struct_Type* Types::type_s32  = new Ast_Struct_Type("s32",  4, 4, true, true);
+Ast_Struct_Type* Types::type_s64  = new Ast_Struct_Type("s64",  8, 8, true, true);
+Ast_Struct_Type* Types::type_u8   = new Ast_Struct_Type("u8",   1, 1, true);
+Ast_Struct_Type* Types::type_u16  = new Ast_Struct_Type("u16",  2, 2, true);
+Ast_Struct_Type* Types::type_u32  = new Ast_Struct_Type("u32",  4, 4, true);
+Ast_Struct_Type* Types::type_u64  = new Ast_Struct_Type("u64",  8, 8, true);
+Ast_Struct_Type* Types::type_f32  = new Ast_Struct_Type("f32",  4, 4, true);
+Ast_Struct_Type* Types::type_f64  = new Ast_Struct_Type("f64",  8, 8, true);
 
 Ast_Expression* Types::value_false = ast_make_literal(false);
 Ast_Expression* Types::value_true = ast_make_literal(true);
@@ -152,7 +152,7 @@ Ast_Slice_Type* Types::get_slice_type (Ast_Expression* base) {
 
 bool Types::is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
 	if (type_from->is_primitive && type_to->is_primitive) {
-		if (type_to == Types::type_def_bool) return true;
+		if (type_to == Types::type_bool) return true;
 		else if (type_from->is_signed == type_to->is_signed) {
 			return type_to->byte_size >= type_from->byte_size;
 		} else if (!type_from->is_signed && type_to->is_signed) {

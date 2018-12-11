@@ -5,7 +5,7 @@
 struct ASTPrinter {
 	static void print (Ast_Statement* stm, int tabs = 0);
 	static void print (Ast_Declaration* decl, int tabs = 0);
-	static void print (Ast_Block* stm, int tabs = 0);
+	static void print (Ast_Scope* stm, int tabs = 0);
 	static void print (Ast_Note* note, int tabs = 0);
 	static void print (Ast_Return* ret, int tabs = 0);
 

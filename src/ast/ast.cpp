@@ -26,7 +26,7 @@ Ast_Note* Ast_Statement::remove_note (const char* name) {
     return NULL;
 }
 
-Ast_Declaration* Ast_Block::find_declaration_in_same_scope (const char* _name) {
+Ast_Declaration* Ast_Scope::find_declaration_in_same_scope (const char* _name) {
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
@@ -38,7 +38,7 @@ Ast_Declaration* Ast_Block::find_declaration_in_same_scope (const char* _name) {
     return NULL;
 }
 
-Ast_Declaration* Ast_Block::find_non_const_declaration (const char* _name) {
+Ast_Declaration* Ast_Scope::find_non_const_declaration (const char* _name) {
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
@@ -60,7 +60,7 @@ Ast_Declaration* Ast_Block::find_non_const_declaration (const char* _name) {
     } else return NULL;
 }
 
-Ast_Declaration* Ast_Block::find_const_declaration (const char* _name) {
+Ast_Declaration* Ast_Scope::find_const_declaration (const char* _name) {
     for (auto stm : this->list) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
@@ -74,10 +74,10 @@ Ast_Declaration* Ast_Block::find_const_declaration (const char* _name) {
     } else return NULL;
 }
 
-bool Ast_Block::is_ancestor (Ast_Block* other) {
+bool Ast_Scope::is_ancestor (Ast_Scope* other) {
 	if (this == other) return true;
 	else {
-		Ast_Block* block = this;
+		Ast_Scope* block = this;
 		while (block->parent) {
 			block = block->parent;
 			if (block == other) return true;
@@ -86,10 +86,10 @@ bool Ast_Block::is_ancestor (Ast_Block* other) {
 	}
 }
 
-Ast_Function* Ast_Block::get_parent_function () {
+Ast_Function* Ast_Scope::get_parent_function () {
 	if (this->scope_of) return this->scope_of;
 	else {
-		Ast_Block* block = this;
+		Ast_Scope* block = this;
 		while (block->parent) {
 			block = block->parent;
 			if (block->scope_of) return block->scope_of;
@@ -139,7 +139,7 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 
     auto ptr_type = Compiler::instance->types->get_pointer_type(base_type);
 
-    auto length_decl = ast_make_declaration_with_type("length", Types::type_def_u64);
+    auto length_decl = ast_make_declaration_with_type("length", Types::type_u64);
     auto data_decl = ast_make_declaration_with_type("data", ptr_type);
 
     this->attributes.push_back(length_decl);
@@ -184,7 +184,7 @@ Ast_Type_Instance* Ast_Binary::get_result_type() {
         case AST_BINARY_LT:
         case AST_BINARY_LTE:
         case AST_BINARY_GT:
-        case AST_BINARY_GTE: 	return Types::type_def_bool;
+        case AST_BINARY_GTE: 	return Types::type_bool;
         default: 				return this->lhs->inferred_type;
     }
 }
@@ -438,14 +438,14 @@ bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to) {
 }
 
 Ast_Type_Instance* ast_get_container_signed (Ast_Type_Instance* unsigned_type) {
-    if (unsigned_type == Types::type_def_u8) {
-        return Types::type_def_s16;
-    } else if (unsigned_type == Types::type_def_u16) {
-        return Types::type_def_s32;
-    } else if (unsigned_type == Types::type_def_u32) {
-        return Types::type_def_s64;
-    } else if (unsigned_type == Types::type_def_u64) {
-        return Types::type_def_s64;
+    if (unsigned_type == Types::type_u8) {
+        return Types::type_s16;
+    } else if (unsigned_type == Types::type_u16) {
+        return Types::type_s32;
+    } else if (unsigned_type == Types::type_u32) {
+        return Types::type_s64;
+    } else if (unsigned_type == Types::type_u64) {
+        return Types::type_s64;
     } else return unsigned_type;
 }
 
@@ -469,7 +469,7 @@ Ast_Literal* ast_make_literal (unsigned long long value) {
 
 Ast_Literal* ast_make_literal (bool value) {
 	auto lit = new Ast_Literal();
-    lit->inferred_type = Types::type_def_bool;
+    lit->inferred_type = Types::type_bool;
 	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
 	lit->uint_value = value;
 	return lit;

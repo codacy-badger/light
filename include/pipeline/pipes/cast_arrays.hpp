@@ -12,7 +12,7 @@ using namespace std;
 struct Cast_Arrays : Pipe {
 	PIPE_NAME(Cast_Arrays)
 
-    Ast_Block* current_scope = NULL;
+    Ast_Scope* current_scope = NULL;
     Ast_Statement* current_stm = NULL;
 
     void handle (Ast_Cast** cast_ptr) {
@@ -38,9 +38,9 @@ struct Cast_Arrays : Pipe {
                 auto tmp_length_property = ast_make_binary(AST_BINARY_ATTRIBUTE, tmp_ident1, ast_make_ident("length"));
                 auto arr_length_property = ast_make_binary(AST_BINARY_ATTRIBUTE, cast->value, ast_make_ident("length"));
                 auto assign_length = ast_make_binary(AST_BINARY_ASSIGN, tmp_length_property, arr_length_property);
-                tmp_length_property->inferred_type = Types::type_def_u64;
-                arr_length_property->inferred_type = Types::type_def_u64;
-                assign_length->inferred_type = Types::type_def_u64;
+                tmp_length_property->inferred_type = Types::type_u64;
+                arr_length_property->inferred_type = Types::type_u64;
+                assign_length->inferred_type = Types::type_u64;
                 type_checker->handle(&assign_length);
 
                 // $tmp.data = array.data;
@@ -70,7 +70,7 @@ struct Cast_Arrays : Pipe {
         }
     }
 
-    void handle (Ast_Block** block_ptr) {
+    void handle (Ast_Scope** block_ptr) {
         auto tmp = this->current_scope;
         this->current_scope = (*block_ptr);
         Pipe::handle(block_ptr);

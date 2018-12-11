@@ -7,7 +7,7 @@ void _tabs (int count) {
 void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 	switch (stm->stm_type) {
 		case AST_STATEMENT_BLOCK: {
-			print(static_cast<Ast_Block*>(stm), tabs);
+			print(static_cast<Ast_Scope*>(stm), tabs);
 			break;
 		}
 		case AST_STATEMENT_DECLARATION: {
@@ -30,7 +30,7 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 	}
 }
 
-void ASTPrinter::print (Ast_Block* block, int tabs) {
+void ASTPrinter::print (Ast_Scope* block, int tabs) {
 	_tabs(tabs);
 	printf("{\n");
 	for (auto stm: block->list) {

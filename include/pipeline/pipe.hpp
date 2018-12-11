@@ -34,7 +34,7 @@ struct Pipe {
 		}
 		switch ((*stm)->stm_type) {
 			case AST_STATEMENT_BLOCK: {
-				this->handle(reinterpret_cast<Ast_Block**>(stm));
+				this->handle(reinterpret_cast<Ast_Scope**>(stm));
 				break;
 			}
 			case AST_STATEMENT_IMPORT: {
@@ -75,7 +75,7 @@ struct Pipe {
 		}
 	}
 
-	virtual void handle (Ast_Block** _block) {
+	virtual void handle (Ast_Scope** _block) {
 		size_t initial_size = (*_block)->list.size();
 		for (uint64_t i = 0; i < (*_block)->list.size(); i++) {
 			this->handle(&((*_block)->list[i]));
