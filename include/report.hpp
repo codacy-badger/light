@@ -23,9 +23,14 @@ void report_error_and_stop 	(Location* location, char* format, ...);
 #define ERROR(node, ...) 		report_error(&node->location, __VA_ARGS__)
 #define INTERNAL(node, ...) 	report_internal(&node->location, __VA_ARGS__)
 #define ERROR_STOP(node, ...) 	report_error_and_stop(&node->location, __VA_ARGS__)
+
+#ifndef CUSTOM_DEBUG
+#define ASSERT(condition) /* empty */
+#else
 #define ASSERT(condition) 		__pragma(warning(push))							\
 								__pragma(warning(disable:4127))					\
 								if (!(condition)) { report_internal(NULL,		\
-									"assert triggered: %s\n\t@ %s:%d",			\
+									"Assertion failed: %s\n\t@ %s, line %d",	\
 									#condition, __FILE__, __LINE__); }			\
 								__pragma(warning(pop))
+#endif

@@ -65,7 +65,7 @@ void ASTPrinter::print (Ast_Declaration* decl, int tabs) {
 void ASTPrinter::print (Ast_Return* ret, int tabs) {
 	_tabs(tabs);
 	printf("return ");
-	if (ret->exp) print(ret->exp, tabs);
+	if (ret->expression) print(ret->expression, tabs);
 	printf(";\n");
 }
 

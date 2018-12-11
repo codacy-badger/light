@@ -14,6 +14,8 @@ struct Instruction;
 
 using namespace std;
 
+#define WARN_MAX_DEREF_COUNT 3
+
 uint8_t ast_get_pointer_size ();
 
 struct Ast {
@@ -110,7 +112,6 @@ struct Ast_Declaration : Ast_Statement {
 
 	// for struct property
 	Ast_Struct_Type* _struct = NULL;
-	size_t attribute_index = 0;
 	size_t attribute_byte_offset = 0;
 
 	// for bytecode
@@ -124,7 +125,7 @@ struct Ast_Declaration : Ast_Statement {
 };
 
 struct Ast_Return : Ast_Statement {
-	Ast_Expression* exp = NULL;
+	Ast_Expression* expression = NULL;
 	Ast_Block* scope = NULL;
 
 	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
@@ -213,6 +214,8 @@ struct Ast_Pointer_Type : Ast_Type_Instance {
 		this->is_primitive = true;
 		this->base = base;
 	}
+
+	Ast_Type_Instance* get_base_type_recursive();
 };
 
 struct Ast_Array_Type : Ast_Type_Instance {
@@ -304,6 +307,8 @@ struct Ast_Binary : Ast_Expression {
 		this->binary_op = token_to_binop(token_type);
 	}
 
+	Ast_Type_Instance* get_result_type();
+
 	static short get_precedence (Token_Type opToken);
 	static bool is_left_associative (Token_Type opToken);
 };
@@ -378,7 +383,10 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);
 bool ast_function_types_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2);
 bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2);
 
-bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to);
+bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to);
+bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to);
+
+Ast_Type_Instance* ast_get_container_signed (Ast_Type_Instance* unsigned_type);
 
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);

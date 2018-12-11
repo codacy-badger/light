@@ -99,7 +99,7 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Return** ret) {
-		if ((*ret)->exp) this->handle(&(*ret)->exp);
+		if ((*ret)->expression) this->handle(&(*ret)->expression);
 	}
 
 	virtual void handle (Ast_If** _if) {
@@ -209,9 +209,6 @@ struct Pipe {
 	virtual void handle (Ast_Struct_Type** _struct) {
 		for (auto &attr : (*_struct)->attributes) {
 			this->handle(&attr);
-		}
-		if ((*_struct)->is_slice) {
-			this->handle(reinterpret_cast<Ast_Slice_Type**>(_struct));
 		}
 	}
 

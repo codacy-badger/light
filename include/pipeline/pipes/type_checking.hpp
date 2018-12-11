@@ -5,43 +5,36 @@
 #include "compiler.hpp"
 #include "ast/ast.hpp"
 
-#define WARN_MAX_DEREF_COUNT 3
-
 struct Type_Checking : Pipe {
 	PIPE_NAME(Type_Checking)
 
 	void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);
 
-		ASSERT(decl != NULL);
+		if (!decl->expression && !decl->type) {
+			ERROR_STOP(decl, "Cannot infer type without an expression");
+		}
+
+		if (decl->is_constant() && !decl->expression) {
+			ERROR_STOP(decl, "All constant declarations must have a value");
+		}
 
 		if (decl->expression) {
 			Pipe::handle(&decl->expression);
 
-			if (!decl->expression->inferred_type) {
-				ERROR_STOP(decl->expression, "Expression type could not be inferred");
-			}
-
 			if (decl->type) {
 				auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
-				if (!ast_types_are_equal(decl_type_inst, decl->expression->inferred_type)) {
-					if (!cast_if_possible(&decl->expression, decl->expression->inferred_type, decl_type_inst)) {
-						ERROR_STOP(decl, "Type mismatch on declaration: value is '%s' but declaration wants '%s'",
-							decl->expression->inferred_type->name, decl_type_inst->name);
-					}
+				if (!try_cast(&decl->expression, decl_type_inst)) {
+					ERROR_STOP(decl, "Type mismatch on declaration: value is '%s' but declaration wants '%s'",
+						decl->expression->inferred_type->name, decl_type_inst->name);
 				}
 			} else decl->type = decl->expression->inferred_type;
-
-			Pipe::handle(&decl->type);
-		} else if (decl->type) {
-			Pipe::handle(&decl->type);
-		} else ERROR_STOP(decl, "Cannot infer type without an expression");
-
-	    if (!decl->type) {
-	        ERROR_STOP(decl, "Type could not be inferred");
-	    } else if (decl->type->inferred_type != Types::type_def_type) {
-			ERROR_STOP(decl, "Expression is not a type");
 		}
+
+		ASSERT(decl->type != NULL);
+		ASSERT(decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
+
+		Pipe::handle(&decl->type);
 	}
 
 	void handle (Ast_If** if_ptr) {
@@ -49,7 +42,7 @@ struct Type_Checking : Pipe {
 
 		Pipe::handle(if_ptr);
 
-		if (!cast_if_possible(&_if->condition, _if->condition->inferred_type, Types::type_def_bool)) {
+		if (!try_cast(&_if->condition, Types::type_def_bool)) {
 			ERROR_STOP(_if, "The condition for the IF statement must be of type boolean, but it is '%s'",
 				_if->condition->inferred_type->name);
 		}
@@ -60,7 +53,7 @@ struct Type_Checking : Pipe {
 
 		Pipe::handle(while_ptr);
 
-		if (!cast_if_possible(&_while->condition, _while->condition->inferred_type, Types::type_def_bool)) {
+		if (!try_cast(&_while->condition, Types::type_def_bool)) {
 			ERROR_STOP(_while, "The condition for the IF statement must be of type boolean, but it is '%s'",
 				_while->condition->inferred_type->name);
 		}
@@ -69,31 +62,37 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Return** ret_ptr) {
 		auto ret = (*ret_ptr);
 
-		if (ret->exp) Pipe::handle(&ret->exp);
-
 		auto fn = ret->scope->get_parent_function();
+		if (!fn) ERROR_STOP(ret, "Return statement must be inside a function");
+
 		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->type->ret_type);
-		if (!fn) {
-			ERROR_STOP(ret, "Return statement must be inside a function");
-		} else if (ret->exp) {
-			if (fn->type->ret_type == Types::type_def_void)
+		if (ret->expression) {
+			Pipe::handle(&ret->expression);
+
+			if (fn->type->ret_type == Types::type_def_void) {
 				ERROR_STOP(ret, "Return statment has expression, but function returns void");
-			else if (ret->exp->inferred_type != fn->type->ret_type) {
-	            if (!cast_if_possible(&ret->exp, ret->exp->inferred_type, ret_type_def)) {
-	    			ERROR_STOP(ret, "Type mismatch, return expression is '%s', but function expects '%s'!",
-	    				ret->exp->inferred_type->name, ret_type_def->name);
-	            }
 			}
+
+            if (!try_cast(&ret->expression, ret_type_def)) {
+    			ERROR_STOP(ret, "Type mismatch, return expression is '%s', but function expects '%s'",
+    				ret->expression->inferred_type->name, ret_type_def->name);
+            }
 		} else {
 			if (fn->type->ret_type != Types::type_def_void)
-				ERROR_STOP(ret, "Return statment has no expression, but function returns '%s'!",
+				ERROR_STOP(ret, "Return statment has no expression, but function returns '%s'",
 					ret_type_def->name);
 		}
 	}
 
 	void handle (Ast_Expression** exp_ptr) {
-		if (!(*exp_ptr)->inferred_type) {
+		auto exp = (*exp_ptr);
+
+		if (!exp->inferred_type) {
 			Pipe::handle(exp_ptr);
+
+			if (!exp->inferred_type) {
+				ERROR_STOP(exp, "Expression type could not be inferred");
+			}
 		}
 	}
 
@@ -111,53 +110,42 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Type_Instance** type_inst_ptr) {
 		auto type_inst = (*type_inst_ptr);
 
+		type_inst->inferred_type = Types::type_def_type;
 		Pipe::handle(type_inst_ptr);
 
-		if (type_inst && type_inst->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-			Compiler::instance->types->add_type_if_new(type_inst);
-			ASSERT(type_inst->guid >= 0);
-		} else abort();
+		Compiler::instance->types->add_type_if_new(type_inst);
 	}
 
 	void handle (Ast_Function_Type** func_type_ptr) {
 		auto func_type = (*func_type_ptr);
 
-	    func_type->inferred_type = Types::type_def_type;
-
 		Pipe::handle(&func_type->ret_type);
-		for (int i = 0; i < func_type->arg_decls.size(); i++) {
-			Pipe::handle(&func_type->arg_decls[i]);
+		for (auto &arg_decl : func_type->arg_decls) {
+			Pipe::handle(&arg_decl);
 		}
 	}
 
 	void handle (Ast_Struct_Type** _struct_ptr) {
 		auto _struct = (*_struct_ptr);
 
-	    _struct->inferred_type = Types::type_def_type;
 		for (auto &decl : _struct->attributes) {
 			Pipe::handle(&decl);
 		}
 
 		if (_struct->byte_size == 0) {
-			size_t byte_offset = 0;
 			// TODO: use byte_alignment to correctly assign byte_offsets
-			for (size_t i = 0; i < _struct->attributes.size(); i++) {
-				auto decl = _struct->attributes[i];
-				decl->attribute_byte_offset = byte_offset;
-				decl->attribute_index = i;
+			for (auto attr : _struct->attributes) {
+				auto attr_type = static_cast<Ast_Type_Instance*>(attr->type);
 
-				ASSERT(decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
-				auto defn_ty = static_cast<Ast_Type_Instance*>(decl->type);
-				byte_offset += defn_ty->byte_size;
+				attr->attribute_byte_offset = _struct->byte_size;
+				_struct->byte_size += attr_type->byte_size;
 			}
-			_struct->byte_size = byte_offset;
 		}
 	}
 
 	void handle (Ast_Array_Type** arr_ptr) {
 		auto arr = (*arr_ptr);
 
-	    arr->inferred_type = Types::type_def_type;
 		Pipe::handle(&arr->base);
 		Pipe::handle(&arr->length);
 
@@ -175,26 +163,19 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Pointer_Type** ptr_type_ptr) {
 		auto ptr_type = (*ptr_type_ptr);
 
-	    ptr_type->inferred_type = Types::type_def_type;
 		Pipe::handle(&ptr_type->base);
-		if (ptr_type->base->exp_type == AST_EXPRESSION_IDENT) {
-			auto ident = static_cast<Ast_Ident*>(ptr_type->base);
-			delete ptr_type->base;
-			ptr_type->base = ident->declaration->expression;
-		}
 	}
 
 	void handle (Ast_Function** func_ptr) {
 		auto func = (*func_ptr);
 
 		if (func->inferred_type == NULL) {
-			for (auto &arg_decl : func->type->arg_decls) {
-				Pipe::handle(&arg_decl);
-			}
-			Pipe::handle(&func->type->ret_type);
+			Pipe::handle(&func->type);
 		    func->inferred_type = func->type;
-			Pipe::handle(&func->inferred_type);
-			if (func->scope) Pipe::handle(&func->scope);
+
+			if (func->scope) {
+				Pipe::handle(&func->scope);
+			}
 		}
 	}
 
@@ -203,8 +184,9 @@ struct Type_Checking : Pipe {
 
 		Pipe::handle(&call->func);
 
-	    if (call->func->inferred_type->typedef_type != AST_TYPEDEF_FUNCTION)
+	    if (call->func->inferred_type->typedef_type != AST_TYPEDEF_FUNCTION) {
 			ERROR_STOP(call, "Function calls can only be performed to functions types");
+		}
 
 		auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
 		auto ret_ty = static_cast<Ast_Type_Instance*>(func_type->ret_type);
@@ -213,12 +195,11 @@ struct Type_Checking : Pipe {
 		if (call->arguments.size() == func_type->arg_decls.size()) {
 			for (int i = 0; i < call->arguments.size(); i++) {
 				Pipe::handle(&call->arguments[i]);
-
-				auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
 				auto param_exp = call->arguments[i];
 				ASSERT(param_exp->inferred_type);
 
-				if (!cast_if_possible(&call->arguments[i], param_exp->inferred_type, arg_type)) {
+				auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
+				if (!try_cast(&call->arguments[i], arg_type)) {
 					ERROR_STOP(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
 						i + 1, arg_type->name, param_exp->inferred_type->name);
 				}
@@ -235,16 +216,9 @@ struct Type_Checking : Pipe {
 	    Pipe::handle(&binop->lhs);
 	    if (binop->binary_op == AST_BINARY_ATTRIBUTE) {
 			auto type_def = binop->lhs->inferred_type;
-
-			// TODO: precompute depth for each pointer type (when uniqued?)
-			uint8_t deref_count = 0;
-			while (type_def->typedef_type == AST_TYPEDEF_POINTER) {
+			if (type_def->typedef_type == AST_TYPEDEF_POINTER) {
 				auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
-				type_def = static_cast<Ast_Type_Instance*>(ptr_type->base);
-				deref_count += 1;
-			}
-			if (deref_count > WARN_MAX_DEREF_COUNT) {
-				WARN(binop, "Attribute access on deep pointer (%d)", deref_count);
+				type_def = ptr_type->get_base_type_recursive();
 			}
 
 			if (type_def->typedef_type == AST_TYPEDEF_STRUCT) {
@@ -254,7 +228,6 @@ struct Type_Checking : Pipe {
 	                auto attribute = _struct->find_attribute(ident->name);
 	                if (attribute) {
 	                    auto attr_type = static_cast<Ast_Type_Instance*>(attribute->type);
-	                    ident->inferred_type = attr_type;
 	                    binop->inferred_type = attr_type;
 	                    ident->declaration = attribute;
 	                } else ERROR_STOP(binop, "The type '%s' has no attribute named '%s'", _struct->name, ident->name);
@@ -276,50 +249,37 @@ struct Type_Checking : Pipe {
 				binop->inferred_type = static_cast<Ast_Type_Instance*>(arr_type->base);
 
 				Pipe::handle(&binop->rhs);
-				if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, Types::type_def_u64)) {
+				if (!try_cast(&binop->rhs, Types::type_def_u64)) {
 					ERROR_STOP(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
 				}
 			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
 				auto _struct = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
 				if (_struct->is_slice) {
+					Pipe::handle(&binop->rhs);
+
 					auto data_decl = _struct->find_attribute("data");
-					if (data_decl) {
-						Pipe::handle(&binop->rhs);
-						auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
-						binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
-					} else ERROR_STOP(binop, "Slice type doesn't have data attribute");
+					auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
+					binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 				} else ERROR_STOP(binop, "Left struct is not a slice");
-			} else ERROR_STOP(binop, "Left of array access is not of array or slice type");
+			} else ERROR_STOP(binop, "Left of subscript is not of array or slice type");
 		} else if (binop->binary_op == AST_BINARY_ASSIGN) {
 			Pipe::handle(&binop->rhs);
-			if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
-	            if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, binop->lhs->inferred_type)) {
-	                ERROR_STOP(binop, "Type mismatch on assign: from '%s' to '%s'",
-	                    binop->rhs->inferred_type->name, binop->lhs->inferred_type->name);
-	            }
-	    	}
+            if (!try_cast(&binop->rhs, binop->lhs->inferred_type)) {
+                ERROR_STOP(binop, "Type mismatch on assign: from '%s' to '%s'",
+                    binop->rhs->inferred_type->name, binop->lhs->inferred_type->name);
+            }
 			binop->inferred_type = binop->rhs->inferred_type;
 		} else {
 	    	Pipe::handle(&binop->rhs);
-	    	if (binop->lhs->inferred_type != binop->rhs->inferred_type) {
-	            // Types don't match, but maybe we can add an implicid cast
-	            // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...
-	            if (!cast_if_possible(&binop->lhs, binop->lhs->inferred_type, binop->rhs->inferred_type)) {
-	                if (!cast_if_possible(&binop->rhs, binop->rhs->inferred_type, binop->lhs->inferred_type)) {
-	                    ERROR_STOP(binop, "Type mismatch on binary expression: '%s' and '%s'",
-	                        binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
-	                }
-	            }
-	    	}
-	    	switch (binop->binary_op) {
-	    		case AST_BINARY_EQ:
-	    		case AST_BINARY_NEQ:
-	    		case AST_BINARY_LT:
-	    		case AST_BINARY_LTE:
-	    		case AST_BINARY_GT:
-	    		case AST_BINARY_GTE: 	binop->inferred_type = Types::type_def_bool; break;
-	    		default: 				binop->inferred_type = binop->lhs->inferred_type; break;
-	    	}
+            // Types don't match, but maybe we can add an implicid cast
+            // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...
+            if (!try_cast(&binop->lhs, binop->rhs->inferred_type)) {
+                if (!try_cast(&binop->rhs, binop->lhs->inferred_type)) {
+                    ERROR_STOP(binop, "Type mismatch on binary expression: '%s' and '%s'",
+                        binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
+                }
+            }
+	    	binop->inferred_type = binop->get_result_type();
 	    }
 	}
 
@@ -329,17 +289,7 @@ struct Type_Checking : Pipe {
 		Pipe::handle(&unop->exp);
 		switch (unop->unary_op) {
 			case AST_UNARY_NEGATE: {
-				if (unop->exp->inferred_type == Types::type_def_u8) {
-					unop->inferred_type = Types::type_def_s16;
-				} else if (unop->exp->inferred_type == Types::type_def_u16) {
-					unop->inferred_type = Types::type_def_s32;
-				} else if (unop->exp->inferred_type == Types::type_def_u32) {
-					unop->inferred_type = Types::type_def_s64;
-				} else if (unop->exp->inferred_type == Types::type_def_u64) {
-					unop->inferred_type = Types::type_def_s64;
-				} else {
-					unop->inferred_type = unop->exp->inferred_type;
-				}
+				unop->inferred_type = ast_get_container_signed(unop->exp->inferred_type);
 	            break;
 			}
 			case AST_UNARY_NOT: {
@@ -411,7 +361,7 @@ struct Type_Checking : Pipe {
 				Pipe::handle(&lit->inferred_type);
 	            break;
 	        }
-	        default: abort();
+	        default: INTERNAL(lit, "Unknown literal type: %d", lit->literal_type);
 	    }
 	}
 };

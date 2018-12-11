@@ -45,6 +45,7 @@ void Types::add_type_if_new (Ast_Type_Instance* type) {
 			default: break;
 		}
 	}
+	ASSERT(type->guid >= 0);
 }
 
 void Types::add_struct_type_if_new (Ast_Struct_Type* _struct) {
@@ -126,6 +127,8 @@ Ast_Pointer_Type* Types::get_pointer_type (Ast_Expression* base) {
 			ast_compute_type_name_if_needed(ptr_type);
 			this->add_new_global_unique_type(ptr_type);
 			this->ptr_types[base_type] = ptr_type;
+			
+
 			return ptr_type;
 		}
 	} else return new Ast_Pointer_Type(base);

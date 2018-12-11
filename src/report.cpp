@@ -14,7 +14,7 @@ void print_location (FILE* buffer, Location* location) {
 		if (location->filename) {
 			fprintf(buffer, "\t@ %s:%zd,%zd\n", location->filename, location->line, location->col);
 		} else {
-			fprintf(buffer, "\t@ [INTERNAL]\n");
+			fprintf(buffer, "\t@ [Compiler defined]\n");
 		}
 	}
 }

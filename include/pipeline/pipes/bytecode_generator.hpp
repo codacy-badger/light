@@ -52,9 +52,9 @@ struct Bytecode_Generator : Pipe {
 
 	    Pipe::handle(ret_ptr);
 
-		if (ret->exp) {
-			auto bytecode_type = bytecode_get_type(ret->exp->inferred_type);
-			INST(ret, Return, ret->exp->reg, bytecode_type);
+		if (ret->expression) {
+			auto bytecode_type = bytecode_get_type(ret->expression->inferred_type);
+			INST(ret, Return, ret->expression->reg, bytecode_type);
 		} else INST(ret, Return);
 	}
 
@@ -342,6 +342,7 @@ struct Bytecode_Generator : Pipe {
 	                    INST(binop, Load, binop->reg, binop->reg, binop->inferred_type->byte_size);
 	                }
 				} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
+					// TODO: remove this once we have operator overloading ([])
 					auto struct_type = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
 					if (struct_type->is_slice) {
 						auto data_decl = struct_type->find_attribute("data");

@@ -48,7 +48,6 @@ void Compiler::add_import (Ast_Import* import) {
 }
 
 void Compiler::quit () {
-	fprintf(stdout, "\nStopping compilation...\n");
 	exit(1);
 }
 

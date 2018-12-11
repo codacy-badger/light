@@ -114,7 +114,7 @@ Ast_Statement* Parser::statement () {
 		case TOKEN_RETURN: {
 			this->lexer->skip();
 			auto output = AST_NEW(Ast_Return);
-			output->exp = this->expression();
+			output->expression = this->expression();
 			output->scope = this->current_block;
 			this->lexer->optional_skip(TOKEN_STM_END);
 			return output;
@@ -131,7 +131,7 @@ Ast_Statement* Parser::statement () {
 					} else {
 						auto output = AST_NEW(Ast_Return);
 						output->scope = this->current_block;
-						output->exp = exp;
+						output->expression = exp;
 						return output;
 					}
 				} else return NULL;

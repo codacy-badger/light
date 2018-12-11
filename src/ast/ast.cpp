@@ -105,6 +105,24 @@ Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
 	return NULL;
 }
 
+// TODO: precompute depth for each pointer type (when uniqued?)
+Ast_Type_Instance* Ast_Pointer_Type::get_base_type_recursive() {
+    auto non_pointer_base = static_cast<Ast_Type_Instance*>(this->base);
+
+    uint8_t deref_count = 0;
+    while (non_pointer_base->typedef_type == AST_TYPEDEF_POINTER) {
+        auto ptr_type = static_cast<Ast_Pointer_Type*>(non_pointer_base);
+        non_pointer_base = static_cast<Ast_Type_Instance*>(ptr_type->base);
+        deref_count += 1;
+    }
+
+    if (deref_count > WARN_MAX_DEREF_COUNT) {
+        WARN(this, "Attribute access on deep pointer (%d)", deref_count);
+    }
+
+    return non_pointer_base;
+}
+
 uint64_t Ast_Array_Type::get_length () {
 	if (!this->length_as_number) {
 		ASSERT(this->length);
@@ -119,15 +137,13 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 	this->base = base_type;
 	this->is_slice = true;
 
-	auto length_attr = new Ast_Declaration();
-	length_attr->name = "length";
-	length_attr->type = Types::type_def_u64;
-	this->attributes.push_back(length_attr);
+    auto ptr_type = Compiler::instance->types->get_pointer_type(base_type);
 
-	auto data_attr = new Ast_Declaration();
-	data_attr->name = "data";
-	data_attr->type = Compiler::instance->types->get_pointer_type(base_type);
-	this->attributes.push_back(data_attr);
+    auto length_decl = ast_make_declaration_with_type("length", Types::type_def_u64);
+    auto data_decl = ast_make_declaration_with_type("data", ptr_type);
+
+    this->attributes.push_back(length_decl);
+    this->attributes.push_back(data_decl);
 }
 
 Ast_Binary_Type token_to_binop (Token_Type tType) {
@@ -159,6 +175,18 @@ Ast_Binary_Type token_to_binop (Token_Type tType) {
 		case TOKEN_LESSER:			return AST_BINARY_LT;
 		default: 					return AST_BINARY_UNINITIALIZED;
 	};
+}
+
+Ast_Type_Instance* Ast_Binary::get_result_type() {
+    switch (this->binary_op) {
+        case AST_BINARY_EQ:
+        case AST_BINARY_NEQ:
+        case AST_BINARY_LT:
+        case AST_BINARY_LTE:
+        case AST_BINARY_GT:
+        case AST_BINARY_GTE: 	return Types::type_def_bool;
+        default: 				return this->lhs->inferred_type;
+    }
 }
 
 short Ast_Binary::get_precedence (Token_Type opToken) {
@@ -386,7 +414,7 @@ bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type
     }
 }
 
-bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
+bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
 	if (ast_types_are_equal(type_from, type_to)) return true;
 	else if (Compiler::instance->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
@@ -403,6 +431,22 @@ bool cast_if_possible (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, A
         (*exp_ptr) = cast;
         return true;
     } else return false;
+}
+
+bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to) {
+    return try_cast(exp_ptr, (*exp_ptr)->inferred_type, type_to);
+}
+
+Ast_Type_Instance* ast_get_container_signed (Ast_Type_Instance* unsigned_type) {
+    if (unsigned_type == Types::type_def_u8) {
+        return Types::type_def_s16;
+    } else if (unsigned_type == Types::type_def_u16) {
+        return Types::type_def_s32;
+    } else if (unsigned_type == Types::type_def_u32) {
+        return Types::type_def_s64;
+    } else if (unsigned_type == Types::type_def_u64) {
+        return Types::type_def_s64;
+    } else return unsigned_type;
 }
 
 uint8_t ast_get_pointer_size () {

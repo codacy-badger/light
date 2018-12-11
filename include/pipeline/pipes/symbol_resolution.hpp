@@ -76,7 +76,7 @@ struct Symbol_Resolution : Pipe {
 	        vector<Ast_Ident*> idents;
 	        this->find_unique_unresolved(&idents);
 	        for (auto ident : idents) {
-	            report_error(&ident->location, "Unresolved symbol: '%s'", ident->name);
+	            ERROR(ident, "Unresolved symbol: '%s'", ident->name);
 	        }
 	        Compiler::instance->quit();
 	    }
