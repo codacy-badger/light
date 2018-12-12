@@ -139,7 +139,7 @@ struct Bytecode_Generator : Pipe {
 					this->add_instruction(func->scope, new Inst_Return());
 				} else {
 					auto last_inst = this->bytecode->back();
-					if (last_inst->bytecode != BYTECODE_RETURN) {
+					if (last_inst->code != BYTECODE_RETURN) {
 						this->add_instruction(func->scope, new Inst_Return());
 					}
 				}

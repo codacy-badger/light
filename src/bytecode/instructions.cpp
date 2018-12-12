@@ -47,7 +47,7 @@ size_t bytecode_get_size (Bytecode_Type bytecode_type) {
 		case BYTECODE_TYPE_U64:
 		case BYTECODE_TYPE_S64:
 		case BYTECODE_TYPE_F64: return 8;
-		case BYTECODE_TYPE_POINTER: return AST_POINTER_SIZE;
+		case BYTECODE_TYPE_POINTER: return Compiler::instance->settings->register_size;
 		default: return 0;
 	}
 }

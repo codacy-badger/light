@@ -93,7 +93,7 @@ bool bytecode_has_sign (Bytecode_Type bytecode_type);
 Bytecode_Type bytecode_unsigned_to_signed (Bytecode_Type bytecode_type);
 
 struct Instruction {
-	Inst_Bytecode bytecode = BYTECODE_NOOP;
+	Inst_Bytecode code = BYTECODE_NOOP;
 	Location location;
 };
 
@@ -102,7 +102,7 @@ struct Inst_Copy : Instruction {
 	uint8_t reg2 = 0;
 
 	Inst_Copy (uint8_t reg1, uint8_t reg2) {
-		this->bytecode = BYTECODE_COPY;
+		this->code = BYTECODE_COPY;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
 
@@ -118,7 +118,7 @@ struct Inst_Copy_Memory : Instruction {
 	size_t size = 0;
 
 	Inst_Copy_Memory (uint8_t reg_to, uint8_t reg_from, size_t size) {
-		this->bytecode = BYTECODE_COPY_MEMORY;
+		this->code = BYTECODE_COPY_MEMORY;
 		this->reg_to = reg_to;
 		this->reg_from = reg_from;
 		this->size = size;
@@ -139,7 +139,7 @@ struct Inst_Cast : Instruction {
 	Bytecode_Type type_to = BYTECODE_TYPE_UNINITIALIZED;
 
 	Inst_Cast (uint8_t reg_to, uint8_t reg_from, Bytecode_Type type_from, Bytecode_Type type_to) {
-		this->bytecode = BYTECODE_CAST;
+		this->code = BYTECODE_CAST;
 		this->reg_to = reg_to;
 		this->reg_from = reg_from;
 		this->type_from = type_from;
@@ -170,7 +170,7 @@ struct Inst_Set : Instruction {
 	Inst_Set (uint8_t reg, float value)    : Inst_Set (reg, BYTECODE_TYPE_F32, &value) {}
 	Inst_Set (uint8_t reg, double value)   : Inst_Set (reg, BYTECODE_TYPE_F64, &value) {}
 	Inst_Set (uint8_t reg, Bytecode_Type bytecode_type, void* data) {
-		this->bytecode = BYTECODE_SET;
+		this->code = BYTECODE_SET;
 		this->reg = reg;
 		this->bytecode_type = bytecode_type;
 		auto size = bytecode_get_size(bytecode_type);
@@ -184,7 +184,7 @@ struct Inst_Constant_Offset : Instruction {
 	size_t offset = 0;
 
 	Inst_Constant_Offset (uint8_t reg, size_t offset) {
-		this->bytecode = BYTECODE_CONSTANT_OFFSET;
+		this->code = BYTECODE_CONSTANT_OFFSET;
 		this->reg = reg;
 		this->offset = offset;
 	}
@@ -195,7 +195,7 @@ struct Inst_Global_Offset : Instruction {
 	size_t offset = 0;
 
 	Inst_Global_Offset (uint8_t reg, size_t offset) {
-		this->bytecode = BYTECODE_GLOBAL_OFFSET;
+		this->code = BYTECODE_GLOBAL_OFFSET;
 		this->reg = reg;
 		this->offset = offset;
 	}
@@ -205,7 +205,7 @@ struct Inst_Stack_Allocate : Instruction {
 	size_t size = 0;
 
 	Inst_Stack_Allocate (size_t size) {
-		this->bytecode = BYTECODE_STACK_ALLOCATE;
+		this->code = BYTECODE_STACK_ALLOCATE;
 		this->size = size;
 
 		if (size == 0) {
@@ -219,7 +219,7 @@ struct Inst_Stack_Offset : Instruction {
 	size_t offset = 0;
 
 	Inst_Stack_Offset (uint8_t reg, size_t offset) {
-		this->bytecode = BYTECODE_STACK_OFFSET;
+		this->code = BYTECODE_STACK_OFFSET;
 		this->reg = reg;
 		this->offset = offset;
 	}
@@ -231,7 +231,7 @@ struct Inst_Load : Instruction {
 	size_t size = 0;
 
 	Inst_Load (uint8_t dest, uint8_t src, size_t size) {
-		this->bytecode = BYTECODE_LOAD;
+		this->code = BYTECODE_LOAD;
 		this->dest = dest;
 		this->src = src;
 		this->size = size;
@@ -248,7 +248,7 @@ struct Inst_Store : Instruction {
 	size_t size = 0;
 
 	Inst_Store (uint8_t dest, uint8_t src, size_t size) {
-		this->bytecode = BYTECODE_STORE;
+		this->code = BYTECODE_STORE;
 		this->dest = dest;
 		this->src = src;
 		this->size = size;
@@ -266,7 +266,7 @@ struct Inst_Unary : Instruction {
 	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
 
 	Inst_Unary (uint8_t unop, uint8_t target, uint8_t reg, Bytecode_Type bytecode_type) {
-		this->bytecode = BYTECODE_UNARY;
+		this->code = BYTECODE_UNARY;
 		this->unop = unop;
 		this->target = target;
 		this->reg = reg;
@@ -285,7 +285,7 @@ struct Inst_Binary : Instruction {
 	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
 
 	Inst_Binary (uint8_t binop, uint8_t target, uint8_t reg1, uint8_t reg2, Bytecode_Type bytecode_type) {
-		this->bytecode = BYTECODE_BINARY;
+		this->code = BYTECODE_BINARY;
 		this->binop = binop;
 		this->target = target;
 		this->reg1 = reg1;
@@ -303,7 +303,7 @@ struct Inst_Add_Const : Instruction {
 	uint64_t number = 0;
 
 	Inst_Add_Const (uint8_t target, uint8_t reg, uint64_t number) {
-		this->bytecode = BYTECODE_ADD_CONST;
+		this->code = BYTECODE_ADD_CONST;
 		this->target = target;
 		this->reg = reg;
 		this->number = number;
@@ -323,7 +323,7 @@ struct Inst_Mul_Const : Instruction {
 	uint64_t number = 0;
 
 	Inst_Mul_Const (uint8_t target, uint8_t reg, uint64_t number) {
-		this->bytecode = BYTECODE_MUL_CONST;
+		this->code = BYTECODE_MUL_CONST;
 		this->target = target;
 		this->reg = reg;
 		this->number = number;
@@ -345,7 +345,7 @@ struct Inst_Jump : Instruction {
 	size_t offset;
 
 	Inst_Jump (size_t offset = 0) {
-		this->bytecode = BYTECODE_JUMP;
+		this->code = BYTECODE_JUMP;
 		this->offset = offset;
 	}
 };
@@ -355,7 +355,7 @@ struct Inst_Jump_If_False : Instruction {
 	size_t offset;
 
 	Inst_Jump_If_False (uint8_t reg, size_t offset = 0) {
-		this->bytecode = BYTECODE_JUMP_IF_FALSE;
+		this->code = BYTECODE_JUMP_IF_FALSE;
 		this->reg = reg;
 		this->offset = offset;
 	}
@@ -366,7 +366,7 @@ struct Inst_Call_Setup : Instruction {
 	uint8_t param_count;
 
 	Inst_Call_Setup (uint8_t calling_convention, uint8_t param_count) {
-		this->bytecode = BYTECODE_CALL_SETUP;
+		this->code = BYTECODE_CALL_SETUP;
 		this->calling_convention = calling_convention;
 		this->param_count = param_count;
 	}
@@ -378,7 +378,7 @@ struct Inst_Call_Param : Instruction {
 	Bytecode_Type bytecode_type;
 
 	Inst_Call_Param (uint8_t param_index, uint8_t reg_index, Bytecode_Type bytecode_type) {
-		this->bytecode = BYTECODE_CALL_PARAM;
+		this->code = BYTECODE_CALL_PARAM;
 		this->reg_index = reg_index;
 		this->param_index = param_index;
 		this->bytecode_type = bytecode_type;
@@ -391,7 +391,7 @@ struct Inst_Call : Instruction {
 	Bytecode_Type bytecode_type;
 
 	Inst_Call (uint8_t reg_result, uint8_t reg_function, Bytecode_Type bytecode_type) {
-		this->bytecode = BYTECODE_CALL;
+		this->code = BYTECODE_CALL;
 		this->reg_result = reg_result;
 		this->reg_function = reg_function;
 		this->bytecode_type = bytecode_type;
@@ -404,7 +404,7 @@ struct Inst_Call_Const : Instruction {
 	Bytecode_Type bytecode_type;
 
 	Inst_Call_Const (uint64_t address, uint8_t reg_result, Bytecode_Type bytecode_type) {
-		this->bytecode = BYTECODE_CALL_CONST;
+		this->code = BYTECODE_CALL_CONST;
 		this->address = address;
 		this->reg_result = reg_result;
 		this->bytecode_type = bytecode_type;
@@ -416,7 +416,7 @@ struct Inst_Return : Instruction {
 	Bytecode_Type bytecode_type;
 
 	Inst_Return (uint8_t reg_index, Bytecode_Type bytecode_type) {
-		this->bytecode = BYTECODE_RETURN;
+		this->code = BYTECODE_RETURN;
 		this->reg_index = reg_index;
 		this->bytecode_type = bytecode_type;
 	}

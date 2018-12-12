@@ -146,6 +146,11 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
     this->attributes.push_back(data_decl);
 }
 
+Ast_Function_Type::Ast_Function_Type() {
+    this->typedef_type = AST_TYPEDEF_FUNCTION;
+    this->byte_size = Compiler::instance->settings->register_size;
+}
+
 Ast_Binary_Type token_to_binop (Token_Type tType) {
 	switch (tType) {
 		case TOKEN_EQUAL: 			return AST_BINARY_ASSIGN;

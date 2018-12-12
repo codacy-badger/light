@@ -45,8 +45,6 @@ struct Compiler {
 	void run ();
 	void quit ();
 
-	void add_import (Ast_Import* import);
-
 	/* static methods */
 
 	static Compiler* instance;

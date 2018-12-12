@@ -43,10 +43,6 @@ void Compiler::run () {
     printf(COMPILER_DONE_FORMAT, os_time_user_stop(totalUser), os_time_wall_stop(totalWall));
 }
 
-void Compiler::add_import (Ast_Import* import) {
-	this->pipeline->pending_imports.push_back(import);
-}
-
 void Compiler::quit () {
 	exit(1);
 }

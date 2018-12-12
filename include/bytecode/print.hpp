@@ -9,14 +9,13 @@ void _bytecode_print (void* ptr, const char* printf_format) {
 	printf(printf_format, value);
 }
 
-void bytecode_print (size_t index, Instruction* inst) {
-	printf(" #%-4zd ( %s @ %zd ) ", index,
-		inst->location.filename, inst->location.line);
-	switch (inst->bytecode) {
+void bytecode_print (Instruction* inst) {
+	printf(" ( %s @ %zd ) ", inst->location.filename, inst->location.line);
+	switch (inst->code) {
 		case BYTECODE_NOOP: printf("NOOP"); break;
 		case BYTECODE_RETURN: {
 			auto ret = static_cast<Inst_Return*>(inst);
-			printf("RETURN %d, %d", ret->reg_index, ret->bytecode_type);
+			printf("RETURN %d, %d\n", ret->reg_index, ret->bytecode_type);
 			break;
 		}
 		case BYTECODE_COPY: {
@@ -156,12 +155,12 @@ void bytecode_print (size_t index, Instruction* inst) {
 		}
 		case BYTECODE_CALL: {
 			auto call = static_cast<Inst_Call*>(inst);
-			printf("CALL %d, %d", call->reg_result, call->reg_function);
+			printf("CALL %d, %d\n", call->reg_result, call->reg_function);
 			break;
 		}
 		case BYTECODE_CALL_CONST: {
 			auto call_const = static_cast<Inst_Call_Const*>(inst);
-			printf("CALL_CONST %d, 0x%llX", call_const->reg_result, call_const->address);
+			printf("CALL_CONST %d, 0x%llX\n", call_const->reg_result, call_const->address);
 			break;
 		}
 		default: abort();

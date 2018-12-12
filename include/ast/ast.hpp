@@ -170,8 +170,6 @@ enum Ast_Type_Instance_Type {
 	AST_TYPEDEF_ARRAY,
 };
 
-#define AST_POINTER_SIZE sizeof(void*)
-
 struct Ast_Type_Instance : Ast_Expression {
 	Ast_Type_Instance_Type typedef_type = AST_TYPEDEF_UNDEFINED;
 	char* name = NULL;
@@ -239,10 +237,7 @@ struct Ast_Function_Type : Ast_Type_Instance {
 	vector<Ast_Declaration*> arg_decls;
 	Ast_Expression* ret_type = NULL;
 
-	Ast_Function_Type() {
-		this->typedef_type = AST_TYPEDEF_FUNCTION;
-		this->byte_size = AST_POINTER_SIZE;
-	}
+	Ast_Function_Type();
 };
 
 struct Ast_Function : Ast_Expression {

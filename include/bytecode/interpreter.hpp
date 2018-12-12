@@ -8,7 +8,7 @@
 
 #include "dyncall/dyncall.h"
 
-#define INTERP_REGISTER_SIZE  8
+#define INTERP_REGISTER_SIZE  sizeof(void*)
 #define INTERP_REGISTER_COUNT 16
 #define INTERP_STACK_SIZE 	  (1024 * 1024 * 1024) // 1 MB
 
@@ -28,7 +28,6 @@ struct Interpreter {
 	DCCallVM* vm = NULL;
 
 	Interpreter (size_t vm_size = 512) {
-		ASSERT(INTERP_REGISTER_SIZE >= sizeof(void*));
 		memset(&this->registers, 0, INTERP_REGISTER_COUNT * sizeof(Bytecode_Register));
 		this->vm = dcNewCallVM(vm_size);
 	}

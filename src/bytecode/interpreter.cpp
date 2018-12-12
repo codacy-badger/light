@@ -20,10 +20,7 @@ void Interpreter::run (Ast_Function* func) {
 	if (this->call_record) {
 		for (uint8_t i = 0; i < this->call_record->param_count; i++) {
 			auto param = this->call_record->parameters[i];
-
-			size_t value;
-			memcpy(&value, param.value, INTERP_REGISTER_SIZE);
-			memcpy(this->registers[i], param.value, INTERP_REGISTER_SIZE);
+			MOVE(this->registers[i], param.value);
 		}
 	}
 
@@ -31,24 +28,16 @@ void Interpreter::run (Ast_Function* func) {
 	for (instruction_index = 0; instruction_index < func->bytecode.size(); instruction_index++) {
 		auto inst = func->bytecode[instruction_index];
 
-		if (Compiler::instance->settings->is_debug) {
-			bytecode_print(instruction_index, inst);
-			if (inst->bytecode == BYTECODE_RETURN
-				|| inst->bytecode == BYTECODE_CALL
-				|| inst->bytecode == BYTECODE_CALL_CONST) {
-				printf("\n");
-			}
-		}
-
 		this->run(inst);
 
-		if (inst->bytecode == BYTECODE_RETURN) break;
+		if (Compiler::instance->settings->is_debug) bytecode_print(inst);
+		if (inst->code == BYTECODE_RETURN) break;
 	}
 	this->stack_index = _tmp;
 }
 
 void Interpreter::run (Instruction* inst) {
-	switch (inst->bytecode) {
+	switch (inst->code) {
 		case BYTECODE_COPY: {
 			auto cpy = static_cast<Inst_Copy*>(inst);
 			MOVE(this->registers[cpy->reg1], this->registers[cpy->reg2]);
