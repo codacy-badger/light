@@ -201,10 +201,10 @@ test_big_struct :: fn {
 }
 
 test_static_array :: fn {
-	ARRAY_SIZE :: 6;
+	ARRAY_SIZE :: 4;
 	numbers: [ARRAY_SIZE] u8;
 
-	numbers[0] = 200;
+	numbers[0] = 15;
 	numbers[1] = 16;
 	numbers[2] = 17;
 

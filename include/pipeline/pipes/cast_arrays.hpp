@@ -5,6 +5,8 @@
 
 #include "pipeline/pipes/type_checking.hpp"
 
+#define TMP_NAME_SIZE 20
+
 using namespace std;
 
 struct Cast_Arrays : Pipe {
@@ -12,6 +14,8 @@ struct Cast_Arrays : Pipe {
 
     Ast_Scope* current_scope = NULL;
     Ast_Statement* current_stm = NULL;
+
+	size_t tmp_var_count = 0;
 
     void handle (Ast_Cast** cast_ptr) {
         auto cast = (*cast_ptr);
@@ -23,13 +27,17 @@ struct Cast_Arrays : Pipe {
 
                 auto slice_type = static_cast<Ast_Slice_Type*>(cast->cast_to);
                 auto base_type = static_cast<Ast_Type_Instance*>(slice_type->base);
+
+				char tmp_name[TMP_NAME_SIZE];
+				sprintf_s(tmp_name, TMP_NAME_SIZE, "$tmp$slice$%zd", tmp_var_count++);
+
                 // $tmp : []Type;
-                auto slice_declaration = ast_make_declaration_with_type("$tmp1", slice_type);
+                auto slice_declaration = ast_make_declaration_with_type(tmp_name, slice_type);
                 slice_declaration->scope = this->current_scope;
                 type_checker->handle(&slice_declaration);
 
                 // $tmp.length = array.length;
-                auto tmp_ident1 = ast_make_ident("$tmp1");
+                auto tmp_ident1 = ast_make_ident(tmp_name);
                 tmp_ident1->declaration = slice_declaration;
                 tmp_ident1->inferred_type = slice_type;
 
@@ -42,7 +50,7 @@ struct Cast_Arrays : Pipe {
                 type_checker->handle(&assign_length);
 
                 // $tmp.data = array.data;
-                auto tmp_ident2 = ast_make_ident("$tmp1");
+                auto tmp_ident2 = ast_make_ident(tmp_name);
                 tmp_ident2->declaration = slice_declaration;
                 tmp_ident2->inferred_type = slice_type;
 
@@ -58,7 +66,7 @@ struct Cast_Arrays : Pipe {
                 stm_location = this->current_scope->list.insert(stm_location, assign_length);
                 stm_location = this->current_scope->list.insert(stm_location, slice_declaration);
 
-                auto tmp_ident3 = ast_make_ident("$tmp1");
+                auto tmp_ident3 = ast_make_ident(tmp_name);
                 tmp_ident3->declaration = slice_declaration;
                 tmp_ident3->inferred_type = slice_type;
                 *cast_ptr = reinterpret_cast<Ast_Cast*>(tmp_ident3);
