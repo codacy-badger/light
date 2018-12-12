@@ -35,6 +35,10 @@ struct Pipe {
 				this->handle(reinterpret_cast<Ast_Scope**>(stm));
 				break;
 			}
+			case AST_STATEMENT_DIRECTIVE: {
+				this->handle(reinterpret_cast<Ast_Directive**>(stm));
+				break;
+			}
 			case AST_STATEMENT_IMPORT: {
 				this->handle(reinterpret_cast<Ast_Import**>(stm));
 				break;
@@ -71,6 +75,26 @@ struct Pipe {
 		for (auto &exp : (*note)->arguments) {
 			this->handle(&exp);
 		}
+	}
+
+	virtual void handle (Ast_Directive** directive) {
+		switch ((*directive)->dir_type) {
+			case AST_DIRECTIVE_INCLUDE: {
+				this->handle(reinterpret_cast<Ast_Directive_Include**>(directive));
+				break;
+			}
+			case AST_DIRECTIVE_IF: {
+				this->handle(reinterpret_cast<Ast_Directive_If**>(directive));
+				break;
+			}
+			default: break;
+		}
+	}
+
+	virtual void handle (Ast_Directive_Include**) { /* empty */ }
+
+	virtual void handle (Ast_Directive_If** _if) {
+		this->handle(&(*_if)->stm_if);
 	}
 
 	virtual void handle (Ast_Scope** _block) {

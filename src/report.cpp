@@ -20,7 +20,7 @@ void print_location (FILE* buffer, Location* location) {
 }
 
 void _report (const char* level, FILE* buffer, Location* location, char* format, va_list argptr) {
-	fprintf(buffer, "\n[%s] ", level);
+	fprintf(buffer, "[%s] ", level);
     vfprintf(buffer, format, argptr);
 	fprintf(buffer, "\n");
 	print_location(buffer, location);

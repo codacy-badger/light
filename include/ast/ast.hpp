@@ -1,5 +1,6 @@
 #pragma once
 
+#include "platform.hpp"
 #include "lexer/lexer.hpp"
 
 #include <vector>
@@ -66,6 +67,7 @@ struct Ast_Directive : Ast_Statement {
 
 struct Ast_Directive_Include : Ast_Directive {
 	char* path = NULL;
+	char absolute_path[MAX_PATH_LENGTH];
 
 	Ast_Directive_Include () { this->dir_type = AST_DIRECTIVE_INCLUDE; }
 };

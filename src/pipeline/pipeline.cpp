@@ -1,5 +1,6 @@
 #include "pipeline/pipeline.hpp"
 
+#include "pipeline/pipes/compiler_directives.hpp"
 #include "pipeline/pipes/symbol_resolution.hpp"
 #include "pipeline/pipes/constant_folding.hpp"
 #include "pipeline/pipes/cast_arrays.hpp"
@@ -13,6 +14,7 @@
 #define DECL_TYPE(scope, type) scope->statements.push_back(ast_make_declaration(type->name, type));
 
 Pipeline::Pipeline() {
+    this->pipes.push_back(new Compiler_Directives());
     this->pipes.push_back(new Foreign_Function());
     this->pipes.push_back(new Symbol_Resolution());
     this->pipes.push_back(new Type_Checking());

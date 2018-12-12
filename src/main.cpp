@@ -1,8 +1,4 @@
-__pragma(warning(disable:4127))
-
-#include "platform.hpp"
 #include "compiler.hpp"
-#include "report.hpp"
 
 int main (int argc, char** argv) {
     auto compiler = Compiler::create(argc, argv);

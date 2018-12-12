@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules.hpp"
 #include "pipeline/pipeline.hpp"
 
 #include "bytecode/interpreter.hpp"
@@ -7,14 +8,6 @@
 #include "ast/types.hpp"
 
 #include <vector>
-
-#define LIGHT_NAME "Light Compiler"
-#define LIGHT_VERSION "0.1.0"
-
-#define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\" (Ignored)"
-
-#define CHECK_ARG(arg) (strcmp(argv[i], arg) == 0)
-#define CHECK_ARG_2(arg_short, arg_long) (CHECK_ARG(arg_short) || CHECK_ARG(arg_long))
 
 using namespace std;
 
@@ -36,6 +29,7 @@ struct Compiler {
 	Compiler_Settings* settings = NULL;
 
 	Pipeline* pipeline = new Pipeline();
+	Modules* modules = new Modules(this->pipeline);
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();

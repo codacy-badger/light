@@ -162,14 +162,15 @@ Ast_Directive* Parser::directive () {
 		}
 		case TOKEN_INCLUDE: {
 			this->lexer->skip();
-			auto directive_include = AST_NEW(Ast_Directive_Include);
+			auto include = AST_NEW(Ast_Directive_Include);
 
 			auto literal = this->literal();
 			if (literal->literal_type == AST_LITERAL_STRING) {
-				directive_include->path = literal->string_value;
+				include->path = literal->string_value;
+				os_get_absolute_path(include->path, include->absolute_path);
 			} else ERROR_STOP(literal, "Expected string literal after include");
 
-			return directive_include;
+			return include;
 		}
 		default: return NULL;
 	}

@@ -2,6 +2,14 @@
 
 #include "platform.hpp"
 
+#define LIGHT_NAME "Light Compiler"
+#define LIGHT_VERSION "0.1.0"
+
+#define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\" (Ignored)"
+
+#define CHECK_ARG(arg) (strcmp(argv[i], arg) == 0)
+#define CHECK_ARG_2(arg_short, arg_long) (CHECK_ARG(arg_short) || CHECK_ARG(arg_long))
+
 #define COMPILER_DONE_FORMAT "\nCompleted in %8.6fs (%8.6fs)\n"
 
 Compiler* Compiler::instance = NULL;
