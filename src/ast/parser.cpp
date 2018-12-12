@@ -22,7 +22,7 @@ void Parser::teardown () {
 
 void Parser::push (Ast_Statement* stm) {
 	this->notes->push_global_into(stm);
-	this->current_scope->list.push_back(stm);
+	this->current_scope->statements.push_back(stm);
 }
 
 void Parser::scope (Ast_Scope* inner_scope) {
@@ -231,7 +231,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 
 			auto _scope = AST_NEW(Ast_Scope, this->current_scope);
 			this->scope(_scope);
-			for (auto stm : _scope->list) {
+			for (auto stm : _scope->statements) {
 				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 					auto decl = static_cast<Ast_Declaration*>(stm);
 					decl->_struct = _struct;

@@ -42,7 +42,7 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Import**) { /* empty */ }
 
 	void handle (Ast_Scope** block_ptr) {
-		for (auto &stm : (*block_ptr)->list) {
+		for (auto &stm : (*block_ptr)->statements) {
 			this->handle(&stm);
 		}
 	}

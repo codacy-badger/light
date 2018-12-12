@@ -16,8 +16,6 @@ struct Pipe {
 	bool stop_processing = false;
 	deque<Ast_Statement*> pending_stms;
 
-	size_t priority = 0;
-
 	virtual void on_statement (Ast_Statement** stm) {
 		auto start = os_get_user_time();
 		this->handle(stm);
@@ -76,14 +74,14 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Scope** _block) {
-		size_t initial_size = (*_block)->list.size();
-		for (uint64_t i = 0; i < (*_block)->list.size(); i++) {
-			this->handle(&((*_block)->list[i]));
+		size_t initial_size = (*_block)->statements.size();
+		for (uint64_t i = 0; i < (*_block)->statements.size(); i++) {
+			this->handle(&((*_block)->statements[i]));
 
 			// INFO: if we add something to the scope, we have to increment
 			// the counter the same amount of items
-			if ((*_block)->list.size() > initial_size) {
-				initial_size = (*_block)->list.size();
+			if ((*_block)->statements.size() > initial_size) {
+				initial_size = (*_block)->statements.size();
 				i -= 1;
 			}
 		}

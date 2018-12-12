@@ -18,8 +18,6 @@ struct Pipeline {
 
     Pipeline ();
 
-    void add_pipe(Pipe* pipe);
-
     void run(const char* filepath);
     void handle_file(const char* filepath);
     void handle_stm(Ast_Statement* stm, int from_index = 0);

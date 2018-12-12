@@ -10,53 +10,38 @@
 #include "pipeline/pipes/bytecode_generator.hpp"
 #include "pipeline/pipes/bytecode_runner.hpp"
 
-#include <algorithm>
-
-#define COMPILER_TOTAL_FORMAT "\n  Total Time                 %8.6fs\n"
-
-#define DECL_TYPE(type) this->global_scope->list.push_back(ast_make_declaration(type->name, type));
-
-bool sort_pipes (const Pipe* lhs, const Pipe* rhs) {
-    return lhs->priority < rhs->priority;
-}
+#define DECL_TYPE(scope, type) scope->statements.push_back(ast_make_declaration(type->name, type));
 
 Pipeline::Pipeline() {
-    this->add_pipe(new Foreign_Function());
-    this->add_pipe(new Symbol_Resolution());
-    this->add_pipe(new Type_Checking());
-    this->add_pipe(new Cast_Arrays());
-    this->add_pipe(new Constant_Folding());
+    this->pipes.push_back(new Foreign_Function());
+    this->pipes.push_back(new Symbol_Resolution());
+    this->pipes.push_back(new Type_Checking());
+    this->pipes.push_back(new Cast_Arrays());
+    this->pipes.push_back(new Constant_Folding());
 
-    this->add_pipe(new Register_Allocator());
-    this->add_pipe(new Bytecode_Generator());
-    this->add_pipe(new Bytecode_Runner());
+    this->pipes.push_back(new Register_Allocator());
+    this->pipes.push_back(new Bytecode_Generator());
 
-    // @Incomplete: add output pipes (DLL, EXE, etc.)
-
-    sort(this->pipes.begin(), this->pipes.begin(), sort_pipes);
-}
-
-void Pipeline::add_pipe(Pipe* pipe) {
-    this->pipes.push_back(pipe);
+    this->pipes.push_back(new Bytecode_Runner());
 }
 
 void Pipeline::run(const char* filepath) {
     printf("\n%s\n", filepath);
 
     this->global_scope = Ast_Factory::create_node<Ast_Scope>();
-    DECL_TYPE(Types::type_type);
-    DECL_TYPE(Types::type_void);
-    DECL_TYPE(Types::type_bool);
-    DECL_TYPE(Types::type_s8);
-    DECL_TYPE(Types::type_s16);
-    DECL_TYPE(Types::type_s32);
-    DECL_TYPE(Types::type_s64);
-    DECL_TYPE(Types::type_u8);
-    DECL_TYPE(Types::type_u16);
-    DECL_TYPE(Types::type_u32);
-    DECL_TYPE(Types::type_u64);
-    DECL_TYPE(Types::type_f32);
-    DECL_TYPE(Types::type_f64);
+    DECL_TYPE(this->global_scope, Types::type_type);
+    DECL_TYPE(this->global_scope, Types::type_void);
+    DECL_TYPE(this->global_scope, Types::type_bool);
+    DECL_TYPE(this->global_scope, Types::type_s8);
+    DECL_TYPE(this->global_scope, Types::type_s16);
+    DECL_TYPE(this->global_scope, Types::type_s32);
+    DECL_TYPE(this->global_scope, Types::type_s64);
+    DECL_TYPE(this->global_scope, Types::type_u8);
+    DECL_TYPE(this->global_scope, Types::type_u16);
+    DECL_TYPE(this->global_scope, Types::type_u32);
+    DECL_TYPE(this->global_scope, Types::type_u64);
+    DECL_TYPE(this->global_scope, Types::type_f32);
+    DECL_TYPE(this->global_scope, Types::type_f64);
     this->imported_files.clear();
 
     auto start = os_get_user_time();
@@ -158,5 +143,5 @@ void Pipeline::print_compiler_metrics (double total_time) {
 			pipe->print_pipe_metrics();
 		}
     }
-	printf(COMPILER_TOTAL_FORMAT, total_time);
+	printf("\n  Total Time                 %8.6fs\n", total_time);
 }

@@ -62,7 +62,7 @@ struct Ast_Import : Ast_Statement {
 };
 
 struct Ast_Scope : Ast_Statement {
-	vector<Ast_Statement*> list;
+	vector<Ast_Statement*> statements;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;

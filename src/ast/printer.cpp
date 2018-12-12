@@ -33,7 +33,7 @@ void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 void ASTPrinter::print (Ast_Scope* block, int tabs) {
 	_tabs(tabs);
 	printf("{\n");
-	for (auto stm: block->list) {
+	for (auto stm: block->statements) {
 		print(stm, tabs + 1);
 	}
 	printf("}");

@@ -22,7 +22,7 @@ struct Cast_Arrays : Pipe {
 
         if (cast->is_array_to_slice_cast) {
             auto stm_location = get_current_stm_location();
-            if (stm_location != this->current_scope->list.end()) {
+            if (stm_location != this->current_scope->statements.end()) {
                 auto type_checker = new Type_Checking();
 
                 auto slice_type = static_cast<Ast_Slice_Type*>(cast->cast_to);
@@ -62,9 +62,9 @@ struct Cast_Arrays : Pipe {
                 assign_data->inferred_type = base_type;
                 type_checker->handle(&assign_data);
 
-                stm_location = this->current_scope->list.insert(stm_location, assign_data);
-                stm_location = this->current_scope->list.insert(stm_location, assign_length);
-                stm_location = this->current_scope->list.insert(stm_location, slice_declaration);
+                stm_location = this->current_scope->statements.insert(stm_location, assign_data);
+                stm_location = this->current_scope->statements.insert(stm_location, assign_length);
+                stm_location = this->current_scope->statements.insert(stm_location, slice_declaration);
 
                 auto tmp_ident3 = ast_make_ident(tmp_name);
                 tmp_ident3->declaration = slice_declaration;
@@ -91,7 +91,7 @@ struct Cast_Arrays : Pipe {
     }
 
     vector<Ast_Statement*>::iterator get_current_stm_location () {
-        return find(this->current_scope->list.begin(),
-            this->current_scope->list.end(), this->current_stm);
+        return find(this->current_scope->statements.begin(),
+            this->current_scope->statements.end(), this->current_stm);
     }
 };
