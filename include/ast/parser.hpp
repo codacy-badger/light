@@ -28,6 +28,7 @@ struct Parser {
 
 	void scope (Ast_Scope* inner_scope);
 	Ast_Note* note ();
+	Ast_Directive* directive ();
 	Ast_Statement* statement ();
 	Ast_Declaration* declaration (Ast_Ident* ident = NULL);
 	Ast_Declaration* declaration_or_type ();

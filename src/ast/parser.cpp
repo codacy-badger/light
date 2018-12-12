@@ -65,6 +65,10 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip();
 			return this->statement();
 		}
+		case TOKEN_HASH: {
+			this->lexer->skip();
+			return this->directive();
+		}
 		case TOKEN_IMPORT: {
 			this->lexer->skip();
 			auto import = AST_NEW(Ast_Import, this->expression());
@@ -137,6 +141,37 @@ Ast_Statement* Parser::statement () {
 				} else return NULL;
 			}
 		}
+	}
+}
+
+Ast_Directive* Parser::directive () {
+	switch (this->lexer->next_type) {
+		case TOKEN_IF: {
+			this->lexer->skip();
+			auto directive_if = AST_NEW(Ast_Directive_If);
+
+			directive_if->stm_if = AST_NEW(Ast_If);
+			directive_if->stm_if->condition = this->expression();
+			directive_if->stm_if->then_statement = this->statement();
+
+			if (this->lexer->optional_skip(TOKEN_ELSE)) {
+				directive_if->stm_if->else_statement = this->statement();
+			}
+
+			return directive_if;
+		}
+		case TOKEN_INCLUDE: {
+			this->lexer->skip();
+			auto directive_include = AST_NEW(Ast_Directive_Include);
+
+			auto literal = this->literal();
+			if (literal->literal_type == AST_LITERAL_STRING) {
+				directive_include->path = literal->string_value;
+			} else ERROR_STOP(literal, "Expected string literal after include");
+
+			return directive_include;
+		}
+		default: return NULL;
 	}
 }
 

@@ -4,6 +4,7 @@
 
 #include <vector>
 
+struct Ast_If;
 struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
@@ -40,6 +41,7 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_RETURN,
 	AST_STATEMENT_IMPORT,
 	AST_STATEMENT_EXPRESSION,
+	AST_STATEMENT_DIRECTIVE,
 };
 
 struct Ast_Statement : Ast {
@@ -48,6 +50,30 @@ struct Ast_Statement : Ast {
 	vector<Ast_Note*> notes;
 
 	Ast_Note* remove_note (const char* name);
+};
+
+enum Ast_Directive_Type {
+	AST_DIRECTIVE_UNDEFINED = 0,
+	AST_DIRECTIVE_INCLUDE,
+	AST_DIRECTIVE_IF,
+};
+
+struct Ast_Directive : Ast_Statement {
+	Ast_Directive_Type dir_type = AST_DIRECTIVE_UNDEFINED;
+
+	Ast_Directive () { this->stm_type = AST_STATEMENT_DIRECTIVE; }
+};
+
+struct Ast_Directive_Include : Ast_Directive {
+	char* path = NULL;
+
+	Ast_Directive_Include () { this->dir_type = AST_DIRECTIVE_INCLUDE; }
+};
+
+struct Ast_Directive_If : Ast_Directive {
+	Ast_If* stm_if = NULL;
+
+	Ast_Directive_If () { this->dir_type = AST_DIRECTIVE_IF; }
 };
 
 struct Ast_Import : Ast_Statement {

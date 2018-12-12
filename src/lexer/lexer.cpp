@@ -90,6 +90,7 @@ bool Lexer::parse_next () {
 		else if (STRING_EQUAL(next_text, "fn")) 		this->next_type = TOKEN_FUNCTION;
 		else if (STRING_EQUAL(next_text, "return")) 	this->next_type = TOKEN_RETURN;
 		else if (STRING_EQUAL(next_text, "import")) 	this->next_type = TOKEN_IMPORT;
+		else if (STRING_EQUAL(next_text, "include")) 	this->next_type = TOKEN_INCLUDE;
 		else if (STRING_EQUAL(next_text, "false")) 		this->next_type = TOKEN_FALSE;
 		else if (STRING_EQUAL(next_text, "true")) 		this->next_type = TOKEN_TRUE;
 		else if (STRING_EQUAL(next_text, "null")) 		this->next_type = TOKEN_NULL;
@@ -220,6 +221,7 @@ const char* token_get_text (Token_Type type) {
 		CASE_ENUM_TEXT(TOKEN_FUNCTION,		"FUNCTION")
 		CASE_ENUM_TEXT(TOKEN_RETURN,		"RETURN")
 		CASE_ENUM_TEXT(TOKEN_IMPORT,		"IMPORT")
+		CASE_ENUM_TEXT(TOKEN_INCLUDE,		"INCLUDE")
 		CASE_ENUM_TEXT(TOKEN_NULL,			"NULL")
 
 		CASE_ENUM_TEXT(TOKEN_EXCLAMATION,	"!")
