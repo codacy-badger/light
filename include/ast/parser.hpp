@@ -15,7 +15,7 @@ struct Parser {
 	Notes* notes = new Notes();
 	Lexer* lexer = NULL;
 
-	Ast_Scope* current_block = NULL;
+	Ast_Scope* current_scope = NULL;
 
 	// for metrics
 	size_t all_lines = 0;
@@ -26,7 +26,7 @@ struct Parser {
 
 	void push (Ast_Statement* stm);
 
-	void block (Ast_Scope* inner_block);
+	void scope (Ast_Scope* inner_scope);
 	Ast_Note* note ();
 	Ast_Statement* statement ();
 	Ast_Declaration* declaration (Ast_Ident* ident = NULL);

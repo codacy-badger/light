@@ -7,7 +7,7 @@ uint64_t Ast_Factory::node_count = 0;
 #define AST_NEW(T, ...) Ast_Factory::create_node<T>(&this->lexer->buffer->location, __VA_ARGS__)
 
 void Parser::setup (const char* filepath, Ast_Scope* parent) {
-	this->current_block = parent;
+	this->current_scope = parent;
 	this->lexer = new Lexer(filepath, this->lexer);
 }
 
@@ -22,12 +22,12 @@ void Parser::teardown () {
 
 void Parser::push (Ast_Statement* stm) {
 	this->notes->push_global_into(stm);
-	this->current_block->list.push_back(stm);
+	this->current_scope->list.push_back(stm);
 }
 
-void Parser::block (Ast_Scope* inner_block) {
-	auto _tmp = this->current_block;
-	this->current_block = inner_block;
+void Parser::scope (Ast_Scope* inner_scope) {
+	auto _tmp = this->current_scope;
+	this->current_scope = inner_scope;
 
 	auto stm = this->statement();
 	while (stm != NULL) {
@@ -38,7 +38,7 @@ void Parser::block (Ast_Scope* inner_block) {
 		} else stm = this->statement();
 	}
 
-	this->current_block = _tmp;
+	this->current_scope = _tmp;
 }
 
 Ast_Note* Parser::note () {
@@ -84,10 +84,10 @@ Ast_Statement* Parser::statement () {
 		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip();
-			auto _block = AST_NEW(Ast_Scope, this->current_block);
-			this->block(_block);
+			auto _scope = AST_NEW(Ast_Scope, this->current_scope);
+			this->scope(_scope);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
-			return _block;
+			return _scope;
 		}
 		case TOKEN_IF: {
 			this->lexer->skip();
@@ -115,7 +115,7 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip();
 			auto output = AST_NEW(Ast_Return);
 			output->expression = this->expression();
-			output->scope = this->current_block;
+			output->scope = this->current_scope;
 			this->lexer->optional_skip(TOKEN_STM_END);
 			return output;
 		}
@@ -130,7 +130,7 @@ Ast_Statement* Parser::statement () {
 						return exp;
 					} else {
 						auto output = AST_NEW(Ast_Return);
-						output->scope = this->current_block;
+						output->scope = this->current_scope;
 						output->expression = exp;
 						return output;
 					}
@@ -145,11 +145,11 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	if (!ident) return NULL;
 
 	auto decl = AST_NEW(Ast_Declaration);
-	decl->scope = this->current_block;
+	decl->scope = this->current_scope;
 	decl->name = ident->name;
 
 	// TODO: should this really be here? maybe Ast_Validation pipe?
-	auto other = this->current_block->find_declaration_in_same_scope(decl->name);
+	auto other = this->current_scope->find_declaration_in_same_scope(decl->name);
 	if (other) {
 		report_error(&decl->location, "re-declaration of variable or constant '%s'", decl->name);
 		report_error_and_stop(&other->location, "previous declaration here");
@@ -229,9 +229,9 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		if (this->lexer->is_next_type(TOKEN_BRAC_OPEN)) {
 			this->lexer->skip();
 
-			auto _block = AST_NEW(Ast_Scope, this->current_block);
-			this->block(_block);
-			for (auto stm : _block->list) {
+			auto _scope = AST_NEW(Ast_Scope, this->current_scope);
+			this->scope(_scope);
+			for (auto stm : _scope->list) {
 				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 					auto decl = static_cast<Ast_Declaration*>(stm);
 					decl->_struct = _struct;
@@ -240,19 +240,19 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 					report_error_and_stop(&stm->location, "Only declarations can go inside a struct");
 				}
 			}
-			delete _block;
+			delete _scope;
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 		}
 
 		return _struct;
 	} else if (this->lexer->optional_skip(TOKEN_FUNCTION)) {
-		auto sub_scope = AST_NEW(Ast_Scope, this->current_block);
-		auto tmp = this->current_block;
-		this->current_block = sub_scope;
+		auto sub_scope = AST_NEW(Ast_Scope, this->current_scope);
+		auto tmp = this->current_scope;
+		this->current_scope = sub_scope;
 
 		auto func_type = this->function_type();
 
-		this->current_block = tmp;
+		this->current_scope = tmp;
 
 		if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
 			auto func = AST_NEW(Ast_Function);
@@ -260,7 +260,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			func->scope = sub_scope;
 			func->type = func_type;
 
-			this->block(func->scope);
+			this->scope(func->scope);
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 
 			return func;
@@ -320,7 +320,7 @@ Ast_Expression* Parser::type_instance () {
 	} else {
 		auto ident = this->ident();
 		if (ident) {
-			auto decl = this->current_block->find_const_declaration(ident->name);
+			auto decl = this->current_scope->find_const_declaration(ident->name);
 			if (decl && decl->expression && decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 				this->factory->delete_node(ident);
 				return decl->expression;
@@ -395,12 +395,12 @@ void Parser::comma_separated_arguments (vector<Ast_Expression*>* arguments) {
 Ast_Ident* Parser::ident () {
 	if (!this->lexer->is_next_type(TOKEN_ID)) return NULL;
 
-	auto ident = AST_NEW(Ast_Ident, this->current_block);
+	auto ident = AST_NEW(Ast_Ident, this->current_scope);
 	ident->name = this->lexer->text();
 
 	// this is the right time to do this, since on a non-constant reference
 	// the declaration should already be in the scope.
-	ident->declaration = this->current_block->find_non_const_declaration(ident->name);
+	ident->declaration = this->current_scope->find_non_const_declaration(ident->name);
 	return ident;
 }
 
