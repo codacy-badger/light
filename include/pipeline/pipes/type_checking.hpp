@@ -101,11 +101,9 @@ struct Type_Checking : Pipe {
 	}
 
 	void handle (Ast_Cast** cast_ptr) {
+		Pipe::handle(cast_ptr);
+
 		auto cast = (*cast_ptr);
-
-		Pipe::handle(&cast->value);
-		Pipe::handle(&cast->cast_to);
-
 		if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 			cast->inferred_type = static_cast<Ast_Type_Instance*>(cast->cast_to);
 		} else ERROR_STOP(cast, "Cast target is not a type");
@@ -120,22 +118,10 @@ struct Type_Checking : Pipe {
 		Compiler::instance->types->add_type_if_new(type_inst);
 	}
 
-	void handle (Ast_Function_Type** func_type_ptr) {
-		auto func_type = (*func_type_ptr);
-
-		Pipe::handle(&func_type->ret_type);
-		for (auto &arg_decl : func_type->arg_decls) {
-			Pipe::handle(&arg_decl);
-		}
-	}
-
 	void handle (Ast_Struct_Type** _struct_ptr) {
+		Pipe::handle(_struct_ptr);
+
 		auto _struct = (*_struct_ptr);
-
-		for (auto &decl : _struct->attributes) {
-			Pipe::handle(&decl);
-		}
-
 		if (_struct->byte_size == 0) {
 			// TODO: use byte_alignment to correctly assign byte_offsets
 			for (auto attr : _struct->attributes) {
@@ -162,12 +148,6 @@ struct Type_Checking : Pipe {
 
 		auto type_def = static_cast<Ast_Type_Instance*>(arr->base);
 		arr->byte_size = arr->get_length() * type_def->byte_size;
-	}
-
-	void handle (Ast_Pointer_Type** ptr_type_ptr) {
-		auto ptr_type = (*ptr_type_ptr);
-
-		Pipe::handle(&ptr_type->base);
 	}
 
 	void handle (Ast_Function** func_ptr) {
@@ -338,23 +318,11 @@ struct Type_Checking : Pipe {
 
 	    switch (lit->literal_type) {
 	        case AST_LITERAL_UNSIGNED_INT: {
-				if (lit->uint_value <= UINT32_MAX) {
-					if (lit->uint_value <= UINT16_MAX) {
-						if (lit->uint_value <= UINT8_MAX) {
-							lit->inferred_type = Types::type_u8;
-						} else lit->inferred_type = Types::type_u16;
-					} else lit->inferred_type = Types::type_u32;
-				} else lit->inferred_type = Types::type_u64;
+				lit->inferred_type = ast_get_smallest_type(lit->uint_value);
 	            break;
 	        }
 	        case AST_LITERAL_SIGNED_INT: {
-				if (lit->int_value <= INT32_MAX && lit->int_value >= INT32_MIN) {
-					if (lit->int_value <= INT16_MAX && lit->int_value >= INT16_MIN) {
-						if (lit->int_value <= INT8_MAX && lit->int_value >= INT8_MIN) {
-							lit->inferred_type = Types::type_s8;
-						} else lit->inferred_type = Types::type_s16;
-					} else lit->inferred_type = Types::type_s32;
-				} else lit->inferred_type = Types::type_s64;
+				lit->inferred_type = ast_get_smallest_type(lit->int_value);
 	            break;
 	        }
 	        case AST_LITERAL_DECIMAL: {

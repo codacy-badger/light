@@ -107,12 +107,12 @@ Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
 
 // TODO: precompute depth for each pointer type (when uniqued?)
 Ast_Type_Instance* Ast_Pointer_Type::get_base_type_recursive() {
-    auto non_pointer_base = static_cast<Ast_Type_Instance*>(this->base);
+    auto base_type = static_cast<Ast_Type_Instance*>(this->base);
 
     uint8_t deref_count = 0;
-    while (non_pointer_base->typedef_type == AST_TYPEDEF_POINTER) {
-        auto ptr_type = static_cast<Ast_Pointer_Type*>(non_pointer_base);
-        non_pointer_base = static_cast<Ast_Type_Instance*>(ptr_type->base);
+    while (base_type->typedef_type == AST_TYPEDEF_POINTER) {
+        auto ptr_type = static_cast<Ast_Pointer_Type*>(base_type);
+        base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
         deref_count += 1;
     }
 
@@ -120,7 +120,7 @@ Ast_Type_Instance* Ast_Pointer_Type::get_base_type_recursive() {
         WARN(this, "Attribute access on deep pointer (%d)", deref_count);
     }
 
-    return non_pointer_base;
+    return base_type;
 }
 
 uint64_t Ast_Array_Type::get_length () {
@@ -235,34 +235,6 @@ short Ast_Binary::get_precedence (Token_Type opToken) {
 bool Ast_Binary::is_left_associative (Token_Type opToken) {
 	switch (opToken) {
 		case TOKEN_EQUAL: 			return true;
-		case TOKEN_DOT:   			return false;
-		case TOKEN_SQ_BRAC_OPEN:	return false;
-
-		case TOKEN_DOUBLE_AMP:		return false;
-		case TOKEN_DOUBLE_PIPE:		return false;
-		case TOKEN_EXCLAMATION:		return false;
-
-		case TOKEN_DOUBLE_ADD: 		return false;
-		case TOKEN_DOUBLE_SUB: 		return false;
-		case TOKEN_ADD:   			return false;
-		case TOKEN_SUB:   			return false;
-		case TOKEN_MUL:   			return false;
-		case TOKEN_DIV:   			return false;
-		case TOKEN_PERCENT:   		return false;
-
-		case TOKEN_AMP:				return false;
-		case TOKEN_PIPE:			return false;
-		case TOKEN_CARET:			return false;
-		case TOKEN_TILDE:			return false;
-		case TOKEN_RIGHT_SHIFT:		return false;
-		case TOKEN_LEFT_SHIFT:		return false;
-
-		case TOKEN_DOUBLE_EQUAL:	return false;
-		case TOKEN_NOT_EQUAL:		return false;
-		case TOKEN_GREATER_EQUAL:	return false;
-		case TOKEN_LESSER_EQUAL:	return false;
-		case TOKEN_GREATER:			return false;
-		case TOKEN_LESSER:			return false;
 		default: 		  			return false;
 	}
 }
@@ -453,6 +425,26 @@ Ast_Type_Instance* ast_get_container_signed (Ast_Type_Instance* unsigned_type) {
     } else if (unsigned_type == Types::type_u64) {
         return Types::type_s64;
     } else return unsigned_type;
+}
+
+Ast_Struct_Type* ast_get_smallest_type (uint64_t value) {
+    if (value <= UINT32_MAX) {
+        if (value <= UINT16_MAX) {
+            if (value <= UINT8_MAX) {
+                return Types::type_u8;
+            } else return Types::type_u16;
+        } else return Types::type_u32;
+    } else return Types::type_u64;
+}
+
+Ast_Struct_Type* ast_get_smallest_type (int64_t value) {
+    if (value <= INT32_MAX && value >= INT32_MIN) {
+        if (value <= INT16_MAX && value >= INT16_MIN) {
+            if (value <= INT8_MAX && value >= INT8_MIN) {
+                return Types::type_s8;
+            } else return Types::type_s16;
+        } else return Types::type_s32;
+    } else return Types::type_s64;
 }
 
 uint8_t ast_get_pointer_size () {

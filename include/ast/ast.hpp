@@ -393,6 +393,8 @@ bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_
 bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to);
 
 Ast_Type_Instance* ast_get_container_signed (Ast_Type_Instance* unsigned_type);
+Ast_Struct_Type* ast_get_smallest_type (uint64_t value);
+Ast_Struct_Type* ast_get_smallest_type (int64_t value);
 
 Ast_Literal* ast_make_literal (const char* value);
 Ast_Literal* ast_make_literal (unsigned long long value);
