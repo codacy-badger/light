@@ -257,6 +257,7 @@ struct Type_Checking : Pipe {
 					ERROR_STOP(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
 				}
 			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
+				// TODO: refactor this once we have subscript operator overloading
 				auto _struct = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
 				if (_struct->is_slice) {
 					Pipe::handle(&binop->rhs);

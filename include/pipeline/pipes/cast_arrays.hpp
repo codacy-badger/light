@@ -20,13 +20,13 @@ struct Cast_Arrays : Pipe {
     void handle (Ast_Cast** cast_ptr) {
         auto cast = (*cast_ptr);
 
-        if (cast->is_array_cast) {
+        if (cast->is_array_to_slice_cast) {
             auto stm_location = get_current_stm_location();
             if (stm_location != this->current_scope->list.end()) {
                 auto type_checker = new Type_Checking();
 
                 auto slice_type = static_cast<Ast_Slice_Type*>(cast->cast_to);
-                auto base_type = static_cast<Ast_Type_Instance*>(slice_type->base);
+                auto base_type = slice_type->get_typed_base();
 
 				char tmp_name[TMP_NAME_SIZE];
 				sprintf_s(tmp_name, TMP_NAME_SIZE, "$tmp$slice$%zd", tmp_var_count++);

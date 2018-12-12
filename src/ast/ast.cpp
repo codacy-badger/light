@@ -134,7 +134,6 @@ uint64_t Ast_Array_Type::get_length () {
 
 Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 	this->typedef_type = AST_TYPEDEF_STRUCT;
-	this->base = base_type;
 	this->is_slice = true;
 
     auto ptr_type = Compiler::instance->types->get_pointer_type(base_type);
@@ -286,7 +285,7 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 				auto _struct = static_cast<Ast_Struct_Type*>(type_inst);
 				if (_struct->is_slice) {
 					auto slice = static_cast<Ast_Slice_Type*>(type_inst);
-					auto base_name = _get_type_name(slice->base);
+					auto base_name = _get_type_name(slice->get_base());
 	        		auto base_name_length = strlen(base_name);
 	        		slice->name = (char*) malloc(base_name_length + 3);
 	        		slice->name[0] = '[';
@@ -386,7 +385,9 @@ bool ast_function_types_are_equal (Ast_Function_Type* func_type1, Ast_Function_T
     return ast_types_are_equal(ret_type1, ret_type2);
 }
 
+// TODO: solve this: either we unique all types or we make deep comparisons
 bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2) {
+    //return type_inst1 == type_inst2;
     if (type_inst1 == type_inst2) return true;
     else {
         if (type_inst1->typedef_type != type_inst2->typedef_type) return false;
@@ -430,7 +431,7 @@ bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_
 
 		// INFO: if the cast comes from an implicid array cast, mark it!
 		if (type_from->typedef_type == AST_TYPEDEF_ARRAY) {
-			cast->is_array_cast = true;
+			cast->is_array_to_slice_cast = true;
 		}
 
         (*exp_ptr) = cast;

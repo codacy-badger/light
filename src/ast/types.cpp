@@ -51,7 +51,7 @@ void Types::add_type_if_new (Ast_Type_Instance* type) {
 void Types::add_struct_type_if_new (Ast_Struct_Type* _struct) {
 	if (_struct->is_slice) {
 		auto slice = static_cast<Ast_Slice_Type*>(_struct);
-		auto base_type = static_cast<Ast_Type_Instance*>(slice->base);
+		auto base_type = slice->get_typed_base();
 		auto it = this->sli_types.find(base_type);
 	    if (it == this->sli_types.end()) {
 			ast_compute_type_name_if_needed(slice);
@@ -127,7 +127,7 @@ Ast_Pointer_Type* Types::get_pointer_type (Ast_Expression* base) {
 			ast_compute_type_name_if_needed(ptr_type);
 			this->add_new_global_unique_type(ptr_type);
 			this->ptr_types[base_type] = ptr_type;
-			
+
 
 			return ptr_type;
 		}
@@ -167,7 +167,7 @@ bool Types::is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* t
 				// (we should check that once in the whole code!)
 				auto slice_type = static_cast<Ast_Slice_Type*>(struct_type);
 				auto base_type1 = static_cast<Ast_Type_Instance*>(array_type->base);
-				auto base_type2 = static_cast<Ast_Type_Instance*>(slice_type->base);
+				auto base_type2 = slice_type->get_typed_base();
 				return ast_types_are_equal(base_type1, base_type2);
 			}
 		}

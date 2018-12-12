@@ -157,7 +157,7 @@ struct Ast_Cast : Ast_Expression {
 	Ast_Expression* value = NULL;
 	Ast_Expression* cast_to = NULL;
 
-	bool is_array_cast = false;
+	bool is_array_to_slice_cast = false;
 
 	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
 };
@@ -228,9 +228,18 @@ struct Ast_Array_Type : Ast_Type_Instance {
 };
 
 struct Ast_Slice_Type : Ast_Struct_Type {
-	Ast_Expression* base = NULL;
 
 	Ast_Slice_Type(Ast_Expression* base_type);
+
+	Ast_Expression* get_base() {
+		auto attr_decl = this->find_attribute("data");
+		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->type);
+		return ptr_type->base;
+	}
+
+	Ast_Type_Instance* get_typed_base() {
+		return static_cast<Ast_Type_Instance*>(this->get_base());
+	}
 };
 
 struct Ast_Function_Type : Ast_Type_Instance {

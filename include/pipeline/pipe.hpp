@@ -227,8 +227,4 @@ struct Pipe {
 		this->handle(&(*arr)->base);
 		if ((*arr)->length) this->handle(&(*arr)->length);
 	}
-
-	virtual void handle (Ast_Slice_Type** slice) {
-		this->handle(&(*slice)->base);
-	}
 };
