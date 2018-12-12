@@ -39,7 +39,7 @@ VK_RESULT_MAX_ENUM						:: 0x7FFFFFFF;
 
 VK_MAX_EXTENSION_NAME_SIZE :: 256;
 
-#foreign("vulkan-1.dll")
+@foreign("vulkan-1.dll")
 vkGetInstanceProcAddr :: fn (instance: *void, pName: *u8) -> *void;
 
 VkExtensionProperties :: struct {
@@ -47,7 +47,7 @@ VkExtensionProperties :: struct {
     specVersion: 	u32;
 }
 
-#foreign("vulkan-1.dll")
+@foreign("vulkan-1.dll")
 vkEnumerateInstanceExtensionProperties :: fn (pLayerName: *u8, pPropertyCount: *u32, pProperties: *VkExtensionProperties) -> u32;
 
 VK_STRUCTURE_TYPE_APPLICATION_INFO :: 0;
@@ -75,5 +75,5 @@ VkInstanceCreateInfo :: struct {
     ppEnabledExtensionNames:	**u8;
 }
 
-#foreign("vulkan-1.dll")
+@foreign("vulkan-1.dll")
 vkCreateInstance :: fn (pCreateInfo: *VkInstanceCreateInfo, pAllocator: *void, pInstance: *void) -> u32;

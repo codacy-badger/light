@@ -5,7 +5,7 @@ STD_ERROR_HANDLE  : u32 : cast(u32) -12;
 
 INVALID_HANDLE_VALUE : *void : cast(*void) -1;
 
-#!foreign("kernel32")
+@!foreign("kernel32")
 
 ExitProcess :: fn (uExitCode: u32) {}
 
@@ -21,7 +21,7 @@ WriteFile :: fn (handle: *void, buffer: *u8, bytes_to_write: u32, written_bytes:
 
 GetConsoleMode :: fn (handle: *void, mode: *u32) -> u8 {}
 
-#!end
+@!end
 
 GetModuleHandle :: GetModuleHandleA;
 WriteConsole :: WriteConsoleA;

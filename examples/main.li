@@ -6,7 +6,7 @@ import "windows/gdi32.li"
 import "windows/opengl.li"
 import "windows/vulkan.li"
 
-#run
+@run
 main :: fn {
 	//MessageBox(0, "This is a sample message", "Title", MB_RETRYCANCEL | MB_ICONINFORMATION);
 

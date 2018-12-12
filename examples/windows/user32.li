@@ -26,7 +26,7 @@ MB_APPLMODAL 			:: 0x00000000;
 MB_SYSTEMMODAL 			:: 0x00001000;
 MB_TASKMODAL 			:: 0x00002000;
 
-#foreign("user32", "MessageBoxA")
+@foreign("user32", "MessageBoxA")
 MessageBox :: fn (hWnd: *void, lpText: *u8, lpCaption: *u8, uType: u32) -> s32 {}
 
 CS_BYTEALIGNCLIENT 		:: 0x1000;
@@ -57,13 +57,13 @@ WNDCLASSEXA :: struct {
 	hIconSm:		*void;
 }
 
-#foreign("user32", "DefWindowProcA")
+@foreign("user32", "DefWindowProcA")
 DefWindowProc :: fn (hwnd: *void, uMsg: u32, wParam: s64, lParam: s64) -> s64 {}
 
-#foreign("user32", "RegisterClassExA")
+@foreign("user32", "RegisterClassExA")
 RegisterClassEx :: fn (lpWndClass: *WNDCLASSEXA) -> u16 {}
 
-#foreign("user32", "GetClassInfoExA")
+@foreign("user32", "GetClassInfoExA")
 GetClassInfoEx :: fn (hInstance: *void, lpClassName: *u8, lpWndClass: *WNDCLASSEXA) -> u8 {}
 
 WS_BORDER			:: 0x00800000;
@@ -96,7 +96,7 @@ WS_VSCROLL			:: 0x00200000;
 
 CW_USEDEFAULT		:: 0x80000000;
 
-#foreign("user32", "CreateWindowExA")
+@foreign("user32", "CreateWindowExA")
 CreateWindowEx :: fn (
 	dwExStyle: u32,
 	lpClassName: *u8,
@@ -112,13 +112,13 @@ CreateWindowEx :: fn (
 	lpParam: *void
 ) -> *void {}
 
-#foreign("user32")
+@foreign("user32")
 GetDC :: fn (hWnd: *void) -> *void {}
 
-#foreign("user32")
+@foreign("user32")
 ShowWindow :: fn (hWnd: *void, nCmdShow: s32) -> u8 {}
 
-#foreign("user32")
+@foreign("user32")
 DestroyWindow :: fn (hWnd: *void) -> u8 {}
 
 POINT :: struct {
@@ -137,11 +137,11 @@ MSG :: struct {
 
 WM_NULL :: 0;
 
-#foreign("user32", "GetMessageA")
+@foreign("user32", "GetMessageA")
 GetMessage :: fn (lpMsg: *MSG, hWnd: *void, wMsgFilterMin: u32, wMsgFilterMax: u32) -> u8 {}
 
-#foreign("user32")
+@foreign("user32")
 TranslateMessage :: fn (lpmsg: *MSG) -> u8 {}
 
-#foreign("user32", "DispatchMessageA")
+@foreign("user32", "DispatchMessageA")
 DispatchMessage :: fn (lpmsg: *MSG) -> *void {}

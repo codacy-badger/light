@@ -1,7 +1,7 @@
 import "print.li"
 import "sys.li"
 
-#run
+@run
 main :: fn {
 	test_factorial();
 	test_cast();

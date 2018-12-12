@@ -42,7 +42,7 @@ void Parser::scope (Ast_Scope* inner_scope) {
 }
 
 Ast_Note* Parser::note () {
-	if (this->lexer->optional_skip(TOKEN_HASH)) {
+	if (this->lexer->optional_skip(TOKEN_AT)) {
 		auto note = AST_NEW(Ast_Note);
 		note->is_global = this->lexer->optional_skip(TOKEN_EXCLAMATION);
 
@@ -71,7 +71,7 @@ Ast_Statement* Parser::statement () {
 			this->lexer->optional_skip(TOKEN_STM_END);
 			return import;
 		}
-		case TOKEN_HASH: {
+		case TOKEN_AT: {
 			auto note = this->note();
 			while (note != NULL) {
 				this->notes->push(note);
@@ -290,10 +290,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		return AST_NEW(Ast_Unary, AST_UNARY_DEREFERENCE, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_ADD)) {
 		return this->expression();
-	} else {
-		auto lit = this->literal();
-		return lit ? lit : this->type_instance();
-	}
+	} else return this->literal();
 }
 
 Ast_Expression* Parser::type_instance () {
