@@ -4,8 +4,6 @@
 
 #include <vector>
 
-#include "compiler.hpp"
-
 using namespace std;
 
 struct Symbol_Resolution : Pipe {
