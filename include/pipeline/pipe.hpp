@@ -13,6 +13,7 @@ struct Pipeline;
 
 struct Pipe {
 	const char* pipe_name = NULL;
+	uint64_t start_time = 0;
 	double total_time = 0;
 
 	bool stop_processing = false;
@@ -21,11 +22,11 @@ struct Pipe {
 	size_t pipe_index = 0;
 
 	virtual void process (Ast_Scope* scope) {
-		auto start = os_get_user_time();
+		this->start_time = os_get_user_time();
 
 		this->handle(&scope);
 
-		this->total_time += os_time_user_stop(start);
+		this->total_time += os_time_user_stop(this->start_time);
 	}
 
 	virtual void on_finish () { /* empty */ }

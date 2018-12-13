@@ -16,7 +16,10 @@ struct Compiler_Directives : Pipe {
 		auto location = get_current_stm_location();
 		location = this->current_scope->statements.erase(location);
 
+		this->total_time += os_time_user_stop(this->start_time);
 		auto scope = Compiler::instance->modules->get_module(include->absolute_path);
+		this->start_time = os_get_user_time();
+
 		this->current_scope->statements.insert(location,
 			scope->statements.begin(), scope->statements.end());
     }
@@ -24,9 +27,12 @@ struct Compiler_Directives : Pipe {
     void handle (Ast_Directive_Import** import_ptr) {
 		auto import = (*import_ptr);
 
-		//this->current_scope->statements.erase(get_current_stm_location());
+		this->current_scope->statements.erase(get_current_stm_location());
 
+		this->total_time += os_time_user_stop(this->start_time);
 		auto scope = Compiler::instance->modules->get_module(import->absolute_path);
+		this->start_time = os_get_user_time();
+
 		this->current_scope->module_scopes.push_back(scope);
     }
 
