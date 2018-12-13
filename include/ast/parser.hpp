@@ -22,12 +22,9 @@ struct Parser {
 
 	Ast_Scope* run (const char* filepath, Ast_Scope* parent = NULL);
 
-	void setup (const char* filepath, Ast_Scope* parent = NULL);
-	void teardown ();
-
 	void push (Ast_Statement* stm);
 
-	void scope (Ast_Scope* inner_scope);
+	Ast_Scope* scope (Ast_Scope* inner_scope = NULL);
 	Ast_Note* note ();
 	Ast_Directive* directive ();
 	Ast_Statement* statement ();

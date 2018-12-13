@@ -14,8 +14,8 @@ struct Ring_Buffer : Lexer_Buffer {
 	size_t index = 0;
 	size_t last = 0;
 
-	Ring_Buffer (const char* filename, Lexer_Buffer* parent = NULL)
-		: Lexer_Buffer (filename, parent) {
+	Ring_Buffer (const char* filename)
+		: Lexer_Buffer (filename) {
 			// If this rule doesn't get satisfied the sections of the buffer will
 			// have different sizes, messing up the data
 			ASSERT((RING_BUFFER_SIZE % RING_BUFFER_SECTIONS) == 0);

@@ -9,31 +9,23 @@ uint64_t Ast_Factory::node_count = 0;
 Ast_Scope* Parser::run (const char* filepath, Ast_Scope* parent) {
 	auto start = os_get_user_time();
 
-	this->setup(filepath, parent);
+	this->current_scope = parent;
+	auto tmp_lexer = this->lexer;
+	this->lexer = new Lexer(filepath);
 
 	auto global_scope = AST_NEW(Ast_Scope, parent);
 	global_scope->is_global = true;
 	this->scope(global_scope);
 
-	this->teardown();
+	this->all_lines += this->lexer->get_total_ancestor_lines();
+	this->notes->clear_global();
+
+	delete this->lexer;
+	this->lexer = tmp_lexer;
 
 	this->time += os_time_user_stop(start);
 
 	return global_scope;
-}
-
-void Parser::setup (const char* filepath, Ast_Scope* parent) {
-	this->current_scope = parent;
-	this->lexer = new Lexer(filepath, this->lexer);
-}
-
-void Parser::teardown () {
-	this->all_lines += this->lexer->get_total_ancestor_lines();
-	this->notes->clear_global();
-
-	auto tmp = this->lexer;
-	this->lexer = tmp->parent;
-	delete tmp;
 }
 
 void Parser::push (Ast_Statement* stm) {
@@ -41,7 +33,11 @@ void Parser::push (Ast_Statement* stm) {
 	this->current_scope->statements.push_back(stm);
 }
 
-void Parser::scope (Ast_Scope* inner_scope) {
+Ast_Scope* Parser::scope (Ast_Scope* inner_scope) {
+	if (!inner_scope) {
+		inner_scope = AST_NEW(Ast_Scope, this->current_scope);
+	}
+
 	auto _tmp = this->current_scope;
 	this->current_scope = inner_scope;
 
@@ -55,6 +51,7 @@ void Parser::scope (Ast_Scope* inner_scope) {
 	}
 
 	this->current_scope = _tmp;
+	return inner_scope;
 }
 
 Ast_Note* Parser::note () {
@@ -104,8 +101,7 @@ Ast_Statement* Parser::statement () {
 		}
 		case TOKEN_BRAC_OPEN: {
 			this->lexer->skip();
-			auto _scope = AST_NEW(Ast_Scope, this->current_scope);
-			this->scope(_scope);
+			auto _scope = this->scope();
 			this->lexer->check_skip(TOKEN_BRAC_CLOSE);
 			return _scope;
 		}
@@ -293,8 +289,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		if (this->lexer->is_next_type(TOKEN_BRAC_OPEN)) {
 			this->lexer->skip();
 
-			auto _scope = AST_NEW(Ast_Scope, this->current_scope);
-			this->scope(_scope);
+			auto _scope = this->scope();
 			for (auto stm : _scope->statements) {
 				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 					auto decl = static_cast<Ast_Declaration*>(stm);

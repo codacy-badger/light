@@ -9,14 +9,13 @@
 
 struct Lexer {
 	Lexer_Buffer* buffer;
-	Lexer* parent = NULL;
 
 	char* next_text;
 	Token_Type next_type;
 
 	uint64_t ancestor_line_count = 0;
 
-	Lexer (const char* filepath, Lexer* parent);
+	Lexer (const char* filepath);
 	~Lexer ();
 
 	bool parse_next ();

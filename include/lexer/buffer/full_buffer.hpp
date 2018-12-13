@@ -22,8 +22,8 @@ struct Full_Buffer : Lexer_Buffer {
 	size_t index = 0;
 	size_t size = 0;
 
-	Full_Buffer (const char* filename, Lexer_Buffer* parent = NULL)
-			: Lexer_Buffer (filename, parent) {
+	Full_Buffer (const char* filename)
+			: Lexer_Buffer (filename) {
         fseek(this->file, 0L, SEEK_END);
         this->size = ftell(this->file);
         rewind(this->file);

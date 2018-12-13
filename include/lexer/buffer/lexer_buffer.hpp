@@ -17,21 +17,21 @@ struct Lexer_Buffer {
 
 	char _buffer[LEXER_BUFFER_SIZE];
 
-	Lexer_Buffer (const char* filename, Lexer_Buffer* parent = NULL) {
-        auto loc = parent ? &parent->location : NULL;
-
+	Lexer_Buffer (const char* filename) {
         FILE* file_ptr = NULL;
     	auto err = fopen_s(&file_ptr, filename, "r");
     	if (err) {
     		strerror_s(this->_buffer, sizeof this->_buffer, err);
-    		report_error_and_stop(loc, "Cannot open file '%s': %s", filename, this->_buffer);
+    		report_error_and_stop(NULL, "Cannot open file '%s': %s", filename, this->_buffer);
     	}
 
         this->location.filename = filename;
         this->file = file_ptr;
     }
 
-	virtual ~Lexer_Buffer () { /* empty */ };
+	~Lexer_Buffer () {
+		fclose(this->file);
+	};
 
 	virtual char next () = 0;
 	virtual bool has_next () = 0;

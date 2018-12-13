@@ -16,17 +16,12 @@
 
 const char* token_get_text (Token_Type type);
 
-Lexer::Lexer (const char* filepath, Lexer* parent) {
-	Lexer_Buffer* buff = parent ? parent->buffer : NULL;
-	this->buffer = new Full_Buffer(filepath, buff);
-	this->parent = parent;
+Lexer::Lexer (const char* filepath) {
+	this->buffer = new Full_Buffer(filepath);
 	this->parse_next();
 }
 
 Lexer::~Lexer () {
-	if (this->parent) {
-		this->parent->ancestor_line_count += this->buffer->location.line;
-	}
 	fclose(this->buffer->file);
 	delete this->buffer;
 }
