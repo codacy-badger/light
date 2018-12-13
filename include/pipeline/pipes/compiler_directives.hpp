@@ -20,8 +20,19 @@ struct Compiler_Directives : Pipe {
 		auto scope = Compiler::instance->modules->get_module(include->absolute_path);
 		this->start_time = os_get_user_time();
 
-		this->current_scope->statements.insert(location,
-			scope->statements.begin(), scope->statements.end());
+		for (auto stm : scope->statements) {
+			if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+				auto decl = static_cast<Ast_Declaration*>(stm);
+
+				auto other_decl = this->current_scope->find_declaration(decl->name);
+				if (other_decl) {
+					ERROR(other_decl, "Re-declaration of \"%s\"", decl->name);
+					ERROR_STOP(decl, "Original declaration here");
+				}
+			}
+
+			location = this->current_scope->statements.insert(location, stm);
+		}
     }
 
     void handle (Ast_Directive_Import** import_ptr) {

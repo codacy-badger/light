@@ -120,6 +120,7 @@ struct Ast_Scope : Ast_Statement {
 
 	Ast_Declaration* find_non_const_declaration (const char* name);
 	Ast_Declaration* find_const_declaration (const char* name);
+	Ast_Declaration* find_declaration (const char* name);
 	bool is_ancestor (Ast_Scope* other);
 	Ast_Function* get_parent_function ();
 };

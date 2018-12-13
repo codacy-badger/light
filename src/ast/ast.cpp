@@ -70,6 +70,18 @@ Ast_Declaration* Ast_Scope::find_const_declaration (const char* _name) {
     } else return NULL;
 }
 
+Ast_Declaration* Ast_Scope::find_declaration (const char* name) {
+    for (auto stm : this->statements) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            if (strcmp(decl->name, name) == 0) {
+				return decl;
+			}
+        }
+    }
+    return NULL;
+}
+
 bool Ast_Scope::is_ancestor (Ast_Scope* other) {
 	if (this == other) return true;
 	else {

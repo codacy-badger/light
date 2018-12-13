@@ -42,7 +42,7 @@ Compiler::Compiler (Compiler_Settings* settings) {
 }
 
 void Compiler::run () {
-	printf("%s v%s\n", LIGHT_NAME, LIGHT_VERSION);
+	printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
 
 	for (auto filename : this->settings->input_files) {
 		auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);

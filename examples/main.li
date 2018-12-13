@@ -1,9 +1,9 @@
-#include "print.li"
-#include "window.li"
-#include "opengl.li"
+#import "print.li"
+#import "window.li"
+#import "opengl.li"
 
-#include "windows/gdi32.li"
-#include "windows/opengl.li"
+#import "windows/gdi32.li"
+#import "windows/opengl.li"
 
 @run
 main :: fn {

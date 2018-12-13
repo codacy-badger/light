@@ -3,8 +3,15 @@
 #include "pipeline/pipe.hpp"
 
 #include <vector>
+#include <map>
 
 using namespace std;
+
+struct cmp_str {
+   bool operator()(char const *a, char const *b) const {
+      return std::strcmp(a, b) < 0;
+   }
+};
 
 struct Symbol_Resolution : Pipe {
     vector<Ast_Scope*> unresolved_scopes;
@@ -25,8 +32,6 @@ struct Symbol_Resolution : Pipe {
         Pipe::handle(decl_ptr);
 
         auto decl = (*decl_ptr);
-
-        // TODO: check for re-declaration of variables or constants
 
         auto scope_ptr = this->unresolved_scopes.begin();
         while (scope_ptr != this->unresolved_scopes.end()) {
@@ -75,6 +80,32 @@ struct Symbol_Resolution : Pipe {
     void handle (Ast_Scope** scope_ptr) {
         auto tmp = this->current_scope;
         this->current_scope = (*scope_ptr);
+
+        map<const char*, vector<Ast_Declaration*>, cmp_str> decl_map;
+        for (auto stm : this->current_scope->statements) {
+            if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+                auto decl = static_cast<Ast_Declaration*>(stm);
+
+                auto it = decl_map.find(decl->name);
+                if (it == decl_map.end()) {
+                    decl_map[decl->name] = vector<Ast_Declaration*>();
+                }
+                decl_map[decl->name].push_back(decl);
+            }
+        }
+
+        for (auto tuple : decl_map) {
+            if (tuple.second.size() > 1) {
+                auto decl_ptr = tuple.second.begin();
+                report_error(NULL, "Multiple declarations of '%s' (%zd):",
+                    tuple.first, tuple.second.size());
+                for (auto decl : tuple.second) {
+                    print_location(stderr, &decl->location);
+                }
+                Compiler::instance->quit();
+            }
+        }
+
         Pipe::handle(scope_ptr);
         this->current_scope = tmp;
     }
