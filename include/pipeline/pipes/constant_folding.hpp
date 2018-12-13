@@ -114,7 +114,7 @@ struct Constant_Folding : Pipe {
 					break;
 				}
 			}
-			delete *unary_ptr;
+			//delete *unary_ptr;
 			*unary_ptr = reinterpret_cast<Ast_Unary*>(lit);
 		}
 	}

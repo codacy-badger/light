@@ -162,19 +162,17 @@ Ast_Statement* Parser::statement () {
 
 Ast_Directive* Parser::directive () {
 	switch (this->lexer->next_type) {
-		case TOKEN_IF: {
+		case TOKEN_IMPORT: {
 			this->lexer->skip();
-			auto directive_if = AST_NEW(Ast_Directive_If);
+			auto import = AST_NEW(Ast_Directive_Import);
 
-			directive_if->stm_if = AST_NEW(Ast_If);
-			directive_if->stm_if->condition = this->expression();
-			directive_if->stm_if->then_statement = this->statement();
+			auto literal = this->literal();
+			if (literal->literal_type == AST_LITERAL_STRING) {
+				import->path = literal->string_value;
+				os_get_absolute_path(import->path, import->absolute_path);
+			} else ERROR_STOP(literal, "Expected string literal after import");
 
-			if (this->lexer->optional_skip(TOKEN_ELSE)) {
-				directive_if->stm_if->else_statement = this->statement();
-			}
-
-			return directive_if;
+			return import;
 		}
 		case TOKEN_INCLUDE: {
 			this->lexer->skip();
@@ -188,6 +186,20 @@ Ast_Directive* Parser::directive () {
 
 			return include;
 		}
+			case TOKEN_IF: {
+				this->lexer->skip();
+				auto directive_if = AST_NEW(Ast_Directive_If);
+
+				directive_if->stm_if = AST_NEW(Ast_If);
+				directive_if->stm_if->condition = this->expression();
+				directive_if->stm_if->then_statement = this->statement();
+
+				if (this->lexer->optional_skip(TOKEN_ELSE)) {
+					directive_if->stm_if->else_statement = this->statement();
+				}
+
+				return directive_if;
+			}
 		default: return NULL;
 	}
 }

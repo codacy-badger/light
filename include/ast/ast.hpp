@@ -57,6 +57,7 @@ struct Ast_Statement : Ast {
 enum Ast_Directive_Type {
 	AST_DIRECTIVE_UNDEFINED = 0,
 	AST_DIRECTIVE_INCLUDE,
+	AST_DIRECTIVE_IMPORT,
 	AST_DIRECTIVE_IF,
 };
 
@@ -68,9 +69,19 @@ struct Ast_Directive : Ast_Statement {
 
 struct Ast_Directive_Include : Ast_Directive {
 	char* path = NULL;
+
 	char absolute_path[MAX_PATH_LENGTH];
 
 	Ast_Directive_Include () { this->dir_type = AST_DIRECTIVE_INCLUDE; }
+};
+
+struct Ast_Directive_Import : Ast_Directive {
+	char* path = NULL;
+	char* alias = NULL;
+
+	char absolute_path[MAX_PATH_LENGTH];
+
+	Ast_Directive_Import () { this->dir_type = AST_DIRECTIVE_IMPORT; }
 };
 
 struct Ast_Directive_If : Ast_Directive {
@@ -92,14 +103,15 @@ struct Ast_Import : Ast_Statement {
 
 struct Ast_Scope : Ast_Statement {
 	vector<Ast_Statement*> statements;
+	vector<Ast_Scope*> module_scopes;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
 
+	bool is_global = false;
+
 	// for symbol resolution
 	vector<Ast_Ident*> unresolved_idents;
-
-	bool is_global = false;
 
 	Ast_Scope (Ast_Scope* parent = NULL) {
 		this->stm_type = AST_STATEMENT_BLOCK;

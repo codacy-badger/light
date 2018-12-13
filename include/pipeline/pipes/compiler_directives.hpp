@@ -21,6 +21,15 @@ struct Compiler_Directives : Pipe {
 			scope->statements.begin(), scope->statements.end());
     }
 
+    void handle (Ast_Directive_Import** import_ptr) {
+		auto import = (*import_ptr);
+
+		//this->current_scope->statements.erase(get_current_stm_location());
+
+		auto scope = Compiler::instance->modules->get_module(import->absolute_path);
+		this->current_scope->module_scopes.push_back(scope);
+    }
+
     void handle (Ast_Directive_If**) { /* TODO: implement */ }
 
     void handle (Ast_Scope** block_ptr) {

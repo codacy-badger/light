@@ -85,6 +85,10 @@ struct Pipe {
 
 	virtual void handle (Ast_Directive** directive) {
 		switch ((*directive)->dir_type) {
+			case AST_DIRECTIVE_IMPORT: {
+				this->handle(reinterpret_cast<Ast_Directive_Import**>(directive));
+				break;
+			}
 			case AST_DIRECTIVE_INCLUDE: {
 				this->handle(reinterpret_cast<Ast_Directive_Include**>(directive));
 				break;
@@ -96,6 +100,8 @@ struct Pipe {
 			default: break;
 		}
 	}
+
+	virtual void handle (Ast_Directive_Import**) { /* empty */ }
 
 	virtual void handle (Ast_Directive_Include**) { /* empty */ }
 
@@ -110,7 +116,7 @@ struct Pipe {
 
 			// INFO: if we add something to the scope, we have to increment
 			// the counter the same amount of items
-			if ((*_block)->statements.size() > initial_size) {
+			if ((*_block)->statements.size() != initial_size) {
 				initial_size = (*_block)->statements.size();
 				i -= 1;
 			}

@@ -4,7 +4,6 @@
 
 #include "windows/gdi32.li"
 #include "windows/opengl.li"
-#include "windows/vulkan.li"
 
 @run
 main :: fn {

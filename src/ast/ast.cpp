@@ -55,6 +55,10 @@ Ast_Declaration* Ast_Scope::find_non_const_declaration (const char* _name) {
 		}
 		if (!this->parent->is_global) return NULL;
 	}
+    for (auto scope : this->module_scopes) {
+        auto decl = scope->find_non_const_declaration(_name);
+        if (decl) return decl;
+    }
     if (this->parent) {
         return this->parent->find_non_const_declaration(_name);
     } else return NULL;
@@ -68,6 +72,10 @@ Ast_Declaration* Ast_Scope::find_const_declaration (const char* _name) {
 				return decl;
 			}
         }
+    }
+    for (auto scope : this->module_scopes) {
+        auto decl = scope->find_const_declaration(_name);
+        if (decl) return decl;
     }
     if (this->parent) {
         return this->parent->find_const_declaration(_name);
