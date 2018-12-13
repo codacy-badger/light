@@ -1,4 +1,7 @@
-import "windows/user32.li"
+#include "windows/kernel32.li"
+#include "windows/user32.li"
+
+#include "print.li"
 
 // We're not aligning the stack memory, so declaring a 2 byte variable
 // will make all pointer to further variables not addressable

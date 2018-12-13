@@ -7,18 +7,23 @@
 
 #define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\" (Ignored)"
 
+#define COMPILER_DONE_FORMAT "\nCompleted in %8.6fs (%8.6fs)\n"
+
 #define CHECK_ARG(arg) (strcmp(argv[i], arg) == 0)
 #define CHECK_ARG_2(arg_short, arg_long) (CHECK_ARG(arg_short) || CHECK_ARG(arg_long))
 
-#define COMPILER_DONE_FORMAT "\nCompleted in %8.6fs (%8.6fs)\n"
-
 Compiler* Compiler::instance = NULL;
+
+Compiler_Settings::Compiler_Settings (int argc, char** argv) {
+	this->handle_arguments(argc, argv);
+	os_get_current_directory(this->initial_path);
+}
 
 void Compiler_Settings::handle_arguments (int argc, char** argv) {
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
 			if (CHECK_ARG_2("-o", "-output")) {
-				this->output_file = argv[++i];
+				this->output = argv[++i];
 			} else if (CHECK_ARG_2("-v", "-verbose")) {
 				this->is_verbose = true;
 			} else if (CHECK_ARG_2("-d", "-debug")) {
@@ -33,22 +38,36 @@ void Compiler_Settings::handle_arguments (int argc, char** argv) {
 }
 
 Compiler::Compiler (Compiler_Settings* settings) {
-	if (settings == NULL) {
-		this->settings = new Compiler_Settings();
-	} else this->settings = settings;
-
-	os_get_current_directory(this->settings->initial_path);
+	this->settings = settings;
 }
 
 void Compiler::run () {
 	printf("%s v%s\n", LIGHT_NAME, LIGHT_VERSION);
 
+	for (auto filename : this->settings->input_files) {
+		auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
+	    os_get_absolute_path(filename, absolute_path);
+
+		this->code_sources.push_back(absolute_path);
+	}
+
     auto totalWall = os_get_wall_time();
     auto totalUser = os_get_user_time();
-    for (auto filename : this->settings->input_files) {
-		this->pipeline->run(filename);
+
+    for (auto absolute_path : this->code_sources) {
+		this->modules->get_module(absolute_path);
+
+		// TODO: send the main module to output
     }
-    printf(COMPILER_DONE_FORMAT, os_time_user_stop(totalUser), os_time_wall_stop(totalWall));
+
+	auto userInterval = os_time_user_stop(totalUser);
+	auto wallInterval = os_time_wall_stop(totalWall);
+
+	printf("\n");
+	this->modules->parser->print_metrics(userInterval);
+	this->modules->pipeline->print_metrics(userInterval);
+
+    printf(COMPILER_DONE_FORMAT, userInterval, wallInterval);
 }
 
 void Compiler::quit () {
@@ -56,9 +75,7 @@ void Compiler::quit () {
 }
 
 Compiler* Compiler::create(int argc, char** argv) {
-	Compiler::instance = new Compiler();
-	Compiler::instance->settings->handle_arguments(argc, argv);
-	return Compiler::instance;
+	return Compiler::create(new Compiler_Settings(argc, argv));
 }
 
 Compiler* Compiler::create(Compiler_Settings* settings) {

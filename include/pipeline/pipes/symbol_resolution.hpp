@@ -3,119 +3,63 @@
 #include "pipeline/pipe.hpp"
 
 #include <vector>
-#include <map>
 
 #include "compiler.hpp"
 
 using namespace std;
 
-void try_resolve_idents (vector<Ast_Ident**>* idents, Ast_Declaration* decl) {
-    auto it = idents->begin();
-    while (it != idents->end()) {
-        auto ident_ptr = (*it);
-        auto ident = (*ident_ptr);
-
-        ASSERT(ident->exp_type == AST_EXPRESSION_IDENT);
-
-        if (ident->exp_type == AST_EXPRESSION_IDENT) {
-            if (strcmp(ident->name, decl->name) == 0
-                    && ident->scope->is_ancestor(decl->scope)) {
-                ident->declaration = decl;
-                it = idents->erase(it);
-            } else it++;
-        } else it = idents->erase(it);
-    }
-}
-
 struct Symbol_Resolution : Pipe {
-    map<Ast_Statement*, vector<Ast_Ident**>> unresolved;
-	vector<Ast_Ident**> collected_ident_ptrs;
+    vector<Ast_Scope*> unresolved_scopes;
+    Ast_Scope* current_scope = NULL;
 
 	PIPE_NAME(Symbol_Resolution)
 
-	void on_statement(Ast_Statement** stm) {
-	    this->collected_ident_ptrs.clear();
+    void process (Ast_Scope* scope) {
+        Pipe::process(scope);
 
-		auto start = os_get_user_time();
-	    Pipe::handle(stm);
-		if ((*stm)->stm_type == AST_STATEMENT_DECLARATION) {
-			auto decl = static_cast<Ast_Declaration*>((*stm));
-            try_resolve_idents(&this->collected_ident_ptrs, decl);
-		}
-		this->total_time += os_time_user_stop(start);
+        if (!scope->unresolved_idents.empty()) {
+            this->stop_processing = true;
+            this->unresolved_scopes.push_back(scope);
+        }
+    }
 
-        this->stop_processing = true;
-	    if (this->collected_ident_ptrs.size() > 0) {
-	        this->unresolved[(*stm)] = this->collected_ident_ptrs;
-	    } else this->on_resolved(stm);
-	}
+    void handle (Ast_Declaration** decl_ptr) {
+        Pipe::handle(decl_ptr);
 
-	void find_unique_unresolved (vector<Ast_Ident*>* idents) {
-	    for (auto deps : this->unresolved) {
-	        for (auto ident_ptr : deps.second) {
-	            idents->push_back(*ident_ptr);
-	        }
-	    }
+        auto decl = (*decl_ptr);
 
-	    for (auto deps : this->unresolved) {
-	        if (deps.first->stm_type == AST_STATEMENT_DECLARATION) {
-	            auto decl = static_cast<Ast_Declaration*>(deps.first);
-	            auto ident_ptr = idents->begin();
-	            while (ident_ptr != idents->end()) {
-	                if (strcmp(decl->name, (*ident_ptr)->name) == 0
-	                    && (*ident_ptr)->scope->is_ancestor(decl->scope)) {
-	                    ident_ptr = idents->erase(ident_ptr);
-	                } else ident_ptr++;
-	            }
-	        }
-	    }
-	}
+        auto scope_ptr = this->unresolved_scopes.begin();
+        while (scope_ptr != this->unresolved_scopes.end()) {
+            auto scope = (*scope_ptr);
 
-	void on_finish () {
-	    if (this->unresolved.size() > 0) {
-	        vector<Ast_Ident*> idents;
-	        this->find_unique_unresolved(&idents);
-	        for (auto ident : idents) {
-	            ERROR(ident, "Unresolved symbol: '%s'", ident->name);
-	        }
-	        Compiler::instance->quit();
-	    }
-	}
+            if (scope->is_ancestor(decl->scope)) {
+                auto ident_ptr = scope->unresolved_idents.begin();
+                while (ident_ptr != scope->unresolved_idents.end()) {
+                    auto ident = (*ident_ptr);
 
-	void on_resolved (Ast_Statement** stm) {
-	    this->pending_stms.push_back(*stm);
+                    if (strcmp(ident->name, decl->name) == 0) {
+                        ident_ptr = scope->unresolved_idents.erase(ident_ptr);
+                        ident->declaration = decl;
+                    }
+                }
 
-	    if ((*stm)->stm_type == AST_STATEMENT_DECLARATION) {
-	        auto decl = static_cast<Ast_Declaration*>(*stm);
-			if (decl->is_constant()) {
-	            vector<Ast_Statement*> resolved_stms;
+                if (scope->unresolved_idents.empty()) {
+                    scope_ptr = this->unresolved_scopes.erase(scope_ptr);
+                    this->pipeline->process(scope, this->pipe_index);
+                }
+            }
+        }
+    }
 
-	            for (auto &stm_idents : this->unresolved) {
-                    try_resolve_idents(&stm_idents.second, decl);
+	void handle (Ast_Ident** ident_ptr) {
+		auto ident = (*ident_ptr);
 
-	                if (stm_idents.second.size() == 0) {
-	                    resolved_stms.push_back(stm_idents.first);
-	                }
-	            }
-
-	            for (auto &resolved_stm : resolved_stms) {
-	                this->unresolved.erase(resolved_stm);
-	                this->on_resolved(&resolved_stm);
-	            }
+		if (!ident->declaration) {
+			ident->declaration = ident->scope->find_const_declaration(ident->name);
+			if (!ident->declaration) {
+				this->current_scope->unresolved_idents.push_back(ident);
 			}
-	    }
-	}
-
-	bool is_unresolved (const char* decl_name) {
-	    for (auto stm_idents : this->unresolved) {
-	        if (stm_idents.first->stm_type == AST_STATEMENT_DECLARATION) {
-	            auto decl = static_cast<Ast_Declaration*>(stm_idents.first);
-	            if (strcmp(decl->name, decl_name) == 0) {
-	                return true;
-	            }
-	        }
-	    }
-	    return false;
+		}
 	}
 
 	void handle (Ast_Binary** binary_ptr) {
@@ -128,22 +72,44 @@ struct Symbol_Resolution : Pipe {
 		} else Pipe::handle(binary_ptr);
 	}
 
-	void handle (Ast_Ident** ident_ptr) {
-		auto ident = (*ident_ptr);
-
-		if (!ident->declaration) {
-			ident->declaration = ident->scope->find_const_declaration(ident->name);
-			if (ident->declaration) {
-				if (this->is_unresolved(ident->name)) {
-					this->collected_ident_ptrs.push_back(ident_ptr);
-				}
-			} else this->collected_ident_ptrs.push_back(ident_ptr);
-		}
-	}
+    void handle (Ast_Scope** scope_ptr) {
+        auto tmp = this->current_scope;
+        this->current_scope = (*scope_ptr);
+        Pipe::handle(scope_ptr);
+        this->current_scope = tmp;
+    }
 
     // We don't want to keep recursing on inner functions,
     // since that would make more than 1 statement depend on the same identifiers
     // Good: [func -> inner_func] [inner_func -> some_ident]
     // Bad: [func -> (inner_func, some_ident)] [inner_func -> some_ident]
     void handle (Ast_Function** func_ptr) { Pipe::handle(func_ptr); }
+
+	void on_finish () {
+	    if (this->unresolved_scopes.size() > 0) {
+	        vector<Ast_Ident*> idents;
+	        this->find_unique_unresolved(&idents);
+	        for (auto ident : idents) {
+	            ERROR(ident, "Unresolved symbol: '%s'", ident->name);
+	        }
+	        Compiler::instance->quit();
+	    }
+	}
+
+	void find_unique_unresolved (vector<Ast_Ident*>* idents) {
+	    for (auto scope : this->unresolved_scopes) {
+	        for (auto ident : scope->unresolved_idents) {
+	            idents->push_back(ident);
+	        }
+	    }
+
+	    for (auto scope : this->unresolved_scopes) {
+            auto ident_ptr = idents->begin();
+            while (ident_ptr != idents->end()) {
+                if ((*ident_ptr)->scope->is_ancestor(scope)) {
+                    ident_ptr = idents->erase(ident_ptr);
+                } else ident_ptr++;
+            }
+	    }
+	}
 };

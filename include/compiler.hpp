@@ -13,7 +13,7 @@ using namespace std;
 
 struct Compiler_Settings {
 	vector<const char*> input_files;
-	const char* output_file = NULL;
+	const char* output = NULL;
 
 	char initial_path[MAX_PATH_LENGTH];
 
@@ -22,19 +22,22 @@ struct Compiler_Settings {
 
 	uint8_t register_size = 8;
 
+	Compiler_Settings(int argc, char** argv);
+
     void handle_arguments (int argc, char** argv);
 };
 
 struct Compiler {
-	Compiler_Settings* settings = NULL;
+	Compiler_Settings* settings;
 
-	Pipeline* pipeline = new Pipeline();
-	Modules* modules = new Modules(this->pipeline);
+	vector<char*> code_sources;
+
+	Modules* modules = new Modules();
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
 
-	Compiler (Compiler_Settings* settings = NULL);
+	Compiler (Compiler_Settings* settings);
 
 	void run ();
 	void quit ();

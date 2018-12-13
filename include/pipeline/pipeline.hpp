@@ -8,20 +8,11 @@
 using namespace std;
 
 struct Pipeline {
-    Parser* parser = new Parser();
     vector<Pipe*> pipes;
 
-    Ast_Scope* global_scope = NULL;
+    Pipeline* pipe (Pipe* pipe);
 
-	deque<Ast_Import*> pending_imports;
-	vector<const char*> imported_files;
+    void process (Ast_Scope* scope, size_t start_index = 0);
 
-    Pipeline ();
-
-    void run(const char* filepath);
-    void handle_file(const char* filepath);
-    void handle_stm(Ast_Statement* stm, int from_index = 0);
-    void handle_import(Ast_Import* import);
-
-    void print_compiler_metrics (double total_time);
+    void print_metrics (double total_time);
 };

@@ -53,7 +53,7 @@ Ast_Declaration* Ast_Scope::find_non_const_declaration (const char* _name) {
 				return decl;
 			}
 		}
-		if (!this->parent->is_global()) return NULL;
+		if (!this->parent->is_global) return NULL;
 	}
     if (this->parent) {
         return this->parent->find_non_const_declaration(_name);

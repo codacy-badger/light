@@ -11,7 +11,6 @@
 using namespace std;
 
 struct Parser {
-	Ast_Factory* factory = new Ast_Factory();
 	Notes* notes = new Notes();
 	Lexer* lexer = NULL;
 
@@ -19,7 +18,9 @@ struct Parser {
 
 	// for metrics
 	size_t all_lines = 0;
-	double parsing_time = 0;
+	double time = 0;
+
+	Ast_Scope* run (const char* filepath, Ast_Scope* parent = NULL);
 
 	void setup (const char* filepath, Ast_Scope* parent = NULL);
 	void teardown ();
@@ -40,5 +41,5 @@ struct Parser {
 	Ast_Literal* literal ();
 	Ast_Ident* ident ();
 
-	virtual void print_metrics();
+	void print_metrics(double total_time);
 };

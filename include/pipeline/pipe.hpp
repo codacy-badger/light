@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+struct Pipeline;
+
 #define PIPE_NAME(name) name() { this->pipe_name = #name; }
 
 #define PRINT_METRIC(format, ...) printf("        " format "\n", __VA_ARGS__)
@@ -14,11 +16,15 @@ struct Pipe {
 	double total_time = 0;
 
 	bool stop_processing = false;
-	deque<Ast_Statement*> pending_stms;
 
-	virtual void on_statement (Ast_Statement** stm) {
+	Pipeline* pipeline = NULL;
+	size_t pipe_index = 0;
+
+	virtual void process (Ast_Scope* scope) {
 		auto start = os_get_user_time();
-		this->handle(stm);
+
+		this->handle(&scope);
+
 		this->total_time += os_time_user_stop(start);
 	}
 

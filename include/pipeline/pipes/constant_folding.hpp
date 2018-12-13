@@ -79,7 +79,7 @@ struct Constant_Folding : Pipe {
 			// @Incomplete decimal conversions won't work...
 			lit->inferred_type = static_cast<Ast_Type_Instance*>(cast->cast_to);
 
-			delete *cast_ptr;
+			//delete *cast_ptr;
 			*cast_ptr = reinterpret_cast<Ast_Cast*>(lit);
 		}
 	}

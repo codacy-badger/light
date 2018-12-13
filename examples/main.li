@@ -1,10 +1,10 @@
-import "print.li"
-import "window.li"
-import "opengl.li"
+#include "print.li"
+#include "window.li"
+#include "opengl.li"
 
-import "windows/gdi32.li"
-import "windows/opengl.li"
-import "windows/vulkan.li"
+#include "windows/gdi32.li"
+#include "windows/opengl.li"
+#include "windows/vulkan.li"
 
 @run
 main :: fn {

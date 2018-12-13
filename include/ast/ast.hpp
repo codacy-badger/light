@@ -6,6 +6,7 @@
 #include <vector>
 
 struct Ast_If;
+struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
@@ -95,12 +96,15 @@ struct Ast_Scope : Ast_Statement {
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
 
+	// for symbol resolution
+	vector<Ast_Ident*> unresolved_idents;
+
+	bool is_global = false;
+
 	Ast_Scope (Ast_Scope* parent = NULL) {
 		this->stm_type = AST_STATEMENT_BLOCK;
 		this->parent = parent;
 	}
-
-	bool is_global () { return !this->parent && !this->scope_of; }
 
 	Ast_Declaration* find_declaration_in_same_scope (const char* name);
 	Ast_Declaration* find_non_const_declaration (const char* name);
@@ -149,7 +153,7 @@ struct Ast_Declaration : Ast_Statement {
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 
 	bool is_constant () { return this->decl_flags & AST_DECL_FLAG_CONSTANT; }
-	bool is_global () { return this->scope->is_global(); }
+	bool is_global () { return this->scope->is_global; }
 };
 
 struct Ast_Return : Ast_Statement {

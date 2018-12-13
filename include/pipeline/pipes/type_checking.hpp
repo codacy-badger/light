@@ -35,10 +35,10 @@ struct Type_Checking : Pipe {
 			} else decl->type = decl->expression->inferred_type;
 		}
 
+		Pipe::handle(&decl->type);
+
 		ASSERT(decl->type != NULL);
 		ASSERT(decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
-
-		Pipe::handle(&decl->type);
 	}
 
 	void handle (Ast_If** if_ptr) {
@@ -316,25 +316,27 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Literal** lit_ptr) {
 		auto lit = (*lit_ptr);
 
-	    switch (lit->literal_type) {
-	        case AST_LITERAL_UNSIGNED_INT: {
-				lit->inferred_type = ast_get_smallest_type(lit->uint_value);
-	            break;
-	        }
-	        case AST_LITERAL_SIGNED_INT: {
-				lit->inferred_type = ast_get_smallest_type(lit->int_value);
-	            break;
-	        }
-	        case AST_LITERAL_DECIMAL: {
-				lit->inferred_type = Types::type_f32;
-	            break;
-	        }
-	        case AST_LITERAL_STRING: {
-				lit->inferred_type = Compiler::instance->types->get_pointer_type(Types::type_u8);
-				Pipe::handle(&lit->inferred_type);
-	            break;
-	        }
-	        default: INTERNAL(lit, "Unknown literal type: %d", lit->literal_type);
-	    }
+		if (!lit->inferred_type) {
+			switch (lit->literal_type) {
+		        case AST_LITERAL_UNSIGNED_INT: {
+					lit->inferred_type = ast_get_smallest_type(lit->uint_value);
+		            break;
+		        }
+		        case AST_LITERAL_SIGNED_INT: {
+					lit->inferred_type = ast_get_smallest_type(lit->int_value);
+		            break;
+		        }
+		        case AST_LITERAL_DECIMAL: {
+					lit->inferred_type = Types::type_f32;
+		            break;
+		        }
+		        case AST_LITERAL_STRING: {
+					lit->inferred_type = Compiler::instance->types->get_pointer_type(Types::type_u8);
+					Pipe::handle(&lit->inferred_type);
+		            break;
+		        }
+		        default: INTERNAL(lit, "Unknown literal type: %d", lit->literal_type);
+		    }
+		}
 	}
 };

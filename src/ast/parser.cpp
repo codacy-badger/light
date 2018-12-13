@@ -6,6 +6,22 @@ uint64_t Ast_Factory::node_count = 0;
 
 #define AST_NEW(T, ...) Ast_Factory::create_node<T>(&this->lexer->buffer->location, __VA_ARGS__)
 
+Ast_Scope* Parser::run (const char* filepath, Ast_Scope* parent) {
+	auto start = os_get_user_time();
+
+	this->setup(filepath, parent);
+
+	auto global_scope = AST_NEW(Ast_Scope, parent);
+	global_scope->is_global = true;
+	this->scope(global_scope);
+
+	this->teardown();
+
+	this->time += os_time_user_stop(start);
+
+	return global_scope;
+}
+
 void Parser::setup (const char* filepath, Ast_Scope* parent) {
 	this->current_scope = parent;
 	this->lexer = new Lexer(filepath, this->lexer);
@@ -355,7 +371,7 @@ Ast_Expression* Parser::type_instance () {
 		if (ident) {
 			auto decl = this->current_scope->find_const_declaration(ident->name);
 			if (decl && decl->expression && decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-				this->factory->delete_node(ident);
+				Ast_Factory::delete_node(ident);
 				return decl->expression;
 			} else return ident;
 		} else return NULL;
@@ -437,7 +453,10 @@ Ast_Ident* Parser::ident () {
 	return ident;
 }
 
-void Parser::print_metrics () {
+void Parser::print_metrics (double total_time) {
+	double percent = (this->time * 100.0) / total_time;
+	printf("  - %-25s%8.6fs (%5.2f%%)\n", "Lexer & Parser",
+		this->time, percent);
 	PRINT_METRIC("Lines of Code:         %zd", this->all_lines);
-	PRINT_METRIC("AST nodes created:     %zd", this->factory->node_count);
+	PRINT_METRIC("AST nodes created:     %zd", Ast_Factory::node_count);
 }
