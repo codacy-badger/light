@@ -415,6 +415,7 @@ struct Ast_Literal : Ast_Expression {
 	bool is_hexadecimal () 	{ return string_value[0] == '0' && string_value[1] == 'x'; }
 	bool is_binary () 		{ return string_value[0] == '0' && string_value[1] == 'b'; }
 	bool is_decimal () 		{ return strstr(string_value, ".") != NULL; }
+	bool as_boolean () 		{ return uint_value != 0; }
 };
 
 struct Ast_Ident : Ast_Expression {

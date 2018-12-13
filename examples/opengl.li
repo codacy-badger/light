@@ -7,26 +7,27 @@ GL_STACK_OVERFLOW   	:: 0x0503;
 GL_STACK_UNDERFLOW  	:: 0x0504;
 GL_OUT_OF_MEMORY    	:: 0x0505;
 
-@foreign("opengl32")
-glGetError :: fn -> u32 {}
-
 GL_VENDOR		: u32 : 0x1F00;
 GL_RENDERER		: u32 : 0x1F01;
 GL_VERSION		: u32 : 0x1F02;
 GL_EXTENSIONS	: u32 : 0x1F03;
 
-@foreign("opengl32")
-glGetString :: fn (name: u32) -> *u8 {}
-
-@foreign("opengl32")
-glViewport :: fn (x: s32, y: s32, width: s32, height: s32) {}
-
-@foreign("opengl32")
-glClearColor :: fn (red: f32, green: f32, blue: f32, alpha: f32) {}
-
 GL_DEPTH_BUFFER_BIT  	:: 0x00000100;
 GL_STENCIL_BUFFER_BIT	:: 0x00000400;
 GL_COLOR_BUFFER_BIT  	:: 0x00004000;
 
-@foreign("opengl32")
+#if OS_WINDOWS {
+    #include "windows/opengl.li"
+}
+
+@!foreign("opengl32")
+
+glGetError :: fn -> u32 {}
+
+glGetString :: fn (name: u32) -> *u8 {}
+
+glViewport :: fn (x: s32, y: s32, width: s32, height: s32) {}
+
+glClearColor :: fn (red: f32, green: f32, blue: f32, alpha: f32) {}
+
 glClear :: fn (mask: u32) {}

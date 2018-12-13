@@ -1,5 +1,5 @@
 
-@!foreign("Opengl32")
+@!foreign("opengl32")
 
 wglCreateContext :: fn (hdc: *void) -> *void {}
 

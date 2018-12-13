@@ -3,7 +3,6 @@
 #import "opengl.li"
 
 #import "windows/gdi32.li"
-#import "windows/opengl.li"
 
 @run
 main :: fn {

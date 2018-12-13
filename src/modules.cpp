@@ -1,11 +1,12 @@
 #include "modules.hpp"
 
-#include "pipeline/pipes/compiler_directives.hpp"
+#include "pipeline/pipes/external_modules.hpp"
 #include "pipeline/pipes/symbol_resolution.hpp"
 #include "pipeline/pipes/constant_folding.hpp"
 #include "pipeline/pipes/cast_arrays.hpp"
 #include "pipeline/pipes/type_checking.hpp"
 #include "pipeline/pipes/foreign_function.hpp"
+#include "pipeline/pipes/static_if.hpp"
 
 #include "pipeline/pipes/register_allocator.hpp"
 #include "pipeline/pipes/bytecode_generator.hpp"
@@ -37,12 +38,15 @@ Modules::Modules () {
     this->internal_scope->statements.push_back(linux_constant);
 
     this->pipeline
-        ->pipe(new Compiler_Directives())
+        ->pipe(new External_Modules())
+
         ->pipe(new Foreign_Function())
         ->pipe(new Symbol_Resolution())
         ->pipe(new Type_Checking())
         ->pipe(new Cast_Arrays())
         ->pipe(new Constant_Folding())
+        ->pipe(new Static_If())
+
         ->pipe(new Register_Allocator())
         ->pipe(new Bytecode_Generator())
         ->pipe(new Bytecode_Runner());

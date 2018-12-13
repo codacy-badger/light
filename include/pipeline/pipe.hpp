@@ -107,7 +107,7 @@ struct Pipe {
 	virtual void handle (Ast_Directive_Include**) { /* empty */ }
 
 	virtual void handle (Ast_Directive_If** _if) {
-		this->handle(&(*_if)->stm_if);
+		this->handle(&(*_if)->stm_if->condition);
 	}
 
 	virtual void handle (Ast_Scope** _block) {

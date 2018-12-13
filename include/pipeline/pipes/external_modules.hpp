@@ -4,8 +4,8 @@
 
 #include "compiler.hpp"
 
-struct Compiler_Directives : Pipe {
-	PIPE_NAME(Compiler_Directives)
+struct External_Modules : Pipe {
+	PIPE_NAME(External_Modules)
 
 	Ast_Statement* current_stm = NULL;
     Ast_Scope* current_scope = NULL;
@@ -46,8 +46,6 @@ struct Compiler_Directives : Pipe {
 
 		this->current_scope->module_scopes.push_back(scope);
     }
-
-    void handle (Ast_Directive_If**) { /* TODO: implement */ }
 
     void handle (Ast_Scope** block_ptr) {
         auto tmp = this->current_scope;
