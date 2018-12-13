@@ -208,13 +208,6 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	decl->scope = this->current_scope;
 	decl->name = ident->name;
 
-	// TODO: should this really be here? maybe Ast_Validation pipe?
-	auto other = this->current_scope->find_declaration_in_same_scope(decl->name);
-	if (other) {
-		report_error(&decl->location, "re-declaration of variable or constant '%s'", decl->name);
-		report_error_and_stop(&other->location, "previous declaration here");
-	}
-
 	if (this->lexer->check_skip(TOKEN_COLON)) {
 		decl->type = this->type_instance();
 	}
@@ -465,5 +458,5 @@ void Parser::print_metrics (double total_time) {
 	printf("  - %-25s%8.6fs (%5.2f%%)\n", "Lexer & Parser",
 		this->time, percent);
 	PRINT_METRIC("Lines of Code:         %zd", this->all_lines);
-	PRINT_METRIC("AST nodes created:     %zd", Ast_Factory::node_count);
+	PRINT_METRIC("Nodes created:     %zd", Ast_Factory::node_count);
 }

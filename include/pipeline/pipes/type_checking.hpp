@@ -94,6 +94,7 @@ struct Type_Checking : Pipe {
 		if (!exp->inferred_type) {
 			Pipe::handle(exp_ptr);
 
+			exp = (*exp_ptr);
 			if (!exp->inferred_type) {
 				ERROR_STOP(exp, "Expression type could not be inferred");
 			}

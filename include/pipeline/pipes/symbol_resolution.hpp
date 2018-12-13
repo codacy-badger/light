@@ -26,6 +26,8 @@ struct Symbol_Resolution : Pipe {
 
         auto decl = (*decl_ptr);
 
+        // TODO: check for re-declaration of variables or constants
+
         auto scope_ptr = this->unresolved_scopes.begin();
         while (scope_ptr != this->unresolved_scopes.end()) {
             auto scope = (*scope_ptr);

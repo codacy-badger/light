@@ -118,7 +118,6 @@ struct Ast_Scope : Ast_Statement {
 		this->parent = parent;
 	}
 
-	Ast_Declaration* find_declaration_in_same_scope (const char* name);
 	Ast_Declaration* find_non_const_declaration (const char* name);
 	Ast_Declaration* find_const_declaration (const char* name);
 	bool is_ancestor (Ast_Scope* other);
