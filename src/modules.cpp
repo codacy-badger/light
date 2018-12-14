@@ -1,5 +1,6 @@
 #include "modules.hpp"
 
+#include "platform.hpp"
 #include "lexer/buffer/full_buffer.hpp"
 
 #include "pipeline/pipes/external_modules.hpp"
@@ -31,9 +32,12 @@ Modules::Modules () {
     DECL_TYPE(this->internal_scope, Types::type_f32);
     DECL_TYPE(this->internal_scope, Types::type_f64);
 
-    auto windown_constant = ast_make_declaration("OS_WINDOWS", ast_make_literal(true));
+    auto os_type = os_get_type();
+    auto windown_constant = ast_make_declaration("OS_WINDOWS",
+        ast_make_literal(os_type == OS_TYPE_WINDOWS));
     windown_constant->type = Types::type_bool;
-    auto linux_constant = ast_make_declaration("OS_LINUX", ast_make_literal(false));
+    auto linux_constant = ast_make_declaration("OS_LINUX",
+        ast_make_literal(os_type == OS_TYPE_LINUX));
     linux_constant->type = Types::type_bool;
 
     this->internal_scope->add(windown_constant);

@@ -6,6 +6,8 @@
 double g_clock_frequency = 0;
 HANDLE g_pid = GetCurrentProcess();
 
+OS_Type os_get_type () { return OS_TYPE_WINDOWS; }
+
 uint64_t os_get_wall_time () {
 	LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
