@@ -22,7 +22,6 @@ Lexer::Lexer (const char* filepath) {
 }
 
 Lexer::~Lexer () {
-	fclose(this->buffer->file);
 	delete this->buffer;
 }
 
@@ -180,8 +179,8 @@ bool Lexer::skip_ignored_and_comments () {
 	return false;
 }
 
-size_t Lexer::get_total_ancestor_lines() {
-	return this->ancestor_line_count + this->buffer->location.line;
+size_t Lexer::get_total_lines() {
+	return this->buffer->location.line;
 }
 
 #define CASE_ENUM_TEXT(T, str) case T: return str;

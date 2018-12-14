@@ -5,6 +5,7 @@
 uint64_t Ast_Factory::node_count = 0;
 
 #define GLOBAL_NOTE_END "end"
+
 #define AST_NEW(T, ...) Ast_Factory::create_node<T>(&this->lexer->buffer->location, __VA_ARGS__)
 
 Ast_Scope* Parser::run (Lexer* _lexer, Ast_Scope* parent) {
@@ -20,8 +21,7 @@ Ast_Scope* Parser::run (Lexer* _lexer, Ast_Scope* parent) {
 	global_scope->is_global = true;
 	this->scope(global_scope);
 
-	this->all_lines += this->lexer->get_total_ancestor_lines();
-
+	this->all_lines += this->lexer->get_total_lines();
 	this->lexer = tmp_lexer;
 
 	this->current_scope = tmp_scope;

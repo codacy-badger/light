@@ -12,26 +12,9 @@
 	ASSERT(count < LEXER_BUFFER_SIZE);
 
 struct Lexer_Buffer {
-	FILE* file = NULL;
 	Location location;
 
 	char _buffer[LEXER_BUFFER_SIZE];
-
-	Lexer_Buffer (const char* filename) {
-        FILE* file_ptr = NULL;
-    	auto err = fopen_s(&file_ptr, filename, "r");
-    	if (err) {
-    		strerror_s(this->_buffer, sizeof this->_buffer, err);
-    		report_error_and_stop(NULL, "Cannot open file '%s': %s", filename, this->_buffer);
-    	}
-
-        this->location.filename = filename;
-        this->file = file_ptr;
-    }
-
-	~Lexer_Buffer () {
-		fclose(this->file);
-	};
 
 	virtual char next () = 0;
 	virtual bool has_next () = 0;
@@ -76,6 +59,7 @@ struct Lexer_Buffer {
 			}
 			this->_buffer[count] = 0;
 
+			this->replace_special_characters(this->_buffer, count);
 			return _strdup(this->_buffer);
 	    } else return NULL;
 	}
@@ -170,4 +154,19 @@ struct Lexer_Buffer {
     		this->location.col = 1;
     	} else this->location.col += 1;
     }
+
+	void replace_special_characters (char* _buff, size_t length) {
+		for (size_t i = 0; i < length; i++) {
+			if (_buff[i] == '\\') {
+				switch (_buff[i + 1]) {
+					case 'n': _buff[i] = '\n'; 			break;
+					case 't': _buff[i] = '\t'; 			break;
+					default:  _buff[i] = _buff[i + 1];	break;
+				}
+
+				memcpy(&_buff[i + 1], &_buff[i + 2], length);
+				i += 1;
+			}
+		}
+	}
 };

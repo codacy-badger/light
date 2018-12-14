@@ -4,16 +4,14 @@
 #define DIGIT(c) (c >= '0' && c <= '9')
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 
-#include "buffer/lexer_buffer.hpp"
+#include "buffer/full_buffer.hpp"
 #include "tokens.hpp"
 
 struct Lexer {
-	Lexer_Buffer* buffer;
+	Full_Buffer* buffer;
 
 	char* next_text;
 	Token_Type next_type;
-
-	uint64_t ancestor_line_count = 0;
 
 	Lexer (const char* filepath);
 	~Lexer ();
@@ -34,5 +32,5 @@ struct Lexer {
 	void handle_token (Token_Type type, const char* text = NULL);
 	bool skip_ignored_and_comments ();
 
-	size_t get_total_ancestor_lines();
+	size_t get_total_lines();
 };
