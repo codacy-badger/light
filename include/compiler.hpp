@@ -8,6 +8,7 @@
 #include "ast/types.hpp"
 
 #include <vector>
+#include <queue>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ struct Compiler_Settings {
 struct Compiler {
 	Compiler_Settings* settings;
 
-	vector<char*> code_sources;
+	queue<char*> code_sources;
 
 	Modules* modules = new Modules();
 

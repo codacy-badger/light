@@ -34,8 +34,8 @@ Modules::Modules () {
     auto linux_constant = ast_make_declaration("OS_LINUX", ast_make_literal(false));
     linux_constant->type = Types::type_bool;
 
-    this->internal_scope->statements.push_back(windown_constant);
-    this->internal_scope->statements.push_back(linux_constant);
+    this->internal_scope->add(windown_constant);
+    this->internal_scope->add(linux_constant);
 
     this->pipeline
         ->pipe(new External_Modules())
@@ -68,7 +68,8 @@ Ast_Scope* Modules::load_module (char* absolute_path) {
     os_get_current_directory(last_path);
     os_set_current_directory_path(absolute_path);
 
-    auto file_scope = this->parser->run(absolute_path, this->internal_scope);
+    auto lexer = new Lexer(absolute_path);
+    auto file_scope = this->parser->run(lexer, this->internal_scope);
 
     this->pipeline->process(file_scope);
     this->cache[absolute_path] = file_scope;

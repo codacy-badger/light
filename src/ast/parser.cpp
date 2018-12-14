@@ -7,12 +7,14 @@ uint64_t Ast_Factory::node_count = 0;
 #define GLOBAL_NOTE_END "end"
 #define AST_NEW(T, ...) Ast_Factory::create_node<T>(&this->lexer->buffer->location, __VA_ARGS__)
 
-Ast_Scope* Parser::run (const char* filepath, Ast_Scope* parent) {
+Ast_Scope* Parser::run (Lexer* _lexer, Ast_Scope* parent) {
 	auto start = os_get_user_time();
 
+	auto tmp_scope = this->current_scope;
 	this->current_scope = parent;
+
 	auto tmp_lexer = this->lexer;
-	this->lexer = new Lexer(filepath);
+	this->lexer = _lexer;
 
 	auto global_scope = AST_NEW(Ast_Scope, parent);
 	global_scope->is_global = true;
@@ -20,8 +22,9 @@ Ast_Scope* Parser::run (const char* filepath, Ast_Scope* parent) {
 
 	this->all_lines += this->lexer->get_total_ancestor_lines();
 
-	delete this->lexer;
 	this->lexer = tmp_lexer;
+
+	this->current_scope = tmp_scope;
 
 	this->time += os_time_user_stop(start);
 
@@ -97,7 +100,7 @@ Ast_Statement* Parser::statement () {
 			}
 
 			auto stm = this->statement();
-			stm->notes = _notes;
+			if (stm) stm->notes = _notes;
 			return stm;
 		}
 		case TOKEN_BRAC_OPEN: {

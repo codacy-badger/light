@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 enum Token_Type : uint8_t {
 	TOKEN_EOF 				= 0,
 

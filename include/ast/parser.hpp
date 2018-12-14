@@ -17,7 +17,7 @@ struct Parser {
 	size_t all_lines = 0;
 	double time = 0;
 
-	Ast_Scope* run (const char* filepath, Ast_Scope* parent = NULL);
+	Ast_Scope* run (Lexer* lexer, Ast_Scope* parent = NULL);
 
 	Ast_Scope* scope (Ast_Scope* inner_scope = NULL);
 	Ast_Note* note ();
