@@ -104,6 +104,7 @@ struct Ast_Import : Ast_Statement {
 struct Ast_Scope : Ast_Statement {
 	vector<Ast_Statement*> statements;
 	vector<Ast_Scope*> module_scopes;
+	vector<Ast_Note*> notes;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
@@ -116,6 +117,12 @@ struct Ast_Scope : Ast_Statement {
 	Ast_Scope (Ast_Scope* parent = NULL) {
 		this->stm_type = AST_STATEMENT_BLOCK;
 		this->parent = parent;
+	}
+
+	void add (Ast_Statement* stm) {
+		stm->notes.insert(stm->notes.end(),
+			this->notes.begin(), this->notes.end());
+		this->statements.push_back(stm);
 	}
 
 	Ast_Declaration* find_non_const_declaration (const char* name);

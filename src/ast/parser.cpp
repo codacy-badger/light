@@ -4,6 +4,7 @@
 
 uint64_t Ast_Factory::node_count = 0;
 
+#define GLOBAL_NOTE_END "end"
 #define AST_NEW(T, ...) Ast_Factory::create_node<T>(&this->lexer->buffer->location, __VA_ARGS__)
 
 Ast_Scope* Parser::run (const char* filepath, Ast_Scope* parent) {
@@ -18,7 +19,6 @@ Ast_Scope* Parser::run (const char* filepath, Ast_Scope* parent) {
 	this->scope(global_scope);
 
 	this->all_lines += this->lexer->get_total_ancestor_lines();
-	this->notes->clear_global();
 
 	delete this->lexer;
 	this->lexer = tmp_lexer;
@@ -26,11 +26,6 @@ Ast_Scope* Parser::run (const char* filepath, Ast_Scope* parent) {
 	this->time += os_time_user_stop(start);
 
 	return global_scope;
-}
-
-void Parser::push (Ast_Statement* stm) {
-	this->notes->push_global_into(stm);
-	this->current_scope->statements.push_back(stm);
 }
 
 Ast_Scope* Parser::scope (Ast_Scope* inner_scope) {
@@ -43,7 +38,7 @@ Ast_Scope* Parser::scope (Ast_Scope* inner_scope) {
 
 	auto stm = this->statement();
 	while (stm != NULL) {
-		this->push(stm);
+		this->current_scope->add(stm);
 
 		if (this->lexer->is_next_type(TOKEN_EOF)) {
 			break;
@@ -89,14 +84,20 @@ Ast_Statement* Parser::statement () {
 			return import;
 		}
 		case TOKEN_AT: {
+			vector<Ast_Note*> _notes;
 			auto note = this->note();
 			while (note != NULL) {
-				this->notes->push(note);
+				if (note->is_global) {
+					if (strcmp(note->name, GLOBAL_NOTE_END) == 0) {
+						this->current_scope->notes.clear();
+					} else this->current_scope->notes.push_back(note);
+				} else _notes.push_back(note);
+
 				note = this->note();
 			}
 
 			auto stm = this->statement();
-			this->notes->push_into(stm);
+			stm->notes = _notes;
 			return stm;
 		}
 		case TOKEN_BRAC_OPEN: {
@@ -458,5 +459,5 @@ void Parser::print_metrics (double total_time) {
 	printf("  - %-25s%8.6fs (%5.2f%%)\n", "Lexer & Parser",
 		this->time, percent);
 	PRINT_METRIC("Lines of Code:         %zd", this->all_lines);
-	PRINT_METRIC("Nodes created:     %zd", Ast_Factory::node_count);
+	PRINT_METRIC("Nodes created:         %zd", Ast_Factory::node_count);
 }

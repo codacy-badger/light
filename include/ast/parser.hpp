@@ -5,24 +5,19 @@
 #include "ast/ast_factory.hpp"
 #include "lexer/lexer.hpp"
 #include "pipeline/pipe.hpp"
-#include "ast/notes.hpp"
 #include "ast/ast.hpp"
 
 using namespace std;
 
 struct Parser {
-	Notes* notes = new Notes();
-	Lexer* lexer = NULL;
-
 	Ast_Scope* current_scope = NULL;
+	Lexer* lexer = NULL;
 
 	// for metrics
 	size_t all_lines = 0;
 	double time = 0;
 
 	Ast_Scope* run (const char* filepath, Ast_Scope* parent = NULL);
-
-	void push (Ast_Statement* stm);
 
 	Ast_Scope* scope (Ast_Scope* inner_scope = NULL);
 	Ast_Note* note ();
