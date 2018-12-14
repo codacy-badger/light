@@ -5,8 +5,9 @@
 struct Full_Buffer : String_Buffer {
 
 	Full_Buffer (const char* filename) {
-		FILE* file = NULL;
+		this->location.filename = filename;
 
+		FILE* file = NULL;
 		auto err = fopen_s(&file, filename, "r");
     	if (err) {
     		strerror_s(this->_buffer, sizeof this->_buffer, err);

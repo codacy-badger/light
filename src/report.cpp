@@ -12,7 +12,7 @@
 void print_location (FILE* buffer, Location* location) {
 	if (location) {
 		if (location->filename) {
-			fprintf(buffer, "\t@ %s:%zd,%zd\n", location->filename, location->line, location->col);
+			fprintf(buffer, "\t@ %s:%zd\n", location->filename, location->line);
 		} else {
 			fprintf(buffer, "\t@ [Compiler defined]\n");
 		}

@@ -5,7 +5,7 @@
 
 struct Location {
 	const char* filename = NULL;
-	size_t line = 1, col = 1;
+	size_t line = 1;
 };
 
 void print_location (FILE* buffer, Location* location);

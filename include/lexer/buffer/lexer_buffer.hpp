@@ -151,8 +151,7 @@ struct Lexer_Buffer {
     	if (character == EOF) return;
     	if (character == '\n') {
     		this->location.line += 1;
-    		this->location.col = 1;
-    	} else this->location.col += 1;
+    	}
     }
 
 	void replace_special_characters (char* _buff, size_t length) {
