@@ -1,12 +1,9 @@
 #pragma once
 
-#include "pipeline/pipe.hpp"
+#include "pipeline/scoped_statement_pipe.hpp"
 
-struct Static_If : Pipe {
+struct Static_If : Scoped_Statement_Pipe {
     PIPE_NAME(Static_If)
-
-	Ast_Statement* current_stm = NULL;
-    Ast_Scope* current_scope = NULL;
 
     void handle (Ast_Directive_If** if_ptr) {
 		auto if_directive = (*if_ptr);
@@ -35,23 +32,4 @@ struct Static_If : Pipe {
             }
         }
 	}
-
-    void handle (Ast_Scope** block_ptr) {
-        auto tmp = this->current_scope;
-        this->current_scope = (*block_ptr);
-        Pipe::handle(block_ptr);
-        this->current_scope = tmp;
-    }
-
-    void handle (Ast_Statement** stm_ptr) {
-        auto tmp = this->current_stm;
-        this->current_stm = (*stm_ptr);
-        Pipe::handle(stm_ptr);
-        this->current_stm = tmp;
-    }
-
-    vector<Ast_Statement*>::iterator get_current_stm_location () {
-        return find(this->current_scope->statements.begin(),
-            this->current_scope->statements.end(), this->current_stm);
-    }
 };

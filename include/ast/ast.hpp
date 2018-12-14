@@ -35,13 +35,12 @@ struct Ast_Note : Ast {
 
 enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
-	AST_STATEMENT_BLOCK,
+	AST_STATEMENT_SCOPE,
 	AST_STATEMENT_IF,
 	AST_STATEMENT_WHILE,
 	AST_STATEMENT_BREAK,
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
-	AST_STATEMENT_IMPORT,
 	AST_STATEMENT_EXPRESSION,
 	AST_STATEMENT_DIRECTIVE,
 };
@@ -90,17 +89,6 @@ struct Ast_Directive_If : Ast_Directive {
 	Ast_Directive_If () { this->dir_type = AST_DIRECTIVE_IF; }
 };
 
-struct Ast_Import : Ast_Statement {
-	Ast_Expression* target;
-
-	char* absolute_path = NULL;
-
-	Ast_Import (Ast_Expression* target = NULL) {
-		this->stm_type = AST_STATEMENT_IMPORT;
-		this->target = target;
-	}
-};
-
 struct Ast_Scope : Ast_Statement {
 	vector<Ast_Statement*> statements;
 	vector<Ast_Scope*> module_scopes;
@@ -115,7 +103,7 @@ struct Ast_Scope : Ast_Statement {
 	vector<Ast_Ident*> unresolved_idents;
 
 	Ast_Scope (Ast_Scope* parent = NULL) {
-		this->stm_type = AST_STATEMENT_BLOCK;
+		this->stm_type = AST_STATEMENT_SCOPE;
 		this->parent = parent;
 	}
 

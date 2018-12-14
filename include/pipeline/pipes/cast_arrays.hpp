@@ -1,19 +1,13 @@
 #pragma once
 
-#include "pipeline/pipe.hpp"
-#include "ast/printer.hpp"
+#include "pipeline/scoped_statement_pipe.hpp"
 
 #include "pipeline/pipes/type_checking.hpp"
 
 #define TMP_NAME_SIZE 20
 
-using namespace std;
-
-struct Cast_Arrays : Pipe {
+struct Cast_Arrays : Scoped_Statement_Pipe {
 	PIPE_NAME(Cast_Arrays)
-
-    Ast_Scope* current_scope = NULL;
-    Ast_Statement* current_stm = NULL;
 
 	size_t tmp_var_count = 0;
 
@@ -21,7 +15,7 @@ struct Cast_Arrays : Pipe {
         auto cast = (*cast_ptr);
 
         if (cast->is_array_to_slice_cast) {
-            auto stm_location = get_current_stm_location();
+            auto stm_location = this->get_current_stm_location();
             if (stm_location != this->current_scope->statements.end()) {
                 auto type_checker = new Type_Checking();
 
@@ -74,24 +68,5 @@ struct Cast_Arrays : Pipe {
                 delete type_checker;
             }
         }
-    }
-
-    void handle (Ast_Scope** block_ptr) {
-        auto tmp = this->current_scope;
-        this->current_scope = (*block_ptr);
-        Pipe::handle(block_ptr);
-        this->current_scope = tmp;
-    }
-
-    void handle (Ast_Statement** stm_ptr) {
-        auto tmp = this->current_stm;
-        this->current_stm = (*stm_ptr);
-        Pipe::handle(stm_ptr);
-        this->current_stm = tmp;
-    }
-
-    vector<Ast_Statement*>::iterator get_current_stm_location () {
-        return find(this->current_scope->statements.begin(),
-            this->current_scope->statements.end(), this->current_stm);
     }
 };

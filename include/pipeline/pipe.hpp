@@ -38,16 +38,12 @@ struct Pipe {
 			this->handle(&note);
 		}
 		switch ((*stm)->stm_type) {
-			case AST_STATEMENT_BLOCK: {
+			case AST_STATEMENT_SCOPE: {
 				this->handle(reinterpret_cast<Ast_Scope**>(stm));
 				break;
 			}
 			case AST_STATEMENT_DIRECTIVE: {
 				this->handle(reinterpret_cast<Ast_Directive**>(stm));
-				break;
-			}
-			case AST_STATEMENT_IMPORT: {
-				this->handle(reinterpret_cast<Ast_Import**>(stm));
 				break;
 			}
 			case AST_STATEMENT_IF: {
@@ -122,10 +118,6 @@ struct Pipe {
 				i -= 1;
 			}
 		}
-	}
-
-	virtual void handle (Ast_Import** import) {
-		this->handle(&(*import)->target);
 	}
 
 	virtual void handle (Ast_Declaration** decl) {

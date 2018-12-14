@@ -6,7 +6,7 @@ void _tabs (int count) {
 
 void ASTPrinter::print (Ast_Statement* stm, int tabs) {
 	switch (stm->stm_type) {
-		case AST_STATEMENT_BLOCK: {
+		case AST_STATEMENT_SCOPE: {
 			print(static_cast<Ast_Scope*>(stm), tabs);
 			break;
 		}

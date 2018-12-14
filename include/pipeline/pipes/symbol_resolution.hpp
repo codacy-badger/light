@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipeline/pipe.hpp"
+#include "pipeline/scoped_pipe.hpp"
 
 #include <vector>
 #include <map>
@@ -13,14 +13,14 @@ struct cmp_str {
    }
 };
 
-struct Symbol_Resolution : Pipe {
+struct Symbol_Resolution : Scoped_Pipe {
     vector<Ast_Scope*> unresolved_scopes;
     Ast_Scope* current_scope = NULL;
 
 	PIPE_NAME(Symbol_Resolution)
 
     void process (Ast_Scope* scope) {
-        Pipe::process(scope);
+        Scoped_Pipe::process(scope);
 
         if (!scope->unresolved_idents.empty()) {
             this->stop_processing = true;
@@ -60,7 +60,7 @@ struct Symbol_Resolution : Pipe {
 		auto ident = (*ident_ptr);
 
 		if (!ident->declaration) {
-			ident->declaration = ident->scope->find_const_declaration(ident->name);
+			ident->declaration = this->current_scope->find_const_declaration(ident->name);
 			if (!ident->declaration) {
 				this->current_scope->unresolved_idents.push_back(ident);
 			}
@@ -106,7 +106,7 @@ struct Symbol_Resolution : Pipe {
             }
         }
 
-        Pipe::handle(scope_ptr);
+        Scoped_Pipe::handle(scope_ptr);
         this->current_scope = tmp;
     }
 

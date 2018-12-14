@@ -39,8 +39,6 @@ struct Bytecode_Generator : Pipe {
 		//this->clear_registers();
 	}
 
-	void handle (Ast_Import**) { /* empty */ }
-
 	void handle (Ast_Scope** block_ptr) {
 		for (auto &stm : (*block_ptr)->statements) {
 			this->handle(&stm);

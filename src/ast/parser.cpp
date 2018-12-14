@@ -80,12 +80,6 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip();
 			return this->directive();
 		}
-		case TOKEN_IMPORT: {
-			this->lexer->skip();
-			auto import = AST_NEW(Ast_Import, this->expression());
-			this->lexer->optional_skip(TOKEN_STM_END);
-			return import;
-		}
 		case TOKEN_AT: {
 			vector<Ast_Note*> _notes;
 			auto note = this->note();
