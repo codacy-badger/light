@@ -3,16 +3,10 @@
 #include "lexer_buffer.hpp"
 #include "report.hpp"
 
-#define LEXER_BUFFER_SIZE 256
-
-#define CONSUME(check, c) while (check(c)) { this->_buffer[count++] = c;		\
-	this->skip(); c = this->peek(); }											\
-	ASSERT(count < LEXER_BUFFER_SIZE);
+#include <stdio.h>
 
 struct File_Buffer : Lexer_Buffer {
     FILE* file = NULL;
-	size_t remaining = 0;
-	size_t index = 0;
 
 	File_Buffer (const char* filename) {
         this->location.filename = filename;
@@ -28,7 +22,26 @@ struct File_Buffer : Lexer_Buffer {
 		fclose(this->file);
 	}
 
+    char next () {
+        auto c = (char) fgetc(this->file);
+		this->handle_location(c);
+        return c;
+    }
+
     bool has_next () {
-        return !feof(this->file);
+        return this->peek() != EOF;
+    }
+
+    char peek (size_t offset = 0) {
+        auto start_location = ftell(this->file);
+        auto signed_offset = (long) offset;
+
+        if (signed_offset != 0) {
+            fseek(this->file, signed_offset, SEEK_CUR);
+        }
+        auto c = (char) fgetc(this->file);
+        fseek(this->file, start_location, SEEK_SET);
+
+        return c;
     }
 };

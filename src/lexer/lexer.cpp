@@ -3,6 +3,7 @@
 #include "compiler.hpp"
 #include "lexer/buffer/ring_buffer.hpp"
 #include "lexer/buffer/full_buffer.hpp"
+#include "lexer/buffer/file_buffer.hpp"
 
 #define LEXER_IGNORED " \n\t"
 
@@ -91,7 +92,7 @@ bool Lexer::parse_next () {
 		return true;
 	} else if (next_is_string() || next_is_number()) return true;
 
-	ERROR_STOP(this->buffer, "Unrecognized token: '%c'", this->buffer->peek());
+	ERROR_STOP(this->buffer, "Unrecognized character: '%c'", this->buffer->peek());
 	return false;
 }
 

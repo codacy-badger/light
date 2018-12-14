@@ -20,7 +20,7 @@ struct Lexer_Buffer {
 	virtual bool has_next () = 0;
 	virtual char peek (size_t offset = 0) = 0;
 
-	virtual char* get_next_id () {
+	char* get_next_id () {
 		char c = this->peek();
 	    if (ALPHA(c)) {
 			size_t count = 0;
@@ -38,7 +38,7 @@ struct Lexer_Buffer {
 	    return NULL;
 	}
 
-	virtual char* get_next_string () {
+	char* get_next_string () {
 		char c = this->peek();
 	    if (c == '"') {
 			this->skip();
@@ -64,7 +64,7 @@ struct Lexer_Buffer {
 	    } else return NULL;
 	}
 
-	virtual char* get_next_number () {
+	char* get_next_number () {
 		size_t count = 0;
 		char c = this->peek();
 		if (c == '0' && this->peek(1) == 'x') {
@@ -133,7 +133,7 @@ struct Lexer_Buffer {
     		char _c = this->peek(0);
     		if (strchr(chars, _c) == NULL) {
     			break;
-    		} else this->next();
+    		} else this->skip();
     	}
     }
 

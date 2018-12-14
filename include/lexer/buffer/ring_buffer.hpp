@@ -10,6 +10,8 @@
 
 struct Ring_Buffer : File_Buffer {
 	char buffer[RING_BUFFER_SIZE];
+	size_t remaining = 0;
+	size_t index = 0;
 	size_t last = 0;
 
 	Ring_Buffer (const char* filename)

@@ -4,8 +4,7 @@
 
 struct Full_Buffer : String_Buffer {
 
-	Full_Buffer (const char* filename)
-			: String_Buffer () {
+	Full_Buffer (const char* filename) {
 		FILE* file = NULL;
 
 		auto err = fopen_s(&file, filename, "r");
