@@ -1,5 +1,7 @@
 #include "modules.hpp"
 
+#include "lexer/buffer/full_buffer.hpp"
+
 #include "pipeline/pipes/external_modules.hpp"
 #include "pipeline/pipes/symbol_resolution.hpp"
 #include "pipeline/pipes/constant_folding.hpp"
@@ -52,6 +54,27 @@ Modules::Modules () {
         ->pipe(new Bytecode_Runner());
 }
 
+Ast_Scope* Modules::get_module (Code_Source* source) {
+    switch (source->type) {
+        case CODE_SOURCE_FILE: {
+            auto file_source = static_cast<File_Code_Source*>(source);
+            return this->get_module(file_source->absolute_path);
+        }
+        case CODE_SOURCE_STRING: {
+            auto string_source = static_cast<String_Code_Source*>(source);
+
+            auto lexer_buffer = new String_Buffer(string_source->source);
+            auto lexer = new Lexer(lexer_buffer);
+            auto scope = this->parser->run(lexer, this->internal_scope);
+
+            this->pipeline->process(scope);
+
+            return scope;
+        }
+        default: return NULL;
+    }
+}
+
 Ast_Scope* Modules::get_module (char* absolute_path) {
     if (!this->is_module_cached(absolute_path)) {
         return this->load_module(absolute_path);
@@ -68,7 +91,8 @@ Ast_Scope* Modules::load_module (char* absolute_path) {
     os_get_current_directory(last_path);
     os_set_current_directory_path(absolute_path);
 
-    auto lexer = new Lexer(absolute_path);
+    auto lexer_buffer = new Full_Buffer(absolute_path);
+    auto lexer = new Lexer(lexer_buffer);
     auto file_scope = this->parser->run(lexer, this->internal_scope);
 
     this->pipeline->process(file_scope);

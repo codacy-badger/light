@@ -13,7 +13,7 @@ struct Lexer {
 	char* next_text;
 	Token_Type next_type;
 
-	Lexer (const char* filepath);
+	Lexer (Lexer_Buffer* buffer);
 	~Lexer ();
 
 	bool parse_next ();

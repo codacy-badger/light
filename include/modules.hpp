@@ -1,5 +1,6 @@
 #pragma once
 
+#include "code_source.hpp"
 #include "ast/ast.hpp"
 #include "ast/parser.hpp"
 #include "pipeline/pipeline.hpp"
@@ -15,6 +16,7 @@ struct Modules {
 
     Modules ();
 
+    Ast_Scope* get_module (Code_Source* source);
     Ast_Scope* get_module (char* absolute_path);
     Ast_Scope* load_module (char* absolute_path);
     bool is_module_cached (char* absolute_path);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules.hpp"
+#include "code_source.hpp"
 #include "pipeline/pipeline.hpp"
 
 #include "bytecode/interpreter.hpp"
@@ -31,7 +32,7 @@ struct Compiler_Settings {
 struct Compiler {
 	Compiler_Settings* settings;
 
-	queue<char*> code_sources;
+	queue<Code_Source*> code_sources;
 
 	Modules* modules = new Modules();
 

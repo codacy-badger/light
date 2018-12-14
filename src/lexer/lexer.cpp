@@ -1,9 +1,6 @@
 #include "lexer/lexer.hpp"
 
 #include "compiler.hpp"
-#include "lexer/buffer/ring_buffer.hpp"
-#include "lexer/buffer/full_buffer.hpp"
-#include "lexer/buffer/file_buffer.hpp"
 
 #define LEXER_IGNORED " \n\t"
 
@@ -17,13 +14,9 @@
 
 const char* token_get_text (Token_Type type);
 
-Lexer::Lexer (const char* filepath) {
-	this->buffer = new Full_Buffer(filepath);
+Lexer::Lexer (Lexer_Buffer* buffer) {
+	this->buffer = buffer;
 	this->parse_next();
-}
-
-Lexer::~Lexer () {
-	delete this->buffer;
 }
 
 bool Lexer::parse_next () {
