@@ -116,7 +116,7 @@ struct Type_Checking : Pipe {
 		type_inst->inferred_type = Types::type_type;
 		Pipe::handle(type_inst_ptr);
 
-		Compiler::instance->types->add_type_if_new(type_inst);
+		//Compiler::instance->types->add_type_if_new(type_inst);
 	}
 
 	void handle (Ast_Struct_Type** _struct_ptr) {

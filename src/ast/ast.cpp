@@ -268,10 +268,7 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 					auto base_name = _get_type_name(slice->get_base());
 	        		auto base_name_length = strlen(base_name);
                     auto tmp = (char*) malloc(base_name_length + 3);
-	        		tmp[0] = '[';
-	        		tmp[1] = ']';
-	        		memcpy(tmp + 2, base_name, base_name_length);
-	        		tmp[base_name_length + 2] = '\0';
+                    sprintf_s(tmp, base_name_length + 23, "[]%s", base_name);
                     slice->name = tmp;
 				}
 				break;
@@ -282,12 +279,10 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 					auto base_name = _get_type_name(_ptr->base);
 	        		auto base_name_length = strlen(base_name);
 	        		auto tmp = (char*) malloc(base_name_length + 2);
-	        		tmp[0] = '*';
-	        		memcpy(tmp + 1, base_name, base_name_length);
-	        		tmp[base_name_length + 1] = '\0';
+                    sprintf_s(tmp, base_name_length + 23, "*%s", base_name);
                     _ptr->name = tmp;
 	        	}
-	            return;
+				break;
 	        }
 	        case AST_TYPEDEF_ARRAY: {
 	            auto _arr = static_cast<Ast_Array_Type*>(type_inst);
@@ -298,7 +293,7 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 					sprintf_s(tmp, base_name_length + 23, "[%lld]%s", _arr->get_length(), base_name);
                     _arr->name = tmp;
 	        	}
-	            return;
+				break;
 	        }
 	        case AST_TYPEDEF_FUNCTION: {
 	            auto _func = static_cast<Ast_Function_Type*>(type_inst);
@@ -349,9 +344,8 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 
                     _func->name = tmp;
 	        	}
-	            return;
 	        }
-	        default: return;
+	        default: break;
 	    }
 	}
 }
