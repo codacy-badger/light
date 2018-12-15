@@ -160,11 +160,9 @@ Ast_Directive* Parser::directive () {
 			this->lexer->skip();
 			auto import = AST_NEW(Ast_Directive_Import);
 
-			auto literal = this->literal();
-			if (literal->literal_type == AST_LITERAL_STRING) {
-				import->path = literal->string_value;
-				os_get_absolute_path(import->path, import->absolute_path);
-			} else ERROR_STOP(literal, "Expected string literal after import");
+			auto literal = this->string_literal();
+			import->path = literal->string_value;
+			os_get_absolute_path(import->path, import->absolute_path);
 
 			return import;
 		}
@@ -173,10 +171,8 @@ Ast_Directive* Parser::directive () {
 			auto include = AST_NEW(Ast_Directive_Include);
 
 			auto literal = this->literal();
-			if (literal->literal_type == AST_LITERAL_STRING) {
-				include->path = literal->string_value;
-				os_get_absolute_path(include->path, include->absolute_path);
-			} else ERROR_STOP(literal, "Expected string literal after include");
+			include->path = literal->string_value;
+			os_get_absolute_path(include->path, include->absolute_path);
 
 			return include;
 		}
@@ -401,9 +397,7 @@ Ast_Literal* Parser::literal () {
 	Ast_Literal* output = NULL;
 	switch (this->lexer->next_type) {
 		case TOKEN_STRING: {
-			output = AST_NEW(Ast_Literal);
-			output->string_value = this->lexer->text();
-			output->literal_type = AST_LITERAL_STRING;
+			output = this->string_literal();
 			break;
 		}
 		case TOKEN_NUMBER: {
@@ -427,6 +421,18 @@ Ast_Literal* Parser::literal () {
 		default: break;
 	}
 	return output;
+}
+
+Ast_Literal* Parser::string_literal () {
+	if (this->lexer->next_type == TOKEN_STRING) {
+		auto output = AST_NEW(Ast_Literal);
+		output->string_value = this->lexer->text();
+		output->literal_type = AST_LITERAL_STRING;
+		return output;
+	} else {
+		this->lexer->report_unexpected(TOKEN_STRING);
+		return NULL;
+	}
 }
 
 void Parser::comma_separated_arguments (vector<Ast_Expression*>* arguments) {

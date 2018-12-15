@@ -31,6 +31,7 @@ struct Parser {
 	Ast_Expression* type_instance ();
 	Ast_Function_Type* function_type ();
 	Ast_Literal* literal ();
+	Ast_Literal* string_literal ();
 	Ast_Ident* ident ();
 
 	void print_metrics(double total_time);
