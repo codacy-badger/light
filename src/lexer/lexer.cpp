@@ -98,8 +98,8 @@ void Lexer::skip (unsigned int count) {
 		this->parse_next();
 }
 
-char* Lexer::text () {
-	char* text = this->next_text;
+const char* Lexer::text () {
+	auto text = this->next_text;
 	this->skip(1);
 	return text;
 }

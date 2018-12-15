@@ -30,7 +30,7 @@ struct Ast_Note : Ast {
 	const char* name = NULL;
 	vector<Ast_Expression*> arguments;
 
-	char* get_string_parameter (int index);
+	const char* get_string_parameter (int index);
 };
 
 enum Ast_Statement_Type {
@@ -67,7 +67,7 @@ struct Ast_Directive : Ast_Statement {
 };
 
 struct Ast_Directive_Include : Ast_Directive {
-	char* path = NULL;
+	const char* path = NULL;
 
 	char absolute_path[MAX_PATH_LENGTH];
 
@@ -75,8 +75,8 @@ struct Ast_Directive_Include : Ast_Directive {
 };
 
 struct Ast_Directive_Import : Ast_Directive {
-	char* path = NULL;
-	char* alias = NULL;
+	const char* path = NULL;
+	const char* alias = NULL;
 
 	char absolute_path[MAX_PATH_LENGTH];
 
@@ -211,7 +211,7 @@ enum Ast_Type_Instance_Type {
 
 struct Ast_Type_Instance : Ast_Expression {
 	Ast_Type_Instance_Type typedef_type = AST_TYPEDEF_UNDEFINED;
-	char* name = NULL;
+	const char* name = NULL;
 
 	bool is_signed = false;
 	bool is_primitive = false;
@@ -399,7 +399,7 @@ struct Ast_Literal : Ast_Expression {
 		int64_t  	int_value;
 		uint64_t  	uint_value;
 		double 		decimal_value;
-		char* 		string_value;
+		const char* string_value;
 	};
 
 	// for bytecode

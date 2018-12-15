@@ -2,7 +2,7 @@
 
 #include "compiler.hpp"
 
-char* Ast_Note::get_string_parameter (int index) {
+const char* Ast_Note::get_string_parameter (int index) {
     auto exp = this->arguments[index];
     if (exp->exp_type == AST_EXPRESSION_LITERAL) {
         auto lit = static_cast<Ast_Literal*>(exp);
@@ -247,10 +247,10 @@ bool Ast_Binary::is_left_associative (Token_Type opToken) {
 	}
 }
 
-char* _get_type_name (Ast_Expression* exp) {
+const char* _get_type_name (Ast_Expression* exp) {
 	if (exp->exp_type == AST_EXPRESSION_IDENT) {
 		auto ident = static_cast<Ast_Ident*>(exp);
-		return const_cast<char*>(ident->name);
+		return ident->name;
 	} else if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 		auto type_inst = static_cast<Ast_Type_Instance*>(exp);
 		ast_compute_type_name_if_needed(type_inst);
@@ -267,11 +267,12 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 					auto slice = static_cast<Ast_Slice_Type*>(type_inst);
 					auto base_name = _get_type_name(slice->get_base());
 	        		auto base_name_length = strlen(base_name);
-	        		slice->name = (char*) malloc(base_name_length + 3);
-	        		slice->name[0] = '[';
-	        		slice->name[1] = ']';
-	        		memcpy(slice->name + 2, base_name, base_name_length);
-	        		slice->name[base_name_length + 2] = '\0';
+                    auto tmp = (char*) malloc(base_name_length + 3);
+	        		tmp[0] = '[';
+	        		tmp[1] = ']';
+	        		memcpy(tmp + 2, base_name, base_name_length);
+	        		tmp[base_name_length + 2] = '\0';
+                    slice->name = tmp;
 				}
 				break;
 			}
@@ -280,10 +281,11 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 	            if (_ptr->name == NULL) {
 					auto base_name = _get_type_name(_ptr->base);
 	        		auto base_name_length = strlen(base_name);
-	        		_ptr->name = (char*) malloc(base_name_length + 2);
-	        		_ptr->name[0] = '*';
-	        		memcpy(_ptr->name + 1,base_name, base_name_length);
-	        		_ptr->name[base_name_length + 1] = '\0';
+	        		auto tmp = (char*) malloc(base_name_length + 2);
+	        		tmp[0] = '*';
+	        		memcpy(tmp + 1, base_name, base_name_length);
+	        		tmp[base_name_length + 1] = '\0';
+                    _ptr->name = tmp;
 	        	}
 	            return;
 	        }
@@ -292,8 +294,9 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 	            if (_arr->name == NULL) {
 					auto base_name = _get_type_name(_arr->base);
 	        		auto base_name_length = strlen(base_name);
-					_arr->name = (char*) malloc(base_name_length + 23);
-					sprintf_s(_arr->name, base_name_length + 23, "[%lld]%s", _arr->get_length(), base_name);
+					auto tmp = (char*) malloc(base_name_length + 23);
+					sprintf_s(tmp, base_name_length + 23, "[%lld]%s", _arr->get_length(), base_name);
+                    _arr->name = tmp;
 	        	}
 	            return;
 	        }
@@ -315,34 +318,36 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 	        		name_size += strlen(") -> ");
 					auto ret_name = _get_type_name(_func->ret_type);
 	        		name_size += strlen(ret_name);
-	        		_func->name = (char*) malloc(name_size + 1);
+	        		auto tmp = (char*) malloc(name_size + 1);
 
 	        		size_t offset = 0;
-	        		memcpy(_func->name, "fn (", 4);
+	        		memcpy(tmp, "fn (", 4);
 	        		offset += 4;
 
 					size_t par_type_name_length;
 	        		if (arg_decls.size() > 0) {
 						auto param_name = _get_type_name(arg_decls[0]->type);
 						par_type_name_length = strlen(param_name);
-	        			memcpy(_func->name + offset, param_name, par_type_name_length);
+	        			memcpy(tmp + offset, param_name, par_type_name_length);
 	        			offset += par_type_name_length;
 	        			for (int i = 1; i < arg_decls.size(); i++) {
-	        				memcpy(_func->name + offset, ", ", 2);
+	        				memcpy(tmp + offset, ", ", 2);
 	        				offset += 2;
 	        				param_name = _get_type_name(arg_decls[i]->type);
 							par_type_name_length = strlen(param_name);
-	        				memcpy(_func->name + offset, param_name, par_type_name_length);
+	        				memcpy(tmp + offset, param_name, par_type_name_length);
 	        				offset += par_type_name_length;
 	        			}
 	        		}
 
-	        		memcpy(_func->name + offset, ") -> ", 5);
+	        		memcpy(tmp + offset, ") -> ", 5);
 	        		offset += 5;
 					par_type_name_length = strlen(ret_name);
-	        		memcpy(_func->name + offset, ret_name, par_type_name_length);
+	        		memcpy(tmp + offset, ret_name, par_type_name_length);
 	        		offset += par_type_name_length;
-	        		_func->name[offset] = '\0';
+	        		tmp[offset] = '\0';
+
+                    _func->name = tmp;
 	        	}
 	            return;
 	        }

@@ -10,7 +10,7 @@
 struct Lexer {
 	Lexer_Buffer* buffer;
 
-	char* next_text;
+	const char* next_text;
 	Token_Type next_type;
 
 	Lexer (Lexer_Buffer* buffer);
@@ -19,7 +19,7 @@ struct Lexer {
 	bool parse_next ();
 	bool is_next_type (Token_Type type);
 	void skip (unsigned int count = 1);
-	char* text ();
+	const char* text ();
 	const char* get_name (Token_Type type);
 
 	bool check_skip (Token_Type type);
