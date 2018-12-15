@@ -3,12 +3,7 @@
 #include "pipeline/pipe.hpp"
 #include "bytecode/interpreter.hpp"
 
-struct Inst_Jump;
-
 #define INST(node, name, ...) this->add_instruction(node, new Inst_##name(__VA_ARGS__));
-
-#define PUSH_L(var_name, value) auto var_name = this->is_left_value; this->is_left_value = value
-#define POP_L(var_name) this->is_left_value = var_name
 
 struct Bytecode_Generator : Pipe {
 	Ast_Declaration* reg_declarations[INTERP_REGISTER_COUNT] = {};
@@ -215,14 +210,6 @@ struct Bytecode_Generator : Pipe {
 		}
 	}
 
-	uint8_t get_bytecode_from_unop (Ast_Unary_Type unop) {
-		switch (unop) {
-			case AST_UNARY_NEGATE:  return BYTECODE_ARITHMETIC_NEGATE;
-			case AST_UNARY_NOT:     return BYTECODE_LOGICAL_NEGATE;
-			default: 				abort();
-		}
-	}
-
 	void handle (Ast_Unary** unop_ptr) {
 		auto unop = (*unop_ptr);
 
@@ -257,34 +244,6 @@ struct Bytecode_Generator : Pipe {
 	            break;
 	        }
 			default: abort();
-		}
-	}
-
-	uint8_t get_bytecode_from_binop (Ast_Binary_Type binop) {
-		switch (binop) {
-			case AST_BINARY_LOGICAL_AND: 			return BYTECODE_LOGICAL_AND;
-			case AST_BINARY_LOGICAL_OR: 			return BYTECODE_LOGICAL_OR;
-
-			case AST_BINARY_ADD: 					return BYTECODE_ADD;
-			case AST_BINARY_SUB: 					return BYTECODE_SUB;
-			case AST_BINARY_MUL: 					return BYTECODE_MUL;
-			case AST_BINARY_DIV: 					return BYTECODE_DIV;
-			case AST_BINARY_REM: 					return BYTECODE_REM;
-
-			case AST_BINARY_BITWISE_AND: 			return BYTECODE_BITWISE_AND;
-			case AST_BINARY_BITWISE_OR: 			return BYTECODE_BITWISE_OR;
-			case AST_BINARY_BITWISE_XOR: 			return BYTECODE_BITWISE_XOR;
-			case AST_BINARY_BITWISE_RIGHT_SHIFT: 	return BYTECODE_BITWISE_RIGHT_SHIFT;
-			case AST_BINARY_BITWISE_LEFT_SHIFT: 	return BYTECODE_BITWISE_LEFT_SHIFT;
-
-			case AST_BINARY_EQ:						return BYTECODE_EQ;
-			case AST_BINARY_NEQ:					return BYTECODE_NEQ;
-			case AST_BINARY_LT:						return BYTECODE_LT;
-			case AST_BINARY_LTE:					return BYTECODE_LTE;
-			case AST_BINARY_GT:						return BYTECODE_GT;
-			case AST_BINARY_GTE:					return BYTECODE_GTE;
-
-			default: 								abort();
 		}
 	}
 

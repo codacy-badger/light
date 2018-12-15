@@ -91,6 +91,8 @@ Bytecode_Type bytecode_get_type (Ast_Expression* exp);
 size_t bytecode_get_size (Bytecode_Type bytecode_type);
 bool bytecode_has_sign (Bytecode_Type bytecode_type);
 Bytecode_Type bytecode_unsigned_to_signed (Bytecode_Type bytecode_type);
+Inst_Unop get_bytecode_from_unop (Ast_Unary_Type unop);
+Inst_Binop get_bytecode_from_binop (Ast_Binary_Type binop);
 
 struct Instruction {
 	Inst_Bytecode code = BYTECODE_NOOP;
