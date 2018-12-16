@@ -17,6 +17,8 @@ struct Register_State {
 struct Register_Allocator : Pipe {
     vector<Register_State*> decl_regs;
 
+    size_t register_used = 0;
+
 	PIPE_NAME(Register_Allocator)
 
     void allocate_function (Ast_Function* func) {
@@ -185,7 +187,13 @@ struct Register_Allocator : Pipe {
             }
         }
         decl_regs.push_back(new Register_State());
-        return (uint8_t) (decl_regs.size() - 1);
+        
+        auto reg_size = decl_regs.size();
+        if (this->register_used < reg_size) {
+            this->register_used = reg_size;
+        }
+
+        return (uint8_t) (reg_size - 1);
     }
 
     void set_declaration (Ast_Declaration* decl) {
@@ -208,4 +216,8 @@ struct Register_Allocator : Pipe {
         if (!has_declaration(reg2)) return reg2;
         return reserve_next_reg();
     }
+
+	void print_pipe_metrics () {
+		PRINT_METRIC("Registers used:        %zd", this->register_used);
+	}
 };

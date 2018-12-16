@@ -8,6 +8,19 @@ HANDLE g_pid = GetCurrentProcess();
 
 OS_Type os_get_type () { return OS_TYPE_WINDOWS; }
 
+Arch_Type os_get_arch () {
+	SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+	switch (sysInfo.wProcessorArchitecture) {
+		case 9: 	return ARCH_TYPE_X64;
+		//case 5: 	return ARCH_TYPE_ARM;
+		//case 12: 	return ARCH_TYPE_ARM64;
+		//case 6: 	return ARCH_TYPE_IA64;
+		//case 0: 	return ARCH_TYPE_X86;
+		default: 	return ARCH_TYPE_UNKNOWN;
+	}
+}
+
 uint64_t os_get_wall_time () {
 	LARGE_INTEGER li;
     QueryPerformanceCounter(&li);

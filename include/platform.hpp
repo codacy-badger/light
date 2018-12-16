@@ -1,6 +1,7 @@
 #pragma once
 
 #include "os/os.hpp"
+#include "arch/arch.hpp"
 
 #include <stdint.h>
 
@@ -9,6 +10,7 @@
 typedef uint64_t Timer_Function();
 
 OS_Type os_get_type ();
+Arch_Type os_get_arch ();
 
 uint64_t os_get_wall_time ();
 uint64_t os_get_user_time ();

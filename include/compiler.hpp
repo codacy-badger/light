@@ -1,6 +1,7 @@
 #pragma once
 
 #include "os/os.hpp"
+#include "arch/arch.hpp"
 
 #include "modules.hpp"
 #include "code_source.hpp"
@@ -25,6 +26,7 @@ struct Compiler_Settings {
 	bool is_debug = false;
 
 	OS* target_os = OS::get_current_os();
+	Arch* target_arch = Arch::get_current_arch();
 
 	uint8_t register_size = 8;
 
