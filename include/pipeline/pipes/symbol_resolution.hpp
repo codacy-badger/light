@@ -102,7 +102,7 @@ struct Symbol_Resolution : Scoped_Pipe {
                 for (auto decl : tuple.second) {
                     print_location(stderr, &decl->location);
                 }
-                Compiler::instance->quit();
+                Compiler::inst->quit();
             }
         }
 
@@ -123,7 +123,7 @@ struct Symbol_Resolution : Scoped_Pipe {
 	        for (auto ident : idents) {
 	            ERROR(ident, "Unresolved symbol: '%s'", ident->name);
 	        }
-	        Compiler::instance->quit();
+	        Compiler::inst->quit();
 	    }
 	}
 

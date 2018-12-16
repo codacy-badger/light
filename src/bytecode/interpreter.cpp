@@ -30,7 +30,7 @@ void Interpreter::run (Ast_Function* func) {
 
 		this->run(inst);
 
-		if (Compiler::instance->settings->is_debug) bytecode_print(inst);
+		if (Compiler::inst->settings->is_debug) bytecode_print(inst);
 		if (inst->code == BYTECODE_RETURN) break;
 	}
 	this->stack_index = _tmp;

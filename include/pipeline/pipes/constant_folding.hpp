@@ -137,7 +137,7 @@ struct Constant_Folding : Pipe {
 					(*binary_ptr) = reinterpret_cast<Ast_Binary*>(lit);
 				} else if (strcmp(ident->name, "data") == 0) {
 					auto array_ref = ast_make_unary(AST_UNARY_REFERENCE, binary->lhs);
-					array_ref->inferred_type = Compiler::instance->types->get_pointer_type(arr_type->base);
+					array_ref->inferred_type = Compiler::inst->types->get_pointer_type(arr_type->base);
 					array_ref->location = binary->location;
 
 					delete *binary_ptr;

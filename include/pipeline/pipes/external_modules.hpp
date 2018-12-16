@@ -14,7 +14,7 @@ struct External_Modules : Scoped_Statement_Pipe {
 		location = this->current_scope->statements.erase(location);
 
 		this->total_time += os_time_user_stop(this->start_time);
-		auto scope = Compiler::instance->modules->get_module(include->absolute_path);
+		auto scope = Compiler::inst->modules->get_module(include->absolute_path);
 		this->start_time = os_get_user_time();
 
 		for (auto stm : scope->statements) {
@@ -38,7 +38,7 @@ struct External_Modules : Scoped_Statement_Pipe {
 		this->current_scope->statements.erase(get_current_stm_location());
 
 		this->total_time += os_time_user_stop(this->start_time);
-		auto scope = Compiler::instance->modules->get_module(import->absolute_path);
+		auto scope = Compiler::inst->modules->get_module(import->absolute_path);
 		this->start_time = os_get_user_time();
 
 		this->current_scope->module_scopes.push_back(scope);

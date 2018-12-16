@@ -157,7 +157,7 @@ struct Bytecode_Generator : Pipe {
 	    } else {
 			auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
 			if (decl->is_global()) {
-				decl->bytecode_data_offset = Compiler::instance->interp->globals->add(decl_type->byte_size);
+				decl->bytecode_data_offset = Compiler::inst->interp->globals->add(decl_type->byte_size);
 			} else {
 				if (decl->expression) Pipe::handle(&decl->expression);
 
@@ -379,7 +379,7 @@ struct Bytecode_Generator : Pipe {
 	            break;
 	        }
 			case AST_LITERAL_STRING: {
-				lit->data_offset = Compiler::instance->interp->constants->add(lit->string_value);
+				lit->data_offset = Compiler::inst->interp->constants->add(lit->string_value);
 	            INST(lit, Constant_Offset, lit->reg, lit->data_offset);
 				break;
 			}

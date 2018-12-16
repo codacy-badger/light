@@ -1,15 +1,12 @@
 #pragma once
 
+#include "os/os.hpp"
+
 #include <stdint.h>
 
 #define MAX_PATH_LENGTH 260
 
 typedef uint64_t Timer_Function();
-
-enum OS_Type {
-    OS_TYPE_WINDOWS,
-    OS_TYPE_LINUX,
-};
 
 OS_Type os_get_type ();
 

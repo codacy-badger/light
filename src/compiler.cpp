@@ -12,7 +12,7 @@
 #define CHECK_ARG(arg) (strcmp(argv[i], arg) == 0)
 #define CHECK_ARG_2(arg_short, arg_long) (CHECK_ARG(arg_short) || CHECK_ARG(arg_long))
 
-Compiler* Compiler::instance = NULL;
+Compiler* Compiler::inst = NULL;
 
 Compiler_Settings::Compiler_Settings (int argc, char** argv) {
 	this->handle_arguments(argc, argv);
@@ -83,11 +83,11 @@ Compiler* Compiler::create(int argc, char** argv) {
 }
 
 Compiler* Compiler::create(Compiler_Settings* settings) {
-	Compiler::instance = new Compiler(settings);
-	return Compiler::instance;
+	Compiler::inst = new Compiler(settings);
+	return Compiler::inst;
 }
 
 void Compiler::destroy() {
-	delete Compiler::instance;
-	Compiler::instance = NULL;
+	delete Compiler::inst;
+	Compiler::inst = NULL;
 }

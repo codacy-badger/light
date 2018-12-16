@@ -116,7 +116,7 @@ struct Type_Checking : Pipe {
 		type_inst->inferred_type = Types::type_type;
 		Pipe::handle(type_inst_ptr);
 
-		//Compiler::instance->types->add_type_if_new(type_inst);
+		//Compiler::inst->types->add_type_if_new(type_inst);
 	}
 
 	void handle (Ast_Struct_Type** _struct_ptr) {
@@ -224,7 +224,7 @@ struct Type_Checking : Pipe {
 					if (strcmp(ident->name, "length") == 0) {
 						binop->inferred_type = Types::type_u64;
 					} else if (strcmp(ident->name, "data") == 0) {
-						binop->inferred_type = Compiler::instance->types->get_pointer_type(_array->base);
+						binop->inferred_type = Compiler::inst->types->get_pointer_type(_array->base);
 					} else ERROR_STOP(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
 				} else ERROR_STOP(binop, "Right of attribute access is NOT an identifier");
 			} else ERROR_STOP(binop, "Left of attribute access has invalid type: '%s'", type_def->name);
@@ -292,7 +292,7 @@ struct Type_Checking : Pipe {
 	            break;
 			}
 			case AST_UNARY_REFERENCE: {
-			    unop->inferred_type = Compiler::instance->types->get_pointer_type(unop->exp->inferred_type);
+			    unop->inferred_type = Compiler::inst->types->get_pointer_type(unop->exp->inferred_type);
 				Pipe::handle(&unop->inferred_type);
 	            break;
 			}
@@ -332,7 +332,7 @@ struct Type_Checking : Pipe {
 		            break;
 		        }
 		        case AST_LITERAL_STRING: {
-					lit->inferred_type = Compiler::instance->types->get_pointer_type(Types::type_u8);
+					lit->inferred_type = Compiler::inst->types->get_pointer_type(Types::type_u8);
 					Pipe::handle(&lit->inferred_type);
 		            break;
 		        }

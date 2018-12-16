@@ -1,5 +1,7 @@
 #pragma once
 
+#include "os/os.hpp"
+
 #include "modules.hpp"
 #include "code_source.hpp"
 #include "pipeline/pipeline.hpp"
@@ -22,9 +24,11 @@ struct Compiler_Settings {
 	bool is_verbose = false;
 	bool is_debug = false;
 
+	OS* target_os = OS::get_current_os();
+
 	uint8_t register_size = 8;
 
-	Compiler_Settings(int argc, char** argv);
+	Compiler_Settings (int argc, char** argv);
 
     void handle_arguments (int argc, char** argv);
 };
@@ -46,7 +50,7 @@ struct Compiler {
 
 	/* static methods */
 
-	static Compiler* instance;
+	static Compiler* inst;
 
 	static Compiler* create(int argc, char** argv);
 	static Compiler* create(Compiler_Settings* settings = NULL);

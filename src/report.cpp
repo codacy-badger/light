@@ -44,10 +44,10 @@ void report_error (Location* location, char* format, ...) {
 
 void report_internal (Location* location, char* format, ...) {
 	VA_REPORT("INTERNAL ERROR", stderr);
-	Compiler::instance->quit();
+	Compiler::inst->quit();
 }
 
 void report_error_and_stop (Location* location, char* format, ...) {
 	VA_REPORT("ERROR", stderr);
-	Compiler::instance->quit();
+	Compiler::inst->quit();
 }

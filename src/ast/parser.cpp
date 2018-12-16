@@ -344,7 +344,7 @@ Ast_Expression* Parser::type_instance () {
 		return this->function_type();
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		auto base_type = this->type_instance();
-		return Compiler::instance->types->get_pointer_type(base_type);
+		return Compiler::inst->types->get_pointer_type(base_type);
 	} else if (this->lexer->optional_skip(TOKEN_SQ_BRAC_OPEN)) {
 		auto length = this->expression();
 		if (length) {
@@ -358,7 +358,7 @@ Ast_Expression* Parser::type_instance () {
 		} else {
 			this->lexer->check_skip(TOKEN_SQ_BRAC_CLOSE);
 			auto base_type = this->type_instance();
-			return Compiler::instance->types->get_slice_type(base_type);
+			return Compiler::inst->types->get_slice_type(base_type);
 		}
 	} else {
 		auto ident = this->ident();

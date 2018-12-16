@@ -144,7 +144,7 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 	this->typedef_type = AST_TYPEDEF_STRUCT;
 	this->is_slice = true;
 
-    auto ptr_type = Compiler::instance->types->get_pointer_type(base_type);
+    auto ptr_type = Compiler::inst->types->get_pointer_type(base_type);
 
     auto length_decl = ast_make_declaration_with_type("length", Types::type_u64);
     auto data_decl = ast_make_declaration_with_type("data", ptr_type);
@@ -155,7 +155,7 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
 
 Ast_Function_Type::Ast_Function_Type() {
     this->typedef_type = AST_TYPEDEF_FUNCTION;
-    this->byte_size = Compiler::instance->settings->register_size;
+    this->byte_size = Compiler::inst->settings->register_size;
 }
 
 Ast_Binary_Type token_to_binop (Token_Type tType) {
@@ -401,7 +401,7 @@ bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type
 
 bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
 	if (ast_types_are_equal(type_from, type_to)) return true;
-	else if (Compiler::instance->types->is_implicid_cast(type_from, type_to)) {
+	else if (Compiler::inst->types->is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
 		cast->location = (*exp_ptr)->location;
         cast->value = (*exp_ptr);
@@ -455,7 +455,7 @@ Ast_Struct_Type* ast_get_smallest_type (int64_t value) {
 }
 
 uint8_t ast_get_pointer_size () {
-    return Compiler::instance->settings->register_size;
+    return Compiler::inst->settings->register_size;
 }
 
 Ast_Literal* ast_make_literal (const char* value) {
