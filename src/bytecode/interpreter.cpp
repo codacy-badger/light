@@ -24,9 +24,13 @@ void Interpreter::run (Ast_Function* func) {
 		}
 	}
 
+	this->run(&func->bytecode);
+}
+
+void Interpreter::run (vector<Instruction*>* instructions) {
 	auto _tmp = this->stack_index;
-	for (instruction_index = 0; instruction_index < func->bytecode.size(); instruction_index++) {
-		auto inst = func->bytecode[instruction_index];
+	for (instruction_index = 0; instruction_index < instructions->size(); instruction_index++) {
+		auto inst = (*instructions)[instruction_index];
 
 		this->run(inst);
 

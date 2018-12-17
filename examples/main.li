@@ -4,7 +4,8 @@
 
 #import "windows/gdi32.li";
 
-@run
+#run main();
+
 main :: fn {
 	//MessageBox(0, "This is a sample message", "Title", MB_RETRYCANCEL | MB_ICONINFORMATION);
 

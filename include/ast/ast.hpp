@@ -190,6 +190,9 @@ struct Ast_Directive_Import : Ast_Directive {
 struct Ast_Directive_Run : Ast_Directive {
 	Ast_Expression* expression = NULL;
 
+	// for bytecode
+	vector<Instruction*> bytecode;
+
 	Ast_Directive_Run () { this->dir_type = AST_DIRECTIVE_RUN; }
 };
 

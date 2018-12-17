@@ -198,6 +198,19 @@ struct Bytecode_Generator : Pipe {
 		} else Pipe::handle(exp_ptr);
 	}
 
+	void handle (Ast_Directive_Run** run_ptr) {
+		auto run = (*run_ptr);
+
+		if (run->bytecode.size() == 0) {
+	        auto _tmp = this->bytecode;
+	        this->bytecode = &run->bytecode;
+
+			this->handle(&run->expression);
+
+	        this->bytecode = _tmp;
+		}
+	}
+
 	void handle (Ast_Cast** cast_ptr) {
 		auto cast = (*cast_ptr);
 

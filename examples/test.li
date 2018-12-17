@@ -1,6 +1,8 @@
 #import "print.li";
 #import "sys.li";
 
+#run main();
+
 @run
 main :: fn {
 	test_factorial();
@@ -17,10 +19,11 @@ main :: fn {
 	test_slice();
 }
 
-#run main();
-
 test_factorial :: fn {
 	assert(factorial(5) == 120);
+
+	print_u64(#run factorial(5));
+	print("\n");
 
 	factorial :: fn (number: u32) -> u32 {
 		if (number == 0) 1

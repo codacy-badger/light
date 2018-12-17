@@ -82,6 +82,12 @@ struct Register_Allocator : Pipe {
         }
     }
 
+    void handle (Ast_Directive_Run** run_ptr) {
+        Pipe::handle(run_ptr);
+
+        (*run_ptr)->reg = (*run_ptr)->expression->reg;
+    }
+
     void handle (Ast_Binary** binop_ptr) {
         auto binop = (*binop_ptr);
 

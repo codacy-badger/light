@@ -165,6 +165,10 @@ struct Pipe {
 				this->handle(reinterpret_cast<Ast_Directive_Include**>(directive));
 				break;
 			}
+			case AST_DIRECTIVE_RUN: {
+				this->handle(reinterpret_cast<Ast_Directive_Run**>(directive));
+				break;
+			}
 			case AST_DIRECTIVE_IF: {
 				this->handle(reinterpret_cast<Ast_Directive_If**>(directive));
 				break;

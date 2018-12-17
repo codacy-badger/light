@@ -14,11 +14,11 @@
 
 #include "pipeline/pipes/register_allocator.hpp"
 #include "pipeline/pipes/bytecode_generator.hpp"
-#include "pipeline/pipes/bytecode_runner.hpp"
+#include "pipeline/pipes/run_directive.hpp"
 
 #define DECL_TYPE(scope, type) scope->statements.push_back(ast_make_declaration(type->name, type));
 
-Modules::Modules (Compiler*) {
+Modules::Modules (Compiler* compiler) {
     DECL_TYPE(this->internal_scope, Types::type_type);
     DECL_TYPE(this->internal_scope, Types::type_void);
     DECL_TYPE(this->internal_scope, Types::type_bool);
@@ -56,7 +56,7 @@ Modules::Modules (Compiler*) {
 
         ->pipe(new Register_Allocator())
         ->pipe(new Bytecode_Generator())
-        ->pipe(new Bytecode_Runner());
+        ->pipe(new Run_Directive(compiler->interp));
 }
 
 Ast_Scope* Modules::get_module (Code_Source* source) {
