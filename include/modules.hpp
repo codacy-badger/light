@@ -7,6 +7,8 @@
 
 #include <map>
 
+struct Compiler;
+
 struct Modules {
     std::map<char*, Ast_Scope*> cache;
 
@@ -14,7 +16,7 @@ struct Modules {
 	Pipeline* pipeline = new Pipeline();
     Parser* parser = new Parser();
 
-    Modules ();
+    Modules (Compiler* compiler);
 
     Ast_Scope* get_module (Code_Source* source);
     Ast_Scope* get_module (char* absolute_path);

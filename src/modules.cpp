@@ -1,5 +1,6 @@
 #include "modules.hpp"
 
+#include "compiler.hpp"
 #include "platform.hpp"
 #include "lexer/buffer/full_buffer.hpp"
 
@@ -17,7 +18,7 @@
 
 #define DECL_TYPE(scope, type) scope->statements.push_back(ast_make_declaration(type->name, type));
 
-Modules::Modules () {
+Modules::Modules (Compiler*) {
     DECL_TYPE(this->internal_scope, Types::type_type);
     DECL_TYPE(this->internal_scope, Types::type_void);
     DECL_TYPE(this->internal_scope, Types::type_bool);

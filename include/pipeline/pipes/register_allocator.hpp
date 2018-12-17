@@ -187,7 +187,7 @@ struct Register_Allocator : Pipe {
             }
         }
         decl_regs.push_back(new Register_State());
-        
+
         auto reg_size = decl_regs.size();
         if (this->register_used < reg_size) {
             this->register_used = reg_size;

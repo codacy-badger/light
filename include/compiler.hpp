@@ -40,7 +40,7 @@ struct Compiler {
 
 	queue<Code_Source*> code_sources;
 
-	Modules* modules = new Modules();
+	Modules* modules;
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();

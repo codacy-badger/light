@@ -39,6 +39,7 @@ void Compiler_Settings::handle_arguments (int argc, char** argv) {
 
 Compiler::Compiler (Compiler_Settings* settings) {
 	this->settings = settings;
+	this->modules = new Modules(this);
 }
 
 void Compiler::run () {
