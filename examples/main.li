@@ -1,8 +1,8 @@
-#import "print.li"
-#import "window.li"
-#import "opengl.li"
+#import "print.li";
+#import "window.li";
+#import "opengl.li";
 
-#import "windows/gdi32.li"
+#import "windows/gdi32.li";
 
 @run
 main :: fn {

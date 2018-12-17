@@ -101,6 +101,14 @@ struct Type_Checking : Pipe {
 		}
 	}
 
+	void handle (Ast_Directive** dir_ptr) {
+		auto dir = (*dir_ptr);
+
+		Pipe::handle(dir_ptr);
+
+		dir->inferred_type = Types::type_void;
+	}
+
 	void handle (Ast_Cast** cast_ptr) {
 		Pipe::handle(cast_ptr);
 

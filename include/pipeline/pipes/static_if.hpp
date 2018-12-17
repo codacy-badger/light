@@ -30,6 +30,6 @@ struct Static_If : Scoped_Statement_Pipe {
                     location = this->current_scope->statements.insert(location, stm);
                 }
             }
-        }
+        } else ERROR_STOP(_if->condition, "Static if condition is not a constant value");
 	}
 };

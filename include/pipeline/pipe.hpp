@@ -42,10 +42,6 @@ struct Pipe {
 				this->handle(reinterpret_cast<Ast_Scope**>(stm));
 				break;
 			}
-			case AST_STATEMENT_DIRECTIVE: {
-				this->handle(reinterpret_cast<Ast_Directive**>(stm));
-				break;
-			}
 			case AST_STATEMENT_IF: {
 				this->handle(reinterpret_cast<Ast_If**>(stm));
 				break;
@@ -78,32 +74,6 @@ struct Pipe {
 		for (auto &exp : (*note)->arguments) {
 			this->handle(&exp);
 		}
-	}
-
-	virtual void handle (Ast_Directive** directive) {
-		switch ((*directive)->dir_type) {
-			case AST_DIRECTIVE_IMPORT: {
-				this->handle(reinterpret_cast<Ast_Directive_Import**>(directive));
-				break;
-			}
-			case AST_DIRECTIVE_INCLUDE: {
-				this->handle(reinterpret_cast<Ast_Directive_Include**>(directive));
-				break;
-			}
-			case AST_DIRECTIVE_IF: {
-				this->handle(reinterpret_cast<Ast_Directive_If**>(directive));
-				break;
-			}
-			default: break;
-		}
-	}
-
-	virtual void handle (Ast_Directive_Import**) { /* empty */ }
-
-	virtual void handle (Ast_Directive_Include**) { /* empty */ }
-
-	virtual void handle (Ast_Directive_If** _if) {
-		this->handle(&(*_if)->stm_if->condition);
 	}
 
 	virtual void handle (Ast_Scope** _block) {
@@ -146,6 +116,10 @@ struct Pipe {
 
 	virtual void handle (Ast_Expression** exp) {
 		switch ((*exp)->exp_type) {
+			case AST_EXPRESSION_DIRECTIVE: {
+				this->handle(reinterpret_cast<Ast_Directive**>(exp));
+				break;
+			}
 			case AST_EXPRESSION_FUNCTION: {
 				this->handle(reinterpret_cast<Ast_Function**>(exp));
 				break;
@@ -179,6 +153,32 @@ struct Pipe {
 				break;
 			}
 		}
+	}
+
+	virtual void handle (Ast_Directive** directive) {
+		switch ((*directive)->dir_type) {
+			case AST_DIRECTIVE_IMPORT: {
+				this->handle(reinterpret_cast<Ast_Directive_Import**>(directive));
+				break;
+			}
+			case AST_DIRECTIVE_INCLUDE: {
+				this->handle(reinterpret_cast<Ast_Directive_Include**>(directive));
+				break;
+			}
+			case AST_DIRECTIVE_IF: {
+				this->handle(reinterpret_cast<Ast_Directive_If**>(directive));
+				break;
+			}
+			default: break;
+		}
+	}
+
+	virtual void handle (Ast_Directive_Import**) { /* empty */ }
+
+	virtual void handle (Ast_Directive_Include**) { /* empty */ }
+
+	virtual void handle (Ast_Directive_If** _if) {
+		this->handle(&(*_if)->stm_if->condition);
 	}
 
 	virtual void handle (Ast_Function** func) {

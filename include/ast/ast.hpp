@@ -42,7 +42,6 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
 	AST_STATEMENT_EXPRESSION,
-	AST_STATEMENT_DIRECTIVE,
 };
 
 struct Ast_Statement : Ast {
@@ -51,42 +50,6 @@ struct Ast_Statement : Ast {
 	vector<Ast_Note*> notes;
 
 	Ast_Note* remove_note (const char* name);
-};
-
-enum Ast_Directive_Type {
-	AST_DIRECTIVE_UNDEFINED = 0,
-	AST_DIRECTIVE_INCLUDE,
-	AST_DIRECTIVE_IMPORT,
-	AST_DIRECTIVE_IF,
-};
-
-struct Ast_Directive : Ast_Statement {
-	Ast_Directive_Type dir_type = AST_DIRECTIVE_UNDEFINED;
-
-	Ast_Directive () { this->stm_type = AST_STATEMENT_DIRECTIVE; }
-};
-
-struct Ast_Directive_Include : Ast_Directive {
-	const char* path = NULL;
-
-	char absolute_path[MAX_PATH_LENGTH];
-
-	Ast_Directive_Include () { this->dir_type = AST_DIRECTIVE_INCLUDE; }
-};
-
-struct Ast_Directive_Import : Ast_Directive {
-	const char* path = NULL;
-	const char* alias = NULL;
-
-	char absolute_path[MAX_PATH_LENGTH];
-
-	Ast_Directive_Import () { this->dir_type = AST_DIRECTIVE_IMPORT; }
-};
-
-struct Ast_Directive_If : Ast_Directive {
-	Ast_If* stm_if = NULL;
-
-	Ast_Directive_If () { this->dir_type = AST_DIRECTIVE_IF; }
 };
 
 struct Ast_Scope : Ast_Statement {
@@ -173,6 +136,7 @@ struct Ast_Return : Ast_Statement {
 enum Ast_Expression_Type {
 	AST_EXPRESSION_UNDEFINED = 0,
 	AST_EXPRESSION_TYPE_INSTANCE,
+	AST_EXPRESSION_DIRECTIVE,
 	AST_EXPRESSION_FUNCTION,
 	AST_EXPRESSION_BINARY,
 	AST_EXPRESSION_UNARY,
@@ -190,6 +154,42 @@ struct Ast_Expression : Ast_Statement {
 	int8_t reg = -1;
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
+};
+
+enum Ast_Directive_Type {
+	AST_DIRECTIVE_UNDEFINED = 0,
+	AST_DIRECTIVE_INCLUDE,
+	AST_DIRECTIVE_IMPORT,
+	AST_DIRECTIVE_IF,
+};
+
+struct Ast_Directive : Ast_Expression {
+	Ast_Directive_Type dir_type = AST_DIRECTIVE_UNDEFINED;
+
+	Ast_Directive () { this->exp_type = AST_EXPRESSION_DIRECTIVE; }
+};
+
+struct Ast_Directive_Include : Ast_Directive {
+	const char* path = NULL;
+
+	char absolute_path[MAX_PATH_LENGTH];
+
+	Ast_Directive_Include () { this->dir_type = AST_DIRECTIVE_INCLUDE; }
+};
+
+struct Ast_Directive_Import : Ast_Directive {
+	const char* path = NULL;
+	const char* alias = NULL;
+
+	char absolute_path[MAX_PATH_LENGTH];
+
+	Ast_Directive_Import () { this->dir_type = AST_DIRECTIVE_IMPORT; }
+};
+
+struct Ast_Directive_If : Ast_Directive {
+	Ast_If* stm_if = NULL;
+
+	Ast_Directive_If () { this->dir_type = AST_DIRECTIVE_IF; }
 };
 
 struct Ast_Cast : Ast_Expression {
