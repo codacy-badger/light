@@ -18,6 +18,9 @@
 
 #define DECL_TYPE(scope, type) scope->statements.push_back(ast_make_declaration(type->name, type));
 
+#define IS_WINDOWS_LITERAL ast_make_literal(os_get_type() == OS_TYPE_WINDOWS)
+#define IS_LINUX_LITERAL ast_make_literal(os_get_type() == OS_TYPE_LINUX)
+
 Modules::Modules (Compiler* compiler) {
     DECL_TYPE(this->internal_scope, Types::type_type);
     DECL_TYPE(this->internal_scope, Types::type_void);
@@ -33,13 +36,8 @@ Modules::Modules (Compiler* compiler) {
     DECL_TYPE(this->internal_scope, Types::type_f32);
     DECL_TYPE(this->internal_scope, Types::type_f64);
 
-    auto os_type = os_get_type();
-    auto windown_constant = ast_make_declaration("OS_WINDOWS",
-        ast_make_literal(os_type == OS_TYPE_WINDOWS));
-    windown_constant->type = Types::type_bool;
-    auto linux_constant = ast_make_declaration("OS_LINUX",
-        ast_make_literal(os_type == OS_TYPE_LINUX));
-    linux_constant->type = Types::type_bool;
+    auto windown_constant = ast_make_declaration("OS_WINDOWS", IS_WINDOWS_LITERAL);
+    auto linux_constant = ast_make_declaration("OS_LINUX", IS_LINUX_LITERAL);
 
     this->internal_scope->add(windown_constant);
     this->internal_scope->add(linux_constant);

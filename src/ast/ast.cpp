@@ -500,6 +500,7 @@ Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expr
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const) {
     auto decl = new Ast_Declaration();
 	if (is_const) decl->decl_flags |= AST_DECL_FLAG_CONSTANT;
+    decl->type = exp->inferred_type;
     decl->expression = exp;
     decl->name = name;
     return decl;
