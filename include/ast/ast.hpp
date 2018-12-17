@@ -160,6 +160,7 @@ enum Ast_Directive_Type {
 	AST_DIRECTIVE_UNDEFINED = 0,
 	AST_DIRECTIVE_INCLUDE,
 	AST_DIRECTIVE_IMPORT,
+	AST_DIRECTIVE_RUN,
 	AST_DIRECTIVE_IF,
 };
 
@@ -184,6 +185,12 @@ struct Ast_Directive_Import : Ast_Directive {
 	char absolute_path[MAX_PATH_LENGTH];
 
 	Ast_Directive_Import () { this->dir_type = AST_DIRECTIVE_IMPORT; }
+};
+
+struct Ast_Directive_Run : Ast_Directive {
+	Ast_Expression* expression = NULL;
+
+	Ast_Directive_Run () { this->dir_type = AST_DIRECTIVE_RUN; }
 };
 
 struct Ast_Directive_If : Ast_Directive {

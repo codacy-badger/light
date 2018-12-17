@@ -17,6 +17,8 @@ main :: fn {
 	test_slice();
 }
 
+#run main();
+
 test_factorial :: fn {
 	assert(factorial(5) == 120);
 

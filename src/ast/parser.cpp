@@ -57,9 +57,7 @@ Ast_Note* Parser::note () {
 		auto note = AST_NEW(Ast_Note);
 		note->is_global = this->lexer->optional_skip(TOKEN_EXCLAMATION);
 
-		if (this->lexer->is_next_type(TOKEN_ID)) {
-			note->name = this->lexer->text();
-		} else report_error_and_stop(&note->location, "All notes must have a name");
+		note->name = this->lexer->text();
 
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			this->comma_separated_arguments(&note->arguments);
@@ -75,10 +73,6 @@ Ast_Statement* Parser::statement () {
 		case TOKEN_STM_END: {
 			this->lexer->skip();
 			return this->statement();
-		}
-		case TOKEN_HASH: {
-			this->lexer->skip();
-			return this->directive();
 		}
 		case TOKEN_AT: {
 			vector<Ast_Note*> _notes;
@@ -176,20 +170,26 @@ Ast_Directive* Parser::directive () {
 
 			return include;
 		}
-			case TOKEN_IF: {
-				this->lexer->skip();
-				auto directive_if = AST_NEW(Ast_Directive_If);
+		case TOKEN_RUN: {
+			this->lexer->skip();
+			auto run = AST_NEW(Ast_Directive_Run);
+			run->expression = this->expression();
+			return run;
+		}
+		case TOKEN_IF: {
+			this->lexer->skip();
+			auto directive_if = AST_NEW(Ast_Directive_If);
 
-				directive_if->stm_if = AST_NEW(Ast_If);
-				directive_if->stm_if->condition = this->expression();
-				directive_if->stm_if->then_statement = this->statement();
+			directive_if->stm_if = AST_NEW(Ast_If);
+			directive_if->stm_if->condition = this->expression();
+			directive_if->stm_if->then_statement = this->statement();
 
-				if (this->lexer->optional_skip(TOKEN_ELSE)) {
-					directive_if->stm_if->else_statement = this->statement();
-				}
-
-				return directive_if;
+			if (this->lexer->optional_skip(TOKEN_ELSE)) {
+				directive_if->stm_if->else_statement = this->statement();
 			}
+
+			return directive_if;
+		}
 		default: return NULL;
 	}
 }
@@ -322,6 +322,8 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		auto result = this->expression();
 		this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		return result;
+	} else if (this->lexer->optional_skip(TOKEN_HASH)) {
+		return this->directive();
 	} else if (this->lexer->optional_skip(TOKEN_FALSE)) {
 		return Types::value_false;
 	} else if (this->lexer->optional_skip(TOKEN_TRUE)) {
