@@ -3,7 +3,6 @@
 
 #run main();
 
-@run
 main :: fn {
 	test_factorial();
 	test_cast();
