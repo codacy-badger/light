@@ -23,5 +23,6 @@ struct ASTPrinter {
 
 	static void print (Ast_Function* stm, int tabs = 0, bool name_only = false);
 	static void print (Ast_Function_Call* call, int tabs = 0);
+	static void print (Ast_Arguments* args, int tabs);
 	static void print (Ast_Ident* ident);
 };

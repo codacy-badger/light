@@ -173,9 +173,7 @@ struct Register_Allocator : Pipe {
             Pipe::handle(&call->func);
         }
 
-		for (auto &exp : call->arguments) {
-			Pipe::handle(&exp);
-		}
+        Pipe::handle(&call->arguments);
     }
 
     int16_t get_decl_index (Ast_Declaration* decl) {

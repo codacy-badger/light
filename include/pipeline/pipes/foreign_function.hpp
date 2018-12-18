@@ -17,7 +17,7 @@ struct Foreign_Function : Pipe {
 				auto module_name = note->get_string_parameter(0);
 				if (module_name) {
 					func->foreign_module_name = module_name;
-					if (note->arguments.size() == 2) {
+					if (note->arguments->unnamed.size() == 2) {
 						func->foreign_function_name = note->get_string_parameter(1);
 					} else func->foreign_function_name = func->name;
 

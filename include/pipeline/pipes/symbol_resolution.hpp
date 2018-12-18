@@ -7,12 +7,6 @@
 
 using namespace std;
 
-struct cmp_str {
-   bool operator()(char const *a, char const *b) const {
-      return std::strcmp(a, b) < 0;
-   }
-};
-
 struct Symbol_Resolution : Scoped_Pipe {
     vector<Ast_Scope*> unresolved_scopes;
     Ast_Scope* current_scope = NULL;

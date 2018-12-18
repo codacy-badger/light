@@ -429,15 +429,14 @@ struct Bytecode_Generator : Pipe {
 	void handle (Ast_Function_Call** call_ptr) {
 		auto call = (*call_ptr);
 
-		for (auto &exp : call->arguments) {
-			Pipe::handle(&exp);
-		}
+		Pipe::handle(&call->arguments);
 
-		INST(call, Call_Setup, DC_CALL_C_X64_WIN64, (uint8_t) call->arguments.size());
+		// TODO: move this to its own handler function
+		INST(call, Call_Setup, DC_CALL_C_X64_WIN64, (uint8_t) call->arguments->unnamed.size());
 
 		auto bytecode_type = BYTECODE_TYPE_VOID;
-		for (uint8_t i = 0; i < call->arguments.size(); i++) {
-			auto exp = call->arguments[i];
+		for (uint8_t i = 0; i < call->arguments->unnamed.size(); i++) {
+			auto exp = call->arguments->unnamed[i];
 
 			if (exp->inferred_type->byte_size > INTERP_REGISTER_SIZE) {
 	            bytecode_type = BYTECODE_TYPE_POINTER;

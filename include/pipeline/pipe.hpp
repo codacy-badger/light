@@ -69,8 +69,15 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Note** note) {
-		for (auto &exp : (*note)->arguments) {
+		this->handle(&(*note)->arguments);
+	}
+
+	virtual void handle (Ast_Arguments** args) {
+		for (auto &exp : (*args)->unnamed) {
 			this->handle(&exp);
+		}
+		for (auto &exp : (*args)->named) {
+			this->handle(&exp.second);
 		}
 	}
 
@@ -196,9 +203,7 @@ struct Pipe {
 		if ((*func_call)->func->exp_type != AST_EXPRESSION_FUNCTION) {
 			this->handle(&(*func_call)->func);
 		}
-		for (auto &exp : (*func_call)->arguments) {
-			this->handle(&exp);
-		}
+		this->handle(&(*func_call)->arguments);
 	}
 
 	virtual void handle (Ast_Binary** binary) {

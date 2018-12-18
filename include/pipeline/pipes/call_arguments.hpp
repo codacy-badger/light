@@ -14,15 +14,22 @@ struct Call_Arguments : Pipe {
 		auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
         auto arg_without_defaults = func_type->count_arguments_without_defaults();
 
-        if (call->arguments.size() >= arg_without_defaults) {
-            auto arg_count = call->arguments.size();
+        if (call->arguments->unnamed.size() > func_type->arg_decls.size()) {
+            ERROR_STOP(call, "Too many arguments, function has %d, but call has %d",
+                func_type->arg_decls.size(), call->arguments->unnamed.size());
+        } else if (call->arguments->unnamed.size() < arg_without_defaults) {
+            ERROR_STOP(call, "Too few arguments, function requires %d, but call has %d",
+                arg_without_defaults, call->arguments->unnamed.size());
+        } else {
+            auto arg_count = call->arguments->unnamed.size();
             for (auto i = arg_count; i < func_type->arg_decls.size(); i++) {
                 auto decl = func_type->arg_decls[i];
-                call->arguments.push_back(decl->expression);
+
+                auto named_value = call->arguments->get_named_value(decl->name);
+                if (named_value) {
+                    call->arguments->unnamed.push_back(named_value);
+                } else call->arguments->unnamed.push_back(decl->expression);
             }
-        } else {
-            ERROR_STOP(call, "Too few arguments, function requires %d, but call has %d",
-                arg_without_defaults, call->arguments.size());
         }
 	}
 

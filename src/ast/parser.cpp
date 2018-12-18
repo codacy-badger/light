@@ -61,7 +61,7 @@ Ast_Note* Parser::note () {
 		note->name = this->lexer->text();
 
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-			this->comma_separated_arguments(&note->arguments);
+			note->arguments = this->arguments();
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
 		}
 		return note;
@@ -270,7 +270,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
 			auto call = AST_NEW(Ast_Function_Call);
 			call->func = output;
-			this->comma_separated_arguments(&call->arguments);
+			call->arguments = this->arguments();
 			this->lexer->check_skip(TOKEN_PAR_CLOSE);
 			return call;
 		} else return output;
@@ -443,14 +443,22 @@ Ast_Literal* Parser::string_literal () {
 	}
 }
 
-void Parser::comma_separated_arguments (vector<Ast_Expression*>* arguments) {
+Ast_Arguments* Parser::arguments () {
+	auto args = AST_NEW(Ast_Arguments);
+
+	bool parsing_named = false;
 	auto exp = this->expression();
 	while (exp != NULL) {
-		arguments->push_back(exp);
+		auto last_is_named = args->add(exp);
+		if (parsing_named && !last_is_named) {
+			ERROR_STOP(exp, "All named parameters must be on the right part");
+		} else parsing_named = last_is_named;
 
 		this->lexer->optional_skip(TOKEN_COMMA);
 		exp = this->expression();
 	}
+
+	return args;
 }
 
 Ast_Ident* Parser::ident () {

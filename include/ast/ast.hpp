@@ -4,6 +4,7 @@
 #include "lexer/lexer.hpp"
 
 #include <vector>
+#include <map>
 
 struct Ast_Ident;
 struct Ast_Function;
@@ -16,6 +17,12 @@ struct Instruction;
 
 using namespace std;
 
+struct cmp_str {
+   bool operator()(char const *a, char const *b) const {
+      return std::strcmp(a, b) < 0;
+   }
+};
+
 #define WARN_MAX_DEREF_COUNT 3
 
 uint8_t ast_get_pointer_size ();
@@ -24,10 +31,18 @@ struct Ast {
 	Location location;
 };
 
+struct Ast_Arguments : Ast {
+	vector<Ast_Expression*> unnamed;
+	map<const char*, Ast_Expression*, cmp_str> named;
+
+	bool add (Ast_Expression* exp);
+    Ast_Expression* get_named_value (const char* param_name);
+};
+
 struct Ast_Note : Ast {
 	bool is_global = false;
 	const char* name = NULL;
-	vector<Ast_Expression*> arguments;
+	Ast_Arguments* arguments;
 
 	const char* get_string_parameter (int index);
 };
@@ -294,6 +309,15 @@ struct Ast_Function_Type : Ast_Type_Instance {
 
 	Ast_Function_Type();
 
+    Ast_Declaration* get_declaration (const char* decl_name) {
+        for (auto decl : this->arg_decls) {
+            if (strcmp(decl->name, decl_name) == 0) {
+                return decl;
+            }
+        }
+        return NULL;
+    }
+
 	size_t count_arguments_without_defaults () {
 		size_t count = 0;
 		for (auto decl : this->arg_decls) {
@@ -396,7 +420,7 @@ struct Ast_Unary : Ast_Expression {
 
 struct Ast_Function_Call : Ast_Expression {
 	Ast_Expression* func;
-	vector<Ast_Expression*> arguments;
+	Ast_Arguments* arguments;
 
 	Ast_Function_Call() { this->exp_type = AST_EXPRESSION_CALL; }
 };

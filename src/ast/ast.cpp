@@ -2,8 +2,32 @@
 
 #include "compiler.hpp"
 
+bool Ast_Arguments::add (Ast_Expression* exp) {
+    if (exp->exp_type == AST_EXPRESSION_BINARY) {
+        auto binary = static_cast<Ast_Binary*>(exp);
+        if (binary->binary_op == AST_BINARY_ASSIGN) {
+            if (binary->lhs->exp_type == AST_EXPRESSION_IDENT) {
+                auto ident = static_cast<Ast_Ident*>(binary->lhs);
+                this->named[ident->name] = binary->rhs;
+                return true;
+            }
+        }
+    }
+    this->unnamed.push_back(exp);
+    return false;
+}
+
+Ast_Expression* Ast_Arguments::get_named_value (const char* param_name) {
+    for (auto entry : this->named) {
+        if (strcmp(entry.first, param_name) == 0) {
+            return entry.second;
+        }
+    }
+    return NULL;
+}
+
 const char* Ast_Note::get_string_parameter (int index) {
-    auto exp = this->arguments[index];
+    auto exp = this->arguments->unnamed[index];
     if (exp->exp_type == AST_EXPRESSION_LITERAL) {
         auto lit = static_cast<Ast_Literal*>(exp);
         if (lit->literal_type == AST_LITERAL_STRING) {

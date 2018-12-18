@@ -17,7 +17,10 @@ main :: fn {
 	test_static_array();
 	test_slice();
 	test_default_args();
+	test_named_args();
 }
+
+CONST_NUM :: 17;
 
 test_default_args :: fn {
 	print_nums(1, 2, 3);
@@ -25,8 +28,24 @@ test_default_args :: fn {
 	print_nums(6);
 	print_nums();
 
-	print_nums :: fn (a: u64 = 12, b: u64 = 13, c: u64 = 14) {
-		print("values: [ ");
+	print_nums :: fn (a: u64 = 12, b: u64 = 13, c: u64 = CONST_NUM) {
+		print("defaults: [ ");
+		print_u64(a);
+		print(", ");
+		print_u64(b);
+		print(", ");
+		print_u64(c);
+		print(" ]\n");
+	}
+}
+
+test_named_args :: fn {
+	print_nums(b = 1);
+	print_nums(c = 2, b = 3);
+	print_nums(a = 4, c = 6, b = 5);
+
+	print_nums :: fn (a: u64 = 10, b: u64 = 11, c: u64 = CONST_NUM) {
+		print("named: [ ");
 		print_u64(a);
 		print(", ");
 		print_u64(b);
@@ -38,9 +57,6 @@ test_default_args :: fn {
 
 test_factorial :: fn {
 	assert(factorial(5) == 120);
-
-	print_u64(#run factorial(5));
-	print("\n");
 
 	factorial :: fn (number: u32) -> u32 {
 		if (number == 0) 1
