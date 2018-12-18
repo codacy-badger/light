@@ -1,3 +1,5 @@
 @echo off
 
-bin\light examples\test.li
+cd examples
+..\bin\light test.li
+cd ..

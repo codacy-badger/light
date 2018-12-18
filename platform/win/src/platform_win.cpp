@@ -88,3 +88,12 @@ char* os_get_file_part (const char* path) {
 		return (char*)(last_index_of + 1);
 	} else return NULL;
 }
+
+bool os_check_file_exists (const char* path) {
+	WIN32_FIND_DATA FindFileData;
+	auto hFind = FindFirstFile(path, &FindFileData);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		FindClose(hFind);
+		return true;
+	} else return false;
+}

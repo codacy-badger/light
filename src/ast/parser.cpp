@@ -162,8 +162,6 @@ Ast_Directive* Parser::directive () {
 			sprintf_s(tmp, new_length, "%s.li", literal->string_value);
 			import->path = tmp;
 
-			os_get_absolute_path(import->path, import->absolute_path);
-
 			return import;
 		}
 		case TOKEN_INCLUDE: {
@@ -176,8 +174,6 @@ Ast_Directive* Parser::directive () {
 			auto tmp = (char*) malloc(new_length);
 			sprintf_s(tmp, new_length, "%s.li", literal->string_value);
 			include->path = tmp;
-
-			os_get_absolute_path(include->path, include->absolute_path);
 
 			return include;
 		}

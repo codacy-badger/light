@@ -25,3 +25,4 @@ void os_get_absolute_path (const char* relative_path, char* buffer);
 bool os_set_current_directory (const char* new_path);
 bool os_set_current_directory_path (const char* new_file_path);
 char* os_get_file_part (const char* path);
+bool os_check_file_exists (const char* path);
