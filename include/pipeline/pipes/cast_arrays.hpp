@@ -7,7 +7,7 @@
 #define TMP_NAME_SIZE 20
 
 struct Cast_Arrays : Scoped_Statement_Pipe {
-	PIPE_NAME(Cast_Arrays)
+	Cast_Arrays () { this->pipe_name = "Cast_Arrays"; }
 
 	size_t tmp_var_count = 0;
 

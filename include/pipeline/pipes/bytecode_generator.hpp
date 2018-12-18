@@ -18,7 +18,7 @@ struct Bytecode_Generator : Pipe {
 	// for metrics
 	size_t instruction_count = 0;
 
-	PIPE_NAME(Bytecode_Generator)
+	Bytecode_Generator () { this->pipe_name = "Bytecode_Generator"; }
 
 	void add_instruction (Ast* node, Instruction* intruction) {
 	    intruction->location = node->location;

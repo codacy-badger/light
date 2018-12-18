@@ -7,8 +7,6 @@
 
 struct Pipeline;
 
-#define PIPE_NAME(name) name() { this->pipe_name = #name; }
-
 #define PRINT_METRIC(format, ...) printf("        " format "\n", __VA_ARGS__)
 
 struct Pipe {

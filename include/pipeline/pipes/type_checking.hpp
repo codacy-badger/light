@@ -6,7 +6,7 @@
 #include "ast/ast.hpp"
 
 struct Type_Checking : Pipe {
-	PIPE_NAME(Type_Checking)
+	Type_Checking () { this->pipe_name = "Type_Checking"; }
 
 	// @Info this pipe ensures that all expressions have a valid inferred_type
 	// and that all types in the tree make sense (binary ops, func calls, etc.).

@@ -17,7 +17,7 @@ struct Symbol_Resolution : Scoped_Pipe {
     vector<Ast_Scope*> unresolved_scopes;
     Ast_Scope* current_scope = NULL;
 
-	PIPE_NAME(Symbol_Resolution)
+	Symbol_Resolution () { this->pipe_name = "Symbol_Resolution"; }
 
     void process (Ast_Scope* scope) {
         Scoped_Pipe::process(scope);

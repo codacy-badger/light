@@ -5,7 +5,7 @@
 #include "compiler.hpp"
 
 struct External_Modules : Scoped_Statement_Pipe {
-	PIPE_NAME(External_Modules)
+	External_Modules () { this->pipe_name = "External_Modules"; }
 
     void handle (Ast_Directive_Include** include_ptr) {
 		auto include = (*include_ptr);

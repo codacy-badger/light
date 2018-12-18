@@ -5,7 +5,6 @@
 
 #include <vector>
 
-struct Ast_If;
 struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
@@ -113,7 +112,6 @@ struct Ast_Declaration : Ast_Statement {
 	Ast_Scope* scope = NULL;
 
 	// for struct property
-	Ast_Struct_Type* _struct = NULL;
 	size_t attribute_byte_offset = 0;
 
 	// for bytecode

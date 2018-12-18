@@ -19,7 +19,7 @@ struct Register_Allocator : Pipe {
 
     size_t register_used = 0;
 
-	PIPE_NAME(Register_Allocator)
+	Register_Allocator () { this->pipe_name = "Register_Allocator"; }
 
     void allocate_function (Ast_Function* func) {
         auto tmp = this->decl_regs;

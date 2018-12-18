@@ -4,7 +4,7 @@
 #include "report.hpp"
 
 struct Foreign_Function : Pipe {
-	PIPE_NAME(Foreign_Function)
+	Foreign_Function () { this->pipe_name = "Foreign_Function"; }
 
 	void handle (Ast_Declaration** decl_ptr) {
 		auto decl = (*decl_ptr);

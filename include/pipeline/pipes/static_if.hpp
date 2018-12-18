@@ -3,7 +3,7 @@
 #include "pipeline/scoped_statement_pipe.hpp"
 
 struct Static_If : Scoped_Statement_Pipe {
-    PIPE_NAME(Static_If)
+    Static_If () { this->pipe_name = "Static_If"; }
 
     void handle (Ast_Directive_If** if_ptr) {
 		auto if_directive = (*if_ptr);

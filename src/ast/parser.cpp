@@ -280,7 +280,6 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 			for (auto stm : _scope->statements) {
 				if (stm->stm_type == AST_STATEMENT_DECLARATION) {
 					auto decl = static_cast<Ast_Declaration*>(stm);
-					decl->_struct = _struct;
 					_struct->attributes.push_back(decl);
 				} else {
 					report_error_and_stop(&stm->location, "Only declarations can go inside a struct");

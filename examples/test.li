@@ -1,5 +1,5 @@
-#import "print.li";
-#import "sys.li";
+#import "std/print.li";
+#import "std/sys.li";
 
 #run main();
 
