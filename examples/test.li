@@ -16,6 +16,24 @@ main :: fn {
 	test_big_struct();
 	test_static_array();
 	test_slice();
+	test_default_args();
+}
+
+test_default_args :: fn {
+	print_nums(1, 2, 3);
+	print_nums(4, 5);
+	print_nums(6);
+	print_nums();
+
+	print_nums :: fn (a: u64 = 12, b: u64 = 13, c: u64 = 14) {
+		print("values: [ ");
+		print_u64(a);
+		print(", ");
+		print_u64(b);
+		print(", ");
+		print_u64(c);
+		print(" ]\n");
+	}
 }
 
 test_factorial :: fn {

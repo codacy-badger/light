@@ -200,21 +200,16 @@ struct Type_Checking : Pipe {
 		auto ret_ty = static_cast<Ast_Type_Instance*>(func_type->ret_type);
 		call->inferred_type = ret_ty;
 
-		if (call->arguments.size() == func_type->arg_decls.size()) {
-			for (int i = 0; i < call->arguments.size(); i++) {
-				Pipe::handle(&call->arguments[i]);
-				auto param_exp = call->arguments[i];
-				ASSERT(param_exp->inferred_type);
+		for (int i = 0; i < call->arguments.size(); i++) {
+			Pipe::handle(&call->arguments[i]);
+			auto param_exp = call->arguments[i];
+			ASSERT(param_exp->inferred_type);
 
-				auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
-				if (!try_cast(&call->arguments[i], arg_type)) {
-					ERROR_STOP(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
-						i + 1, arg_type->name, param_exp->inferred_type->name);
-				}
+			auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
+			if (!try_cast(&call->arguments[i], arg_type)) {
+				ERROR_STOP(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
+					i + 1, arg_type->name, param_exp->inferred_type->name);
 			}
-		} else {
-			ERROR_STOP(call, "Wrong number of arguments, function has %d, but call has %d",
-				func_type->arg_decls.size(), call->arguments.size());
 		}
 	}
 

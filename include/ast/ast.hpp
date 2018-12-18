@@ -293,6 +293,16 @@ struct Ast_Function_Type : Ast_Type_Instance {
 	Ast_Expression* ret_type = NULL;
 
 	Ast_Function_Type();
+
+	size_t count_arguments_without_defaults () {
+		size_t count = 0;
+		for (auto decl : this->arg_decls) {
+			if (!decl->expression) {
+				count++;
+			}
+		}
+		return count;
+	}
 };
 
 struct Ast_Function : Ast_Expression {

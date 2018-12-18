@@ -11,6 +11,7 @@
 #include "pipeline/pipes/type_checking.hpp"
 #include "pipeline/pipes/foreign_function.hpp"
 #include "pipeline/pipes/static_if.hpp"
+#include "pipeline/pipes/call_arguments.hpp"
 
 #include "pipeline/pipes/register_allocator.hpp"
 #include "pipeline/pipes/bytecode_generator.hpp"
@@ -49,6 +50,7 @@ Modules::Modules (Compiler* compiler) {
         ->pipe(new Type_Checking())
         ->pipe(new Cast_Arrays())
         ->pipe(new Constant_Folding())
+        ->pipe(new Call_Arguments())
         ->pipe(new Static_If())
 
         ->pipe(new Register_Allocator())
