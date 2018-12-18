@@ -141,9 +141,15 @@ struct Type_Checking : Pipe {
 
 		auto _struct = (*_struct_ptr);
 		if (_struct->byte_size == 0) {
-			// TODO: use byte_alignment to correctly assign byte_offsets
 			for (auto attr : _struct->attributes) {
 				auto attr_type = static_cast<Ast_Type_Instance*>(attr->type);
+
+				auto over = _struct->byte_size % attr_type->byte_size;
+				if (over > 0) {
+					auto padding = attr_type->byte_size - over;
+					_struct->byte_padding += padding;
+					_struct->byte_size += padding;
+				}
 
 				attr->attribute_byte_offset = _struct->byte_size;
 				_struct->byte_size += attr_type->byte_size;

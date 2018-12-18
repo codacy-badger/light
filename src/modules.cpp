@@ -20,6 +20,7 @@
 
 #define IS_WINDOWS_LITERAL ast_make_literal(os_get_type() == OS_TYPE_WINDOWS)
 #define IS_LINUX_LITERAL ast_make_literal(os_get_type() == OS_TYPE_LINUX)
+#define IS_MAC_LITERAL ast_make_literal(os_get_type() == OS_TYPE_MAC)
 
 Modules::Modules (Compiler* compiler) {
     DECL_TYPE(this->internal_scope, Types::type_type);
@@ -36,11 +37,9 @@ Modules::Modules (Compiler* compiler) {
     DECL_TYPE(this->internal_scope, Types::type_f32);
     DECL_TYPE(this->internal_scope, Types::type_f64);
 
-    auto windown_constant = ast_make_declaration("OS_WINDOWS", IS_WINDOWS_LITERAL);
-    auto linux_constant = ast_make_declaration("OS_LINUX", IS_LINUX_LITERAL);
-
-    this->internal_scope->add(windown_constant);
-    this->internal_scope->add(linux_constant);
+    this->internal_scope->add(ast_make_declaration("OS_WINDOWS", IS_WINDOWS_LITERAL));
+    this->internal_scope->add(ast_make_declaration("OS_LINUX", IS_LINUX_LITERAL));
+    this->internal_scope->add(ast_make_declaration("OS_MAC", IS_MAC_LITERAL));
 
     this->pipeline
         ->pipe(new External_Modules())
