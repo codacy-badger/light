@@ -83,6 +83,13 @@ void Interpreter::run (Instruction* inst) {
 		case BYTECODE_STACK_ALLOCATE: {
 			auto alloca = static_cast<Inst_Stack_Allocate*>(inst);
 			ASSERT((this->stack_index + alloca->size) < INTERP_STACK_SIZE);
+
+			auto over = this->stack_index % alloca->size;
+			if (over > 0) {
+				auto padding = alloca->size - over;
+				this->stack_index += padding;
+			}
+
 			this->stack_index += alloca->size;
 			return;
 		}

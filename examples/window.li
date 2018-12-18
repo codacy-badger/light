@@ -3,10 +3,6 @@
 
 #import "print.li";
 
-// We're not aligning the stack memory, so declaring a 2 byte variable
-// will make all pointer to further variables not addressable
-atom : u16;
-
 window_create :: fn (name: *u8) -> *void {
 	window_class: WNDCLASSEXA;
 	window_class.cbSize 		= 80;
@@ -15,7 +11,7 @@ window_create :: fn (name: *u8) -> *void {
 	window_class.hInstance 		= GetModuleHandle(0);
 	window_class.lpszClassName 	= "DemoWindowClass";
 
-	atom = RegisterClassEx(*window_class);
+	atom := RegisterClassEx(*window_class);
 	if !atom {
 		print("Wrong ATOM!\n");
 		return 0;
