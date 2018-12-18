@@ -17,6 +17,8 @@
 	memcpy(&var_name, this->registers[reg], INTERP_REGISTER_SIZE)
 
 void Interpreter::run (Ast_Function* func) {
+	ASSERT(func->bytecode.size() > 0);
+
 	if (this->call_record) {
 		for (uint8_t i = 0; i < this->call_record->param_count; i++) {
 			auto param = this->call_record->parameters[i];
