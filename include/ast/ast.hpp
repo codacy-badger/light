@@ -466,6 +466,8 @@ struct Ast_Ident : Ast_Expression {
 	}
 };
 
+Ast_Struct_Type* build_type_any();
+
 void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);
 bool ast_function_types_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2);
 bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2);

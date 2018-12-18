@@ -32,6 +32,7 @@ struct Types {
 	static Ast_Struct_Type* type_u64;
 	static Ast_Struct_Type* type_f32;
 	static Ast_Struct_Type* type_f64;
+    static Ast_Struct_Type* type_any;
 
     void add_type_if_new (Ast_Type_Instance* type);
 

@@ -24,7 +24,6 @@ CONST_NUM :: 17;
 
 test_default_args :: fn {
 	print_nums(1, 2, 3);
-	print_nums(4, 5);
 	print_nums(6);
 	print_nums();
 
@@ -41,8 +40,8 @@ test_default_args :: fn {
 
 test_named_args :: fn {
 	print_nums(b = 1);
-	print_nums(c = 2, b = 3);
 	print_nums(a = 4, c = 6, b = 5);
+	print_nums(22, c = 6, b = 5);
 
 	print_nums :: fn (a: u64 = 10, b: u64 = 11, c: u64 = CONST_NUM) {
 		print("named: [ ");
