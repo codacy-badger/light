@@ -1,7 +1,7 @@
-#import "windows/kernel32.li";
-#import "windows/user32.li";
+#import "windows/kernel32";
+#import "windows/user32";
 
-#import "print.li";
+#import "print";
 
 window_create :: fn (name: *u8) -> *void {
 	window_class: WNDCLASSEXA;

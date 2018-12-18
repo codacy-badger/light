@@ -5,6 +5,7 @@
 uint64_t Ast_Factory::node_count = 0;
 
 #define GLOBAL_NOTE_END "end"
+#define DEFAULT_FILE_EXTENSION ".li"
 
 #define AST_NEW(T, ...) Ast_Factory::create_node<T>(&this->lexer->buffer->location, __VA_ARGS__)
 
@@ -155,7 +156,12 @@ Ast_Directive* Parser::directive () {
 			auto import = AST_NEW(Ast_Directive_Import);
 
 			auto literal = this->string_literal();
-			import->path = literal->string_value;
+			auto new_length = strlen(literal->string_value) + 4;
+
+			auto tmp = (char*) malloc(new_length);
+			sprintf_s(tmp, new_length, "%s.li", literal->string_value);
+			import->path = tmp;
+
 			os_get_absolute_path(import->path, import->absolute_path);
 
 			return import;
@@ -164,8 +170,13 @@ Ast_Directive* Parser::directive () {
 			this->lexer->skip();
 			auto include = AST_NEW(Ast_Directive_Include);
 
-			auto literal = this->literal();
-			include->path = literal->string_value;
+			auto literal = this->string_literal();
+			auto new_length = strlen(literal->string_value) + 4;
+
+			auto tmp = (char*) malloc(new_length);
+			sprintf_s(tmp, new_length, "%s.li", literal->string_value);
+			include->path = tmp;
+
 			os_get_absolute_path(include->path, include->absolute_path);
 
 			return include;

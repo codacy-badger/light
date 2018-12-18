@@ -1,4 +1,4 @@
-#import "windows/kernel32.li";
+#import "windows/kernel32";
 // TODO: figure out a way to make this code platform independent
 
 // TODO: allow global variables to have default values

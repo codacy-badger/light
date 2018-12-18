@@ -1,8 +1,8 @@
-#import "std/print.li";
-#import "std/window.li";
-#import "std/opengl.li";
+#import "std/print";
+#import "std/window";
+#import "std/opengl";
 
-#import "std/windows/gdi32.li";
+#import "std/windows/gdi32";
 
 #run main();
 

@@ -1,4 +1,4 @@
-#import "windows/kernel32.li";
+#import "windows/kernel32";
 
 sys_exit :: fn (exit_code: u32) {
     ExitProcess(exit_code);
