@@ -277,10 +277,9 @@ Ast_Struct_Type* build_type_any () {
     auto type_decl = ast_make_declaration_with_type("type", Types::type_u8);
     type_any->attributes.push_back(type_decl);
 
-    // TODO: add value attribute (Static death of something...)
-    /*auto ptr_type = new Ast_Pointer_Type(Types::type_void);
+    auto ptr_type = new Ast_Pointer_Type(Types::type_void);
     auto value_decl = ast_make_declaration_with_type("value", ptr_type);
-    type_any->attributes.push_back(value_decl);*/
+    type_any->attributes.push_back(value_decl);
 
     return type_any;
 }
@@ -490,10 +489,6 @@ Ast_Struct_Type* ast_get_smallest_type (int64_t value) {
             } else return Types::type_s16;
         } else return Types::type_s32;
     } else return Types::type_s64;
-}
-
-uint8_t ast_get_pointer_size () {
-    return Compiler::inst->settings->register_size;
 }
 
 Ast_Literal* ast_make_literal (const char* value) {

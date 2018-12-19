@@ -34,9 +34,12 @@ void Interpreter::run (vector<Instruction*>* instructions) {
 	for (instruction_index = 0; instruction_index < instructions->size(); instruction_index++) {
 		auto inst = (*instructions)[instruction_index];
 
+		if (Compiler::inst->settings->is_debug) {
+			bytecode_print(inst);
+		}
+
 		this->run(inst);
 
-		if (Compiler::inst->settings->is_debug) bytecode_print(inst);
 		if (inst->code == BYTECODE_RETURN) break;
 	}
 	this->stack_index = _tmp;

@@ -18,6 +18,27 @@ main :: fn {
 	test_slice();
 	test_default_args();
 	test_named_args();
+	test_any();
+}
+
+test_any :: fn {
+	number := 12;
+	text := "Hello any!"
+
+	// TODO: all types should be able to cast to any implicitly
+	tmp : any;
+	tmp.type = 1;
+	tmp.value = *number;
+
+	print_any(tmp);
+
+	print_any :: fn (wrapped: any) {
+		if (wrapped.type == 1) {
+			print("Integer value\n");
+		} else if (wrapped.type == 2) {
+			print("String value\n");
+		}
+	}
 }
 
 CONST_NUM :: 17;

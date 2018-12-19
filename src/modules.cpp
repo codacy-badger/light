@@ -37,6 +37,7 @@ Modules::Modules (Compiler* compiler) {
     DECL_TYPE(this->internal_scope, Types::type_u64);
     DECL_TYPE(this->internal_scope, Types::type_f32);
     DECL_TYPE(this->internal_scope, Types::type_f64);
+    DECL_TYPE(this->internal_scope, Types::type_any);
 
     this->internal_scope->add(ast_make_declaration("OS_WINDOWS", IS_WINDOWS_LITERAL));
     this->internal_scope->add(ast_make_declaration("OS_LINUX", IS_LINUX_LITERAL));
