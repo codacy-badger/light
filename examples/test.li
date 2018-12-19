@@ -22,21 +22,31 @@ main :: fn {
 }
 
 test_any :: fn {
-	number := 12;
+	number := 65;
 	text := "Hello any!"
 
 	// TODO: all types should be able to cast to any implicitly
 	tmp : any;
 	tmp.type = 1;
 	tmp.value = *number;
-
 	print_any(tmp);
+
+	tmp2 : any;
+	tmp2.type = 2;
+	tmp2.value = *text;
+	print_any(tmp2);
 
 	print_any :: fn (wrapped: any) {
 		if (wrapped.type == 1) {
-			print("Integer value\n");
+			print("Integer value: ");
+			val := cast(*u8) wrapped.value;
+			print_u64(&val);
+			print("\n");
 		} else if (wrapped.type == 2) {
-			print("String value\n");
+			print("String value: ");
+			val := cast(**u8) wrapped.value;
+			print(&val);
+			print("\n");
 		}
 	}
 }
@@ -138,6 +148,11 @@ assert :: fn (condition: bool) {
 test_pointers :: fn {
 	number : u8 = 0;
 	num_ptr := *number;
+
+	assert(&num_ptr == 0);
+	&num_ptr = 22;
+	assert(&num_ptr == 22);
+	assert(&(*number) == 22);
 
 	set(num_ptr);
 	assert(number == 12);

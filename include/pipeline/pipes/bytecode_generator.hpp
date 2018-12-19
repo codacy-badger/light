@@ -220,6 +220,8 @@ struct Bytecode_Generator : Pipe {
 		auto type_to = bytecode_get_type(cast->inferred_type);
 		if (type_from != type_to) {
 			INST(cast, Cast, cast->reg, cast->value->reg, type_from, type_to);
+		} else if (cast->reg != cast->value->reg) {
+			INST(cast, Copy, cast->reg, cast->value->reg);
 		}
 	}
 

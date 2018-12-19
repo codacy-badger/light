@@ -17,7 +17,8 @@ struct Register_State {
 struct Register_Allocator : Pipe {
     vector<Register_State*> decl_regs;
 
-    size_t register_used = 0;
+    size_t registers_used = 0;
+    bool is_left_value = false;
 
 	Register_Allocator () { this->pipe_name = "Register_Allocator"; }
 
@@ -61,6 +62,24 @@ struct Register_Allocator : Pipe {
 		}
     }
 
+	void handle (Ast_Expression** exp_ptr) {
+		if (this->is_left_value != false) {
+			auto tmp = this->is_left_value;
+			this->is_left_value = false;
+			Pipe::handle(exp_ptr);
+			this->is_left_value = tmp;
+		} else Pipe::handle(exp_ptr);
+	}
+
+	void handle_left (Ast_Expression** exp_ptr) {
+		if (this->is_left_value != true) {
+			auto tmp = this->is_left_value;
+			this->is_left_value = true;
+			Pipe::handle(exp_ptr);
+			this->is_left_value = tmp;
+		} else Pipe::handle(exp_ptr);
+	}
+
     void handle (Ast_Function** func_ptr) {
         auto func = (*func_ptr);
         func->reg = reserve_next_reg();
@@ -93,21 +112,21 @@ struct Register_Allocator : Pipe {
 
         switch (binop->binary_op) {
 			case AST_BINARY_ATTRIBUTE: {
-                Pipe::handle(&binop->lhs);
+                this->handle_left(&binop->lhs);
                 Pipe::handle(&binop->rhs);
 
                 binop->reg = reserve_reg(binop->lhs->reg, binop->rhs->reg);
 				break;
 			}
 			case AST_BINARY_SUBSCRIPT: {
-                Pipe::handle(&binop->lhs);
+                this->handle_left(&binop->lhs);
                 Pipe::handle(&binop->rhs);
 
                 binop->reg = reserve_next_reg();
 				break;
 			}
 			case AST_BINARY_ASSIGN: {
-                Pipe::handle(&binop->lhs);
+                this->handle_left(&binop->lhs);
                 Pipe::handle(&binop->rhs);
 
 				break;
@@ -137,8 +156,8 @@ struct Register_Allocator : Pipe {
 				break;
 			}
 			case AST_UNARY_REFERENCE: {
-				Pipe::handle(&unop->exp);
-                unop->reg = reserve_reg(unop->exp->reg);
+				this->handle_left(&unop->exp);
+                unop->reg = unop->exp->reg;
 
                 if (unop->exp->exp_type == AST_EXPRESSION_IDENT) {
                     auto ident = static_cast<Ast_Ident*>(unop->exp);
@@ -148,8 +167,10 @@ struct Register_Allocator : Pipe {
 				break;
 			}
 	        case AST_UNARY_DEREFERENCE: {
-				Pipe::handle(&unop->exp);
-                unop->reg = reserve_reg(unop->exp->reg);
+				this->handle(&unop->exp);
+                if (!this->is_left_value) {
+                    unop->reg = reserve_reg(unop->exp->reg);
+                } else unop->reg = unop->exp->reg;
 	            break;
 	        }
 			default: abort();
@@ -193,8 +214,8 @@ struct Register_Allocator : Pipe {
         decl_regs.push_back(new Register_State());
 
         auto reg_size = decl_regs.size();
-        if (this->register_used < reg_size) {
-            this->register_used = reg_size;
+        if (this->registers_used < reg_size) {
+            this->registers_used = reg_size;
         }
 
         return (uint8_t) (reg_size - 1);
@@ -222,6 +243,6 @@ struct Register_Allocator : Pipe {
     }
 
 	void print_pipe_metrics () {
-		PRINT_METRIC("Registers used:        %zd", this->register_used);
+		PRINT_METRIC("Registers used:        %zd", this->registers_used);
 	}
 };
