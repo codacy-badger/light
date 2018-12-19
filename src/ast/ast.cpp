@@ -449,6 +449,10 @@ bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_
 		if (type_from->typedef_type == AST_TYPEDEF_ARRAY) {
 			cast->is_array_to_slice_cast = true;
 		}
+        // INFO: if the cast comes from an implicid any cast, mark it!
+        if (type_to == Types::type_any) {
+            cast->is_value_to_any_cast = true;
+        }
 
         (*exp_ptr) = cast;
         return true;

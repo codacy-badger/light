@@ -8,6 +8,7 @@
 #include "pipeline/pipes/symbol_resolution.hpp"
 #include "pipeline/pipes/constant_folding.hpp"
 #include "pipeline/pipes/cast_arrays.hpp"
+#include "pipeline/pipes/cast_anys.hpp"
 #include "pipeline/pipes/type_checking.hpp"
 #include "pipeline/pipes/foreign_function.hpp"
 #include "pipeline/pipes/static_if.hpp"
@@ -50,6 +51,7 @@ Modules::Modules (Compiler* compiler) {
         ->pipe(new Symbol_Resolution())
         ->pipe(new Type_Checking())
         ->pipe(new Cast_Arrays())
+        ->pipe(new Cast_Anys())
         ->pipe(new Constant_Folding())
         ->pipe(new Call_Arguments())
         ->pipe(new Static_If())

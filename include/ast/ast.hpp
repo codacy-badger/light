@@ -218,6 +218,7 @@ struct Ast_Cast : Ast_Expression {
 	Ast_Expression* cast_to = NULL;
 
 	bool is_array_to_slice_cast = false;
+    bool is_value_to_any_cast = false;
 
 	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
 };

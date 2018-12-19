@@ -28,27 +28,19 @@ test_any :: fn {
 	number := 65;
 	text := "Hello any!";
 
-	// TODO: all types should be able to cast to any implicitly
-	tmp : any;
-	tmp.type = TYPE_INTEGER;
-	tmp.value = *number;
-	print_any(tmp);
-
-	tmp2 : any;
-	tmp2.type = TYPE_STRING;
-	tmp2.value = *text;
-	print_any(tmp2);
+	print_any(number);
+	print_any(text);
 
 	print_any :: fn (wrapped: any) {
 		if (wrapped.type == TYPE_INTEGER) {
 			print("Integer value: ");
-			val := cast(*u8) wrapped.value;
-			print_u64(&val);
+			val := &(cast(*u8) wrapped.value);
+			print_u64(val);
 			print("\n");
 		} else if (wrapped.type == TYPE_STRING) {
 			print("String value: ");
-			val := cast(**u8) wrapped.value;
-			print(&val);
+			val := &(cast(**u8) wrapped.value);
+			print(val);
 			print("\n");
 		}
 	}

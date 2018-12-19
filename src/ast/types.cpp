@@ -152,7 +152,9 @@ Ast_Slice_Type* Types::get_slice_type (Ast_Expression* base) {
 }
 
 bool Types::is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-	if (type_from->is_primitive && type_to->is_primitive) {
+	if (type_to == Types::type_any) {
+		return true;
+	} else if (type_from->is_primitive && type_to->is_primitive) {
 		if (type_to == Types::type_bool) return true;
 		else if (type_from->is_signed == type_to->is_signed) {
 			return type_to->byte_size >= type_from->byte_size;

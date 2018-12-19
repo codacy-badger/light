@@ -17,6 +17,7 @@ struct Cast_Arrays : Scoped_Statement_Pipe {
         if (cast->is_array_to_slice_cast) {
             auto stm_location = this->get_current_stm_location();
             if (stm_location != this->current_scope->statements.end()) {
+				// TODO: remove this! assign values manually
                 auto type_checker = new Type_Checking();
 
                 auto slice_type = static_cast<Ast_Slice_Type*>(cast->cast_to);
