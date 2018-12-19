@@ -4,6 +4,7 @@
 
 #include "compiler.hpp"
 #include "ast/ast.hpp"
+#include "ast/ast_cloner.hpp"
 
 struct Type_Checking : Pipe {
 	Type_Checking () { this->pipe_name = "Type_Checking"; }
@@ -344,7 +345,11 @@ struct Type_Checking : Pipe {
 				Pipe::handle(&ident->declaration);
 
 			    auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr);
-			    (*_addr) = (*ident_ptr)->declaration->expression;
+				auto exp = (*ident_ptr)->declaration->expression;
+				if (exp->exp_type != AST_EXPRESSION_TYPE_INSTANCE
+						&& exp->exp_type != AST_EXPRESSION_FUNCTION) {
+					(*_addr) = Ast_Cloner::clone(exp);
+				} else (*_addr) = exp;
 	        } else {
 				ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
 			}
