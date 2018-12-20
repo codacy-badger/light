@@ -26,6 +26,12 @@ Ast_Expression* Ast_Arguments::get_named_value (const char* param_name) {
     return NULL;
 }
 
+Ast_Expression* Ast_Arguments::get_unnamed_value (const size_t index) {
+    if (index < this->unnamed.size()) {
+        return this->unnamed[index];
+    } else return NULL;
+}
+
 bool Ast_Statement::remove_note (const char* name) {
     auto it = this->notes.begin();
     while (it != this->notes.end()) {

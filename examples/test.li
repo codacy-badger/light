@@ -1,3 +1,4 @@
+#import "std/types";
 #import "std/print";
 #import "std/sys";
 
@@ -20,9 +21,6 @@ main :: fn {
 	test_named_args();
 	test_any();
 }
-
-TYPE_INTEGER :: 1;
-TYPE_STRING  :: 2;
 
 test_any :: fn {
 	number := 65;
@@ -49,8 +47,7 @@ test_any :: fn {
 CONST_NUM :: 17;
 
 test_default_args :: fn {
-	print_nums(1, 2, 3);
-	print_nums(6);
+	print_nums(1, 2);
 	print_nums();
 
 	print_nums :: fn (a: u64 = 12, b: u64 = 13, c: u64 = CONST_NUM) {
@@ -65,11 +62,10 @@ test_default_args :: fn {
 }
 
 test_named_args :: fn {
-	print_nums(b = 1);
-	print_nums(a = 4, c = 6, b = 5);
-	print_nums(22, c = 6, b = 5);
+	print_nums(a = 4, b = 5);
+	print_nums(22, 23, c = 6);
 
-	print_nums :: fn (a: u64 = 10, b: u64 = 11, c: u64 = CONST_NUM) {
+	print_nums :: fn (a: u64, b: u64 = 11, c: u64 = CONST_NUM) {
 		print("named: [ ");
 		print_u64(a);
 		print(", ");

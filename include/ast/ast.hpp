@@ -35,6 +35,7 @@ struct Ast_Arguments : Ast {
 
 	bool add (Ast_Expression* exp);
     Ast_Expression* get_named_value (const char* param_name);
+    Ast_Expression* get_unnamed_value (const size_t index);
 };
 
 enum Ast_Statement_Type {
