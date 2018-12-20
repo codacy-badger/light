@@ -20,6 +20,23 @@ Ast_Struct_Type* Types::type_any  = build_type_any();
 Ast_Expression* Types::value_false = ast_make_literal(false);
 Ast_Expression* Types::value_true = ast_make_literal(true);
 
+Internal_Type Types::get_internal_type (Ast_Type_Instance* type) {
+	if (type == Types::type_void) 	return INTERNAL_TYPE_VOID;
+	if (type == Types::type_bool) 	return INTERNAL_TYPE_BOOL;
+	if (type == Types::type_s8) 	return INTERNAL_TYPE_INTEGER;
+	if (type == Types::type_s16) 	return INTERNAL_TYPE_INTEGER;
+	if (type == Types::type_s32) 	return INTERNAL_TYPE_INTEGER;
+	if (type == Types::type_s64) 	return INTERNAL_TYPE_INTEGER;
+	if (type == Types::type_u8) 	return INTERNAL_TYPE_INTEGER;
+	if (type == Types::type_u16) 	return INTERNAL_TYPE_INTEGER;
+	if (type == Types::type_u32) 	return INTERNAL_TYPE_INTEGER;
+	if (type == Types::type_u64) 	return INTERNAL_TYPE_INTEGER;
+	if (type == Types::type_f32) 	return INTERNAL_TYPE_DECIMAL;
+	if (type == Types::type_f64) 	return INTERNAL_TYPE_DECIMAL;
+	if (type == Types::type_any) 	return INTERNAL_TYPE_ANY;
+	return INTERNAL_TYPE_UNDEFINED;
+}
+
 void Types::add_type_if_new (Ast_Type_Instance* type) {
 	if (type->guid < 0) {
 		switch (type->typedef_type) {

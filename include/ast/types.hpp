@@ -7,6 +7,16 @@
 
 using namespace std;
 
+enum Internal_Type : uint8_t {
+    INTERNAL_TYPE_UNDEFINED  = 0,
+    INTERNAL_TYPE_VOID       = 1,
+    INTERNAL_TYPE_BOOL       = 2,
+    INTERNAL_TYPE_INTEGER    = 3,
+    INTERNAL_TYPE_DECIMAL    = 4,
+    INTERNAL_TYPE_STRING     = 5,
+    INTERNAL_TYPE_ANY        = 6,
+};
+
 struct Types {
     vector<Ast_Type_Instance*> all_types;
 
@@ -33,6 +43,8 @@ struct Types {
 	static Ast_Struct_Type* type_f32;
 	static Ast_Struct_Type* type_f64;
     static Ast_Struct_Type* type_any;
+
+    static Internal_Type get_internal_type (Ast_Type_Instance* type);
 
     void add_type_if_new (Ast_Type_Instance* type);
 

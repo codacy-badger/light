@@ -31,12 +31,7 @@ struct Cast_Anys : Scoped_Statement_Pipe {
                 tmp_ident1->declaration = any_declaration;
                 tmp_ident1->inferred_type = Types::type_any;
 
-                // TODO: replace this by the proper type codes
-                uint64_t type_code = 1;
-                if (type != Types::type_u8) {
-                    type_code = 2;
-                }
-
+                uint64_t type_code = Types::get_internal_type(type);
                 auto tmp_type_property = ast_make_binary(AST_BINARY_ATTRIBUTE, tmp_ident1, ast_make_ident("type"));
                 auto assign_type = ast_make_binary(AST_BINARY_ASSIGN, tmp_type_property, ast_make_literal(type_code));
                 tmp_type_property->inferred_type = Types::type_u64;
