@@ -39,9 +39,9 @@ void ASTPrinter::print (Ast_Scope* block, int tabs) {
 	printf("}");
 }
 
-void ASTPrinter::print (Ast_Note* note, int tabs) {
+void ASTPrinter::print (const char* note, int tabs) {
 	_tabs(tabs);
-	printf("#%s", note->name);
+	printf("@%s", note);
 }
 
 void ASTPrinter::print (Ast_Declaration* decl, int tabs) {

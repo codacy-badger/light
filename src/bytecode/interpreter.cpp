@@ -6,10 +6,6 @@
 #include "bytecode/primitive_unary.hpp"
 #include "bytecode/primitive_binary.hpp"
 
-#define IS_INTERNAL_FUNCTION(func) func->stm_type == AST_STATEMENT_EXPRESSION 	\
-	&& func->exp_type == AST_EXPRESSION_FUNCTION								\
-	&& !func->is_native()
-
 #define CLEAR(reg) memset(this->registers[reg], 0, INTERP_REGISTER_SIZE)
 #define MOVE_SIZE(a, b, size) memcpy((void*)(a), (void*)(b), size)
 #define MOVE(a, b) MOVE_SIZE(a, b, INTERP_REGISTER_SIZE)
@@ -193,7 +189,7 @@ void Interpreter::run (Instruction* inst) {
 
 void Interpreter::call (void* func_ptr, Bytecode_Type bytecode_type, uint8_t reg_result) {
 	auto func = reinterpret_cast<Ast_Function*>(func_ptr);
-	if (IS_INTERNAL_FUNCTION(func)) {
+	if (!func->is_native()) {
 		auto _base = this->stack_base;
 		auto _inst = this->instruction_index;
 		this->stack_base = this->stack_index;

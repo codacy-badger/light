@@ -26,9 +26,6 @@ MB_APPLMODAL 			:: 0x00000000;
 MB_SYSTEMMODAL 			:: 0x00001000;
 MB_TASKMODAL 			:: 0x00002000;
 
-@foreign("user32", "MessageBoxA")
-MessageBox :: fn (hWnd: *void, lpText: *u8, lpCaption: *u8, uType: u32) -> s32 {}
-
 CS_BYTEALIGNCLIENT 		:: 0x1000;
 CS_BYTEALIGNWINDOW 		:: 0x2000;
 CS_CLASSDC 				:: 0x0040;
@@ -56,15 +53,6 @@ WNDCLASSEXA :: struct {
 	lpszClassName: 	*u8;
 	hIconSm:		*void;
 }
-
-@foreign("user32", "DefWindowProcA")
-DefWindowProc :: fn (hwnd: *void, uMsg: u32, wParam: s64, lParam: s64) -> s64 {}
-
-@foreign("user32", "RegisterClassExA")
-RegisterClassEx :: fn (lpWndClass: *WNDCLASSEXA) -> u16 {}
-
-@foreign("user32", "GetClassInfoExA")
-GetClassInfoEx :: fn (hInstance: *void, lpClassName: *u8, lpWndClass: *WNDCLASSEXA) -> u8 {}
 
 WS_BORDER			: u32 : 0x00800000;
 WS_CAPTION			: u32 : 0x00C00000;
@@ -96,31 +84,6 @@ WS_VSCROLL			: u32 : 0x00200000;
 
 CW_USEDEFAULT		: u32 : 0x80000000;
 
-@foreign("user32", "CreateWindowExA")
-CreateWindowEx :: fn (
-	dwExStyle: u32,
-	lpClassName: *u8,
-	lpWindowName: *u8,
-	dwStyle: u32,
-	x: s32,
-	y: s32,
-	nWidth: s32,
-	nHeight: s32,
-	hWndParent: *void,
-	hMenu: *void,
-	hInstance: *void,
-	lpParam: *void
-) -> *void {}
-
-@foreign("user32")
-GetDC :: fn (hWnd: *void) -> *void {}
-
-@foreign("user32")
-ShowWindow :: fn (hWnd: *void, nCmdShow: s32) -> u8 {}
-
-@foreign("user32")
-DestroyWindow :: fn (hWnd: *void) -> u8 {}
-
 POINT :: struct {
 	x: s32;
 	y: s32;
@@ -137,11 +100,38 @@ MSG :: struct {
 
 WM_NULL :: 0;
 
-@foreign("user32", "GetMessageA")
-GetMessage :: fn (lpMsg: *MSG, hWnd: *void, wMsgFilterMin: u32, wMsgFilterMax: u32) -> u8 {}
+#foreign {
+	MessageBoxA 		:: fn (hWnd: *void, lpText: *u8, lpCaption: *u8, uType: u32) -> s32;
+	DefWindowProcA 		:: fn (hwnd: *void, uMsg: u32, wParam: s64, lParam: s64) -> s64;
+	RegisterClassExA 	:: fn (lpWndClass: *WNDCLASSEXA) -> u16;
+	GetClassInfoExA 	:: fn (hInstance: *void, lpClassName: *u8, lpWndClass: *WNDCLASSEXA) -> u8;
+	GetDC 				:: fn (hWnd: *void) -> *void;
+	ShowWindow 			:: fn (hWnd: *void, nCmdShow: s32) -> u8;
+	DestroyWindow 		:: fn (hWnd: *void) -> u8;
+	GetMessageA 		:: fn (lpMsg: *MSG, hWnd: *void, wMsgFilterMin: u32, wMsgFilterMax: u32) -> u8;
+	TranslateMessage 	:: fn (lpmsg: *MSG) -> u8;
+	DispatchMessageA 	:: fn (lpmsg: *MSG) -> *void;
 
-@foreign("user32")
-TranslateMessage :: fn (lpmsg: *MSG) -> u8 {}
+	CreateWindowExA :: fn (
+		dwExStyle: u32,
+		lpClassName: *u8,
+		lpWindowName: *u8,
+		dwStyle: u32,
+		x: s32,
+		y: s32,
+		nWidth: s32,
+		nHeight: s32,
+		hWndParent: *void,
+		hMenu: *void,
+		hInstance: *void,
+		lpParam: *void
+	) -> *void;
+}
 
-@foreign("user32", "DispatchMessageA")
-DispatchMessage :: fn (lpmsg: *MSG) -> *void {}
+MessageBox 		:: MessageBoxA;
+DefWindowProc 	:: DefWindowProcA;
+RegisterClassEx :: RegisterClassExA;
+GetClassInfoEx 	:: GetClassInfoExA;
+GetMessage 		:: GetMessageA;
+DispatchMessage :: DispatchMessageA;
+CreateWindowEx 	:: CreateWindowExA;

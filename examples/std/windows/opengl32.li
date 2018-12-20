@@ -1,0 +1,6 @@
+
+#foreign {
+    wglCreateContext    :: fn (hdc: *void) -> *void;
+    wglMakeCurrent      :: fn (hdc: *void, hglrc: *void) -> u8;
+    wglDeleteContext    :: fn (hglrc: *void) -> u8;
+}

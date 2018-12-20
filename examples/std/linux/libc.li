@@ -1,7 +1,0 @@
-
-stdin  :: 0;
-stdout :: 1;
-stderr :: 2;
-
-@foreign("libc.so.6")
-write : fn (fd: s32, buffer: *void, count: u64) -> s32 :;

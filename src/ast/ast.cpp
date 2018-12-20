@@ -26,26 +26,13 @@ Ast_Expression* Ast_Arguments::get_named_value (const char* param_name) {
     return NULL;
 }
 
-const char* Ast_Note::get_string_parameter (int index) {
-    auto exp = this->arguments->unnamed[index];
-    if (exp->exp_type == AST_EXPRESSION_LITERAL) {
-        auto lit = static_cast<Ast_Literal*>(exp);
-        if (lit->literal_type == AST_LITERAL_STRING) {
-            return lit->string_value;
-        }
-    }
-    return NULL;
-}
-
-Ast_Note* Ast_Statement::remove_note (const char* name) {
+bool Ast_Statement::remove_note (const char* name) {
     auto it = this->notes.begin();
     while (it != this->notes.end()) {
-        if (strcmp((*it)->name, name) == 0) {
-            auto note = *it;
+        if (strcmp((*it), name) == 0) {
             this->notes.erase(it);
-            return note;
-        }
-        it++;
+            return true;
+        } else it++;
     }
     return NULL;
 }
@@ -128,6 +115,32 @@ Ast_Function* Ast_Scope::get_parent_function () {
 		}
 		return NULL;
 	}
+}
+
+void Ast_Directive_Foreign::add (Ast_Statement* stm) {
+    if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+        auto decl = static_cast<Ast_Declaration*>(stm);
+        this->add(decl);
+    } else ERROR_STOP(stm, "Only declarations can go inside #foreign scopes");
+}
+
+void Ast_Directive_Foreign::add (Ast_Declaration* decl) {
+    if (!decl->is_constant()) ERROR_STOP(decl, "Declarations inside #foreign scope must be function types");
+    if (!decl->expression) ERROR_STOP(decl, "Declarations inside #foreign scope must have values");
+    if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+        auto type = static_cast<Ast_Type_Instance*>(decl->expression);
+        if (type->typedef_type == AST_TYPEDEF_FUNCTION) {
+            auto func = new Ast_Function();
+            func->type = static_cast<Ast_Function_Type*>(type);
+            func->foreign_function_name = this->get_foreign_function_name(decl->name);
+            func->foreign_module_name = this->module_name;
+            func->name = decl->name;
+
+            decl->expression = func;
+
+            this->declarations.push_back(decl);
+        } else ERROR_STOP(decl, "Only function types can go inside #foreign scope declarations");
+    } else ERROR_STOP(decl, "Only types can go inside #foreign scope declarations");
 }
 
 Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {

@@ -20,7 +20,7 @@ struct Parser {
 	Ast_Scope* run (Lexer* lexer, Ast_Scope* parent = NULL);
 
 	Ast_Scope* scope (Ast_Scope* inner_scope = NULL);
-	Ast_Note* note ();
+	const char* note ();
 	Ast_Directive* directive ();
 	Ast_Statement* statement ();
 	Ast_Declaration* declaration (Ast_Ident* ident = NULL);

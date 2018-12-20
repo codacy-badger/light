@@ -26,7 +26,7 @@ struct Bytecode_Generator : Pipe {
 		this->instruction_count += 1;
 	}
 
-	void handle (Ast_Note**) { /* Notes don't produce any bytecode by themselves */ }
+	void handle (const char**) { /* Notes don't produce any bytecode by themselves */ }
 
     void handle (Ast_Statement** stm_ptr) {
 		this->is_left_value = false;

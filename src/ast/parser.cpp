@@ -53,18 +53,9 @@ Ast_Scope* Parser::scope (Ast_Scope* inner_scope) {
 	return inner_scope;
 }
 
-Ast_Note* Parser::note () {
+const char* Parser::note () {
 	if (this->lexer->optional_skip(TOKEN_AT)) {
-		auto note = AST_NEW(Ast_Note);
-		note->is_global = this->lexer->optional_skip(TOKEN_EXCLAMATION);
-
-		note->name = this->lexer->text();
-
-		if (this->lexer->optional_skip(TOKEN_PAR_OPEN)) {
-			note->arguments = this->arguments();
-			this->lexer->check_skip(TOKEN_PAR_CLOSE);
-		}
-		return note;
+		return this->lexer->text();
 	} else return NULL;
 }
 
@@ -76,15 +67,11 @@ Ast_Statement* Parser::statement () {
 			return this->statement();
 		}
 		case TOKEN_AT: {
-			vector<Ast_Note*> _notes;
+			vector<const char*> _notes;
+
 			auto note = this->note();
 			while (note != NULL) {
-				if (note->is_global) {
-					if (strcmp(note->name, GLOBAL_NOTE_END) == 0) {
-						this->current_scope->notes.clear();
-					} else this->current_scope->notes.push_back(note);
-				} else _notes.push_back(note);
-
+				_notes.push_back(note);
 				note = this->note();
 			}
 
@@ -182,6 +169,28 @@ Ast_Directive* Parser::directive () {
 			auto run = AST_NEW(Ast_Directive_Run);
 			run->expression = this->expression();
 			return run;
+		}
+		case TOKEN_FOREIGN: {
+			this->lexer->skip();
+			auto foreign = AST_NEW(Ast_Directive_Foreign);
+
+			if (this->lexer->next_type == TOKEN_STRING) {
+				foreign->module_name = this->lexer->text();
+			} else foreign->module_name = foreign->get_foreign_module_name_from_file();
+
+			if (this->lexer->next_type == TOKEN_STRING) {
+				foreign->function_name = this->lexer->text();
+			}
+
+			if (this->lexer->optional_skip(TOKEN_BRAC_OPEN)) {
+				auto scope = this->scope();
+				for (auto stm : scope->statements) {
+					foreign->add(stm);
+				}
+				this->lexer->check_skip(TOKEN_BRAC_CLOSE);
+			} else foreign->add(this->declaration());
+
+			return foreign;
 		}
 		case TOKEN_IF: {
 			this->lexer->skip();

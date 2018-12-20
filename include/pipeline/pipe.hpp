@@ -68,9 +68,7 @@ struct Pipe {
 		}
 	}
 
-	virtual void handle (Ast_Note** note) {
-		this->handle(&(*note)->arguments);
-	}
+	virtual void handle (const char**) { /* empty */ }
 
 	virtual void handle (Ast_Arguments** args) {
 		for (auto &exp : (*args)->unnamed) {
@@ -170,6 +168,10 @@ struct Pipe {
 				this->handle(reinterpret_cast<Ast_Directive_Include**>(directive));
 				break;
 			}
+			case AST_DIRECTIVE_FOREIGN: {
+				this->handle(reinterpret_cast<Ast_Directive_Foreign**>(directive));
+				break;
+			}
 			case AST_DIRECTIVE_RUN: {
 				this->handle(reinterpret_cast<Ast_Directive_Run**>(directive));
 				break;
@@ -185,6 +187,8 @@ struct Pipe {
 	virtual void handle (Ast_Directive_Import**) { /* empty */ }
 
 	virtual void handle (Ast_Directive_Include**) { /* empty */ }
+
+	virtual void handle (Ast_Directive_Foreign**) { /* empty */ }
 
 	virtual void handle (Ast_Directive_Run** run) {
 		this->handle(&(*run)->expression);

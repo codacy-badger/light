@@ -37,14 +37,6 @@ struct Ast_Arguments : Ast {
     Ast_Expression* get_named_value (const char* param_name);
 };
 
-struct Ast_Note : Ast {
-	bool is_global = false;
-	const char* name = NULL;
-	Ast_Arguments* arguments;
-
-	const char* get_string_parameter (int index);
-};
-
 enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
 	AST_STATEMENT_SCOPE,
@@ -59,15 +51,14 @@ enum Ast_Statement_Type {
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 
-	vector<Ast_Note*> notes;
+	vector<const char*> notes;
 
-	Ast_Note* remove_note (const char* name);
+	bool remove_note (const char* name);
 };
 
 struct Ast_Scope : Ast_Statement {
 	vector<Ast_Statement*> statements;
 	vector<Ast_Scope*> module_scopes;
-	vector<Ast_Note*> notes;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
@@ -171,6 +162,7 @@ enum Ast_Directive_Type {
 	AST_DIRECTIVE_UNDEFINED = 0,
 	AST_DIRECTIVE_INCLUDE,
 	AST_DIRECTIVE_IMPORT,
+	AST_DIRECTIVE_FOREIGN,
 	AST_DIRECTIVE_RUN,
 	AST_DIRECTIVE_IF,
 };
@@ -196,6 +188,29 @@ struct Ast_Directive_Import : Ast_Directive {
 	char absolute_path[MAX_PATH_LENGTH];
 
 	Ast_Directive_Import () { this->dir_type = AST_DIRECTIVE_IMPORT; }
+};
+
+struct Ast_Directive_Foreign : Ast_Directive {
+    const char* module_name = NULL;
+    const char* function_name = NULL;
+	vector<Ast_Declaration*> declarations;
+
+	Ast_Directive_Foreign () { this->dir_type = AST_DIRECTIVE_FOREIGN; }
+
+    void add (Ast_Statement* stm);
+    void add (Ast_Declaration* decl);
+
+    const char* get_foreign_module_name_from_file () {
+        auto file_name = _strdup(os_get_file_part(this->location.filename));
+        file_name[strlen(file_name) - 3] = '\0';
+        return file_name;
+    }
+
+    const char* get_foreign_function_name (const char* current_function_name) {
+        if (!this->function_name) {
+            return current_function_name;
+        } else return this->function_name;
+    }
 };
 
 struct Ast_Directive_Run : Ast_Directive {

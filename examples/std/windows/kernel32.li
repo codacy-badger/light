@@ -5,23 +5,15 @@ STD_ERROR_HANDLE  :: cast(u32) -12;
 
 INVALID_HANDLE_VALUE :: cast(*void) -1;
 
-@!foreign("kernel32")
-
-ExitProcess :: fn (uExitCode: u32) {}
-
-GetLastError :: fn -> u16 {}
-
-GetModuleHandleA :: fn (lpModuleName: *u8) -> *void {}
-
-GetStdHandle :: fn (code: u32) -> *void {}
-
-WriteConsoleA :: fn (handle: *void, buffer: *u8, bytes_to_write: u32, written_bytes: *u32, overlapped: *void) -> u8 {}
-
-WriteFile :: fn (handle: *void, buffer: *u8, bytes_to_write: u32, written_bytes: *u32, overlapped: *void) -> u8 {}
-
-GetConsoleMode :: fn (handle: *void, mode: *u32) -> u8 {}
-
-@!end
+#foreign {
+    ExitProcess         :: fn (uExitCode: u32);
+    GetLastError        :: fn -> u16;
+    GetModuleHandleA    :: fn (lpModuleName: *u8) -> *void;
+    GetStdHandle        :: fn (code: u32) -> *void;
+    WriteConsoleA       :: fn (handle: *void, buffer: *u8, bytes_to_write: u32, written_bytes: *u32, overlapped: *void) -> u8;
+    WriteFile           :: fn (handle: *void, buffer: *u8, bytes_to_write: u32, written_bytes: *u32, overlapped: *void) -> u8;
+    GetConsoleMode      :: fn (handle: *void, mode: *u32) -> u8;
+};
 
 GetModuleHandle :: GetModuleHandleA;
 WriteConsole :: WriteConsoleA;
