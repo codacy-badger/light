@@ -89,9 +89,9 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip();
 			auto stm_if = AST_NEW(Ast_If);
 			stm_if->condition = this->expression();
-			stm_if->then_statement = this->statement();
+			stm_if->then_scope = this->scoped_statement();
 			if (this->lexer->optional_skip(TOKEN_ELSE)) {
-				stm_if->else_statement = this->statement();
+				stm_if->else_scope = this->scoped_statement();
 			}
 			return stm_if;
 		}
@@ -99,7 +99,7 @@ Ast_Statement* Parser::statement () {
 			this->lexer->skip();
 			auto stm_while = AST_NEW(Ast_While);
 			stm_while->condition = this->expression();
-			stm_while->statement = this->statement();
+			stm_while->scope = this->scoped_statement();
 			return stm_while;
 		}
 		case TOKEN_BREAK: {
@@ -134,6 +134,15 @@ Ast_Statement* Parser::statement () {
 			}
 		}
 	}
+}
+
+Ast_Scope* Parser::scoped_statement () {
+	auto stm = this->statement();
+	if (stm->stm_type != AST_STATEMENT_SCOPE) {
+		auto scope = AST_NEW(Ast_Scope, this->current_scope);
+		scope->add(stm);
+		return scope;
+	} else return static_cast<Ast_Scope*>(stm);
 }
 
 Ast_Directive* Parser::directive () {
@@ -198,10 +207,10 @@ Ast_Directive* Parser::directive () {
 
 			directive_if->stm_if = AST_NEW(Ast_If);
 			directive_if->stm_if->condition = this->expression();
-			directive_if->stm_if->then_statement = this->statement();
+			directive_if->stm_if->then_scope = this->scoped_statement();
 
 			if (this->lexer->optional_skip(TOKEN_ELSE)) {
-				directive_if->stm_if->else_statement = this->statement();
+				directive_if->stm_if->else_scope = this->scoped_statement();
 			}
 
 			return directive_if;

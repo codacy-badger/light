@@ -104,15 +104,15 @@ struct Pipe {
 
 	virtual void handle (Ast_If** _if) {
 		this->handle(&(*_if)->condition);
-		this->handle(&(*_if)->then_statement);
-		if ((*_if)->else_statement) {
-			this->handle(&(*_if)->else_statement);
+		this->handle(&(*_if)->then_scope);
+		if ((*_if)->else_scope) {
+			this->handle(&(*_if)->else_scope);
 		}
 	}
 
 	virtual void handle (Ast_While** _while) {
 		this->handle(&(*_while)->condition);
-		this->handle(&(*_while)->statement);
+		this->handle(&(*_while)->scope);
 	}
 
 	virtual void handle (Ast_Break**) {}

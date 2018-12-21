@@ -7,6 +7,7 @@
 #include "pipeline/pipes/external_modules.hpp"
 #include "pipeline/pipes/symbol_resolution.hpp"
 #include "pipeline/pipes/constant_folding.hpp"
+#include "pipeline/pipes/cast_strings.hpp"
 #include "pipeline/pipes/cast_arrays.hpp"
 #include "pipeline/pipes/cast_anys.hpp"
 #include "pipeline/pipes/type_checking.hpp"
@@ -38,6 +39,7 @@ Modules::Modules (Compiler* compiler) {
     DECL_TYPE(this->internal_scope, Types::type_u64);
     DECL_TYPE(this->internal_scope, Types::type_f32);
     DECL_TYPE(this->internal_scope, Types::type_f64);
+    DECL_TYPE(this->internal_scope, Types::type_string);
     DECL_TYPE(this->internal_scope, Types::type_any);
 
     this->internal_scope->add(ast_make_declaration("OS_WINDOWS", IS_WINDOWS_LITERAL));
@@ -49,6 +51,7 @@ Modules::Modules (Compiler* compiler) {
 
         ->pipe(new Foreign_Function())
         ->pipe(new Symbol_Resolution())
+        ->pipe(new Cast_Strings())
         ->pipe(new Type_Checking())
         ->pipe(new Cast_Arrays())
         ->pipe(new Cast_Anys())

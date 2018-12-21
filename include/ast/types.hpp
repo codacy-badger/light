@@ -42,6 +42,7 @@ struct Types {
 	static Ast_Struct_Type* type_u64;
 	static Ast_Struct_Type* type_f32;
 	static Ast_Struct_Type* type_f64;
+	static Ast_Slice_Type* type_string;
     static Ast_Struct_Type* type_any;
 
     static Internal_Type get_internal_type (Ast_Type_Instance* type);

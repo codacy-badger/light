@@ -23,6 +23,7 @@ struct Parser {
 	const char* note ();
 	Ast_Directive* directive ();
 	Ast_Statement* statement ();
+	Ast_Scope* scoped_statement ();
 	Ast_Declaration* declaration (Ast_Ident* ident = NULL);
 	Ast_Declaration* declaration_or_type ();
 	Ast_Expression* expression (Ast_Ident* initial = NULL, short minPrecedence = 1);

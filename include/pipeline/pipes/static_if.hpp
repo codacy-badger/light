@@ -16,14 +16,14 @@ struct Static_If : Scoped_Statement_Pipe {
             auto lit = static_cast<Ast_Literal*>(_if->condition);
 
             if (lit->as_boolean()) {
-                auto scope = static_cast<Ast_Scope*>(_if->then_statement);
+                auto scope = static_cast<Ast_Scope*>(_if->then_scope);
                 this->pipeline->process(scope);
 
                 for (auto stm : scope->statements) {
                     location = this->current_scope->statements.insert(location, stm);
                 }
-            } else if (_if->else_statement) {
-                auto scope = static_cast<Ast_Scope*>(_if->else_statement);
+            } else if (_if->else_scope) {
+                auto scope = static_cast<Ast_Scope*>(_if->else_scope);
                 this->pipeline->process(scope);
 
                 for (auto stm : scope->statements) {

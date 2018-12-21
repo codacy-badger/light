@@ -210,6 +210,8 @@ struct Type_Checking : Pipe {
 		call->inferred_type = ret_ty;
 
 		for (int i = 0; i < call->arguments->unnamed.size(); i++) {
+			if (i >= func_type->arg_decls.size()) break; 
+
 			Pipe::handle(&call->arguments->unnamed[i]);
 			auto param_exp = call->arguments->unnamed[i];
 			ASSERT(param_exp->inferred_type);
@@ -374,8 +376,7 @@ struct Type_Checking : Pipe {
 		            break;
 		        }
 		        case AST_LITERAL_STRING: {
-					lit->inferred_type = Compiler::inst->types->get_pointer_type(Types::type_u8);
-					Pipe::handle(&lit->inferred_type);
+					lit->inferred_type = Types::type_string;
 		            break;
 		        }
 		        default: INTERNAL(lit, "Unknown literal type: %d", lit->literal_type);

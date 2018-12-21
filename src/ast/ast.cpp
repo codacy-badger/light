@@ -183,12 +183,12 @@ uint64_t Ast_Array_Type::get_length () {
 	return this->length_as_number;
 }
 
-Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type) {
+Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type, const char* name) {
 	this->typedef_type = AST_TYPEDEF_STRUCT;
 	this->is_slice = true;
+    this->name = name;
 
-    auto ptr_type = Compiler::inst->types->get_pointer_type(base_type);
-
+    auto ptr_type = new Ast_Pointer_Type(base_type);
     auto length_decl = ast_make_declaration_with_type("length", Types::type_u64);
     auto data_decl = ast_make_declaration_with_type("data", ptr_type);
 
@@ -517,7 +517,7 @@ Ast_Struct_Type* ast_get_smallest_type (int64_t value) {
 Ast_Literal* ast_make_literal (const char* value) {
 	auto lit = new Ast_Literal();
 	lit->literal_type = AST_LITERAL_STRING;
-	lit->string_value = _strdup(value);
+	lit->string_value = value;
 	return lit;
 }
 

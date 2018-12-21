@@ -1,23 +1,28 @@
 #import "windows/kernel32";
 // TODO: figure out a way to make this code platform independent
 
-// TODO: allow global variables to have default values
-// TODO: if the default value is not constant, run at app startup
+// TODO: allow global variables to have default values, run at app startup
 std_handle_out : *void;
 
-print :: fn (str: *u8) {
+print_ptr_len :: fn (str: *u8, length: u64) {
 	std_handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	if (std_handle_out != INVALID_HANDLE_VALUE) {
 		console_mode : u32;
-		length := string_length(str);
-
 		if GetConsoleMode(std_handle_out, *console_mode) {
-			WriteConsole(std_handle_out, str, length, 0, 0);
+			WriteConsole(std_handle_out, str, cast(u32) length, 0, 0);
 		} else {
-			WriteFile(std_handle_out, str, length, 0, 0);
+			WriteFile(std_handle_out, str, cast(u32) length, 0, 0);
 		}
 	}
+}
+
+print_ptr :: fn (str: *u8) {
+	print_ptr_len(str, string_length(str));
+}
+
+print :: fn (str: string) {
+	print_ptr(str.data);
 }
 
 ASCII_ZERO :: 0b00110000;
@@ -48,7 +53,7 @@ print_u64 :: fn (number: u64) {
 			count = count + 1;
 		}
 
-		print(*_number_buffer);
+		print_ptr(*_number_buffer);
 	}
 }
 
@@ -80,7 +85,7 @@ print_u64_hex :: fn (number: u64) {
 			count = count + 1;
 		}
 
-		print(*_number_buffer);
+		print_ptr(*_number_buffer);
 	}
 }
 

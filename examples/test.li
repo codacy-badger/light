@@ -20,6 +20,15 @@ main :: fn {
 	test_default_args();
 	test_named_args();
 	test_any();
+	test_string();
+}
+
+test_string :: fn {
+    text := "Hello string!";
+    print_ptr_len(text.data, 4);
+    print("\n");
+    print(text);
+    print("\n");
 }
 
 test_any :: fn {

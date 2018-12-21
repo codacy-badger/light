@@ -89,15 +89,15 @@ struct Ast_Scope : Ast_Statement {
 
 struct Ast_If : Ast_Statement {
 	Ast_Expression* condition = NULL;
-	Ast_Statement* then_statement = NULL;
-	Ast_Statement* else_statement = NULL;
+	Ast_Scope* then_scope = NULL;
+	Ast_Scope* else_scope = NULL;
 
 	Ast_If () { this->stm_type = AST_STATEMENT_IF; }
 };
 
 struct Ast_While : Ast_Statement {
 	Ast_Expression* condition = NULL;
-	Ast_Statement* statement = NULL;
+	Ast_Scope* scope = NULL;
 
 	Ast_While () { this->stm_type = AST_STATEMENT_WHILE; }
 };
@@ -304,7 +304,7 @@ struct Ast_Array_Type : Ast_Type_Instance {
 
 struct Ast_Slice_Type : Ast_Struct_Type {
 
-	Ast_Slice_Type(Ast_Expression* base_type);
+	Ast_Slice_Type(Ast_Expression* base_type, const char* name = NULL);
 
 	Ast_Expression* get_base() {
 		auto attr_decl = this->find_attribute("data");
