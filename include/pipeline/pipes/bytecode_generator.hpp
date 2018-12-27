@@ -338,6 +338,22 @@ struct Bytecode_Generator : Pipe {
 			                }
 						} else abort();
 					} else ERROR_STOP(binop->lhs, "Struct is not a slice");
+				} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
+		        	this->handle_left(&binop->lhs);
+
+					Pipe::handle(&binop->rhs);
+
+					auto ptr_type = static_cast<Ast_Pointer_Type*>(binop->lhs->inferred_type);
+					auto ptr_base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+		            auto element_size = ptr_base_type->byte_size;
+
+		            if (element_size > 1) INST(binop, Mul_Const, binop->rhs->reg, element_size);
+
+		            INST(binop, Binary, BYTECODE_ADD, binop->reg, binop->lhs->reg, binop->rhs->reg, BYTECODE_TYPE_U64);
+
+		            if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
+	                    INST(binop, Load, binop->reg, binop->reg, binop->inferred_type->byte_size);
+	                }
 				}
 				break;
 			}

@@ -210,7 +210,7 @@ struct Type_Checking : Pipe {
 		call->inferred_type = ret_ty;
 
 		for (int i = 0; i < call->arguments->unnamed.size(); i++) {
-			if (i >= func_type->arg_decls.size()) break; 
+			if (i >= func_type->arg_decls.size()) break;
 
 			Pipe::handle(&call->arguments->unnamed[i]);
 			auto param_exp = call->arguments->unnamed[i];
@@ -287,7 +287,15 @@ struct Type_Checking : Pipe {
 					auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
 					binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 				} else ERROR_STOP(binop, "Left struct is not a slice");
-			} else ERROR_STOP(binop, "Left of subscript is not of array or slice type");
+			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
+				auto ptr_type = static_cast<Ast_Pointer_Type*>(binop->lhs->inferred_type);
+				binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+
+				Pipe::handle(&binop->rhs);
+				if (!try_cast(&binop->rhs, Types::type_u64)) {
+					ERROR_STOP(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
+				}
+			} else ERROR_STOP(binop, "Left of subscript is not of array, slice or pointer type");
 		} else if (binop->binary_op == AST_BINARY_ASSIGN) {
 			Pipe::handle(&binop->rhs);
             if (!try_cast(&binop->rhs, binop->lhs->inferred_type)) {
