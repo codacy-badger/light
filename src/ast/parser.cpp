@@ -1,6 +1,7 @@
 #include "ast/parser.hpp"
 
 #include "compiler.hpp"
+#include "ast/constants.hpp"
 
 uint64_t Ast_Factory::node_count = 0;
 
@@ -349,9 +350,9 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->lexer->optional_skip(TOKEN_HASH)) {
 		return this->directive();
 	} else if (this->lexer->optional_skip(TOKEN_FALSE)) {
-		return Types::value_false;
+		return Constants::value_false;
 	} else if (this->lexer->optional_skip(TOKEN_TRUE)) {
-		return Types::value_true;
+		return Constants::value_true;
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_EXCLAMATION)) {

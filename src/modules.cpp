@@ -2,6 +2,7 @@
 
 #include "compiler.hpp"
 #include "platform.hpp"
+#include "ast/constants.hpp"
 #include "lexer/buffer/full_buffer.hpp"
 
 #include "pipeline/pipes/external_modules.hpp"
@@ -64,14 +65,14 @@ Modules::Modules (Compiler* compiler) {
         ->pipe(new Run_Directive(compiler->interp));
 }
 
-Ast_Scope* Modules::get_module (Code_Source* source) {
+Ast_Scope* Modules::get_module (Code_Input* source) {
     switch (source->type) {
         case CODE_SOURCE_FILE: {
-            auto file_source = static_cast<File_Code_Source*>(source);
+            auto file_source = static_cast<File_Code_Input*>(source);
             return this->get_module(file_source->absolute_path);
         }
         case CODE_SOURCE_STRING: {
-            auto string_source = static_cast<String_Code_Source*>(source);
+            auto string_source = static_cast<String_Code_Input*>(source);
 
             auto lexer_buffer = new String_Buffer(string_source->source);
             auto lexer = new Lexer(lexer_buffer);

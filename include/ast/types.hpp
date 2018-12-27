@@ -25,10 +25,6 @@ struct Types {
     map<Ast_Expression*, map<uint64_t, Ast_Array_Type*>> arr_types;
     vector<Ast_Function_Type*> func_types;
 
-    // TODO: this should be in some sort of ConstantValues file
-    static Ast_Expression* value_false;
-    static Ast_Expression* value_true;
-
 	static Ast_Struct_Type* type_type;
 	static Ast_Struct_Type* type_void;
 	static Ast_Struct_Type* type_bool;

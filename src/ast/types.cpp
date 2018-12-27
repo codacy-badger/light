@@ -18,9 +18,6 @@ Ast_Struct_Type* Types::type_f64  = new Ast_Struct_Type("f64",  8, true);
 Ast_Slice_Type* Types::type_string  = new Ast_Slice_Type(Types::type_u8, "string");
 Ast_Struct_Type* Types::type_any  = build_type_any();
 
-Ast_Expression* Types::value_false = ast_make_literal(false);
-Ast_Expression* Types::value_true = ast_make_literal(true);
-
 Internal_Type Types::get_internal_type (Ast_Type_Instance* type) {
 	if (type == Types::type_void) 	return INTERNAL_TYPE_VOID;
 	if (type == Types::type_bool) 	return INTERNAL_TYPE_BOOL;

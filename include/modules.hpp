@@ -18,7 +18,7 @@ struct Modules {
 
     Modules (Compiler* compiler);
 
-    Ast_Scope* get_module (Code_Source* source);
+    Ast_Scope* get_module (Code_Input* source);
     Ast_Scope* get_module (char* absolute_path);
     Ast_Scope* load_module (char* absolute_path);
     bool is_module_cached (char* absolute_path);

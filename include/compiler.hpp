@@ -38,7 +38,7 @@ struct Compiler_Settings {
 struct Compiler {
 	Compiler_Settings* settings;
 
-	queue<Code_Source*> code_sources;
+	queue<Code_Input*> code_sources;
 
 	Modules* modules;
 

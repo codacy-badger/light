@@ -49,7 +49,7 @@ void Compiler::run () {
 		auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
 	    os_get_absolute_path(filename, absolute_path);
 
-		auto file_source = new File_Code_Source(absolute_path);
+		auto file_source = new File_Code_Input(absolute_path);
 		this->code_sources.push(file_source);
 	}
 
