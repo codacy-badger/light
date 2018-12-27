@@ -380,7 +380,7 @@ struct Type_Checking : Pipe {
 		            break;
 		        }
 		        case AST_LITERAL_DECIMAL: {
-					lit->inferred_type = Types::type_f32;
+					lit->inferred_type = Types::type_f64;
 		            break;
 		        }
 		        case AST_LITERAL_STRING: {

@@ -1,21 +1,4 @@
-#import "windows/kernel32";
-// TODO: figure out a way to make this code platform independent
-
-// TODO: allow global variables to have default values, run at app startup
-std_handle_out : *void;
-
-print_ptr_len :: fn (str: *u8, length: u64) {
-	std_handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	if (std_handle_out != INVALID_HANDLE_VALUE) {
-		console_mode : u32;
-		if GetConsoleMode(std_handle_out, *console_mode) {
-			WriteConsole(std_handle_out, str, cast(u32) length, 0, 0);
-		} else {
-			WriteFile(std_handle_out, str, cast(u32) length, 0, 0);
-		}
-	}
-}
+#import "windows/print";
 
 print_ptr :: fn (str: *u8) {
 	print_ptr_len(str, string_length(str));
@@ -37,38 +20,6 @@ print_u64 :: fn (number: u64) {
 		while (number > 0) {
 			tmp = number % 10;
 			number = number / 10;
-
-			_number_buffer[buffer_count] = ASCII_ZERO + cast(u8) tmp;
-			buffer_count = buffer_count + 1;
-		}
-		_number_buffer[buffer_count] = 0;
-
-		_tmp : u8;
-		count : u32 = 0;
-		half_length := buffer_count / 2;
-		while (count < half_length) {
-			_tmp = _number_buffer[count];
-			_number_buffer[count] = _number_buffer[buffer_count - (count + 1)];
-			_number_buffer[buffer_count - (count + 1)] = _tmp;
-			count = count + 1;
-		}
-
-		print_ptr(*_number_buffer);
-	}
-}
-
-print_u64_hex :: fn (number: u64) {
-	print("0x");
-	if (number == 0) print("0");
-	else {
-		buffer_count := 0;
-
-		tmp : u64;
-		while (number > 0) {
-			tmp = number % 16;
-			number = number / 16;
-
-			if (tmp > 9) tmp = tmp + 7;
 
 			_number_buffer[buffer_count] = ASCII_ZERO + cast(u8) tmp;
 			buffer_count = buffer_count + 1;

@@ -56,9 +56,9 @@ struct External_Modules : Scoped_Statement_Pipe {
 
 		report_error(NULL, "File not found: '%s', search locations are:", relative_path);
 		this->get_relative_to_current_file(relative_path, absolute_path);
-		report_error(NULL, "\t[ local ] %s", absolute_path);
+		report_error(NULL, "\t%s", absolute_path);
 		this->get_relative_to_main_file(relative_path, absolute_path);
-		report_error(NULL, "\t[ main  ] %s", absolute_path);
+		report_error(NULL, "\t%s", absolute_path);
 		report_error_and_stop(location, "Here is the calling site");
 	}
 
