@@ -29,7 +29,6 @@ test_string :: fn {
     print_ptr_len(text.data, 4);
     print("\n");
     print(text);
-    print("\n");
 }
 
 test_any :: fn {
@@ -43,9 +42,8 @@ test_any :: fn {
 		if (wrapped.type == TYPE_INTEGER) {
 			print("Integer value: ");
 			val := &(cast(*u8) wrapped.value);
-			print_u64(val);
-			print("\n");
-		} else print("Other value...\n");
+			println_u64(val);
+		} else println("Other value...");
 	}
 }
 
@@ -62,7 +60,7 @@ test_default_args :: fn {
 		print_u64(b);
 		print(", ");
 		print_u64(c);
-		print(" ]\n");
+		println(" ]");
 	}
 }
 
@@ -77,7 +75,7 @@ test_named_args :: fn {
 		print_u64(b);
 		print(", ");
 		print_u64(c);
-		print(" ]\n");
+		println(" ]");
 	}
 }
 
@@ -267,7 +265,7 @@ test_big_struct :: fn {
 }
 
 test_static_array :: fn {
-	ARRAY_SIZE :: 4;
+	ARRAY_SIZE :: 3;
 	numbers: [ARRAY_SIZE] u8;
 
 	numbers[0] = 15;
@@ -292,7 +290,7 @@ test_static_array :: fn {
 				index = index + 1;
 			}
 		}
-		print(" ]\n");
+		println(" ]");
 	}
 }
 
@@ -309,7 +307,7 @@ test_ptr_subscript :: fn {
 }
 
 test_slice :: fn {
-	numbers: [4]u8;
+	numbers: [3]u8;
 	numbers[0] = 13;
 	numbers[1] = 14;
 	numbers[2] = 15;
@@ -329,6 +327,6 @@ test_slice :: fn {
 				index = index + 1;
 			}
 		}
-		print(" ]\n");
+		println(" ]");
 	}
 }

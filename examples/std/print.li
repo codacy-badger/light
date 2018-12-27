@@ -8,6 +8,11 @@ print :: fn (str: string) {
 	print_ptr(str.data);
 }
 
+println :: fn (str: string) {
+	print(str);
+	print("\n");
+}
+
 ASCII_ZERO :: 0b00110000;
 _number_buffer : [20] u8;
 
@@ -38,6 +43,11 @@ print_u64 :: fn (number: u64) {
 
 		print_ptr(*_number_buffer);
 	}
+}
+
+println_u64 :: fn (number: u64) {
+	print_u64(number);
+	print("\n");
 }
 
 string_length :: fn (str: *u8) -> u32 {
