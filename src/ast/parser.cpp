@@ -3,12 +3,10 @@
 #include "compiler.hpp"
 #include "ast/constants.hpp"
 
-uint64_t Ast_Factory::node_count = 0;
-
 #define GLOBAL_NOTE_END "end"
 #define DEFAULT_FILE_EXTENSION ".li"
 
-#define AST_NEW(T, ...) Ast_Factory::create_node<T>(&this->lexer->buffer->location, __VA_ARGS__)
+#define AST_NEW(T, ...) this->factory->create<T>(__VA_ARGS__)
 
 Ast_Scope* Parser::run (Lexer* _lexer, Ast_Scope* parent) {
 	auto start = os_get_user_time();
@@ -18,6 +16,7 @@ Ast_Scope* Parser::run (Lexer* _lexer, Ast_Scope* parent) {
 
 	auto tmp_lexer = this->lexer;
 	this->lexer = _lexer;
+	this->factory->location = &this->lexer->buffer->location;
 
 	auto global_scope = AST_NEW(Ast_Scope, parent);
 	global_scope->is_global = true;
@@ -392,7 +391,7 @@ Ast_Expression* Parser::type_instance () {
 		if (ident) {
 			auto decl = this->current_scope->find_const_declaration(ident->name);
 			if (decl && decl->expression && decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-				Ast_Factory::delete_node(ident);
+				this->factory->destroy(ident);
 				return decl->expression;
 			} else return ident;
 		} else return NULL;
@@ -497,5 +496,5 @@ void Parser::print_metrics (double total_time) {
 	printf("  - %-25s%8.6fs (%5.2f%%)\n", "Lexer & Parser",
 		this->time, percent);
 	PRINT_METRIC("Lines of Code:         %zd", this->all_lines);
-	PRINT_METRIC("Nodes created:         %zd", Ast_Factory::node_count);
+	PRINT_METRIC("Nodes created:         %zd", this->factory->node_count);
 }

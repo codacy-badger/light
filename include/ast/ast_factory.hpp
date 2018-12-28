@@ -3,19 +3,21 @@
 #include "ast/ast.hpp"
 
 struct Ast_Factory {
-    static uint64_t node_count;
+    uint64_t node_count = 0;
+
+    Location* location = NULL;
 
     template<typename T, typename ... Arguments>
-    static T* create_node (Location* loc = NULL, Arguments ... args) {
+    T* create (Arguments ... args) {
         Ast_Factory::node_count++;
         auto node = new T(args...);
-        if (loc != NULL) {
-            memcpy(&node->location, loc, sizeof(Location));
+        if (location != NULL) {
+            node->location = (*this->location);
         }
         return node;
     }
 
-    static void delete_node (Ast* node) {
+    void destroy (Ast* node) {
         Ast_Factory::node_count--;
         delete node;
     }

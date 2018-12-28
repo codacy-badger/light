@@ -2,6 +2,8 @@
 
 #include "compiler.hpp"
 
+uint64_t Ast::node_count = 0;
+
 bool Ast_Arguments::add (Ast_Expression* exp) {
     if (exp->exp_type == AST_EXPRESSION_BINARY) {
         auto binary = static_cast<Ast_Binary*>(exp);
@@ -198,7 +200,7 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type, const char* name) {
 
 Ast_Function_Type::Ast_Function_Type() {
     this->typedef_type = AST_TYPEDEF_FUNCTION;
-    this->byte_size = Compiler::inst->settings->register_size;
+    this->byte_size = Compiler::inst->settings->target_arch->register_size;
 }
 
 Ast_Binary_Type token_to_binop (Token_Type tType) {

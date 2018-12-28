@@ -18,7 +18,7 @@ struct Run_Directive : Scoped_Pipe {
         this->interp->run(&run->bytecode);
 
         if (run->inferred_type != Types::type_void) {
-            auto output = Ast_Factory::create_node<Ast_Literal>();
+            auto output = new Ast_Literal();
             output->inferred_type = run->inferred_type;
 
             auto reg = this->interp->registers[run->expression->reg];

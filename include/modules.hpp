@@ -1,6 +1,6 @@
 #pragma once
 
-#include "code_source.hpp"
+#include "code_input.hpp"
 #include "ast/ast.hpp"
 #include "ast/parser.hpp"
 #include "pipeline/pipeline.hpp"
@@ -12,7 +12,7 @@ struct Compiler;
 struct Modules {
     std::map<char*, Ast_Scope*> cache;
 
-	Ast_Scope* internal_scope = Ast_Factory::create_node<Ast_Scope>();
+	Ast_Scope* internal_scope = new Ast_Scope();
 	Pipeline* pipeline = new Pipeline();
     Parser* parser = new Parser();
 

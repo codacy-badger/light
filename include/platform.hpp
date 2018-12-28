@@ -1,13 +1,24 @@
 #pragma once
 
-#include "os/os.hpp"
-#include "arch/arch.hpp"
-
 #include <stdint.h>
 
 #define MAX_PATH_LENGTH 260
 
 typedef uint64_t Timer_Function();
+
+enum OS_Type : uint8_t {
+    OS_TYPE_UNKNOWN = 0,
+
+    OS_TYPE_WINDOWS,
+    OS_TYPE_LINUX,
+    OS_TYPE_MAC,
+};
+
+enum Arch_Type : uint8_t {
+    ARCH_TYPE_UNKNOWN = 0,
+
+    ARCH_TYPE_X64,
+};
 
 OS_Type os_get_type ();
 Arch_Type os_get_arch ();

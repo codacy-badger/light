@@ -10,6 +10,7 @@
 using namespace std;
 
 struct Parser {
+	Ast_Factory* factory = new Ast_Factory();
 	Ast_Scope* current_scope = NULL;
 	Lexer* lexer = NULL;
 
