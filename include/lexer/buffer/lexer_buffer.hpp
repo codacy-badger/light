@@ -5,6 +5,10 @@
 #include "lexer/lexer.hpp"
 #include "report.hpp"
 
+#define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
+#define DIGIT(c) (c >= '0' && c <= '9')
+#define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
+
 #define LEXER_BUFFER_SIZE 256
 
 #define CONSUME(check, c) while (check(c)) { this->_buffer[count++] = c;		\
