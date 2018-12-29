@@ -2,7 +2,6 @@
 
 #include "compiler.hpp"
 #include "platform.hpp"
-#include "ast/constants.hpp"
 #include "lexer/buffer/full_buffer.hpp"
 
 #include "pipeline/pipes/external_modules.hpp"

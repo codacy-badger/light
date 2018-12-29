@@ -36,6 +36,7 @@ struct Types {
 	static Ast_Struct_Type* type_u16;
 	static Ast_Struct_Type* type_u32;
 	static Ast_Struct_Type* type_u64;
+	static Ast_Struct_Type* type_usize;
 	static Ast_Struct_Type* type_f32;
 	static Ast_Struct_Type* type_f64;
 	static Ast_Slice_Type* type_string;

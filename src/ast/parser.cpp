@@ -1,7 +1,6 @@
 #include "ast/parser.hpp"
 
 #include "compiler.hpp"
-#include "ast/constants.hpp"
 
 #define GLOBAL_NOTE_END "end"
 #define DEFAULT_FILE_EXTENSION ".li"
@@ -349,9 +348,9 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->lexer->optional_skip(TOKEN_HASH)) {
 		return this->directive();
 	} else if (this->lexer->optional_skip(TOKEN_FALSE)) {
-		return Constants::value_false;
+		return ast_make_literal(false);
 	} else if (this->lexer->optional_skip(TOKEN_TRUE)) {
-		return Constants::value_true;
+		return ast_make_literal(true);
 	} else if (this->lexer->optional_skip(TOKEN_MUL)) {
 		return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->_atom());
 	} else if (this->lexer->optional_skip(TOKEN_EXCLAMATION)) {

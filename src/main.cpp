@@ -1,11 +1,10 @@
 #include "compiler.hpp"
 
 int main (int argc, char** argv) {
-    auto compiler = Compiler::create(argc, argv);
+    auto compiler = new Compiler(argc, argv);
 
 	compiler->run();
 
-	Compiler::destroy();
-
+	delete compiler;
 	return 0;
 }

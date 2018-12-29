@@ -5,41 +5,15 @@
 #define LIGHT_NAME "Light Compiler"
 #define LIGHT_VERSION "0.1.0"
 
-#define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\" (Ignored)"
-
 #define COMPILER_DONE_FORMAT "\nCompleted in %8.6fs (%8.6fs)\n"
-
-#define CHECK_ARG(arg) (strcmp(argv[i], arg) == 0)
-#define CHECK_ARG_2(arg_short, arg_long) (CHECK_ARG(arg_short) || CHECK_ARG(arg_long))
 
 Compiler* Compiler::inst = NULL;
 
-Compiler_Settings::Compiler_Settings (int argc, char** argv) {
-	this->handle_arguments(argc, argv);
-	os_get_current_directory(this->initial_path);
-}
-
-void Compiler_Settings::handle_arguments (int argc, char** argv) {
-	for (int i = 1; i < argc; i++) {
-		if (argv[i][0] == '-') {
-			if (CHECK_ARG_2("-o", "-output")) {
-				this->output = argv[++i];
-			} else if (CHECK_ARG_2("-v", "-verbose")) {
-				this->is_verbose = true;
-			} else if (CHECK_ARG_2("-d", "-debug")) {
-				this->is_debug = true;
-			} else report_warning(NULL, UKNOWN_ARG_FORMAT, i, argv[i]);
-		} else {
-			auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
-			os_get_absolute_path(argv[i], absolute_path);
-			this->input_files.push_back(absolute_path);
-		}
+Compiler::Compiler (int argc, char** argv) {
+	if (argc > 0) {
+		this->settings->handle_arguments(argc, argv);
 	}
-}
-
-Compiler::Compiler (Compiler_Settings* settings) {
-	this->settings = settings;
-	this->modules = new Modules(this);
+	Compiler::inst = this;
 }
 
 void Compiler::run () {
@@ -77,18 +51,4 @@ void Compiler::run () {
 
 void Compiler::quit () {
 	exit(1);
-}
-
-Compiler* Compiler::create(int argc, char** argv) {
-	return Compiler::create(new Compiler_Settings(argc, argv));
-}
-
-Compiler* Compiler::create(Compiler_Settings* settings) {
-	Compiler::inst = new Compiler(settings);
-	return Compiler::inst;
-}
-
-void Compiler::destroy() {
-	delete Compiler::inst;
-	Compiler::inst = NULL;
 }
