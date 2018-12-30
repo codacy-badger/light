@@ -76,14 +76,16 @@ struct Token {
 
 	Location location;
 
-	Token (Location* location, Token_Type type, const char* text = NULL) {
+	Token (Location* location, Token_Type type, const char* text = NULL, uint16_t text_length = 0) {
 		this->type = type;
 		this->text = text;
 
-		if (location) this->location = (*location);
-
 		if (text != NULL) {
-			this->length = (uint16_t) strlen(text);
+			if (text_length == 0) {
+				this->length = (uint16_t) strlen(text);
+			} else this->length = text_length;
 		} else this->length = 0;
+
+		if (location) this->location = (*location);
 	}
 };

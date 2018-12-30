@@ -16,6 +16,9 @@ Ast_Scope* Parser::build_ast (Ast_Scope* parent) {
 
 	this->index = 0;
 	this->scope(global_scope);
+	for (auto token : this->tokens)
+		delete token;
+	this->tokens.clear();
 
 	this->total_time += os_time_user_stop(start);
 	return global_scope;

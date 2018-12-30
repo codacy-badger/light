@@ -8,19 +8,17 @@
 #define LEXER_IGNORED " \n\t"
 #define LEXER_BUFFER_SIZE 256
 
-#define NEW_TOKEN(location, type, text)
-
 #define CHECK_STR_TOKEN(text, type) if (scanner->is_next(text))					\
-	{ scanner->skip(strlen(text)); return new_token(&scanner->location, type); }
+	{ scanner->skip(strlen(text)); return new Token(&scanner->location, type); }
 
 #define CHECK_STR2_TOKEN(text, type) if (scanner->is_next(text))				\
-	{ scanner->skip(2); return new_token(&scanner->location, type); }
+	{ scanner->skip(2); return new Token(&scanner->location, type); }
 
 #define CHECK_CHAR_TOKEN(c, type) if (scanner->is_next(c))						\
-	{ scanner->skip(); return new_token(&scanner->location, type); }
+	{ scanner->skip(); return new Token(&scanner->location, type); }
 
 #define CHECK_DYN_TOKEN(func, type) auto tmp_##func = func(scanner);			\
-	if (tmp_##func) return new_token(&scanner->location, type, tmp_##func);
+	if (tmp_##func) return new Token(&scanner->location, type, tmp_##func);
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
 #define DIGIT(c) (c >= '0' && c <= '9')
@@ -38,15 +36,16 @@ struct Lexer {
 	void source_to_tokens (Scanner* scanner, std::vector<Token*>* tokens) {
 		auto start = os_get_user_time();
 
-		tokens->clear();
+		ASSERT(tokens->empty());
 		auto token = this->get_next_token(scanner);
 		while (token != NULL) {
 			tokens->push_back(token);
 			token = this->get_next_token(scanner);
 		}
 
-		this->total_time += os_time_user_stop(start);
 		this->lines_of_code += scanner->location.line;
+		this->token_count += tokens->size();
+		this->total_time += os_time_user_stop(start);
 	}
 
 	Token* get_next_token (Scanner* scanner) {
@@ -234,11 +233,6 @@ struct Lexer {
 		    }
 			return;
 		}
-	}
-
-	Token* new_token (Location* location, Token_Type type, const char* text = NULL) {
-		this->token_count++;
-		return new Token(location, type, text);
 	}
 
 	void print_metrics (double userInterval) {
