@@ -23,15 +23,6 @@ struct Parser {
 
 	Ast_Scope* build_ast (Ast_Scope* parent);
 
-	Token* peek (size_t offset = 0);
-	Token* next ();
-	bool is_next (Token_Type type);
-	void skip (size_t offset = 1);
-	bool try_skip (Token_Type type);
-	bool expect (Token_Type type);
-
-	Ast_Scope* run (Lexer* lexer, Ast_Scope* parent = NULL);
-
 	Ast_Scope* scope (Ast_Scope* inner_scope = NULL);
 	const char* note ();
 	Ast_Directive* directive ();
@@ -47,6 +38,15 @@ struct Parser {
 	Ast_Literal* literal ();
 	Ast_Literal* string_literal ();
 	Ast_Ident* ident ();
+
+	const char* escape_string (const char* original, size_t length);
+
+	Token* peek (size_t offset = 0);
+	Token* next ();
+	bool is_next (Token_Type type);
+	void skip (size_t offset = 1);
+	bool try_skip (Token_Type type);
+	bool expect (Token_Type type);
 
 	void print_metrics(double total_time);
 };

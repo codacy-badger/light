@@ -24,41 +24,6 @@ Ast_Scope* Parser::build_ast (Ast_Scope* parent) {
 	return global_scope;
 }
 
-Token* Parser::peek (size_t offset) {
-	auto new_index = this->index + offset;
-	if (new_index < this->tokens.size()) {
-		return this->tokens[new_index];
-	} else return Parser::eof;
-}
-
-Token* Parser::next () {
-	if (this->index < this->tokens.size()) {
-		return this->tokens[this->index++];
-	} else return Parser::eof;
-}
-
-bool Parser::is_next (Token_Type type) {
-	return this->peek()->type == type;
-}
-
-void Parser::skip (size_t offset) {
-	this->index += offset;
-}
-
-bool Parser::try_skip (Token_Type type) {
-	if (this->is_next(type)) {
-		this->index++;
-		return true;
-	} else return false;
-}
-
-bool Parser::expect (Token_Type type) {
-	if (!this->try_skip(type)) {
-		// TODO: report unexpected token
-		return false;
-	} else return true;
-}
-
 Ast_Scope* Parser::scope (Ast_Scope* inner_scope) {
 	if (!inner_scope) {
 		inner_scope = AST_NEW(Ast_Scope, this->current_scope);
@@ -82,7 +47,7 @@ Ast_Scope* Parser::scope (Ast_Scope* inner_scope) {
 
 const char* Parser::note () {
 	if (this->try_skip(TOKEN_AT)) {
-		return this->next()->text;
+		return this->next()->copy_text();
 	} else return NULL;
 }
 
@@ -211,11 +176,11 @@ Ast_Directive* Parser::directive () {
 			auto foreign = AST_NEW(Ast_Directive_Foreign);
 
 			if (this->peek()->type == TOKEN_STRING) {
-				foreign->module_name = this->next()->text;
+				foreign->module_name = this->next()->copy_text();
 			} else foreign->module_name = foreign->get_foreign_module_name_from_file();
 
 			if (this->peek()->type == TOKEN_STRING) {
-				foreign->function_name = this->next()->text;
+				foreign->function_name = this->next()->copy_text();
 			}
 
 			if (this->try_skip(TOKEN_BRAC_OPEN)) {
@@ -323,7 +288,7 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 		auto _struct = AST_NEW(Ast_Struct_Type);
 
 		if (this->is_next(TOKEN_ID))
-			_struct->name = this->next()->text;
+			_struct->name = this->next()->copy_text();
 
 		if (this->is_next(TOKEN_BRAC_OPEN)) {
 			this->skip();
@@ -418,7 +383,6 @@ Ast_Expression* Parser::type_instance () {
 		if (ident) {
 			auto decl = this->current_scope->find_const_declaration(ident->name);
 			if (decl && decl->expression && decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-				this->factory->destroy(ident);
 				return decl->expression;
 			} else return ident;
 		} else return NULL;
@@ -455,7 +419,7 @@ Ast_Literal* Parser::literal () {
 		}
 		case TOKEN_NUMBER: {
 			output = AST_NEW(Ast_Literal);
-			output->string_value = this->next()->text;
+			output->string_value = this->next()->copy_text();
 			if (output->is_hexadecimal()) {
 				output->literal_type = AST_LITERAL_UNSIGNED_INT;
 				output->uint_value = strtoull(output->string_value + 2, NULL, 16);
@@ -478,8 +442,10 @@ Ast_Literal* Parser::literal () {
 
 Ast_Literal* Parser::string_literal () {
 	if (this->peek()->type == TOKEN_STRING) {
+		auto token = this->next();
+
 		auto output = AST_NEW(Ast_Literal);
-		output->string_value = this->next()->text;
+		output->string_value = this->escape_string(token->text, token->length);
 		output->literal_type = AST_LITERAL_STRING;
 		return output;
 	} else return NULL;
@@ -507,12 +473,68 @@ Ast_Ident* Parser::ident () {
 	if (!this->is_next(TOKEN_ID)) return NULL;
 
 	auto ident = AST_NEW(Ast_Ident, this->current_scope);
-	ident->name = this->next()->text;
+	ident->name = this->next()->copy_text();
 
 	// this is the right time to do this, since on a non-constant reference
 	// the declaration should already be in the scope.
 	ident->declaration = this->current_scope->find_non_const_declaration(ident->name);
 	return ident;
+}
+
+const char* Parser::escape_string (const char* original, size_t length) {
+	auto output = (char*) malloc(length - 1);
+
+	size_t output_count = 0, i = 1;
+	while (i < (length - 1)) {
+		char c = original[i++];
+		if (c == '\\') {
+			c = original[i++];
+
+			switch (c) {
+				case 'n':	output[output_count++] = '\n'; break;
+				case 't':	output[output_count++] = '\t'; break;
+				default:	output[output_count++] = c;
+			}
+		} else output[output_count++] = c;
+	}
+	output[output_count] = '\0';
+
+	return output;
+}
+
+Token* Parser::peek (size_t offset) {
+	auto new_index = this->index + offset;
+	if (new_index < this->tokens.size()) {
+		return this->tokens[new_index];
+	} else return Parser::eof;
+}
+
+Token* Parser::next () {
+	if (this->index < this->tokens.size()) {
+		return this->tokens[this->index++];
+	} else return Parser::eof;
+}
+
+bool Parser::is_next (Token_Type type) {
+	return this->peek()->type == type;
+}
+
+void Parser::skip (size_t offset) {
+	this->index += offset;
+}
+
+bool Parser::try_skip (Token_Type type) {
+	if (this->is_next(type)) {
+		this->index++;
+		return true;
+	} else return false;
+}
+
+bool Parser::expect (Token_Type type) {
+	if (!this->try_skip(type)) {
+		// TODO: report unexpected token
+		return false;
+	} else return true;
 }
 
 void Parser::print_metrics (double user_interval) {

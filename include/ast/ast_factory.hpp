@@ -9,16 +9,11 @@ struct Ast_Factory {
 
     template<typename T, typename ... Arguments>
     T* create (Location* loc, Arguments ... args) {
-        Ast_Factory::node_count++;
+        this->node_count++;
         auto node = new T(args...);
         if (loc != NULL) {
             node->location = (*loc);
         }
         return node;
-    }
-
-    void destroy (Ast* node) {
-        Ast_Factory::node_count--;
-        delete node;
     }
 };

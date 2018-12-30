@@ -38,6 +38,10 @@ struct Scanner {
         }
     }
 
+	const char* ref () {
+		return this->source + this->index;
+	}
+
 	char next () {
         auto c = this->source[this->index++];
         this->handle_location(c);
@@ -74,6 +78,11 @@ struct Scanner {
     		this->next();
     		i += 1;
     	}
+    }
+
+	char skip_and_peek (size_t count = 1) {
+    	this->skip(count);
+		return this->peek();
     }
 
     void skip_any (const char* chars) {

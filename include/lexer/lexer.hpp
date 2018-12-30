@@ -24,9 +24,7 @@
 #define DIGIT(c) (c >= '0' && c <= '9')
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 
-#define _CONSUME(check, c) while (check(c)) { _buffer[count++] = c;				\
-	scanner->skip(); c = scanner->peek(); }										\
-	ASSERT(count < LEXER_BUFFER_SIZE);
+#define CONSUME(check, c) while (check(c)) { _buffer[count++] = c; scanner->skip(); c = scanner->peek(); }
 
 struct Lexer {
 	uint64_t lines_of_code = 0;
@@ -107,114 +105,89 @@ struct Lexer {
 		CHECK_STR_TOKEN("true", TOKEN_TRUE);
 		CHECK_STR_TOKEN("null", TOKEN_NULL);
 
-		CHECK_DYN_TOKEN(identifier, TOKEN_ID);
-		CHECK_DYN_TOKEN(string, TOKEN_STRING);
-		CHECK_DYN_TOKEN(number, TOKEN_NUMBER);
+		auto tmp = this->identifier(scanner);
+		if (tmp) {
+			return new Token(&scanner->location, TOKEN_ID, scanner->ref() - tmp, tmp);
+		}
+
+		tmp = this->string(scanner);
+		if (tmp) {
+			return new Token(&scanner->location, TOKEN_STRING, scanner->ref() - tmp, tmp);
+		}
+
+		tmp = this->number(scanner);
+		if (tmp) {
+			return new Token(&scanner->location, TOKEN_NUMBER, scanner->ref() - tmp, tmp);
+		}
 
 		return NULL;
 	}
 
-	char* identifier (Scanner* scanner) {
-		char c = scanner->peek();
-	    if (ALPHA(c)) {
-			size_t count = 0;
-			char _buffer[LEXER_BUFFER_SIZE];
+	size_t identifier (Scanner* scanner) {
+	    if (ALPHA(scanner->peek())) {
+			size_t initial = scanner->index;
+			scanner->skip();
 
+			auto c = scanner->peek();
 			while (ALPHANUM(c)) {
-				_buffer[count++] = c;
 				scanner->skip();
+
 				c = scanner->peek();
 			}
-			ASSERT(count < LEXER_BUFFER_SIZE);
 
-			_buffer[count] = 0;
-			return _strdup(_buffer);
-	    }
-	    return NULL;
+			return scanner->index - initial;
+	    } else return 0;
 	}
 
-	char* string (Scanner* scanner) {
-		char c = scanner->peek();
-	    if (c == '"') {
+	size_t string (Scanner* scanner) {
+	    if (scanner->peek() == '"') {
+			size_t initial = scanner->index;
 			scanner->skip();
-			size_t count = 0;
-			char _buffer[LEXER_BUFFER_SIZE];
 
-			c = scanner->next();
+			auto c = scanner->next();
 			while (c != '"') {
-				ASSERT(count < LEXER_BUFFER_SIZE);
-				if (c == '\\') {
-					c = scanner->next();
-					switch (c) {
-						case 'n': _buffer[count++] = '\n'; break;
-						case 't': _buffer[count++] = '\t'; break;
-						default:  _buffer[count++] = c;    break;
-					}
-				} else _buffer[count++] = c;
+				// INFO: if we find a \" we don't have to stop
+				if (c == '\\') c = scanner->next();
+
 				c = scanner->next();
 			}
-			_buffer[count] = 0;
 
-			for (size_t i = 0; i < count; i++) {
-				if (_buffer[i] == '\\') {
-					switch (_buffer[i + 1]) {
-						case 'n': _buffer[i] = '\n'; 			break;
-						case 't': _buffer[i] = '\t'; 			break;
-						default:  _buffer[i] = _buffer[i + 1];	break;
-					}
-
-					memcpy(&_buffer[i + 1], &_buffer[i + 2], count);
-					i += 1;
-				}
-			}
-
-			return _strdup(_buffer);
-	    } else return NULL;
+			return scanner->index - initial;
+	    } else return 0;
 	}
 
-	char* number (Scanner* scanner) {
-		size_t count = 0;
-		char _buffer[LEXER_BUFFER_SIZE];
+	size_t number (Scanner* scanner) {
+		size_t initial = scanner->index;
 
 		char c = scanner->peek();
 		if (c == '0' && scanner->peek(1) == 'x') {
-			_buffer[count++] = '0';
-			_buffer[count++] = 'x';
-			scanner->skip(2);
-			c = scanner->peek();
-			_CONSUME(ALPHANUM, c)
-			_buffer[count] = 0;
-
-			return _strdup(_buffer);
+			c = scanner->skip_and_peek(2);
+			while (ALPHANUM(c)) {
+				c = scanner->skip_and_peek();
+			}
 		} else if (c == '0' && scanner->peek(1) == 'b') {
-			_buffer[count++] = '0';
-			_buffer[count++] = 'b';
-			scanner->skip(2);
-			c = scanner->peek();
-			_CONSUME(DIGIT, c)
-			_buffer[count] = 0;
-
-			return _strdup(_buffer);
+			c = scanner->skip_and_peek(2);
+			while (DIGIT(c)) {
+				c = scanner->skip_and_peek();
+			}
 		} else {
 		    if (c == '+' || c == '-') {
-		        _buffer[count++] = c;
-				scanner->skip();
-		        c = scanner->peek();
+		        c = scanner->skip_and_peek();
 		    }
 		    if (DIGIT(c) || c == '.') {
-				_CONSUME(DIGIT, c)
+				while (DIGIT(c)) {
+					c = scanner->skip_and_peek();
+				}
 		        if (c == '.') {
-		            _buffer[count++] = c;
-		            scanner->skip();
-		            c = scanner->peek();
-					_CONSUME(DIGIT, c)
+		            c = scanner->skip_and_peek();
+					while (DIGIT(c)) {
+						c = scanner->skip_and_peek();
+					}
 		        }
-				_buffer[count] = 0;
-
-				return _strdup(_buffer);
 		    }
 		}
-	    return NULL;
+
+	    return scanner->index - initial;
 	}
 
 	void skip_ignored_and_comments (Scanner* scanner) {
