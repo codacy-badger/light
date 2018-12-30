@@ -10,17 +10,19 @@
 struct Compiler;
 
 struct Modules {
-    std::map<char*, Ast_Scope*> cache;
+    std::map<const char*, Ast_Scope*> cache;
 
 	Ast_Scope* internal_scope = new Ast_Scope();
 	Pipeline* pipeline = new Pipeline();
     Parser* parser = new Parser();
+    Lexer* lexer = new Lexer();
 
     Modules (Compiler* compiler);
 
-    Ast_Scope* get_module (Code_Input* source);
-    Ast_Scope* get_module (char* absolute_path);
-    Ast_Scope* load_module (char* absolute_path);
-    bool is_module_cached (char* absolute_path);
-    bool free_module (char* absolute_path);
+    Ast_Scope* get_module (const char* absolute_path);
+    Ast_Scope* load_module (const char* absolute_path);
+
+    bool is_module_cached (const char* absolute_path);
+
+    void print_metrics (double userInterval);
 };

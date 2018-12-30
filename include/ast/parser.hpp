@@ -12,11 +12,23 @@ using namespace std;
 struct Parser {
 	Ast_Factory* factory = new Ast_Factory();
 	Ast_Scope* current_scope = NULL;
-	Lexer* lexer = NULL;
+
+	static Token* eof;
+	vector<Token*> tokens;
+	size_t index;
 
 	// for metrics
 	size_t all_lines = 0;
-	double time = 0;
+	double total_time = 0;
+
+	Ast_Scope* build_ast (Ast_Scope* parent);
+
+	Token* peek (size_t offset = 0);
+	Token* next ();
+	bool is_next (Token_Type type);
+	void skip (size_t offset = 1);
+	bool try_skip (Token_Type type);
+	bool expect (Token_Type type);
 
 	Ast_Scope* run (Lexer* lexer, Ast_Scope* parent = NULL);
 

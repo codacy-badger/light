@@ -1,260 +1,250 @@
 #pragma once
 
-#include "buffer/lexer_buffer.hpp"
-#include "tokens.hpp"
+#include "scanner.hpp"
+#include "token.hpp"
+
+#include <vector>
 
 #define LEXER_IGNORED " \n\t"
+#define LEXER_BUFFER_SIZE 256
 
-#define STRING_TOKEN(literal, length, type)										\
-	if (this->buffer->is_next(literal, length))									\
-	{ handle_token(type, literal); return true; }
+#define NEW_TOKEN(location, type, text)
 
-#define CHAR_TOKEN(c, type) if (this->buffer->is_next(c))						\
-	{ handle_token(type); return true; }
+#define CHECK_STR_TOKEN(text, type) if (scanner->is_next(text))					\
+	{ scanner->skip(strlen(text)); return new_token(&scanner->location, type); }
 
-#define STRING_EQUAL(str1, str2) (strcmp(str1, str2) == 0)
+#define CHECK_STR2_TOKEN(text, type) if (scanner->is_next(text))				\
+	{ scanner->skip(2); return new_token(&scanner->location, type); }
 
-#define CASE_ENUM_TEXT(T, str) case T: return str;
+#define CHECK_CHAR_TOKEN(c, type) if (scanner->is_next(c))						\
+	{ scanner->skip(); return new_token(&scanner->location, type); }
+
+#define CHECK_DYN_TOKEN(func, type) auto tmp_##func = func(scanner);			\
+	if (tmp_##func) return new_token(&scanner->location, type, tmp_##func);
+
+#define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
+#define DIGIT(c) (c >= '0' && c <= '9')
+#define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
+
+#define _CONSUME(check, c) while (check(c)) { _buffer[count++] = c;				\
+	scanner->skip(); c = scanner->peek(); }										\
+	ASSERT(count < LEXER_BUFFER_SIZE);
 
 struct Lexer {
-	Lexer_Buffer* buffer;
+	uint64_t lines_of_code = 0;
+	uint64_t token_count = 0;
+	double total_time = 0;
 
-	const char* next_text;
-	Token_Type next_type;
+	void source_to_tokens (Scanner* scanner, std::vector<Token*>* tokens) {
+		auto start = os_get_user_time();
 
-	Lexer (Lexer_Buffer* buffer) {
-		this->buffer = buffer;
-		this->parse_next();
-	}
-
-	bool parse_next () {
-		while (this->skip_ignored_and_comments());
-
-		if (!this->buffer->has_next()) {
-			this->next_text = NULL;
-			this->next_type = TOKEN_EOF;
-			return false;
+		tokens->clear();
+		auto token = this->get_next_token(scanner);
+		while (token != NULL) {
+			tokens->push_back(token);
+			token = this->get_next_token(scanner);
 		}
 
-	    STRING_TOKEN("->", 2, TOKEN_ARROW);
-		STRING_TOKEN("&&", 2, TOKEN_DOUBLE_AMP);
-		STRING_TOKEN("||", 2, TOKEN_DOUBLE_PIPE);
-		STRING_TOKEN(">>", 2, TOKEN_RIGHT_SHIFT);
-		STRING_TOKEN("<<", 2, TOKEN_LEFT_SHIFT);
-		STRING_TOKEN("==", 2, TOKEN_DOUBLE_EQUAL);
-		STRING_TOKEN("!=", 2, TOKEN_NOT_EQUAL);
-		STRING_TOKEN(">=", 2, TOKEN_GREATER_EQUAL);
-		STRING_TOKEN("<=", 2, TOKEN_LESSER_EQUAL);
-		STRING_TOKEN("++", 2, TOKEN_DOUBLE_ADD);
-		STRING_TOKEN("--", 2, TOKEN_DOUBLE_SUB);
-		STRING_TOKEN("..", 2, TOKEN_DOUBLE_DOT);
-
-		CHAR_TOKEN('+', TOKEN_ADD);
-		CHAR_TOKEN('-', TOKEN_SUB);
-		CHAR_TOKEN('*', TOKEN_MUL);
-		CHAR_TOKEN('/', TOKEN_DIV);
-		CHAR_TOKEN('%', TOKEN_PERCENT);
-		CHAR_TOKEN('>', TOKEN_GREATER);
-		CHAR_TOKEN('<', TOKEN_LESSER);
-		CHAR_TOKEN('&', TOKEN_AMP);
-		CHAR_TOKEN('|', TOKEN_PIPE);
-		CHAR_TOKEN('^', TOKEN_CARET);
-		CHAR_TOKEN('~', TOKEN_TILDE);
-		CHAR_TOKEN('!', TOKEN_EXCLAMATION);
-		CHAR_TOKEN('$', TOKEN_DOLLAR);
-		CHAR_TOKEN('@', TOKEN_AT);
-		CHAR_TOKEN('#', TOKEN_HASH);
-		CHAR_TOKEN('=', TOKEN_EQUAL);
-		CHAR_TOKEN(':', TOKEN_COLON);
-		CHAR_TOKEN(';', TOKEN_STM_END);
-	    CHAR_TOKEN('.', TOKEN_DOT);
-	    CHAR_TOKEN(',', TOKEN_COMMA);
-	    CHAR_TOKEN('(', TOKEN_PAR_OPEN);
-	    CHAR_TOKEN(')', TOKEN_PAR_CLOSE);
-	    CHAR_TOKEN('{', TOKEN_BRAC_OPEN);
-	    CHAR_TOKEN('}', TOKEN_BRAC_CLOSE);
-	    CHAR_TOKEN('[', TOKEN_SQ_BRAC_OPEN);
-	    CHAR_TOKEN(']', TOKEN_SQ_BRAC_CLOSE);
-
-		if (next_is_id()) {
-				 if (STRING_EQUAL(next_text, "if")) 		this->next_type = TOKEN_IF;
-			else if (STRING_EQUAL(next_text, "else")) 		this->next_type = TOKEN_ELSE;
-			else if (STRING_EQUAL(next_text, "while")) 		this->next_type = TOKEN_WHILE;
-			else if (STRING_EQUAL(next_text, "break")) 		this->next_type = TOKEN_BREAK;
-			else if (STRING_EQUAL(next_text, "cast")) 		this->next_type = TOKEN_CAST;
-			else if (STRING_EQUAL(next_text, "struct")) 	this->next_type = TOKEN_STRUCT;
-			else if (STRING_EQUAL(next_text, "fn")) 		this->next_type = TOKEN_FUNCTION;
-			else if (STRING_EQUAL(next_text, "return")) 	this->next_type = TOKEN_RETURN;
-			else if (STRING_EQUAL(next_text, "import")) 	this->next_type = TOKEN_IMPORT;
-			else if (STRING_EQUAL(next_text, "include")) 	this->next_type = TOKEN_INCLUDE;
-			else if (STRING_EQUAL(next_text, "foreign")) 	this->next_type = TOKEN_FOREIGN;
-			else if (STRING_EQUAL(next_text, "run")) 		this->next_type = TOKEN_RUN;
-			else if (STRING_EQUAL(next_text, "false")) 		this->next_type = TOKEN_FALSE;
-			else if (STRING_EQUAL(next_text, "true")) 		this->next_type = TOKEN_TRUE;
-			else if (STRING_EQUAL(next_text, "null")) 		this->next_type = TOKEN_NULL;
-			return true;
-		} else if (next_is_string() || next_is_number()) return true;
-
-		ERROR_STOP(this->buffer, "Unrecognized character: '%c'", this->buffer->peek());
-		return false;
+		this->total_time += os_time_user_stop(start);
+		this->lines_of_code += scanner->location.line;
 	}
 
-	bool is_next_type (Token_Type type) {
-		return this->next_type == type;
+	Token* get_next_token (Scanner* scanner) {
+		this->skip_ignored_and_comments(scanner);
+
+		CHECK_STR2_TOKEN("->", TOKEN_ARROW);
+		CHECK_STR2_TOKEN("&&", TOKEN_DOUBLE_AMP);
+		CHECK_STR2_TOKEN("||", TOKEN_DOUBLE_PIPE);
+		CHECK_STR2_TOKEN(">>", TOKEN_RIGHT_SHIFT);
+		CHECK_STR2_TOKEN("<<", TOKEN_LEFT_SHIFT);
+		CHECK_STR2_TOKEN("==", TOKEN_DOUBLE_EQUAL);
+		CHECK_STR2_TOKEN("!=", TOKEN_NOT_EQUAL);
+		CHECK_STR2_TOKEN(">=", TOKEN_GREATER_EQUAL);
+		CHECK_STR2_TOKEN("<=", TOKEN_LESSER_EQUAL);
+		CHECK_STR2_TOKEN("++", TOKEN_DOUBLE_ADD);
+		CHECK_STR2_TOKEN("--", TOKEN_DOUBLE_SUB);
+		CHECK_STR2_TOKEN("..", TOKEN_DOUBLE_DOT);
+
+		CHECK_CHAR_TOKEN('+', TOKEN_ADD);
+		CHECK_CHAR_TOKEN('-', TOKEN_SUB);
+		CHECK_CHAR_TOKEN('*', TOKEN_MUL);
+		CHECK_CHAR_TOKEN('/', TOKEN_DIV);
+		CHECK_CHAR_TOKEN('%', TOKEN_PERCENT);
+		CHECK_CHAR_TOKEN('>', TOKEN_GREATER);
+		CHECK_CHAR_TOKEN('<', TOKEN_LESSER);
+		CHECK_CHAR_TOKEN('&', TOKEN_AMP);
+		CHECK_CHAR_TOKEN('|', TOKEN_PIPE);
+		CHECK_CHAR_TOKEN('^', TOKEN_CARET);
+		CHECK_CHAR_TOKEN('~', TOKEN_TILDE);
+		CHECK_CHAR_TOKEN('!', TOKEN_EXCLAMATION);
+		CHECK_CHAR_TOKEN('$', TOKEN_DOLLAR);
+		CHECK_CHAR_TOKEN('@', TOKEN_AT);
+		CHECK_CHAR_TOKEN('#', TOKEN_HASH);
+		CHECK_CHAR_TOKEN('=', TOKEN_EQUAL);
+		CHECK_CHAR_TOKEN(':', TOKEN_COLON);
+		CHECK_CHAR_TOKEN(';', TOKEN_STM_END);
+	    CHECK_CHAR_TOKEN('.', TOKEN_DOT);
+	    CHECK_CHAR_TOKEN(',', TOKEN_COMMA);
+	    CHECK_CHAR_TOKEN('(', TOKEN_PAR_OPEN);
+	    CHECK_CHAR_TOKEN(')', TOKEN_PAR_CLOSE);
+	    CHECK_CHAR_TOKEN('{', TOKEN_BRAC_OPEN);
+	    CHECK_CHAR_TOKEN('}', TOKEN_BRAC_CLOSE);
+	    CHECK_CHAR_TOKEN('[', TOKEN_SQ_BRAC_OPEN);
+	    CHECK_CHAR_TOKEN(']', TOKEN_SQ_BRAC_CLOSE);
+
+		CHECK_STR_TOKEN("if", TOKEN_IF);
+		CHECK_STR_TOKEN("else", TOKEN_ELSE);
+		CHECK_STR_TOKEN("while", TOKEN_WHILE);
+		CHECK_STR_TOKEN("break", TOKEN_BREAK);
+		CHECK_STR_TOKEN("cast", TOKEN_CAST);
+		CHECK_STR_TOKEN("struct", TOKEN_STRUCT);
+		CHECK_STR_TOKEN("fn", TOKEN_FUNCTION);
+		CHECK_STR_TOKEN("return", TOKEN_RETURN);
+		CHECK_STR_TOKEN("import", TOKEN_IMPORT);
+		CHECK_STR_TOKEN("include", TOKEN_INCLUDE);
+		CHECK_STR_TOKEN("foreign", TOKEN_FOREIGN);
+		CHECK_STR_TOKEN("run", TOKEN_RUN);
+		CHECK_STR_TOKEN("false", TOKEN_FALSE);
+		CHECK_STR_TOKEN("true", TOKEN_TRUE);
+		CHECK_STR_TOKEN("null", TOKEN_NULL);
+
+		CHECK_DYN_TOKEN(identifier, TOKEN_ID);
+		CHECK_DYN_TOKEN(string, TOKEN_STRING);
+		CHECK_DYN_TOKEN(number, TOKEN_NUMBER);
+
+		return NULL;
 	}
 
-	void skip (unsigned int count = 1) {
-		for (unsigned int i = 0; i < count; i++)
-			this->parse_next();
-	}
+	char* identifier (Scanner* scanner) {
+		char c = scanner->peek();
+	    if (ALPHA(c)) {
+			size_t count = 0;
+			char _buffer[LEXER_BUFFER_SIZE];
 
-	const char* text () {
-		auto text = this->next_text;
-		this->skip(1);
-		return text;
-	}
+			while (ALPHANUM(c)) {
+				_buffer[count++] = c;
+				scanner->skip();
+				c = scanner->peek();
+			}
+			ASSERT(count < LEXER_BUFFER_SIZE);
 
-	bool check_skip (Token_Type type) {
-		if (this->next_type == type) {
-			this->skip(1);
-			return true;
-		} else {
-			this->report_unexpected(type);
-			return false;
-		}
-	}
-
-	bool optional_skip (Token_Type type) {
-		if (this->next_type == type) {
-			this->skip(1);
-			return true;
-		} else return false;
-	}
-
-	void report_unexpected (Token_Type expected) {
-		ERROR_STOP(this->buffer, "Expected '%s', but got '%s'",
-			token_get_text(expected), token_get_text(this->next_type));
-	}
-
-	bool next_is_id () {
-		this->next_text = this->buffer->get_next_id();
-		if (this->next_text) {
-			this->next_type = TOKEN_ID;
-			return true;
-		} else return false;
-	}
-
-	bool next_is_string () {
-		this->next_text = this->buffer->get_next_string();
-		if (this->next_text) {
-			this->next_type = TOKEN_STRING;
-			return true;
-		} else return false;
-	}
-
-	bool next_is_number () {
-		this->next_text = this->buffer->get_next_number();
-		if (this->next_text) {
-			this->next_type = TOKEN_NUMBER;
-			return true;
-		} else return false;
-	}
-
-	void handle_token (Token_Type type, const char* text = NULL) {
-		if (text) this->buffer->skip(strlen(text));
-		else this->buffer->skip();
-		this->next_text = NULL;
-		this->next_type = type;
-	}
-
-	bool skip_ignored_and_comments () {
-		this->buffer->skip_any(LEXER_IGNORED);
-	    if (this->buffer->peek() == '/') {
-	        if (this->buffer->peek(1) == '/') {
-				this->buffer->skip_until("\n");
-				this->buffer->skip_any(LEXER_IGNORED);
-				return true;
-	        } else if (this->buffer->peek(1) == '*') {
-				this->buffer->skip_until("*/");
-				this->buffer->skip_any(LEXER_IGNORED);
-				return true;
-	        }
+			_buffer[count] = 0;
+			return _strdup(_buffer);
 	    }
-		return false;
+	    return NULL;
 	}
 
-	size_t get_total_lines() {
-		return this->buffer->location.line;
+	char* string (Scanner* scanner) {
+		char c = scanner->peek();
+	    if (c == '"') {
+			scanner->skip();
+			size_t count = 0;
+			char _buffer[LEXER_BUFFER_SIZE];
+
+			c = scanner->next();
+			while (c != '"') {
+				ASSERT(count < LEXER_BUFFER_SIZE);
+				if (c == '\\') {
+					c = scanner->next();
+					switch (c) {
+						case 'n': _buffer[count++] = '\n'; break;
+						case 't': _buffer[count++] = '\t'; break;
+						default:  _buffer[count++] = c;    break;
+					}
+				} else _buffer[count++] = c;
+				c = scanner->next();
+			}
+			_buffer[count] = 0;
+
+			for (size_t i = 0; i < count; i++) {
+				if (_buffer[i] == '\\') {
+					switch (_buffer[i + 1]) {
+						case 'n': _buffer[i] = '\n'; 			break;
+						case 't': _buffer[i] = '\t'; 			break;
+						default:  _buffer[i] = _buffer[i + 1];	break;
+					}
+
+					memcpy(&_buffer[i + 1], &_buffer[i + 2], count);
+					i += 1;
+				}
+			}
+
+			return _strdup(_buffer);
+	    } else return NULL;
 	}
 
-	static const char* token_get_text (Token_Type type) {
-		switch (type) {
-			CASE_ENUM_TEXT(TOKEN_EOF, 			"<EOF>")
+	char* number (Scanner* scanner) {
+		size_t count = 0;
+		char _buffer[LEXER_BUFFER_SIZE];
 
-			CASE_ENUM_TEXT(TOKEN_ID,			"<identifier>")
-			CASE_ENUM_TEXT(TOKEN_NUMBER,		"<number>")
-			CASE_ENUM_TEXT(TOKEN_STRING,		"<string>")
+		char c = scanner->peek();
+		if (c == '0' && scanner->peek(1) == 'x') {
+			_buffer[count++] = '0';
+			_buffer[count++] = 'x';
+			scanner->skip(2);
+			c = scanner->peek();
+			_CONSUME(ALPHANUM, c)
+			_buffer[count] = 0;
 
-			CASE_ENUM_TEXT(TOKEN_DOUBLE_AMP,	"&&")
-			CASE_ENUM_TEXT(TOKEN_DOUBLE_PIPE,	"||")
-			CASE_ENUM_TEXT(TOKEN_DOUBLE_ADD,	"++")
-			CASE_ENUM_TEXT(TOKEN_DOUBLE_SUB,	"--")
-			CASE_ENUM_TEXT(TOKEN_DOUBLE_EQUAL,	"==")
-			CASE_ENUM_TEXT(TOKEN_NOT_EQUAL,		"!=")
-			CASE_ENUM_TEXT(TOKEN_GREATER_EQUAL,	">=")
-			CASE_ENUM_TEXT(TOKEN_LESSER_EQUAL,	"<=")
-			CASE_ENUM_TEXT(TOKEN_RIGHT_SHIFT,	">>")
-			CASE_ENUM_TEXT(TOKEN_LEFT_SHIFT,	"<<")
-			CASE_ENUM_TEXT(TOKEN_ARROW,			"->")
-			CASE_ENUM_TEXT(TOKEN_DOUBLE_DOT,	"..")
+			return _strdup(_buffer);
+		} else if (c == '0' && scanner->peek(1) == 'b') {
+			_buffer[count++] = '0';
+			_buffer[count++] = 'b';
+			scanner->skip(2);
+			c = scanner->peek();
+			_CONSUME(DIGIT, c)
+			_buffer[count] = 0;
 
-			CASE_ENUM_TEXT(TOKEN_IF,			"IF")
-			CASE_ENUM_TEXT(TOKEN_ELSE,			"ELSE")
-			CASE_ENUM_TEXT(TOKEN_WHILE,			"WHILE")
-			CASE_ENUM_TEXT(TOKEN_BREAK,			"BREAK")
-			CASE_ENUM_TEXT(TOKEN_CAST,			"CAST")
-			CASE_ENUM_TEXT(TOKEN_STRUCT,		"STRUCT")
-			CASE_ENUM_TEXT(TOKEN_FUNCTION,		"FUNCTION")
-			CASE_ENUM_TEXT(TOKEN_RETURN,		"RETURN")
-			CASE_ENUM_TEXT(TOKEN_IMPORT,		"IMPORT")
-			CASE_ENUM_TEXT(TOKEN_INCLUDE,		"INCLUDE")
-			CASE_ENUM_TEXT(TOKEN_FOREIGN,		"FOREIGN")
-			CASE_ENUM_TEXT(TOKEN_RUN,			"RUN")
-			CASE_ENUM_TEXT(TOKEN_FALSE,			"FALSE")
-			CASE_ENUM_TEXT(TOKEN_TRUE,			"TRUE")
-			CASE_ENUM_TEXT(TOKEN_NULL,			"NULL")
+			return _strdup(_buffer);
+		} else {
+		    if (c == '+' || c == '-') {
+		        _buffer[count++] = c;
+				scanner->skip();
+		        c = scanner->peek();
+		    }
+		    if (DIGIT(c) || c == '.') {
+				_CONSUME(DIGIT, c)
+		        if (c == '.') {
+		            _buffer[count++] = c;
+		            scanner->skip();
+		            c = scanner->peek();
+					_CONSUME(DIGIT, c)
+		        }
+				_buffer[count] = 0;
 
-			CASE_ENUM_TEXT(TOKEN_EXCLAMATION,	"!")
-			CASE_ENUM_TEXT(TOKEN_DOLLAR,		"$")
-
-			CASE_ENUM_TEXT(TOKEN_AMP,			"&")
-			CASE_ENUM_TEXT(TOKEN_PIPE,			"|")
-			CASE_ENUM_TEXT(TOKEN_CARET,			"^")
-			CASE_ENUM_TEXT(TOKEN_TILDE,			"~")
-			CASE_ENUM_TEXT(TOKEN_ADD,			"+")
-			CASE_ENUM_TEXT(TOKEN_SUB,			"-")
-			CASE_ENUM_TEXT(TOKEN_DIV,			"/")
-			CASE_ENUM_TEXT(TOKEN_MUL,			"*")
-			CASE_ENUM_TEXT(TOKEN_PERCENT,		"%")
-			CASE_ENUM_TEXT(TOKEN_GREATER,		">")
-			CASE_ENUM_TEXT(TOKEN_LESSER,		"<")
-
-			CASE_ENUM_TEXT(TOKEN_EQUAL,			"=")
-			CASE_ENUM_TEXT(TOKEN_HASH,			"#")
-
-			CASE_ENUM_TEXT(TOKEN_STM_END,		";")
-			CASE_ENUM_TEXT(TOKEN_PAR_OPEN,		"(")
-			CASE_ENUM_TEXT(TOKEN_PAR_CLOSE,		")")
-			CASE_ENUM_TEXT(TOKEN_BRAC_OPEN,		"{")
-			CASE_ENUM_TEXT(TOKEN_BRAC_CLOSE,	"}")
-			CASE_ENUM_TEXT(TOKEN_SQ_BRAC_OPEN,	"[")
-			CASE_ENUM_TEXT(TOKEN_SQ_BRAC_CLOSE,	"]")
-			CASE_ENUM_TEXT(TOKEN_COLON,			":")
-			CASE_ENUM_TEXT(TOKEN_COMMA,			",")
-			CASE_ENUM_TEXT(TOKEN_DOT,			".")
-			CASE_ENUM_TEXT(TOKEN_AT,			"@")
-
-			default: return "--- UNDEFINED ---";
+				return _strdup(_buffer);
+		    }
 		}
+	    return NULL;
+	}
+
+	void skip_ignored_and_comments (Scanner* scanner) {
+		while (true) {
+			scanner->skip_any(LEXER_IGNORED);
+		    if (scanner->peek() == '/') {
+		        if (scanner->peek(1) == '/') {
+					scanner->skip_until("\n");
+					scanner->skip_any(LEXER_IGNORED);
+					continue;
+		        } else if (scanner->peek(1) == '*') {
+					scanner->skip_until("*/");
+					scanner->skip_any(LEXER_IGNORED);
+					continue;
+		        }
+		    }
+			return;
+		}
+	}
+
+	Token* new_token (Location* location, Token_Type type, const char* text = NULL) {
+		this->token_count++;
+		return new Token(location, type, text);
+	}
+
+	void print_metrics (double userInterval) {
+		double percent = (this->total_time * 100.0) / userInterval;
+		printf("  - %-25s%8.6fs (%5.2f%%)\n", "Lexer", this->total_time, percent);
+		printf("        Lines of Code:         %zd\n", this->lines_of_code);
+		printf("        Tokens created:        %zd\n", this->token_count);
 	}
 };

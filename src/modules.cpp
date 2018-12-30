@@ -2,7 +2,6 @@
 
 #include "compiler.hpp"
 #include "platform.hpp"
-#include "lexer/buffer/full_buffer.hpp"
 
 #include "pipeline/pipes/external_modules.hpp"
 #include "pipeline/pipes/symbol_resolution.hpp"
@@ -64,59 +63,38 @@ Modules::Modules (Compiler* compiler) {
         ->pipe(new Run_Directive(compiler->interp));
 }
 
-Ast_Scope* Modules::get_module (Code_Input* source) {
-    switch (source->type) {
-        case CODE_SOURCE_FILE: {
-            auto file_source = static_cast<File_Code_Input*>(source);
-            return this->get_module(file_source->absolute_path);
-        }
-        case CODE_SOURCE_STRING: {
-            auto string_source = static_cast<String_Code_Input*>(source);
-
-            auto lexer_buffer = new String_Buffer(string_source->source);
-            auto lexer = new Lexer(lexer_buffer);
-            auto scope = this->parser->run(lexer, this->internal_scope);
-
-            this->pipeline->process(scope);
-
-            return scope;
-        }
-        default: return NULL;
-    }
-}
-
-Ast_Scope* Modules::get_module (char* absolute_path) {
+Ast_Scope* Modules::get_module (const char* absolute_path) {
     if (!this->is_module_cached(absolute_path)) {
         return this->load_module(absolute_path);
     } else return this->cache[absolute_path];
 }
 
-bool Modules::is_module_cached (char* absolute_path) {
+bool Modules::is_module_cached (const char* absolute_path) {
     auto it = this->cache.find(absolute_path);
     return it != this->cache.end();
 }
 
-Ast_Scope* Modules::load_module (char* absolute_path) {
+Ast_Scope* Modules::load_module (const char* absolute_path) {
     char last_path[MAX_PATH_LENGTH];
     os_get_current_directory(last_path);
     os_set_current_directory_path(absolute_path);
 
-    auto lexer_buffer = new Full_Buffer(absolute_path);
-    auto lexer = new Lexer(lexer_buffer);
-    auto file_scope = this->parser->run(lexer, this->internal_scope);
+    auto scanner = new Scanner(absolute_path);
+    this->lexer->source_to_tokens(scanner, &this->parser->tokens);
+    delete scanner;
 
+    auto file_scope = this->parser->build_ast(this->internal_scope);
     this->pipeline->process(file_scope);
-    this->cache[absolute_path] = file_scope;
 
     os_set_current_directory(last_path);
 
+    this->cache[absolute_path] = file_scope;
     return file_scope;
 }
 
-bool Modules::free_module (char* absolute_path) {
-    if (this->is_module_cached(absolute_path)) {
-        this->cache.erase(absolute_path);
-        return true;
-    }
-    return false;
+void Modules::print_metrics (double userInterval) {
+	printf("\n");
+    this->lexer->print_metrics(userInterval);
+    this->parser->print_metrics(userInterval);
+    this->pipeline->print_metrics(userInterval);
 }

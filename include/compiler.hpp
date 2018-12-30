@@ -17,7 +17,7 @@ using namespace std;
 struct Compiler {
 	Compiler_Settings* settings = new Compiler_Settings();
 
-	queue<Code_Input*> code_sources;
+	queue<const char*> code_sources;
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();

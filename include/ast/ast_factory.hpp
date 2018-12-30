@@ -8,11 +8,11 @@ struct Ast_Factory {
     Location* location = NULL;
 
     template<typename T, typename ... Arguments>
-    T* create (Arguments ... args) {
+    T* create (Location* loc, Arguments ... args) {
         Ast_Factory::node_count++;
         auto node = new T(args...);
-        if (location != NULL) {
-            node->location = (*this->location);
+        if (loc != NULL) {
+            node->location = (*loc);
         }
         return node;
     }

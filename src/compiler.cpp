@@ -23,8 +23,7 @@ void Compiler::run () {
 		auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
 	    os_get_absolute_path(filename, absolute_path);
 
-		auto file_source = new File_Code_Input(absolute_path);
-		this->code_sources.push(file_source);
+		this->code_sources.push(absolute_path);
 	}
 
     auto totalWall = os_get_wall_time();
@@ -42,9 +41,7 @@ void Compiler::run () {
 	auto userInterval = os_time_user_stop(totalUser);
 	auto wallInterval = os_time_wall_stop(totalWall);
 
-	printf("\n");
-	this->modules->parser->print_metrics(userInterval);
-	this->modules->pipeline->print_metrics(userInterval);
+	this->modules->print_metrics(userInterval);
 
     printf(COMPILER_DONE_FORMAT, userInterval, wallInterval);
 }

@@ -208,9 +208,11 @@ struct Ast_Directive_Foreign : Ast_Directive {
     void add (Ast_Declaration* decl);
 
     const char* get_foreign_module_name_from_file () {
-        auto file_name = _strdup(os_get_file_part(this->location.filename));
-        file_name[strlen(file_name) - 3] = '\0';
-        return file_name;
+        if (this->location.filename != NULL) {
+            auto file_name = _strdup(os_get_file_part(this->location.filename));
+            file_name[strlen(file_name) - 3] = '\0';
+            return file_name;
+        } else return NULL;
     }
 
     const char* get_foreign_function_name (const char* current_function_name) {

@@ -68,3 +68,22 @@ enum Token_Type : uint8_t {
 	TOKEN_DOT				= '.',
 	TOKEN_AT				= '@',
 };
+
+struct Token {
+    Token_Type type;
+    const char* text;
+	uint16_t length;
+
+	Location location;
+
+	Token (Location* location, Token_Type type, const char* text = NULL) {
+		this->type = type;
+		this->text = text;
+
+		if (location) this->location = (*location);
+
+		if (text != NULL) {
+			this->length = (uint16_t) strlen(text);
+		} else this->length = 0;
+	}
+};
