@@ -107,23 +107,21 @@ Ast_Statement* Parser::statement () {
 			this->try_skip(TOKEN_STM_END);
 			return output;
 		}
-		default: {
-			auto ident = this->ident();
-			if (this->is_next(TOKEN_COLON)) {
-				return this->declaration(ident);
-			} else {
-				auto exp = this->expression(ident);
-				if (exp) {
-					if (this->try_skip(TOKEN_STM_END)) {
-						return exp;
-					} else {
-						auto output = AST_NEW(Ast_Return);
-						output->scope = this->current_scope;
-						output->expression = exp;
-						return output;
-					}
-				} else return NULL;
+		case TOKEN_ID: {
+			if (this->peek(1)->type == TOKEN_COLON) {
+				return this->declaration();
 			}
+		}
+		default: {
+			auto exp = this->expression();
+			if (exp) {
+				if (!this->try_skip(TOKEN_STM_END)) {
+					auto output = AST_NEW(Ast_Return);
+					output->scope = this->current_scope;
+					output->expression = exp;
+					return output;
+				} else return exp;
+			} else return NULL;
 		}
 	}
 }
@@ -211,13 +209,12 @@ Ast_Directive* Parser::directive () {
 	}
 }
 
-Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
-	if (!ident) ident = this->ident();
-	if (!ident) return NULL;
+Ast_Declaration* Parser::declaration () {
+	if(this->peek()->type != TOKEN_ID) return NULL;
 
 	auto decl = AST_NEW(Ast_Declaration);
 	decl->scope = this->current_scope;
-	decl->name = ident->name;
+	decl->name = this->next()->copy_text();
 
 	if (this->expect(TOKEN_COLON)) {
 		decl->type = this->type_instance();
@@ -247,8 +244,8 @@ Ast_Declaration* Parser::declaration (Ast_Ident* ident) {
 	return decl;
 }
 
-Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
-	auto output = this->_atom(initial);
+Ast_Expression* Parser::expression (short min_precedence) {
+	auto output = this->atom();
     if (output != NULL) {
         auto tt = this->peek()->type;
 		auto precedence = Ast_Binary::get_precedence(tt);
@@ -261,7 +258,7 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
 			}
 
 			Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
-			_tmp->rhs = this->expression(NULL, next_min_precedence);
+			_tmp->rhs = this->expression(next_min_precedence);
 			_tmp->lhs = output;
 			output = _tmp;
 
@@ -274,9 +271,9 @@ Ast_Expression* Parser::expression (Ast_Ident* initial, short min_precedence) {
 	return output;
 }
 
-Ast_Expression* Parser::_atom (Ast_Ident* initial) {
-	if (this->is_next(TOKEN_ID) || initial) {
-		auto output = initial ? initial : this->ident();
+Ast_Expression* Parser::atom () {
+	if (this->is_next(TOKEN_ID)) {
+		auto output = this->ident();
 		if (this->try_skip(TOKEN_PAR_OPEN)) {
 			auto call = AST_NEW(Ast_Function_Call);
 			call->func = output;
@@ -345,13 +342,13 @@ Ast_Expression* Parser::_atom (Ast_Ident* initial) {
 	} else if (this->try_skip(TOKEN_TRUE)) {
 		return ast_make_literal(true);
 	} else if (this->try_skip(TOKEN_MUL)) {
-		return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->_atom());
+		return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->atom());
 	} else if (this->try_skip(TOKEN_EXCLAMATION)) {
-		return AST_NEW(Ast_Unary, AST_UNARY_NOT, this->_atom());
+		return AST_NEW(Ast_Unary, AST_UNARY_NOT, this->atom());
 	} else if (this->try_skip(TOKEN_SUB)) {
-		return AST_NEW(Ast_Unary, AST_UNARY_NEGATE, this->_atom());
+		return AST_NEW(Ast_Unary, AST_UNARY_NEGATE, this->atom());
 	} else if (this->try_skip(TOKEN_AMP)) {
-		return AST_NEW(Ast_Unary, AST_UNARY_DEREFERENCE, this->_atom());
+		return AST_NEW(Ast_Unary, AST_UNARY_DEREFERENCE, this->atom());
 	} else if (this->try_skip(TOKEN_ADD)) {
 		return this->expression();
 	} else return this->literal();
@@ -441,7 +438,7 @@ Ast_Literal* Parser::literal () {
 }
 
 Ast_Literal* Parser::string_literal () {
-	if (this->peek()->type == TOKEN_STRING) {
+	if (this->is_next(TOKEN_STRING)) {
 		auto token = this->next();
 
 		auto output = AST_NEW(Ast_Literal);

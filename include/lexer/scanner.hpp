@@ -38,32 +38,39 @@ struct Scanner {
         }
     }
 
+	inline
 	const char* ref () {
 		return this->source + this->index;
 	}
 
+	inline
 	char next () {
         auto c = this->source[this->index++];
         this->handle_location(c);
         return c;
     }
 
+	inline
 	bool has_next () {
         return this->index < this->source_length;
     }
 
+	inline
 	char peek (size_t offset = 0) {
         return this->source[this->index + offset];
     }
 
+	inline
     bool is_next (char c) {
-    	return this->peek() == c;
+    	return this->source[this->index] == c;
     }
 
+	inline
     bool is_next (const char* expected) {
     	return this->is_next(expected, strlen(expected));
     }
 
+	inline
     bool is_next (const char* expected, size_t length) {
     	for (size_t i = 0; i < length; i++) {
             if (this->peek(i) != expected[i])
@@ -72,6 +79,7 @@ struct Scanner {
         return true;
     }
 
+	inline
     void skip (size_t count = 1) {
     	size_t i = 0;
     	while (this->has_next() && i < count) {
@@ -80,11 +88,13 @@ struct Scanner {
     	}
     }
 
+	inline
 	char skip_and_peek (size_t count = 1) {
     	this->skip(count);
 		return this->peek();
     }
 
+	inline
     void skip_any (const char* chars) {
     	while (this->has_next()) {
     		char _c = this->peek(0);
@@ -94,6 +104,7 @@ struct Scanner {
     	}
     }
 
+	inline
     void skip_until (const char* stopper) {
     	size_t i = 0;
     	while (this->has_next()) {

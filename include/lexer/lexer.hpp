@@ -8,23 +8,26 @@
 #define LEXER_IGNORED " \n\t"
 #define LEXER_BUFFER_SIZE 256
 
-#define CHECK_STR_TOKEN(text, type) if (scanner->is_next(text))					\
-	{ scanner->skip(strlen(text)); return new Token(&scanner->location, type); }
+#define CHECK_STR_TOKEN(text, type, length) if (scanner->is_next(text, length))	\
+	{ scanner->skip(length); return new Token(&scanner->location, type); }
 
-#define CHECK_STR2_TOKEN(text, type) if (scanner->is_next(text))				\
-	{ scanner->skip(2); return new Token(&scanner->location, type); }
+#define CHECK_STR2_TOKEN(text, type) CHECK_STR_TOKEN(text, type, 2)
 
 #define CHECK_CHAR_TOKEN(c, type) if (scanner->is_next(c))						\
 	{ scanner->skip(); return new Token(&scanner->location, type); }
 
-#define CHECK_DYN_TOKEN(func, type) auto tmp_##func = func(scanner);			\
-	if (tmp_##func) return new Token(&scanner->location, type, tmp_##func);
+#define CHECK_DYN_TOKEN(func, type) tmp = func(scanner);						\
+	if (tmp) return new Token(&scanner->location, type, scanner->ref() - tmp, tmp);
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
 #define DIGIT(c) (c >= '0' && c <= '9')
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
+#define SIGN(c) (c == '+' || c == '-')
 
-#define CONSUME(check, c) while (check(c)) { _buffer[count++] = c; scanner->skip(); c = scanner->peek(); }
+struct Token_Metrics {
+	size_t count = 0;
+	double total_time = 0;
+};
 
 struct Lexer {
 	uint64_t lines_of_code = 0;
@@ -38,16 +41,40 @@ struct Lexer {
 		auto token = this->get_next_token(scanner);
 		while (token != NULL) {
 			tokens->push_back(token);
+
 			token = this->get_next_token(scanner);
 		}
 
 		this->lines_of_code += scanner->location.line;
 		this->token_count += tokens->size();
-		this->total_time += os_time_user_stop(start);
+
+		auto interval = os_time_user_stop(start);
+		this->total_time += interval;
+		//printf("We took: %lf [%zd] (%s)\n", interval, scanner->location.line, scanner->location.filename);
 	}
 
 	Token* get_next_token (Scanner* scanner) {
+		size_t tmp;
+
 		this->skip_ignored_and_comments(scanner);
+
+		CHECK_STR_TOKEN("if", 		TOKEN_IF, 		2);
+		CHECK_STR_TOKEN("else", 	TOKEN_ELSE, 	4);
+		CHECK_STR_TOKEN("while", 	TOKEN_WHILE, 	5);
+		CHECK_STR_TOKEN("break", 	TOKEN_BREAK, 	5);
+		CHECK_STR_TOKEN("cast", 	TOKEN_CAST, 	4);
+		CHECK_STR_TOKEN("struct", 	TOKEN_STRUCT, 	6);
+		CHECK_STR_TOKEN("fn", 		TOKEN_FUNCTION, 2);
+		CHECK_STR_TOKEN("return", 	TOKEN_RETURN, 	6);
+		CHECK_STR_TOKEN("import", 	TOKEN_IMPORT, 	6);
+		CHECK_STR_TOKEN("include", 	TOKEN_INCLUDE, 	7);
+		CHECK_STR_TOKEN("foreign", 	TOKEN_FOREIGN, 	7);
+		CHECK_STR_TOKEN("run", 		TOKEN_RUN, 		3);
+		CHECK_STR_TOKEN("false", 	TOKEN_FALSE, 	5);
+		CHECK_STR_TOKEN("true", 	TOKEN_TRUE, 	4);
+		CHECK_STR_TOKEN("null", 	TOKEN_NULL, 	4);
+
+		CHECK_DYN_TOKEN(this->identifier, TOKEN_ID);
 
 		CHECK_STR2_TOKEN("->", TOKEN_ARROW);
 		CHECK_STR2_TOKEN("&&", TOKEN_DOUBLE_AMP);
@@ -62,6 +89,9 @@ struct Lexer {
 		CHECK_STR2_TOKEN("--", TOKEN_DOUBLE_SUB);
 		CHECK_STR2_TOKEN("..", TOKEN_DOUBLE_DOT);
 
+		CHECK_CHAR_TOKEN(';', TOKEN_STM_END);
+	    CHECK_CHAR_TOKEN('(', TOKEN_PAR_OPEN);
+	    CHECK_CHAR_TOKEN(')', TOKEN_PAR_CLOSE);
 		CHECK_CHAR_TOKEN('+', TOKEN_ADD);
 		CHECK_CHAR_TOKEN('-', TOKEN_SUB);
 		CHECK_CHAR_TOKEN('*', TOKEN_MUL);
@@ -79,46 +109,15 @@ struct Lexer {
 		CHECK_CHAR_TOKEN('#', TOKEN_HASH);
 		CHECK_CHAR_TOKEN('=', TOKEN_EQUAL);
 		CHECK_CHAR_TOKEN(':', TOKEN_COLON);
-		CHECK_CHAR_TOKEN(';', TOKEN_STM_END);
 	    CHECK_CHAR_TOKEN('.', TOKEN_DOT);
 	    CHECK_CHAR_TOKEN(',', TOKEN_COMMA);
-	    CHECK_CHAR_TOKEN('(', TOKEN_PAR_OPEN);
-	    CHECK_CHAR_TOKEN(')', TOKEN_PAR_CLOSE);
 	    CHECK_CHAR_TOKEN('{', TOKEN_BRAC_OPEN);
 	    CHECK_CHAR_TOKEN('}', TOKEN_BRAC_CLOSE);
 	    CHECK_CHAR_TOKEN('[', TOKEN_SQ_BRAC_OPEN);
 	    CHECK_CHAR_TOKEN(']', TOKEN_SQ_BRAC_CLOSE);
 
-		CHECK_STR_TOKEN("if", TOKEN_IF);
-		CHECK_STR_TOKEN("else", TOKEN_ELSE);
-		CHECK_STR_TOKEN("while", TOKEN_WHILE);
-		CHECK_STR_TOKEN("break", TOKEN_BREAK);
-		CHECK_STR_TOKEN("cast", TOKEN_CAST);
-		CHECK_STR_TOKEN("struct", TOKEN_STRUCT);
-		CHECK_STR_TOKEN("fn", TOKEN_FUNCTION);
-		CHECK_STR_TOKEN("return", TOKEN_RETURN);
-		CHECK_STR_TOKEN("import", TOKEN_IMPORT);
-		CHECK_STR_TOKEN("include", TOKEN_INCLUDE);
-		CHECK_STR_TOKEN("foreign", TOKEN_FOREIGN);
-		CHECK_STR_TOKEN("run", TOKEN_RUN);
-		CHECK_STR_TOKEN("false", TOKEN_FALSE);
-		CHECK_STR_TOKEN("true", TOKEN_TRUE);
-		CHECK_STR_TOKEN("null", TOKEN_NULL);
-
-		auto tmp = this->identifier(scanner);
-		if (tmp) {
-			return new Token(&scanner->location, TOKEN_ID, scanner->ref() - tmp, tmp);
-		}
-
-		tmp = this->string(scanner);
-		if (tmp) {
-			return new Token(&scanner->location, TOKEN_STRING, scanner->ref() - tmp, tmp);
-		}
-
-		tmp = this->number(scanner);
-		if (tmp) {
-			return new Token(&scanner->location, TOKEN_NUMBER, scanner->ref() - tmp, tmp);
-		}
+		CHECK_DYN_TOKEN(this->string, TOKEN_STRING);
+		CHECK_DYN_TOKEN(this->number, TOKEN_NUMBER);
 
 		return NULL;
 	}
@@ -171,7 +170,7 @@ struct Lexer {
 				c = scanner->skip_and_peek();
 			}
 		} else {
-		    if (c == '+' || c == '-') {
+		    if (SIGN(c)) {
 		        c = scanner->skip_and_peek();
 		    }
 		    if (DIGIT(c) || c == '.') {

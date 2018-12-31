@@ -28,11 +28,11 @@ struct Parser {
 	Ast_Directive* directive ();
 	Ast_Statement* statement ();
 	Ast_Scope* scoped_statement ();
-	Ast_Declaration* declaration (Ast_Ident* ident = NULL);
+	Ast_Declaration* declaration ();
 	Ast_Declaration* declaration_or_type ();
-	Ast_Expression* expression (Ast_Ident* initial = NULL, short minPrecedence = 1);
+	Ast_Expression* expression (short minPrecedence = 1);
 	Ast_Arguments* arguments ();
-	Ast_Expression* _atom (Ast_Ident* initial = NULL);
+	Ast_Expression* atom ();
 	Ast_Expression* type_instance ();
 	Ast_Function_Type* function_type ();
 	Ast_Literal* literal ();
