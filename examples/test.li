@@ -47,8 +47,6 @@ test_any :: fn {
 	}
 }
 
-CONST_NUM :: 17;
-
 test_default_args :: fn {
 	print_nums(1, 2);
 	print_nums();
@@ -78,6 +76,8 @@ test_named_args :: fn {
 		println(" ]");
 	}
 }
+
+CONST_NUM :: 17;
 
 test_factorial :: fn {
 	assert(factorial(5) == 120);

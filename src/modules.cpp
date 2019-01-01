@@ -5,6 +5,7 @@
 
 #include "pipeline/pipes/external_modules.hpp"
 #include "pipeline/pipes/symbol_resolution.hpp"
+#include "pipeline/pipes/constant_propagation.hpp"
 #include "pipeline/pipes/constant_folding.hpp"
 #include "pipeline/pipes/cast_strings.hpp"
 #include "pipeline/pipes/cast_arrays.hpp"
@@ -50,13 +51,14 @@ Modules::Modules (Compiler* compiler) {
 
         ->pipe(new Foreign_Function())
         ->pipe(new Symbol_Resolution())
+        ->pipe(new Constant_Propagation())
+        ->pipe(new Static_If())
         ->pipe(new Cast_Strings())
         ->pipe(new Type_Checking())
         ->pipe(new Cast_Arrays())
         ->pipe(new Cast_Anys())
         ->pipe(new Constant_Folding())
         ->pipe(new Call_Arguments())
-        ->pipe(new Static_If())
 
         ->pipe(new Register_Allocator())
         ->pipe(new Bytecode_Generator())

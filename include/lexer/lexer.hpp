@@ -35,15 +35,14 @@ struct Lexer {
 	double total_time = 0;
 
 	void source_to_tokens (Scanner* scanner, std::vector<Token*>* tokens) {
+		ASSERT(tokens->empty());
 		auto start = os_get_user_time();
 
-		ASSERT(tokens->empty());
-		auto token = this->get_next_token(scanner);
-		while (token != NULL) {
-			tokens->push_back(token);
-
+		Token* token = NULL;
+		do {
 			token = this->get_next_token(scanner);
-		}
+			tokens->push_back(token);
+		} while (token->type != TOKEN_EOF);
 
 		this->lines_of_code += scanner->location.line;
 		this->token_count += tokens->size();
@@ -119,7 +118,7 @@ struct Lexer {
 		CHECK_DYN_TOKEN(this->string, TOKEN_STRING);
 		CHECK_DYN_TOKEN(this->number, TOKEN_NUMBER);
 
-		return NULL;
+		return new Token(&scanner->location, TOKEN_EOF);
 	}
 
 	size_t identifier (Scanner* scanner) {

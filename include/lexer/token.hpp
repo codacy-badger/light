@@ -95,4 +95,75 @@ struct Token {
 		tmp[this->length] = '\0';
 		return tmp;
 	}
+
+	static const char* to_string (Token_Type type) {
+		switch (type) {
+			case TOKEN_EOF:				return "<EOF>";
+
+			case TOKEN_ID:				return "<identifier>";
+			case TOKEN_NUMBER:			return "<number>";
+			case TOKEN_STRING:			return "<string>";
+
+			case TOKEN_DOUBLE_AMP:		return "&&";
+			case TOKEN_DOUBLE_PIPE:		return "||";
+			case TOKEN_DOUBLE_ADD:		return "++";
+			case TOKEN_DOUBLE_SUB:		return "--";
+			case TOKEN_DOUBLE_EQUAL:	return "==";
+			case TOKEN_NOT_EQUAL:		return "!=";
+			case TOKEN_GREATER_EQUAL:	return ">=";
+			case TOKEN_LESSER_EQUAL:	return "<=";
+			case TOKEN_RIGHT_SHIFT:		return ">>";
+			case TOKEN_LEFT_SHIFT:		return "<<";
+			case TOKEN_DOUBLE_DOT:		return "..";
+			case TOKEN_ARROW:			return "->";
+
+			case TOKEN_IF:				return "if";
+			case TOKEN_ELSE:			return "else";
+			case TOKEN_WHILE:			return "while";
+			case TOKEN_BREAK:			return "break";
+			case TOKEN_CAST:			return "cast";
+			case TOKEN_STRUCT:			return "struct";
+			case TOKEN_FUNCTION:		return "fn";
+			case TOKEN_RETURN:			return "return";
+			case TOKEN_IMPORT:			return "import";
+			case TOKEN_INCLUDE:			return "include";
+			case TOKEN_FOREIGN:			return "foreign";
+			case TOKEN_RUN:				return "run";
+			case TOKEN_FALSE:			return "false";
+			case TOKEN_TRUE:			return "true";
+			case TOKEN_NULL:			return "null";
+
+			case TOKEN_EXCLAMATION:		return "!";
+			case TOKEN_DOLLAR:			return "$";
+
+			case TOKEN_AMP:				return "&";
+			case TOKEN_PIPE:			return "|";
+			case TOKEN_CARET:			return "^";
+			case TOKEN_TILDE:			return "'";
+			case TOKEN_ADD:				return "+";
+			case TOKEN_SUB:				return "-";
+			case TOKEN_DIV:				return "/";
+			case TOKEN_MUL:				return "*";
+			case TOKEN_PERCENT:			return "%";
+			case TOKEN_GREATER:			return ">";
+			case TOKEN_LESSER:			return "<";
+
+			case TOKEN_EQUAL:			return "=";
+			case TOKEN_HASH:			return "#";
+
+			case TOKEN_STM_END:			return ";";
+			case TOKEN_PAR_OPEN:		return "(";
+			case TOKEN_PAR_CLOSE:		return ")";
+			case TOKEN_BRAC_OPEN:		return "{";
+			case TOKEN_BRAC_CLOSE:		return "}";
+			case TOKEN_SQ_BRAC_OPEN:	return "[";
+			case TOKEN_SQ_BRAC_CLOSE:	return "]";
+			case TOKEN_COLON:			return ":";
+			case TOKEN_COMMA:			return ",";
+			case TOKEN_DOT:				return ".";
+			case TOKEN_AT:				return "@";
+
+			default: 					return "<?>";
+		}
+	}
 };

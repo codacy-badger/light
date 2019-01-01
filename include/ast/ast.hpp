@@ -81,8 +81,6 @@ struct Ast_Scope : Ast_Statement {
 	}
 
 	void add (Ast_Statement* stm) {
-		stm->notes.insert(stm->notes.end(),
-			this->notes.begin(), this->notes.end());
 		this->statements.push_back(stm);
 	}
 
@@ -137,9 +135,11 @@ struct Ast_Declaration : Ast_Statement {
 
 struct Ast_Return : Ast_Statement {
 	Ast_Expression* expression = NULL;
-	Ast_Scope* scope = NULL;
 
-	Ast_Return() { this->stm_type = AST_STATEMENT_RETURN; }
+	Ast_Return(Ast_Expression* expression = NULL) {
+        this->stm_type = AST_STATEMENT_RETURN;
+        this->expression = expression;
+    }
 };
 
 enum Ast_Expression_Type {
@@ -479,12 +479,11 @@ struct Ast_Literal : Ast_Expression {
 struct Ast_Ident : Ast_Expression {
 	const char* name = NULL;
 
-	Ast_Scope* scope = NULL;
 	Ast_Declaration* declaration = NULL;
 
-	Ast_Ident (Ast_Scope* scope = NULL) {
+	Ast_Ident () {
 		this->exp_type = AST_EXPRESSION_IDENT;
-		this->scope = scope;
+		//this->scope = scope;
 	}
 };
 

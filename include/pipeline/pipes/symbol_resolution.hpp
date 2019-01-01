@@ -1,20 +1,20 @@
 #pragma once
 
-#include "pipeline/scoped_pipe.hpp"
+#include "pipeline/pipe.hpp"
 
 #include <vector>
 #include <map>
 
 using namespace std;
 
-struct Symbol_Resolution : Scoped_Pipe {
+struct Symbol_Resolution : Pipe {
     vector<Ast_Scope*> unresolved_scopes;
     Ast_Scope* current_scope = NULL;
 
 	Symbol_Resolution () { this->pipe_name = "Symbol_Resolution"; }
 
     void process (Ast_Scope* scope) {
-        Scoped_Pipe::process(scope);
+        Pipe::process(scope);
 
         if (!scope->unresolved_idents.empty()) {
             this->stop_processing = true;
@@ -100,7 +100,7 @@ struct Symbol_Resolution : Scoped_Pipe {
             }
         }
 
-        Scoped_Pipe::handle(scope_ptr);
+        Pipe::handle(scope_ptr);
         this->current_scope = tmp;
     }
 
@@ -128,13 +128,16 @@ struct Symbol_Resolution : Scoped_Pipe {
 	        }
 	    }
 
-	    for (auto scope : this->unresolved_scopes) {
+        // TODO: we need to uniquely report idents not found, but we shouldn't
+        // need to store scope information in the ident for that...
+
+	    /*for (auto scope : this->unresolved_scopes) {
             auto ident_ptr = idents->begin();
             while (ident_ptr != idents->end()) {
                 if ((*ident_ptr)->scope->is_ancestor(scope)) {
                     ident_ptr = idents->erase(ident_ptr);
                 } else ident_ptr++;
             }
-	    }
+	    }*/
 	}
 };

@@ -13,7 +13,6 @@ struct Parser {
 	Ast_Factory* factory = new Ast_Factory();
 	Ast_Scope* current_scope = NULL;
 
-	static Token* eof;
 	vector<Token*> tokens;
 	size_t index;
 
@@ -21,12 +20,12 @@ struct Parser {
 	size_t all_lines = 0;
 	double total_time = 0;
 
-	Ast_Scope* build_ast (Ast_Scope* parent);
+	Ast_Scope* build_ast (Ast_Scope* internal_scope);
 
 	Ast_Scope* scope (Ast_Scope* inner_scope = NULL);
-	const char* note ();
 	Ast_Directive* directive ();
 	Ast_Statement* statement ();
+	Ast_If* _if ();
 	Ast_Scope* scoped_statement ();
 	Ast_Declaration* declaration ();
 	Ast_Declaration* declaration_or_type ();
@@ -46,7 +45,8 @@ struct Parser {
 	bool is_next (Token_Type type);
 	void skip (size_t offset = 1);
 	bool try_skip (Token_Type type);
-	bool expect (Token_Type type);
+	void expect (Token_Type type);
+	void report_expected (const char* name);
 
 	void print_metrics(double total_time);
 };

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "pipeline/pipe.hpp"
+#include "pipeline/scoped_pipe.hpp"
 
 #include "compiler.hpp"
 #include "ast/ast.hpp"
 #include "ast/ast_cloner.hpp"
 
-struct Type_Checking : Pipe {
+struct Type_Checking : Scoped_Pipe {
 	Type_Checking () { this->pipe_name = "Type_Checking"; }
 
 	// @Info this pipe ensures that all expressions have a valid inferred_type
@@ -34,6 +34,19 @@ struct Type_Checking : Pipe {
 						decl->expression->inferred_type->name, decl_type_inst->name);
 				}
 			} else decl->type = decl->expression->inferred_type;
+
+			if (decl->is_constant()) {
+				if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
+					auto fn = static_cast<Ast_Function*>(decl->expression);
+					fn->name = decl->name;
+				} else if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+					auto defn_ty = static_cast<Ast_Type_Instance*>(decl->expression);
+					if (defn_ty->typedef_type == AST_TYPEDEF_STRUCT) {
+						auto _struct = static_cast<Ast_Struct_Type*>(defn_ty);
+						_struct->name = decl->name;
+					}
+				}
+			}
 		}
 
 		Pipe::handle(&decl->type);
@@ -67,7 +80,7 @@ struct Type_Checking : Pipe {
 	void handle (Ast_Return** ret_ptr) {
 		auto ret = (*ret_ptr);
 
-		auto fn = ret->scope->get_parent_function();
+		auto fn = this->current_scope->get_parent_function();
 		if (!fn) ERROR_STOP(ret, "Return statement must be inside a function");
 
 		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->type->ret_type);
@@ -191,7 +204,7 @@ struct Type_Checking : Pipe {
 		    func->inferred_type = func->type;
 
 			if (func->scope) {
-				Pipe::handle(&func->scope);
+				Scoped_Pipe::handle(&func->scope);
 			}
 		}
 	}
@@ -351,18 +364,7 @@ struct Type_Checking : Pipe {
 		auto ident = (*ident_ptr);
 
 		if (ident->declaration) {
-			if (ident->declaration->is_constant()) {
-				Pipe::handle(&ident->declaration);
-
-			    auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr);
-				auto exp = (*ident_ptr)->declaration->expression;
-				if (exp->exp_type != AST_EXPRESSION_TYPE_INSTANCE
-						&& exp->exp_type != AST_EXPRESSION_FUNCTION) {
-					(*_addr) = Ast_Cloner::clone(exp);
-				} else (*_addr) = exp;
-	        } else {
-				ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
-			}
+			ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
 		} else ERROR_STOP(ident, "Indetifier '%s' has no declaration", ident->name);
 	}
 
