@@ -6,21 +6,56 @@
 #include "lexer/lexer.hpp"
 #include "pipeline/pipe.hpp"
 #include "ast/ast.hpp"
+#include "ast/types.hpp"
 
 using namespace std;
 
+#define DECL_TYPE(scope, type) scope->statements.push_back(ast_make_declaration(type->name, type));
+
+#define IS_WINDOWS_LITERAL ast_make_literal(os_get_type() == OS_TYPE_WINDOWS)
+#define IS_LINUX_LITERAL ast_make_literal(os_get_type() == OS_TYPE_LINUX)
+#define IS_MAC_LITERAL ast_make_literal(os_get_type() == OS_TYPE_MAC)
+
 struct Parser {
+	// TODO: merge this attribute with current_scope
+	Ast_Scope* internal_scope = new Ast_Scope();
 	Ast_Factory* factory = new Ast_Factory();
 	Ast_Scope* current_scope = NULL;
 
-	vector<Token*> tokens;
+	vector<Token*>* tokens = NULL;
 	size_t index;
 
 	// for metrics
 	size_t all_lines = 0;
 	double total_time = 0;
 
-	Ast_Scope* build_ast (Ast_Scope* internal_scope);
+	Parser () {
+	    DECL_TYPE(this->internal_scope, Types::type_type);
+	    DECL_TYPE(this->internal_scope, Types::type_void);
+	    DECL_TYPE(this->internal_scope, Types::type_bool);
+	    DECL_TYPE(this->internal_scope, Types::type_s8);
+	    DECL_TYPE(this->internal_scope, Types::type_s16);
+	    DECL_TYPE(this->internal_scope, Types::type_s32);
+	    DECL_TYPE(this->internal_scope, Types::type_s64);
+	    DECL_TYPE(this->internal_scope, Types::type_u8);
+	    DECL_TYPE(this->internal_scope, Types::type_u16);
+	    DECL_TYPE(this->internal_scope, Types::type_u32);
+	    DECL_TYPE(this->internal_scope, Types::type_u64);
+	    DECL_TYPE(this->internal_scope, Types::type_f32);
+	    DECL_TYPE(this->internal_scope, Types::type_f64);
+	    DECL_TYPE(this->internal_scope, Types::type_string);
+	    DECL_TYPE(this->internal_scope, Types::type_any);
+
+	    this->internal_scope->add(ast_make_declaration("OS_WINDOWS", IS_WINDOWS_LITERAL));
+	    this->internal_scope->add(ast_make_declaration("OS_LINUX", IS_LINUX_LITERAL));
+	    this->internal_scope->add(ast_make_declaration("OS_MAC", IS_MAC_LITERAL));
+
+		Events::add_observer(CE_MODULE_LEXED, &Parser::handle_lexed_file, this);
+	}
+
+	void handle_lexed_file (void* data);
+
+	Ast_Scope* build_ast ();
 
 	Ast_Scope* scope (Ast_Scope* inner_scope = NULL);
 	Ast_Directive* directive ();
@@ -39,6 +74,7 @@ struct Parser {
 	Ast_Ident* ident ();
 
 	const char* escape_string (const char* original, size_t length);
+	const char* escaped_string ();
 
 	Token* peek (size_t offset = 0);
 	Token* next ();

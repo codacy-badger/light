@@ -6,17 +6,25 @@
 
 #define AST_NEW(T, ...) this->factory->create<T>(&this->peek()->location, __VA_ARGS__)
 
-Ast_Scope* Parser::build_ast (Ast_Scope* internal_scope) {
+void Parser::handle_lexed_file (void* data) {
+	auto module = reinterpret_cast<Module*>(data);
+
+	this->tokens = module->tokens;
+	module->global_scope = this->build_ast();
+	Events::trigger(CE_MODULE_PARSED, module);
+}
+
+Ast_Scope* Parser::build_ast () {
 	auto start = os_get_user_time();
 
-	auto global_scope = AST_NEW(Ast_Scope, internal_scope);
+	auto global_scope = AST_NEW(Ast_Scope, this->internal_scope);
 	global_scope->is_global = true;
 
 	this->index = 0;
 	this->scope(global_scope);
-	for (auto token : this->tokens)
+	for (auto token : *this->tokens)
 		delete token;
-	this->tokens.clear();
+	this->tokens->clear();
 
 	this->total_time += os_time_user_stop(start);
 	return global_scope;
@@ -142,19 +150,6 @@ Ast_Directive* Parser::directive () {
 
 			return import;
 		}
-		case TOKEN_INCLUDE: {
-			this->skip();
-			auto include = AST_NEW(Ast_Directive_Include);
-
-			auto literal = this->string_literal();
-			auto new_length = strlen(literal->string_value) + 4;
-
-			auto tmp = (char*) malloc(new_length);
-			sprintf_s(tmp, new_length, "%s" DEFAULT_FILE_EXTENSION, literal->string_value);
-			include->path = tmp;
-
-			return include;
-		}
 		case TOKEN_RUN: {
 			this->skip();
 			auto run = AST_NEW(Ast_Directive_Run);
@@ -166,11 +161,11 @@ Ast_Directive* Parser::directive () {
 			auto foreign = AST_NEW(Ast_Directive_Foreign);
 
 			if (this->is_next(TOKEN_STRING)) {
-				foreign->module_name = this->next()->copy_text();
+				foreign->module_name = this->escaped_string();
 			} else foreign->module_name = foreign->get_foreign_module_name_from_file();
 
 			if (this->is_next(TOKEN_STRING)) {
-				foreign->function_name = this->next()->copy_text();
+				foreign->function_name = this->escaped_string();
 			}
 
 			if (this->try_skip(TOKEN_BRAC_OPEN)) {
@@ -408,10 +403,8 @@ Ast_Literal* Parser::literal () {
 
 Ast_Literal* Parser::string_literal () {
 	if (this->is_next(TOKEN_STRING)) {
-		auto token = this->next();
-
 		auto output = AST_NEW(Ast_Literal);
-		output->string_value = this->escape_string(token->text, token->length);
+		output->string_value = this->escaped_string();
 		output->literal_type = AST_LITERAL_STRING;
 		return output;
 	} else return NULL;
@@ -447,6 +440,11 @@ Ast_Ident* Parser::ident () {
 	return ident;
 }
 
+const char* Parser::escaped_string () {
+	auto token = this->next();
+	return this->escape_string(token->text, token->length);
+}
+
 const char* Parser::escape_string (const char* original, size_t length) {
 	auto output = (char*) malloc(length - 1);
 
@@ -470,16 +468,16 @@ const char* Parser::escape_string (const char* original, size_t length) {
 
 Token* Parser::peek (size_t offset) {
 	auto new_index = this->index + offset;
-	if (new_index >= this->tokens.size()) {
-		new_index = this->tokens.size() - 1;
+	if (new_index >= this->tokens->size()) {
+		new_index = this->tokens->size() - 1;
 	}
-	return this->tokens[new_index];
+	return (*this->tokens)[new_index];
 }
 
 Token* Parser::next () {
-	if (this->index == (this->tokens.size() - 1)) {
-		return this->tokens[this->index];
-	} else return this->tokens[this->index++];
+	if (this->index == (this->tokens->size() - 1)) {
+		return (*this->tokens)[this->index];
+	} else return (*this->tokens)[this->index++];
 }
 
 bool Parser::is_next (Token_Type type) {

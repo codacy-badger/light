@@ -164,10 +164,6 @@ struct Pipe {
 				this->handle(reinterpret_cast<Ast_Directive_Import**>(directive));
 				break;
 			}
-			case AST_DIRECTIVE_INCLUDE: {
-				this->handle(reinterpret_cast<Ast_Directive_Include**>(directive));
-				break;
-			}
 			case AST_DIRECTIVE_FOREIGN: {
 				this->handle(reinterpret_cast<Ast_Directive_Foreign**>(directive));
 				break;
@@ -185,8 +181,6 @@ struct Pipe {
 	}
 
 	virtual void handle (Ast_Directive_Import**) { /* empty */ }
-
-	virtual void handle (Ast_Directive_Include**) { /* empty */ }
 
 	virtual void handle (Ast_Directive_Foreign**) { /* empty */ }
 

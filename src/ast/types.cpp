@@ -140,7 +140,6 @@ Ast_Pointer_Type* Types::get_pointer_type (Ast_Expression* base) {
 	    if (it != this->ptr_types.end()) return it->second;
 	    else {
 			auto ptr_type = new Ast_Pointer_Type(base_type);
-			ast_compute_type_name_if_needed(ptr_type);
 			this->add_new_global_unique_type(ptr_type);
 			this->ptr_types[base_type] = ptr_type;
 
@@ -158,7 +157,6 @@ Ast_Slice_Type* Types::get_slice_type (Ast_Expression* base) {
 	    if (it != this->sli_types.end()) return it->second;
 	    else {
 			auto sli_type = new Ast_Slice_Type(base_type);
-			ast_compute_type_name_if_needed(sli_type);
 			this->add_new_global_unique_type(sli_type);
 			this->sli_types[base_type] = sli_type;
 			return sli_type;

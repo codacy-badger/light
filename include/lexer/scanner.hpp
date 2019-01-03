@@ -36,6 +36,8 @@ struct Scanner {
         while (!feof(file)) {
             size += fread((void*) (this->source + size), 1, this->source_length, file);
         }
+
+		fclose(file);
     }
 
 	inline

@@ -14,6 +14,9 @@ struct Foreign_Function : Scoped_Statement_Pipe {
 		for (auto decl : foreign->declarations) {
 			auto func = static_cast<Ast_Function*>(decl->expression);
 
+			// @TODO @Optimize NO NO NO we shouldn't get the function pointer
+			// unless we're going to call the function for sure, so this
+			// should be wrapped around lazy loading
 			auto module = os_get_module(func->foreign_module_name);
 			if (module) {
 				func->foreign_function_pointer = os_get_function(module, func->foreign_function_name);

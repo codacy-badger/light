@@ -1,6 +1,10 @@
 #pragma once
 
+#include "report.hpp"
+
 #include <stdint.h>
+#include <string.h>
+#include <malloc.h>
 
 enum Token_Type : uint8_t {
 	TOKEN_EOF = 0,

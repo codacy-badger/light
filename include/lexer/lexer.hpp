@@ -2,11 +2,12 @@
 
 #include "scanner.hpp"
 #include "token.hpp"
+#include "compiler_events.hpp"
+#include "events.hpp"
 
 #include <vector>
 
 #define LEXER_IGNORED " \n\t"
-#define LEXER_BUFFER_SIZE 256
 
 #define CHECK_STR_TOKEN(text, type, length) if (scanner->is_next(text, length))	\
 	{ scanner->skip(length); return new Token(&scanner->location, type); }
@@ -24,15 +25,29 @@
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 #define SIGN(c) (c == '+' || c == '-')
 
-struct Token_Metrics {
-	size_t count = 0;
-	double total_time = 0;
-};
-
 struct Lexer {
 	uint64_t lines_of_code = 0;
 	uint64_t token_count = 0;
 	double total_time = 0;
+
+	Lexer () {
+		Events::add_observer(CE_IMPORT_MODULE, &Lexer::handle_file, this);
+	}
+
+	void handle_file (void* data) {
+		auto absolute_path = reinterpret_cast<char*>(data);
+
+		auto module = new Module();
+		module->absolute_path = absolute_path;
+
+		auto scanner = new Scanner(absolute_path);
+		module->tokens = new std::vector<Token*>();
+
+		this->source_to_tokens(scanner, module->tokens);
+		Events::trigger(CE_MODULE_LEXED, module);
+
+		delete scanner;
+	}
 
 	void source_to_tokens (Scanner* scanner, std::vector<Token*>* tokens) {
 		ASSERT(tokens->empty());
@@ -45,11 +60,8 @@ struct Lexer {
 		} while (token->type != TOKEN_EOF);
 
 		this->lines_of_code += scanner->location.line;
+		this->total_time += os_time_user_stop(start);
 		this->token_count += tokens->size();
-
-		auto interval = os_time_user_stop(start);
-		this->total_time += interval;
-		//printf("We took: %lf [%zd] (%s)\n", interval, scanner->location.line, scanner->location.filename);
 	}
 
 	Token* get_next_token (Scanner* scanner) {

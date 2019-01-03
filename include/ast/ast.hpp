@@ -1,5 +1,6 @@
 #pragma once
 
+#include "module.hpp"
 #include "platform.hpp"
 #include "lexer/lexer.hpp"
 
@@ -65,7 +66,7 @@ struct Ast_Statement : Ast {
 
 struct Ast_Scope : Ast_Statement {
 	vector<Ast_Statement*> statements;
-	vector<Ast_Scope*> module_scopes;
+	vector<Module*> external_modules;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
@@ -180,17 +181,8 @@ struct Ast_Directive : Ast_Expression {
 	Ast_Directive () { this->exp_type = AST_EXPRESSION_DIRECTIVE; }
 };
 
-struct Ast_Directive_Include : Ast_Directive {
-	const char* path = NULL;
-
-	char absolute_path[MAX_PATH_LENGTH];
-
-	Ast_Directive_Include () { this->dir_type = AST_DIRECTIVE_INCLUDE; }
-};
-
 struct Ast_Directive_Import : Ast_Directive {
 	const char* path = NULL;
-	const char* alias = NULL;
 
 	char absolute_path[MAX_PATH_LENGTH];
 

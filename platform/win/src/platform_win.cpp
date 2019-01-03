@@ -69,6 +69,15 @@ void os_get_absolute_path (const char* relative_path, char* buffer) {
 	GetFullPathName(relative_path, MAX_PATH, buffer, NULL);
 }
 
+void os_get_absolute_path_relative_to (const char* relative_path,
+		const char* relative_to, char* buffer) {
+	char tmp[MAX_PATH];
+	os_get_current_directory(tmp);
+	os_set_current_directory_path(relative_to);
+	GetFullPathName(relative_path, MAX_PATH, buffer, NULL);
+	os_set_current_directory(tmp);
+}
+
 bool os_set_current_directory (const char* new_path) {
 	return SetCurrentDirectory(new_path);
 }

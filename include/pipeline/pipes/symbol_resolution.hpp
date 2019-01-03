@@ -96,7 +96,7 @@ struct Symbol_Resolution : Pipe {
                 for (auto decl : tuple.second) {
                     print_location(stderr, &decl->location);
                 }
-                Compiler::inst->quit();
+                Events::trigger(CE_COMPILER_STOP, 1);
             }
         }
 
@@ -117,7 +117,7 @@ struct Symbol_Resolution : Pipe {
 	        for (auto ident : idents) {
 	            ERROR(ident, "Unresolved symbol: '%s'", ident->name);
 	        }
-	        Compiler::inst->quit();
+            Events::trigger(CE_COMPILER_STOP, 1);
 	    }
 	}
 
