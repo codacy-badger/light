@@ -11,7 +11,7 @@ struct Constant_Propagation : Pipe {
     void handle (Ast_Ident** ident_ptr) {
 		auto ident = (*ident_ptr);
 
-		if (ident->declaration && ident->declaration->is_constant()) {
+		if (ident->declaration && ident->declaration->is_constant) {
 		    auto _addr = reinterpret_cast<Ast_Expression**>(ident_ptr);
 			auto exp = (*ident_ptr)->declaration->expression;
 			if (exp->exp_type != AST_EXPRESSION_TYPE_INSTANCE

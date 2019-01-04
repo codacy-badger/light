@@ -20,7 +20,7 @@ struct Type_Checking : Scoped_Pipe {
 			ERROR_STOP(decl, "Cannot infer type without an expression");
 		}
 
-		if (decl->is_constant() && !decl->expression) {
+		if (decl->is_constant && !decl->expression) {
 			ERROR_STOP(decl, "All constant declarations must have a value");
 		}
 
@@ -35,7 +35,7 @@ struct Type_Checking : Scoped_Pipe {
 				}
 			} else decl->type = decl->expression->inferred_type;
 
-			if (decl->is_constant()) {
+			if (decl->is_constant) {
 				if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 					auto fn = static_cast<Ast_Function*>(decl->expression);
 					fn->name = decl->name;

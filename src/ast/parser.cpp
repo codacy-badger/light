@@ -11,14 +11,15 @@ void Parser::handle_lexed_file (void* data) {
 
 	this->tokens = module->tokens;
 	module->global_scope = this->build_ast();
+
 	Events::trigger(CE_MODULE_PARSED, module);
 }
 
 Ast_Scope* Parser::build_ast () {
 	auto start = os_get_user_time();
 
-	auto global_scope = AST_NEW(Ast_Scope, this->internal_scope);
-	global_scope->is_global = true;
+	auto global_scope = AST_NEW(Ast_Scope);
+	global_scope->import_scopes.push_back(this->internal_scope);
 
 	this->index = 0;
 	this->scope(global_scope);
@@ -198,7 +199,7 @@ Ast_Declaration* Parser::declaration () {
 	decl->type = this->type_instance();
 
 	if (this->try_skip(TOKEN_COLON)) {
-		decl->decl_flags |= AST_DECL_FLAG_CONSTANT;
+		decl->is_constant = true;
 	} else this->try_skip(TOKEN_EQUAL);
 
 	decl->expression = this->expression();

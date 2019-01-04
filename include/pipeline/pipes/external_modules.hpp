@@ -14,7 +14,7 @@ struct External_Modules : Scoped_Statement_Pipe {
 		find_existing_absolute_path(import);
 
 		auto module = this->get_external_module(import->absolute_path);
-		this->current_scope->external_modules.push_back(module);
+		this->current_scope->import_scopes.push_back(module->global_scope);
     }
 
 	void find_existing_absolute_path (Ast_Directive_Import* import) {

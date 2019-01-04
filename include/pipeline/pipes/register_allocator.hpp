@@ -45,7 +45,7 @@ struct Register_Allocator : Pipe {
     void handle (Ast_Declaration** decl_ptr) {
         auto decl = (*decl_ptr);
 
-        if (decl->is_constant()) {
+        if (decl->is_constant) {
 			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 	            auto func = static_cast<Ast_Function*>(decl->expression);
 	            if (!func->foreign_module_name) {

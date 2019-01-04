@@ -66,12 +66,10 @@ struct Ast_Statement : Ast {
 
 struct Ast_Scope : Ast_Statement {
 	vector<Ast_Statement*> statements;
-	vector<Module*> external_modules;
+	vector<Ast_Scope*> import_scopes;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
-
-	bool is_global = false;
 
 	// for symbol resolution
 	vector<Ast_Ident*> unresolved_idents;
@@ -81,9 +79,19 @@ struct Ast_Scope : Ast_Statement {
 		this->parent = parent;
 	}
 
+    bool is_global () { return this->parent == NULL; }
+
 	void add (Ast_Statement* stm) {
 		this->statements.push_back(stm);
 	}
+
+    Ast_Scope* get_global_scope () {
+        auto global_scope = this;
+        while (global_scope->parent != NULL) {
+            global_scope = global_scope->parent;
+        }
+        return global_scope;
+    }
 
 	Ast_Declaration* find_non_const_declaration (const char* name);
 	Ast_Declaration* find_const_declaration (const char* name);
@@ -111,14 +119,13 @@ struct Ast_Break : Ast_Statement {
 	Ast_Break () { this->stm_type = AST_STATEMENT_BREAK; }
 };
 
-const uint8_t AST_DECL_FLAG_CONSTANT = 0x1;
-
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
 	Ast_Expression* type = NULL;
 	Ast_Expression* expression = NULL;
 
-	uint8_t decl_flags = 0;
+    bool is_constant = false;
+
 	Ast_Scope* scope = NULL;
 
 	// for struct property
@@ -130,8 +137,7 @@ struct Ast_Declaration : Ast_Statement {
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 
-	bool is_constant () { return this->decl_flags & AST_DECL_FLAG_CONSTANT; }
-	bool is_global () { return this->scope->is_global; }
+	bool is_global () { return this->scope->is_global(); }
 };
 
 struct Ast_Return : Ast_Statement {

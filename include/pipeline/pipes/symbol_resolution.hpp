@@ -11,6 +11,9 @@ struct Symbol_Resolution : Pipe {
     vector<Ast_Scope*> unresolved_scopes;
     Ast_Scope* current_scope = NULL;
 
+    size_t total_resolved = 0;
+    size_t deferred_resolved = 0;
+
 	Symbol_Resolution () { this->pipe_name = "Symbol_Resolution"; }
 
     void process (Ast_Scope* scope) {
@@ -39,6 +42,8 @@ struct Symbol_Resolution : Pipe {
                     if (strcmp(ident->name, decl->name) == 0) {
                         ident_ptr = scope->unresolved_idents.erase(ident_ptr);
                         ident->declaration = decl;
+                        this->deferred_resolved++;
+                        this->total_resolved++;
                     }
                 }
 
@@ -57,7 +62,7 @@ struct Symbol_Resolution : Pipe {
 			ident->declaration = this->current_scope->find_const_declaration(ident->name);
 			if (!ident->declaration) {
 				this->current_scope->unresolved_idents.push_back(ident);
-			}
+			} else this->total_resolved++;
 		}
 	}
 
@@ -139,5 +144,10 @@ struct Symbol_Resolution : Pipe {
                 } else ident_ptr++;
             }
 	    }*/
+	}
+
+	void print_pipe_metrics () {
+		PRINT_METRIC("Symbols resolved:      %zd", this->total_resolved);
+		PRINT_METRIC("Deferred Resolved:     %zd", this->deferred_resolved);
 	}
 };

@@ -49,7 +49,7 @@ Ast_Declaration* Ast_Scope::find_non_const_declaration (const char* _name) {
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            if (!decl->is_constant() && strcmp(decl->name, _name) == 0) {
+            if (!decl->is_constant && strcmp(decl->name, _name) == 0) {
 				return decl;
 			}
         }
@@ -60,10 +60,15 @@ Ast_Declaration* Ast_Scope::find_non_const_declaration (const char* _name) {
 				return decl;
 			}
 		}
-		if (!this->parent->is_global) return NULL;
+        // @TODO do we really need this? maybe changing the structure of
+        // the scope struct we can avoid having this, since it conflicts
+        // with the internal scope (u8, u16, u32, etc.)
+        auto global_scope = this->get_global_scope();
+        if (this != global_scope) {
+            return global_scope->find_non_const_declaration(_name);
+        }
 	}
-    for (auto module : this->external_modules) {
-        auto scope = module->global_scope;
+    for (auto scope : this->import_scopes) {
         auto decl = scope->find_non_const_declaration(_name);
         if (decl) return decl;
     }
@@ -76,13 +81,12 @@ Ast_Declaration* Ast_Scope::find_const_declaration (const char* _name) {
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            if (decl->is_constant() && strcmp(decl->name, _name) == 0) {
+            if (decl->is_constant && strcmp(decl->name, _name) == 0) {
 				return decl;
 			}
         }
     }
-    for (auto module : this->external_modules) {
-        auto scope = module->global_scope;
+    for (auto scope : this->import_scopes) {
         auto decl = scope->find_const_declaration(_name);
         if (decl) return decl;
     }
@@ -135,7 +139,7 @@ void Ast_Directive_Foreign::add (Ast_Statement* stm) {
 }
 
 void Ast_Directive_Foreign::add (Ast_Declaration* decl) {
-    if (!decl->is_constant()) ERROR_STOP(decl, "Declarations inside #foreign scope must be function types");
+    if (!decl->is_constant) ERROR_STOP(decl, "Declarations inside #foreign scope must be function types");
     if (!decl->expression) ERROR_STOP(decl, "Declarations inside #foreign scope must have values");
     if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
         auto type = static_cast<Ast_Type_Instance*>(decl->expression);
@@ -559,7 +563,7 @@ Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expr
 
 Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const) {
     auto decl = new Ast_Declaration();
-	if (is_const) decl->decl_flags |= AST_DECL_FLAG_CONSTANT;
+    decl->is_constant = is_const;
     decl->type = exp->inferred_type;
     decl->expression = exp;
     decl->name = name;
