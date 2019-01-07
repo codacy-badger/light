@@ -36,6 +36,7 @@ struct Compiler {
 		if (argc > 0) this->settings->handle_arguments(argc, argv);
 
 		this->phases = new Compiler_Phases(this->settings);
+		this->phases->add_phase(this->modules->lexer);
 
 		Compiler::inst = this;
 
@@ -75,6 +76,8 @@ struct Compiler {
 
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
 		}
+
+		this->phases->join();
 
 		auto userInterval = os_time_user_stop(totalUser);
 		auto wallInterval = os_time_wall_stop(totalWall);

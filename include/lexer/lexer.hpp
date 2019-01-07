@@ -1,9 +1,12 @@
 #pragma once
 
+#include "module.hpp"
 #include "scanner.hpp"
 #include "token.hpp"
 #include "compiler_events.hpp"
 #include "events.hpp"
+
+#include "phase/async_phase.hpp"
 
 #include <vector>
 
@@ -25,29 +28,12 @@
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 #define SIGN(c) (c == '+' || c == '-')
 
-struct Lexer {
+struct Lexer : Async_Phase {
 	uint64_t lines_of_code = 0;
 	uint64_t token_count = 0;
 	double total_time = 0;
 
-	Lexer () {
-		Events::add_observer(CE_IMPORT_MODULE, &Lexer::handle_file, this);
-	}
-
-	void handle_file (void* data) {
-		auto absolute_path = reinterpret_cast<char*>(data);
-
-		auto module = new Module();
-		module->absolute_path = absolute_path;
-
-		auto scanner = new Scanner(absolute_path);
-		module->tokens = new std::vector<Token*>();
-
-		this->source_to_tokens(scanner, module->tokens);
-		Events::trigger(CE_MODULE_LEXED, module);
-
-		delete scanner;
-	}
+	Lexer () : Async_Phase(CE_IMPORT_MODULE) {}
 
     void handle (void* data) {
 		auto absolute_path = reinterpret_cast<char*>(data);
