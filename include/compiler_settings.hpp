@@ -5,15 +5,13 @@
 
 #include <vector>
 
-using namespace std;
-
 #define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\" (Ignored)"
 
 #define CHECK_ARG(arg) (strcmp(argv[i], arg) == 0)
 #define CHECK_ARG_2(arg_short, arg_long) (CHECK_ARG(arg_short) || CHECK_ARG(arg_long))
 
 struct Compiler_Settings {
-	vector<const char*> input_files;
+	std::vector<const char*> input_files;
 	const char* output = NULL;
 
 	char initial_path[MAX_PATH_LENGTH];

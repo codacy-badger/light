@@ -49,6 +49,21 @@ struct Lexer {
 		delete scanner;
 	}
 
+    void handle (void* data) {
+		auto absolute_path = reinterpret_cast<char*>(data);
+
+		auto module = new Module();
+		module->absolute_path = absolute_path;
+
+		auto scanner = new Scanner(absolute_path);
+		module->tokens = new std::vector<Token*>();
+
+		this->source_to_tokens(scanner, module->tokens);
+		Events::trigger(CE_MODULE_LEXED, module);
+
+		delete scanner;
+    }
+
 	void source_to_tokens (Scanner* scanner, std::vector<Token*>* tokens) {
 		ASSERT(tokens->empty());
 		auto start = os_get_user_time();

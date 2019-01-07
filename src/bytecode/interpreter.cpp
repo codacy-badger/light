@@ -189,6 +189,7 @@ void Interpreter::run (Instruction* inst) {
 
 void Interpreter::call (void* func_ptr, Bytecode_Type bytecode_type, uint8_t reg_result) {
 	auto func = reinterpret_cast<Ast_Function*>(func_ptr);
+	
 	if (!func->is_native()) {
 		auto _base = this->stack_base;
 		auto _inst = this->instruction_index;

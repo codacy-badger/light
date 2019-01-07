@@ -1,6 +1,7 @@
 #pragma once
 
 #include "compiler_settings.hpp"
+#include "phase/compiler_phases.hpp"
 
 #include "platform.hpp"
 
@@ -23,8 +24,7 @@ using namespace std;
 
 struct Compiler {
 	Compiler_Settings* settings = new Compiler_Settings();
-
-	queue<const char*> code_sources;
+	Compiler_Phases* phases = NULL;
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
@@ -33,9 +33,10 @@ struct Compiler {
 	static Compiler* inst;
 
 	Compiler (int argc = 0, char** argv = NULL) {
-		if (argc > 0) {
-			this->settings->handle_arguments(argc, argv);
-		}
+		if (argc > 0) this->settings->handle_arguments(argc, argv);
+
+		this->phases = new Compiler_Phases(this->settings);
+
 		Compiler::inst = this;
 
 		Events::add_observer(CE_COMPILER_ERROR, &Compiler::handle_compiler_error, this);
@@ -47,7 +48,11 @@ struct Compiler {
 	void handle_compiler_stop (void* data) {
 		auto exit_code = reinterpret_cast<size_t>(data);
 
-		if (exit_code != 0) exit((int) exit_code);
+		this->phases->shutdown();
+
+		if (exit_code != 0) {
+			exit((int) exit_code);
+		}
 	}
 
 	void handle_compiler_error (void* data) {

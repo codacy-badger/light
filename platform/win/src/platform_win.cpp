@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <windows.h>
 
+typedef uint64_t Timer_Function();
+
 double g_clock_frequency = 0;
 HANDLE g_pid = GetCurrentProcess();
 
@@ -59,6 +61,13 @@ void* os_get_module (const char* module_name) {
 
 void* os_get_function (void* module, const char* function_name) {
     return GetProcAddress((HMODULE)module, function_name);
+}
+
+void* os_get_external_function (const char* module_name, const char* function_name) {
+	auto module = os_get_module(module_name);
+	if (module) {
+		return os_get_function(module, function_name);
+	} else return NULL;
 }
 
 void os_get_current_directory (char* buffer) {

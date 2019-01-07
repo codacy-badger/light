@@ -30,6 +30,7 @@ double os_time_user_stop (uint64_t start);
 
 void* os_get_module (const char* module_name);
 void* os_get_function (void* module, const char* function_name);
+void* os_get_external_function (const char* module_name, const char* function_name);
 
 void os_get_current_directory (char* buffer);
 void os_get_absolute_path (const char* relative_path, char* buffer);
