@@ -34,7 +34,7 @@ Modules::Modules (Compiler* compiler) {
         ->pipe(new Constant_Folding())
         ->pipe(new Call_Arguments())
 
-        ->pipe(new Register_Allocator())
+        ->pipe(new Register_Allocator(INTERP_REGISTER_COUNT))
         ->pipe(new Bytecode_Generator())
         ->pipe(new Run_Directive(compiler->interp));
 

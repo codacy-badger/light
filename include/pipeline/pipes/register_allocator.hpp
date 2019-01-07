@@ -20,7 +20,12 @@ struct Register_Allocator : Pipe {
     size_t registers_used = 0;
     bool is_left_value = false;
 
-	Register_Allocator () { this->pipe_name = "Register_Allocator"; }
+    size_t max_registers;
+
+	Register_Allocator (size_t max_registers) {
+        this->pipe_name = "Register_Allocator";
+        this->max_registers = max_registers;
+    }
 
     void allocate_function (Ast_Function* func) {
         auto tmp = this->decl_regs;
@@ -243,6 +248,7 @@ struct Register_Allocator : Pipe {
     }
 
 	void print_pipe_metrics () {
-		PRINT_METRIC("Registers used:        %zd", this->registers_used);
+		PRINT_METRIC("Registers used:        %zd / %zd",
+            this->registers_used, this->max_registers);
 	}
 };
