@@ -12,9 +12,6 @@ struct External_Modules : Scoped_Statement_Pipe {
 
 		this->delete_current_statement();
 		find_existing_absolute_path(import);
-
-		auto module = this->get_external_module(import->absolute_path);
-		this->current_scope->import_scopes.push_back(module->global_scope);
     }
 
 	void find_existing_absolute_path (Ast_Directive_Import* import) {
@@ -44,12 +41,5 @@ struct External_Modules : Scoped_Statement_Pipe {
 		os_set_current_directory(Compiler::inst->settings->initial_path);
 		os_get_absolute_path(import->path, import->absolute_path);
 		os_set_current_directory(tmp);
-	}
-
-	Module* get_external_module (char* absolute_path) {
-		this->total_time += os_time_user_stop(this->start_time);
-		auto module = Compiler::inst->modules->get_module(absolute_path);
-		this->start_time = os_get_user_time();
-		return module;
 	}
 };

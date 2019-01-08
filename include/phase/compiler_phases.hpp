@@ -5,27 +5,35 @@
 #include "compiler_settings.hpp"
 
 #include "lexer/lexer.hpp"
+#include "ast/parser.hpp"
 #include "external_resolution.hpp"
 
 #include <vector>
 
 struct Compiler_Phases {
-
     std::vector<Async_Phase*> phases;
+    Compiler_Settings* settings;
 
-    Compiler_Phases (Compiler_Settings*) {
+    std::chrono::milliseconds sleep_interval = 5ms;
+
+    Compiler_Phases (Compiler_Settings* settings) {
+        this->settings = settings;
+
+        this->add_phase(new Lexer());
+        this->add_phase(new Parser());
+
         this->add_phase(new External_Resolution());
     }
 
     void add_phase (Async_Phase* phase) {
+        phase->settings = this->settings;
         this->phases.push_back(phase);
     }
 
     void join () {
         while (!this->are_all_done()) {
-			std::this_thread::sleep_for(1ms);
+			std::this_thread::sleep_for(this->sleep_interval);
 		}
-		this->shutdown();
     }
 
     bool are_all_done () {
@@ -40,6 +48,12 @@ struct Compiler_Phases {
     void shutdown () {
         for (auto phase : this->phases) {
             phase->stop();
+        }
+    }
+
+    void print_metrics () {
+        for (auto phase : this->phases) {
+            phase->print_metrics();
         }
     }
 };

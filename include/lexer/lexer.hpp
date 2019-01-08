@@ -29,11 +29,11 @@
 #define SIGN(c) (c == '+' || c == '-')
 
 struct Lexer : Async_Phase {
+	uint64_t files_lexed = 0;
 	uint64_t lines_of_code = 0;
 	uint64_t token_count = 0;
-	double total_time = 0;
 
-	Lexer () : Async_Phase(CE_IMPORT_MODULE) {}
+	Lexer () : Async_Phase("Lexer", CE_IMPORT_NEW_MODULE) {}
 
     void handle (void* data) {
 		auto absolute_path = reinterpret_cast<char*>(data);
@@ -51,9 +51,6 @@ struct Lexer : Async_Phase {
     }
 
 	void source_to_tokens (Scanner* scanner, std::vector<Token*>* tokens) {
-		ASSERT(tokens->empty());
-		auto start = os_get_user_time();
-
 		Token* token = NULL;
 		do {
 			token = this->get_next_token(scanner);
@@ -61,8 +58,8 @@ struct Lexer : Async_Phase {
 		} while (token->type != TOKEN_EOF);
 
 		this->lines_of_code += scanner->location.line;
-		this->total_time += os_time_user_stop(start);
 		this->token_count += tokens->size();
+		this->files_lexed += 1;
 	}
 
 	Token* get_next_token (Scanner* scanner) {
@@ -219,10 +216,9 @@ struct Lexer : Async_Phase {
 		}
 	}
 
-	void print_metrics (double userInterval) {
-		double percent = (this->total_time * 100.0) / userInterval;
-		printf("  - %-25s%8.6fs (%5.2f%%)\n", "Lexer", this->total_time, percent);
-		printf("        Lines of Code:         %zd\n", this->lines_of_code);
-		printf("        Tokens created:        %zd\n", this->token_count);
+	void print_extra_metrics () {
+		print_extra_metric("Files lexed", "%zd", this->files_lexed);
+		print_extra_metric("Lines of Code", "%zd", this->lines_of_code);
+		print_extra_metric("Tokens created", "%zd", this->token_count);
 	}
 };

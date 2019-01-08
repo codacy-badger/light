@@ -6,15 +6,6 @@
 
 #define AST_NEW(T, ...) this->factory->create<T>(&this->peek()->location, __VA_ARGS__)
 
-void Parser::handle_lexed_file (void* data) {
-	auto module = reinterpret_cast<Module*>(data);
-
-	this->tokens = module->tokens;
-	module->global_scope = this->build_ast();
-
-	Events::trigger(CE_MODULE_PARSED, module);
-}
-
 Ast_Scope* Parser::build_ast () {
 	auto start = os_get_user_time();
 
@@ -507,8 +498,6 @@ void Parser::report_expected (const char* expected_name) {
 		expected_name, Token::to_string(this->peek()->type));
 }
 
-void Parser::print_metrics (double user_interval) {
-	double percent = (this->total_time * 100.0) / user_interval;
-	printf("  - %-25s%8.6fs (%5.2f%%)\n", "Parser", this->total_time, percent);
-	PRINT_METRIC("AST Nodes created:     %zd", this->factory->node_count);
+void Parser::print_extra_metrics () {
+	print_extra_metric("AST Nodes created", "%zd", this->factory->node_count);
 }

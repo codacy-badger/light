@@ -12,6 +12,7 @@ typedef map<size_t, vector<ObserverStdFunction>> ObserverMap;
 
 struct Events {
     static ObserverMap event_observers;
+    static bool is_debug;
 
     static void trigger (size_t event_id) {
         trigger(event_id, NULL);
@@ -19,9 +20,10 @@ struct Events {
 
     template<typename T>
     static void trigger (size_t event_id, T data) {
+        void* event_data = NULL;
+        memcpy(&event_data, &data, sizeof(data));
+        
         for (auto observer : event_observers[event_id]) {
-            void* event_data = NULL;
-            memcpy(&event_data, &data, sizeof(data));
             observer(event_data);
         }
     }

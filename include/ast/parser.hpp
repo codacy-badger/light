@@ -8,6 +8,8 @@
 #include "ast/ast.hpp"
 #include "ast/types.hpp"
 
+#include "phase/async_phase.hpp"
+
 using namespace std;
 
 #define DECL_TYPE(scope, type) scope->statements.push_back(ast_make_declaration(type->name, type));
@@ -16,7 +18,7 @@ using namespace std;
 #define IS_LINUX_LITERAL ast_make_literal(os_get_type() == OS_TYPE_LINUX)
 #define IS_MAC_LITERAL ast_make_literal(os_get_type() == OS_TYPE_MAC)
 
-struct Parser {
+struct Parser : Async_Phase {
 	// TODO: merge this attribute with current_scope
 	Ast_Scope* internal_scope = new Ast_Scope();
 	Ast_Factory* factory = new Ast_Factory();
@@ -29,7 +31,7 @@ struct Parser {
 	size_t all_lines = 0;
 	double total_time = 0;
 
-	Parser () {
+	Parser () : Async_Phase("Parser", CE_MODULE_LEXED) {
 	    DECL_TYPE(this->internal_scope, Types::type_type);
 	    DECL_TYPE(this->internal_scope, Types::type_void);
 	    DECL_TYPE(this->internal_scope, Types::type_bool);
@@ -49,11 +51,16 @@ struct Parser {
 	    this->internal_scope->add(ast_make_declaration("OS_WINDOWS", IS_WINDOWS_LITERAL));
 	    this->internal_scope->add(ast_make_declaration("OS_LINUX", IS_LINUX_LITERAL));
 	    this->internal_scope->add(ast_make_declaration("OS_MAC", IS_MAC_LITERAL));
-
-		Events::add_observer(CE_MODULE_LEXED, &Parser::handle_lexed_file, this);
 	}
 
-	void handle_lexed_file (void* data);
+    void handle (void* data) {
+		auto module = reinterpret_cast<Module*>(data);
+
+		this->tokens = module->tokens;
+		module->global_scope = this->build_ast();
+
+		Events::trigger(CE_MODULE_PARSED, module);
+    }
 
 	Ast_Scope* build_ast ();
 
@@ -84,5 +91,5 @@ struct Parser {
 	void expect (Token_Type type);
 	void report_expected (const char* name);
 
-	void print_metrics(double total_time);
+	void print_extra_metrics();
 };

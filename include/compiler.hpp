@@ -6,21 +6,18 @@
 #include "platform.hpp"
 
 #include "modules.hpp"
-#include "code_input.hpp"
 #include "pipeline/pipeline.hpp"
 
 #include "bytecode/interpreter.hpp"
 #include "ast/parser.hpp"
 #include "ast/types.hpp"
 
-#include <queue>
+#include <chrono>
 
 using namespace std;
 
 #define LIGHT_NAME "Light Compiler"
 #define LIGHT_VERSION "0.1.0"
-
-#define COMPILER_DONE_FORMAT "\nCompleted in %8.6fs (%8.6fs)\n"
 
 struct Compiler {
 	Compiler_Settings* settings = new Compiler_Settings();
@@ -36,7 +33,6 @@ struct Compiler {
 		if (argc > 0) this->settings->handle_arguments(argc, argv);
 
 		this->phases = new Compiler_Phases(this->settings);
-		this->phases->add_phase(this->modules->lexer);
 
 		Compiler::inst = this;
 
@@ -67,8 +63,7 @@ struct Compiler {
 	void compile_input_files () {
 		printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
 
-	    auto totalWall = os_get_wall_time();
-	    auto totalUser = os_get_user_time();
+		auto start = high_resolution_clock::now();
 
 		for (auto filename : this->settings->input_files) {
 			auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
@@ -78,12 +73,13 @@ struct Compiler {
 		}
 
 		this->phases->join();
+		Events::trigger(CE_COMPILER_STOP);
 
-		auto userInterval = os_time_user_stop(totalUser);
-		auto wallInterval = os_time_wall_stop(totalWall);
+		auto stop = high_resolution_clock::now();
+		auto interval_in_seconds = duration_cast<duration<double>>(stop - start);
 
-		this->modules->print_metrics(userInterval);
+		this->phases->print_metrics();
 
-	    printf(COMPILER_DONE_FORMAT, userInterval, wallInterval);
+	    printf("\nCompleted in %8.6fs\n", interval_in_seconds.count());
 	}
 };

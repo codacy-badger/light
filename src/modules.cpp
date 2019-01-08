@@ -38,34 +38,36 @@ Modules::Modules (Compiler* compiler) {
         ->pipe(new Bytecode_Generator())
         ->pipe(new Run_Directive(compiler->interp));
 
-    Events::add_observer(CE_MODULE_PARSED, &Modules::handle_module_parsed, this);
+    //Events::add_observer(CE_MODULE_PARSED, &Modules::handle_module_parsed, this);
+    Events::add_observer(CE_IMPORT_MODULE, &Modules::on_import_module, this);
+    Events::add_observer(CE_MODULE_READY, &Modules::on_module_ready, this);
+}
+
+void Modules::on_import_module (void* data) {
+    auto absolute_path = reinterpret_cast<char*>(data);
+
+    if (!this->is_module_cached(absolute_path)) {
+        Events::trigger(CE_IMPORT_NEW_MODULE, absolute_path);
+    } else {
+        auto cached_module = this->cache[absolute_path];
+        printf("Found cached module: '%s'\n", cached_module->absolute_path);
+        Events::trigger(CE_MODULE_READY, cached_module);
+    }
+}
+
+void Modules::on_module_ready (void* data) {
+    auto module = reinterpret_cast<Module*>(data);
+
+    printf("Module '%s' is ready!\n", module->absolute_path);
+    this->cache[module->absolute_path] = module;
 }
 
 void Modules::handle_module_parsed (void* data) {
     auto module = reinterpret_cast<Module*>(data);
 
     this->pipeline->process(module->global_scope);
-}
 
-Module* Modules::get_module (const char* absolute_path) {
-    if (!this->is_module_cached(absolute_path)) {
-        return this->load_module(absolute_path);
-    } else return this->cache[absolute_path];
-}
-
-Module* Modules::load_module (const char* absolute_path) {
-    auto scanner = new Scanner(absolute_path);
-    this->parser->tokens = new vector<Token*>();
-    this->lexer->source_to_tokens(scanner, this->parser->tokens);
-    delete scanner;
-
-    auto module = new Module();
-
-    module->global_scope = this->parser->build_ast();
-    this->pipeline->process(module->global_scope);
-
-    this->cache[absolute_path] = module;
-    return module;
+    Events::trigger(CE_MODULE_READY, module);
 }
 
 bool Modules::is_module_cached (const char* absolute_path) {
@@ -75,7 +77,5 @@ bool Modules::is_module_cached (const char* absolute_path) {
 
 void Modules::print_metrics (double userInterval) {
 	printf("\n");
-    this->lexer->print_metrics(userInterval);
-    this->parser->print_metrics(userInterval);
     this->pipeline->print_metrics(userInterval);
 }
