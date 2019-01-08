@@ -20,11 +20,7 @@ struct Pipe {
 	size_t pipe_index = 0;
 
 	virtual void process (Ast_Scope* scope) {
-		this->start_time = os_get_user_time();
-
 		this->handle(&scope);
-
-		this->total_time += os_time_user_stop(this->start_time);
 	}
 
 	virtual void on_finish () { /* empty */ }

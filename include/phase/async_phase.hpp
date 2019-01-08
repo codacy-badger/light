@@ -60,12 +60,14 @@ struct Async_Phase {
     }
 
     void stop () {
-        this->keep_working = false;
-        this->thread->join();
+        if (this->keep_working) {
+            this->keep_working = false;
+            this->thread->join();
+        } else printf("Already stopped!\n");
     }
 
     void print_metrics () {
-        printf("  - %-25s %5.3fs\n", this->name, this->work_time.count());
+        printf("  - %-25s %8.6fs\n", this->name, this->work_time.count());
         this->print_extra_metrics();
     }
 

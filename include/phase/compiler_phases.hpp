@@ -4,9 +4,10 @@
 
 #include "compiler_settings.hpp"
 
-#include "lexer/lexer.hpp"
-#include "ast/parser.hpp"
-#include "external_resolution.hpp"
+#include "imp/lexer/lexer.hpp"
+#include "imp/parser/parser.hpp"
+#include "imp/static_if.hpp"
+#include "imp/external_resolution.hpp"
 
 #include <vector>
 
@@ -22,6 +23,7 @@ struct Compiler_Phases {
         this->add_phase(new Lexer());
         this->add_phase(new Parser());
 
+        this->add_phase(new Static_If_Pipe());
         this->add_phase(new External_Resolution());
     }
 

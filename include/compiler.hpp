@@ -6,15 +6,11 @@
 #include "platform.hpp"
 
 #include "modules.hpp"
-#include "pipeline/pipeline.hpp"
 
 #include "bytecode/interpreter.hpp"
-#include "ast/parser.hpp"
 #include "ast/types.hpp"
 
 #include <chrono>
-
-using namespace std;
 
 #define LIGHT_NAME "Light Compiler"
 #define LIGHT_VERSION "0.1.0"
@@ -29,6 +25,8 @@ struct Compiler {
 
 	static Compiler* inst;
 
+	std::chrono::high_resolution_clock::time_point clock_start;
+
 	Compiler (int argc = 0, char** argv = NULL) {
 		if (argc > 0) this->settings->handle_arguments(argc, argv);
 
@@ -36,50 +34,58 @@ struct Compiler {
 
 		Compiler::inst = this;
 
-		Events::add_observer(CE_COMPILER_ERROR, &Compiler::handle_compiler_error, this);
-		Events::add_observer(CE_COMPILER_STOP, &Compiler::handle_compiler_stop, this);
+		Events::add_observer(CE_COMPILER_ERROR, &Compiler::on_compiler_error, this);
+		Events::add_observer(CE_COMPILER_STOP, &Compiler::on_compiler_stop, this);
+		Events::add_observer(CE_MODULE_READY, &Compiler::on_module_ready, this);
 
 		Events::trigger(CE_COMPILER_START, this);
 	}
 
-	void handle_compiler_stop (void* data) {
+	void on_compiler_stop (void* data) {
 		auto exit_code = reinterpret_cast<size_t>(data);
 
 		this->phases->shutdown();
 
-		if (exit_code != 0) {
-			exit((int) exit_code);
-		}
-	}
+		auto stop = std::chrono::high_resolution_clock::now();
+		auto interval_in_seconds = duration_cast<duration<double>>(stop - this->clock_start);
 
-	void handle_compiler_error (void* data) {
-		auto error_description = reinterpret_cast<char*>(data);
+		this->phases->print_metrics();
 
-		printf("Compiler error: %s\n", error_description);
+	    printf("\nCompleted in %8.6fs\n", interval_in_seconds.count());
 
-		Events::trigger(CE_COMPILER_STOP, 1);
+		exit((int) exit_code);
 	}
 
 	void compile_input_files () {
 		printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
 
-		auto start = high_resolution_clock::now();
+		this->clock_start = std::chrono::high_resolution_clock::now();
 
-		for (auto filename : this->settings->input_files) {
+		for (auto &filename : this->settings->input_files) {
 			auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
 		    os_get_absolute_path(filename, absolute_path);
+			filename = absolute_path;
 
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
 		}
 
-		this->phases->join();
+		while (!this->settings->input_files.empty());
 		Events::trigger(CE_COMPILER_STOP);
+	}
 
-		auto stop = high_resolution_clock::now();
-		auto interval_in_seconds = duration_cast<duration<double>>(stop - start);
+	void on_module_ready (void* data) {
+		auto module = reinterpret_cast<Module*>(data);
 
-		this->phases->print_metrics();
+		auto input_files = &this->settings->input_files;
+		auto remove_at = std::remove(input_files->begin(), input_files->end(), module->absolute_path);
+		input_files->erase(remove_at, input_files->end());
+	}
 
-	    printf("\nCompleted in %8.6fs\n", interval_in_seconds.count());
+	void on_compiler_error (void* data) {
+		auto error_description = reinterpret_cast<char*>(data);
+
+		printf("Compiler error: %s\n", error_description);
+
+		Events::trigger(CE_COMPILER_STOP, 1);
 	}
 };

@@ -22,7 +22,7 @@ struct Events {
     static void trigger (size_t event_id, T data) {
         void* event_data = NULL;
         memcpy(&event_data, &data, sizeof(data));
-        
+
         for (auto observer : event_observers[event_id]) {
             observer(event_data);
         }

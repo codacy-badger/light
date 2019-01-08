@@ -2,8 +2,7 @@
 
 #include "module.hpp"
 #include "ast/ast.hpp"
-#include "ast/parser.hpp"
-#include "pipeline/pipeline.hpp"
+#include "phase/pipeline/pipeline.hpp"
 
 #include <map>
 

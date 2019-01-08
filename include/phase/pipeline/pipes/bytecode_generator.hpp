@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipeline/pipe.hpp"
+#include "phase/pipeline/pipe.hpp"
 #include "bytecode/interpreter.hpp"
 
 #define INST(node, name, ...) this->add_instruction(node, new Inst_##name(__VA_ARGS__));

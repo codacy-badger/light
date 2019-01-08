@@ -11,7 +11,7 @@
 #define CHECK_ARG_2(arg_short, arg_long) (CHECK_ARG(arg_short) || CHECK_ARG(arg_long))
 
 struct Compiler_Settings {
-	std::vector<const char*> input_files;
+	std::vector<char*> input_files;
 	const char* output = NULL;
 
 	char initial_path[MAX_PATH_LENGTH];

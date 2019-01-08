@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipeline/scoped_statement_pipe.hpp"
+#include "phase/pipeline/scoped_statement_pipe.hpp"
 
 struct Static_If : Scoped_Statement_Pipe {
     Static_If () { this->pipe_name = "Static_If"; }

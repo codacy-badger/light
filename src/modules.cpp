@@ -3,21 +3,21 @@
 #include "compiler.hpp"
 #include "platform.hpp"
 
-#include "pipeline/pipes/external_modules.hpp"
-#include "pipeline/pipes/symbol_resolution.hpp"
-#include "pipeline/pipes/constant_propagation.hpp"
-#include "pipeline/pipes/constant_folding.hpp"
-#include "pipeline/pipes/cast_strings.hpp"
-#include "pipeline/pipes/cast_arrays.hpp"
-#include "pipeline/pipes/cast_anys.hpp"
-#include "pipeline/pipes/type_checking.hpp"
-#include "pipeline/pipes/foreign_function.hpp"
-#include "pipeline/pipes/static_if.hpp"
-#include "pipeline/pipes/call_arguments.hpp"
+#include "phase/pipeline/pipes/external_modules.hpp"
+#include "phase/pipeline/pipes/symbol_resolution.hpp"
+#include "phase/pipeline/pipes/constant_propagation.hpp"
+#include "phase/pipeline/pipes/constant_folding.hpp"
+#include "phase/pipeline/pipes/cast_strings.hpp"
+#include "phase/pipeline/pipes/cast_arrays.hpp"
+#include "phase/pipeline/pipes/cast_anys.hpp"
+#include "phase/pipeline/pipes/type_checking.hpp"
+#include "phase/pipeline/pipes/foreign_function.hpp"
+#include "phase/pipeline/pipes/static_if.hpp"
+#include "phase/pipeline/pipes/call_arguments.hpp"
 
-#include "pipeline/pipes/register_allocator.hpp"
-#include "pipeline/pipes/bytecode_generator.hpp"
-#include "pipeline/pipes/run_directive.hpp"
+#include "phase/pipeline/pipes/register_allocator.hpp"
+#include "phase/pipeline/pipes/bytecode_generator.hpp"
+#include "phase/pipeline/pipes/run_directive.hpp"
 
 Modules::Modules (Compiler* compiler) {
     this->pipeline
@@ -58,7 +58,6 @@ void Modules::on_import_module (void* data) {
 void Modules::on_module_ready (void* data) {
     auto module = reinterpret_cast<Module*>(data);
 
-    printf("Module '%s' is ready!\n", module->absolute_path);
     this->cache[module->absolute_path] = module;
 }
 

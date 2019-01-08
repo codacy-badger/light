@@ -2,7 +2,8 @@
 
 #include "module.hpp"
 #include "platform.hpp"
-#include "lexer/lexer.hpp"
+#include "report.hpp"
+#include "phase/imp/lexer/token.hpp"
 
 #include <vector>
 #include <map>
@@ -477,12 +478,10 @@ struct Ast_Literal : Ast_Expression {
 struct Ast_Ident : Ast_Expression {
 	const char* name = NULL;
 
+    // for symbol resolution
 	Ast_Declaration* declaration = NULL;
 
-	Ast_Ident () {
-		this->exp_type = AST_EXPRESSION_IDENT;
-		//this->scope = scope;
-	}
+	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };
 
 Ast_Struct_Type* build_type_any();

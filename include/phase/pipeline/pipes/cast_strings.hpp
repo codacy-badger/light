@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipeline/scoped_statement_pipe.hpp"
+#include "phase/pipeline/scoped_statement_pipe.hpp"
 
 #define TMP_NAME_SIZE 20
 

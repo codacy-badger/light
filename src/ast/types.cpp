@@ -1,7 +1,5 @@
 #include "ast/types.hpp"
 
-#include "compiler.hpp"
-
 Ast_Struct_Type* Types::type_type = new Ast_Struct_Type("type");
 Ast_Struct_Type* Types::type_void = new Ast_Struct_Type("void");
 Ast_Struct_Type* Types::type_bool = new Ast_Struct_Type("bool", 1, true /* primitive */ );
