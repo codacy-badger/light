@@ -45,6 +45,44 @@ bool Ast_Statement::remove_note (const char* name) {
     return NULL;
 }
 
+Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool is_const) {
+    for (auto stm : this->statements) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            if (decl->is_constant == is_const && strcmp(decl->name, _name) == 0) {
+				return decl;
+			}
+        }
+    }
+
+	if (!is_const && this->scope_of) {
+		for (auto decl : this->scope_of->type->arg_decls) {
+			if (strcmp(decl->name, _name) == 0) {
+				return decl;
+			}
+		}
+        // @TODO do we really need this? maybe changing the structure of
+        // the scope struct we can avoid having this, since it conflicts
+        // with the internal scope (u8, u16, u32, etc.)
+        return this->find_global_declaration(_name, is_const);
+	}
+
+    auto decl = this->find_external_declaration(_name, is_const);
+    if (decl) return decl;
+
+    if (this->parent) {
+        return this->parent->find_declaration(_name, is_const);
+    } else return NULL;
+}
+
+Ast_Declaration* Ast_Scope::find_external_declaration (const char* _name, bool is_const) {
+    for (auto scope : this->import_scopes) {
+        auto decl = scope->find_non_const_declaration(_name);
+        if (decl && decl->is_constant == is_const) return decl;
+    }
+    return NULL;
+}
+
 Ast_Declaration* Ast_Scope::find_non_const_declaration (const char* _name) {
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
@@ -182,15 +220,6 @@ Ast_Type_Instance* Ast_Pointer_Type::get_base_type_recursive() {
     return base_type;
 }
 
-uint64_t Ast_Array_Type::get_length () {
-	if (!this->length_as_number) {
-		ASSERT(this->length);
-		ASSERT(this->length->exp_type == AST_EXPRESSION_LITERAL);
-		this->length_as_number = static_cast<Ast_Literal*>(this->length)->uint_value;
-	}
-	return this->length_as_number;
-}
-
 Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type, const char* name) {
 	this->typedef_type = AST_TYPEDEF_STRUCT;
 	this->is_slice = true;
@@ -202,11 +231,6 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type, const char* name) {
 
     this->attributes.push_back(length_decl);
     this->attributes.push_back(data_decl);
-}
-
-Ast_Function_Type::Ast_Function_Type() {
-    this->typedef_type = AST_TYPEDEF_FUNCTION;
-    this->byte_size = Compiler::inst->settings->target_arch->register_size;
 }
 
 Ast_Binary_Type token_to_binop (Token_Type tType) {

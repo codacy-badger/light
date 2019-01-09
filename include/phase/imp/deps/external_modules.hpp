@@ -10,39 +10,51 @@
 #include <vector>
 #include <map>
 
-struct External_Resolution : Async_Phase, Ast_Navigator {
+struct External_Modules : Async_Phase, Ast_Navigator {
     std::map<Module*, std::vector<const char*>> module_dependencies;
 
-    Pipeline* pipeline = new Pipeline();
+    Module* current_module = NULL;
 
-    External_Resolution() : Async_Phase("External Resolution", CE_MODULE_PARSED) {
-        Events::add_observer(CE_MODULE_READY, &External_Resolution::on_module_ready, this);
+    External_Modules() : Async_Phase("External Modules", CE_MODULE_RESOLVE_IMPORTS) {
+        Events::add_observer(CE_MODULE_READY, &External_Modules::on_module_ready, this);
     }
 
-    void handle (void* data) {
-        auto module = reinterpret_cast<Module*>(data);
+    void on_event (void* data) {
+        this->current_module = reinterpret_cast<Module*>(data);
 
-        Ast_Navigator::ast_handle(module->global_scope);
+        Ast_Navigator::ast_handle(this->current_module->global_scope);
 
-        Events::trigger(CE_MODULE_READY, module);
+        auto it = this->module_dependencies.find(this->current_module);
+        if (it == this->module_dependencies.end()) {
+            Events::trigger(CE_MODULE_RESOLVE_SYMBOLS, this->current_module);
+        }
     }
 
     void ast_handle (Ast_Directive_Import* import) {
+        import->remove_from_scope = true;
+        
 		find_existing_absolute_path(import);
+
+        this->module_dependencies[this->current_module].push_back(import->absolute_path);
+
         Events::trigger(CE_IMPORT_MODULE, import->absolute_path);
     }
 
-    void ast_handle (Ast_Directive_Foreign*) {
-        //printf("Handling #foreign directive!\n");
-    }
+    void on_module_ready (void* data) {
+        auto module = reinterpret_cast<Module*>(data);
 
-    void on_module_ready (void*) {
-        //printf("Handling module ready!\n");
-        //auto module = reinterpret_cast<Module*>(data);
+        auto it = this->module_dependencies.begin();
+        while (it != this->module_dependencies.end()) {
+            auto modules = &it->second;
 
-        /*for (auto entry : this->module_dependencies) {
+            auto _it = std::find(modules->begin(), modules->begin(), module->absolute_path);
+            if (_it != modules->end()) modules->erase(_it);
 
-        }*/
+            if (modules->empty()) {
+                Events::trigger(CE_MODULE_RESOLVE_SYMBOLS, it->first);
+                it = this->module_dependencies.erase(it);
+            } else it++;
+        }
     }
 
 	void find_existing_absolute_path (Ast_Directive_Import* import) {

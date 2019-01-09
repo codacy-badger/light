@@ -21,7 +21,6 @@ struct Compiler {
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
-	Modules* modules = new Modules(this);
 
 	static Compiler* inst;
 
@@ -36,9 +35,6 @@ struct Compiler {
 
 		Events::add_observer(CE_COMPILER_ERROR, &Compiler::on_compiler_error, this);
 		Events::add_observer(CE_COMPILER_STOP, &Compiler::on_compiler_stop, this);
-		Events::add_observer(CE_MODULE_READY, &Compiler::on_module_ready, this);
-
-		Events::trigger(CE_COMPILER_START, this);
 	}
 
 	void on_compiler_stop (void* data) {
@@ -47,7 +43,7 @@ struct Compiler {
 		this->phases->shutdown();
 
 		auto stop = std::chrono::high_resolution_clock::now();
-		auto interval_in_seconds = duration_cast<duration<double>>(stop - this->clock_start);
+		auto interval_in_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(stop - this->clock_start);
 
 		this->phases->print_metrics();
 
@@ -57,6 +53,7 @@ struct Compiler {
 	}
 
 	void compile_input_files () {
+		Events::trigger(CE_COMPILER_START, this);
 		printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
 
 		this->clock_start = std::chrono::high_resolution_clock::now();
@@ -69,16 +66,8 @@ struct Compiler {
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
 		}
 
-		while (!this->settings->input_files.empty());
+		this->phases->join();
 		Events::trigger(CE_COMPILER_STOP);
-	}
-
-	void on_module_ready (void* data) {
-		auto module = reinterpret_cast<Module*>(data);
-
-		auto input_files = &this->settings->input_files;
-		auto remove_at = std::remove(input_files->begin(), input_files->end(), module->absolute_path);
-		input_files->erase(remove_at, input_files->end());
 	}
 
 	void on_compiler_error (void* data) {

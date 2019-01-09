@@ -33,9 +33,9 @@ struct Lexer : Async_Phase {
 	uint64_t lines_of_code = 0;
 	uint64_t token_count = 0;
 
-	Lexer () : Async_Phase("Lexer", CE_IMPORT_NEW_MODULE) {}
+	Lexer () : Async_Phase("Lexer", CE_MODULE_RUN_LEXER) {}
 
-    void handle (void* data) {
+    void on_event (void* data) {
 		auto absolute_path = reinterpret_cast<char*>(data);
 
 		auto module = new Module();
@@ -45,7 +45,7 @@ struct Lexer : Async_Phase {
 		module->tokens = new std::vector<Token*>();
 
 		this->source_to_tokens(scanner, module->tokens);
-		Events::trigger(CE_MODULE_LEXED, module);
+		Events::trigger(CE_MODULE_RUN_PARSER, module);
 
 		delete scanner;
     }

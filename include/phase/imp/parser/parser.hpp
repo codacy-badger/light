@@ -34,7 +34,7 @@ struct Parser : Async_Phase {
 	size_t all_lines = 0;
 	double total_time = 0;
 
-	Parser () : Async_Phase("Parser", CE_MODULE_LEXED) {
+	Parser () : Async_Phase("Parser", CE_MODULE_RUN_PARSER) {
 	    DECL_TYPE(this->internal_scope, Types::type_type);
 	    DECL_TYPE(this->internal_scope, Types::type_void);
 	    DECL_TYPE(this->internal_scope, Types::type_bool);
@@ -56,13 +56,13 @@ struct Parser : Async_Phase {
 	    this->internal_scope->add(ast_make_declaration("OS_MAC", IS_MAC_LITERAL));
 	}
 
-    void handle (void* data) {
+    void on_event (void* data) {
 		auto module = reinterpret_cast<Module*>(data);
 
 		this->tokens = module->tokens;
 		module->global_scope = this->build_ast();
 
-		Events::trigger(CE_MODULE_PARSED, module);
+		Events::trigger(CE_MODULE_RESOLVE_IMPORTS, module);
     }
 
 	Ast_Scope* build_ast () {

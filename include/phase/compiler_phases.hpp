@@ -6,13 +6,16 @@
 
 #include "imp/lexer/lexer.hpp"
 #include "imp/parser/parser.hpp"
-#include "imp/static_if.hpp"
-#include "imp/external_resolution.hpp"
+#include "imp/deps/module_cache.hpp"
+#include "imp/deps/static_if.hpp"
+#include "imp/deps/external_modules.hpp"
+#include "imp/deps/symbol_resolution.hpp"
+#include "imp/check/check_dependencies.hpp"
 
 #include <vector>
 
 struct Compiler_Phases {
-    std::vector<Async_Phase*> phases;
+    std::vector<Phase*> phases;
     Compiler_Settings* settings;
 
     std::chrono::milliseconds sleep_interval = 5ms;
@@ -20,14 +23,19 @@ struct Compiler_Phases {
     Compiler_Phases (Compiler_Settings* settings) {
         this->settings = settings;
 
+        this->add_phase(new Module_Cache());
+
         this->add_phase(new Lexer());
         this->add_phase(new Parser());
 
-        this->add_phase(new Static_If_Pipe());
-        this->add_phase(new External_Resolution());
+        this->add_phase(new External_Modules());
+        this->add_phase(new Symbol_Resolution());
+        this->add_phase(new Static_If());
+
+        this->add_phase(new Check_Dependencies());
     }
 
-    void add_phase (Async_Phase* phase) {
+    void add_phase (Phase* phase) {
         phase->settings = this->settings;
         this->phases.push_back(phase);
     }

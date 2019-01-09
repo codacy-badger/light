@@ -52,16 +52,13 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Scope* _block) {
-		size_t initial_size = _block->statements.size();
-		for (uint64_t i = 0; i < _block->statements.size(); i++) {
-			this->ast_handle((_block->statements[i]));
+		for (uint64_t i = 0; i < _block->statements.size();) {
+            auto stm = _block->statements[i];
+			this->ast_handle(stm);
 
-			// INFO: if we add something to the scope, we have to increment
-			// the counter the same amount of items
-			if (_block->statements.size() != initial_size) {
-				initial_size = _block->statements.size();
-				i -= 1;
-			}
+            if (stm->remove_from_scope) {
+                _block->statements.erase(_block->statements.begin() + i);
+            } else i++;
 		}
 	}
 

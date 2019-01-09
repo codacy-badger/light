@@ -61,6 +61,7 @@ struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 
 	vector<const char*> notes;
+    bool remove_from_scope = false;
 
 	bool remove_note (const char* name);
 };
@@ -93,6 +94,13 @@ struct Ast_Scope : Ast_Statement {
         }
         return global_scope;
     }
+
+    Ast_Declaration* find_global_declaration (const char* _name, bool is_const = false) {
+        return this->get_global_scope()->find_declaration(_name, is_const);
+    }
+
+    Ast_Declaration* find_declaration (const char* _name, bool is_const = false);
+    Ast_Declaration* find_external_declaration (const char* _name, bool is_const = false);
 
 	Ast_Declaration* find_non_const_declaration (const char* name);
 	Ast_Declaration* find_const_declaration (const char* name);
@@ -246,6 +254,35 @@ struct Ast_Cast : Ast_Expression {
 	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
 };
 
+enum Ast_Literal_Type {
+	AST_LITERAL_UNINITIALIZED,
+	AST_LITERAL_SIGNED_INT,
+	AST_LITERAL_UNSIGNED_INT,
+	AST_LITERAL_DECIMAL,
+	AST_LITERAL_STRING,
+};
+
+struct Ast_Literal : Ast_Expression {
+	Ast_Literal_Type literal_type = AST_LITERAL_UNINITIALIZED;
+
+	union {
+		int64_t  	int_value;
+		uint64_t  	uint_value;
+		double 		decimal_value;
+		const char* string_value;
+	};
+
+	// for bytecode
+	size_t data_offset = 0;
+
+	Ast_Literal () { this->exp_type = AST_EXPRESSION_LITERAL; }
+
+	bool is_hexadecimal () 	{ return string_value[0] == '0' && string_value[1] == 'x'; }
+	bool is_binary () 		{ return string_value[0] == '0' && string_value[1] == 'b'; }
+	bool is_decimal () 		{ return strstr(string_value, ".") != NULL; }
+	bool as_boolean () 		{ return uint_value != 0; }
+};
+
 enum Ast_Type_Instance_Type {
 	AST_TYPEDEF_UNDEFINED = 0,
 	AST_TYPEDEF_FUNCTION,
@@ -306,7 +343,15 @@ struct Ast_Array_Type : Ast_Type_Instance {
 
 	Ast_Array_Type() { this->typedef_type = AST_TYPEDEF_ARRAY; }
 
-	uint64_t get_length ();
+	uint64_t get_length () {
+    	if (!this->length_as_number) {
+            if (this->length->exp_type == AST_EXPRESSION_LITERAL) {
+                auto literal = static_cast<Ast_Literal*>(this->length);
+                this->length_as_number = literal->uint_value;
+            }
+    	}
+    	return this->length_as_number;
+    }
 };
 
 struct Ast_Slice_Type : Ast_Struct_Type {
@@ -328,7 +373,7 @@ struct Ast_Function_Type : Ast_Type_Instance {
 	vector<Ast_Declaration*> arg_decls;
 	Ast_Expression* ret_type = NULL;
 
-	Ast_Function_Type();
+	Ast_Function_Type() { this->typedef_type = AST_TYPEDEF_FUNCTION; }
 
     Ast_Declaration* get_declaration (const char* decl_name) {
         for (auto decl : this->arg_decls) {
@@ -444,35 +489,6 @@ struct Ast_Function_Call : Ast_Expression {
 	Ast_Arguments* arguments;
 
 	Ast_Function_Call() { this->exp_type = AST_EXPRESSION_CALL; }
-};
-
-enum Ast_Literal_Type {
-	AST_LITERAL_UNINITIALIZED,
-	AST_LITERAL_SIGNED_INT,
-	AST_LITERAL_UNSIGNED_INT,
-	AST_LITERAL_DECIMAL,
-	AST_LITERAL_STRING,
-};
-
-struct Ast_Literal : Ast_Expression {
-	Ast_Literal_Type literal_type = AST_LITERAL_UNINITIALIZED;
-
-	union {
-		int64_t  	int_value;
-		uint64_t  	uint_value;
-		double 		decimal_value;
-		const char* string_value;
-	};
-
-	// for bytecode
-	size_t data_offset = 0;
-
-	Ast_Literal () { this->exp_type = AST_EXPRESSION_LITERAL; }
-
-	bool is_hexadecimal () 	{ return string_value[0] == '0' && string_value[1] == 'x'; }
-	bool is_binary () 		{ return string_value[0] == '0' && string_value[1] == 'b'; }
-	bool is_decimal () 		{ return strstr(string_value, ".") != NULL; }
-	bool as_boolean () 		{ return uint_value != 0; }
 };
 
 struct Ast_Ident : Ast_Expression {

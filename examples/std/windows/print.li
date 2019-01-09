@@ -1,4 +1,4 @@
-#import "kernel32";
+#import "api/kernel32";
 
 // TODO: allow global variables to have default values, run at app startup
 std_handle_out : *void;
