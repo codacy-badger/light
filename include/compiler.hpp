@@ -10,7 +10,7 @@
 #include "bytecode/interpreter.hpp"
 #include "ast/types.hpp"
 
-#include <chrono>
+#include "util/timer.hpp"
 
 #define LIGHT_NAME "Light Compiler"
 #define LIGHT_VERSION "0.1.0"
@@ -18,6 +18,7 @@
 struct Compiler {
 	Compiler_Settings* settings = new Compiler_Settings();
 	Compiler_Phases* phases = NULL;
+	Timer timer;
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
@@ -42,12 +43,10 @@ struct Compiler {
 
 		this->phases->shutdown();
 
-		auto stop = std::chrono::high_resolution_clock::now();
-		auto interval_in_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(stop - this->clock_start);
-
 		this->phases->print_metrics();
 
-	    printf("\nCompleted in %8.6fs\n", interval_in_seconds.count());
+		auto total_interval = this->timer.stop().count();
+	    printf("\nCompleted in %8.6fs\n", total_interval);
 
 		exit((int) exit_code);
 	}
@@ -56,12 +55,11 @@ struct Compiler {
 		Events::trigger(CE_COMPILER_START, this);
 		printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
 
-		this->clock_start = std::chrono::high_resolution_clock::now();
+		this->timer.start();
 
 		for (auto &filename : this->settings->input_files) {
 			auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
 		    os_get_absolute_path(filename, absolute_path);
-			filename = absolute_path;
 
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
 		}

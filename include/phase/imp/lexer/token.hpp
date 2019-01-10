@@ -74,23 +74,19 @@ enum Token_Type : uint8_t {
 };
 
 struct Token {
-    Token_Type type;
-    const char* text;
-	uint16_t length;
-
 	Location location;
 
+    Token_Type type;
+    const char* text;
+	size_t length;
+
+	Token () : Token (NULL, TOKEN_EOF) { /* empty */ }
+
 	Token (Location* location, Token_Type type, const char* text = NULL, size_t text_length = 0) {
+		if (location) this->location = (*location);
+		this->length = text_length;
 		this->type = type;
 		this->text = text;
-
-		if (text != NULL) {
-			if (text_length == 0) {
-				this->length = (uint16_t) strlen(text);
-			} else this->length = (uint16_t) text_length;
-		} else this->length = 0;
-
-		if (location) this->location = (*location);
 	}
 
 	char* copy_text () {

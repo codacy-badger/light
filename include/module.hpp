@@ -7,6 +7,6 @@ struct Ast_Scope;
 
 struct Module {
     char* absolute_path = NULL;
-    std::vector<Token*>* tokens = NULL;
+    std::vector<Token*> tokens;
     Ast_Scope* global_scope = NULL;
 };

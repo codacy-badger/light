@@ -41,19 +41,17 @@ struct Lexer : Async_Phase {
 		auto module = new Module();
 		module->absolute_path = absolute_path;
 
-		auto scanner = new Scanner(absolute_path);
-		module->tokens = new std::vector<Token*>();
+		auto scanner = Scanner(absolute_path);
 
-		this->source_to_tokens(scanner, module->tokens);
+		this->source_to_tokens(&scanner, &module->tokens);
 		Events::trigger(CE_MODULE_RUN_PARSER, module);
-
-		delete scanner;
     }
 
 	void source_to_tokens (Scanner* scanner, std::vector<Token*>* tokens) {
 		Token* token = NULL;
 		do {
 			token = this->get_next_token(scanner);
+
 			tokens->push_back(token);
 		} while (token->type != TOKEN_EOF);
 
@@ -66,24 +64,6 @@ struct Lexer : Async_Phase {
 		size_t tmp;
 
 		this->skip_ignored_and_comments(scanner);
-
-		CHECK_STR_TOKEN("if", 		TOKEN_IF, 		2);
-		CHECK_STR_TOKEN("else", 	TOKEN_ELSE, 	4);
-		CHECK_STR_TOKEN("while", 	TOKEN_WHILE, 	5);
-		CHECK_STR_TOKEN("break", 	TOKEN_BREAK, 	5);
-		CHECK_STR_TOKEN("cast", 	TOKEN_CAST, 	4);
-		CHECK_STR_TOKEN("struct", 	TOKEN_STRUCT, 	6);
-		CHECK_STR_TOKEN("fn", 		TOKEN_FUNCTION, 2);
-		CHECK_STR_TOKEN("return", 	TOKEN_RETURN, 	6);
-		CHECK_STR_TOKEN("import", 	TOKEN_IMPORT, 	6);
-		CHECK_STR_TOKEN("include", 	TOKEN_INCLUDE, 	7);
-		CHECK_STR_TOKEN("foreign", 	TOKEN_FOREIGN, 	7);
-		CHECK_STR_TOKEN("run", 		TOKEN_RUN, 		3);
-		CHECK_STR_TOKEN("false", 	TOKEN_FALSE, 	5);
-		CHECK_STR_TOKEN("true", 	TOKEN_TRUE, 	4);
-		CHECK_STR_TOKEN("null", 	TOKEN_NULL, 	4);
-
-		CHECK_DYN_TOKEN(this->identifier, TOKEN_ID);
 
 		CHECK_STR2_TOKEN("->", TOKEN_ARROW);
 		CHECK_STR2_TOKEN("&&", TOKEN_DOUBLE_AMP);
@@ -125,6 +105,23 @@ struct Lexer : Async_Phase {
 	    CHECK_CHAR_TOKEN('[', TOKEN_SQ_BRAC_OPEN);
 	    CHECK_CHAR_TOKEN(']', TOKEN_SQ_BRAC_CLOSE);
 
+		CHECK_STR_TOKEN("if", 		TOKEN_IF, 		2);
+		CHECK_STR_TOKEN("else", 	TOKEN_ELSE, 	4);
+		CHECK_STR_TOKEN("while", 	TOKEN_WHILE, 	5);
+		CHECK_STR_TOKEN("break", 	TOKEN_BREAK, 	5);
+		CHECK_STR_TOKEN("cast", 	TOKEN_CAST, 	4);
+		CHECK_STR_TOKEN("struct", 	TOKEN_STRUCT, 	6);
+		CHECK_STR_TOKEN("fn", 		TOKEN_FUNCTION, 2);
+		CHECK_STR_TOKEN("return", 	TOKEN_RETURN, 	6);
+		CHECK_STR_TOKEN("import", 	TOKEN_IMPORT, 	6);
+		CHECK_STR_TOKEN("include", 	TOKEN_INCLUDE, 	7);
+		CHECK_STR_TOKEN("foreign", 	TOKEN_FOREIGN, 	7);
+		CHECK_STR_TOKEN("run", 		TOKEN_RUN, 		3);
+		CHECK_STR_TOKEN("false", 	TOKEN_FALSE, 	5);
+		CHECK_STR_TOKEN("true", 	TOKEN_TRUE, 	4);
+		CHECK_STR_TOKEN("null", 	TOKEN_NULL, 	4);
+
+		CHECK_DYN_TOKEN(this->identifier, TOKEN_ID);
 		CHECK_DYN_TOKEN(this->string, TOKEN_STRING);
 		CHECK_DYN_TOKEN(this->number, TOKEN_NUMBER);
 

@@ -2,8 +2,7 @@
 
 #include "events.hpp"
 #include "compiler_settings.hpp"
-
-#include <chrono>
+#include "util/timer.hpp"
 
 typedef std::chrono::duration<double> interval;
 
@@ -11,9 +10,10 @@ typedef std::chrono::duration<double> interval;
 
 struct Phase {
     const char* name = NULL;
-    interval work_time = 0ms;
+    timer_interval work_time = 0ms;
 
     Compiler_Settings* settings = NULL;
+    Timer timer;
 
     Phase (const char* name, size_t event_id) {
         this->name = name;
@@ -21,12 +21,11 @@ struct Phase {
     }
 
     virtual void handle_event (void* data) {
-        auto start = std::chrono::high_resolution_clock::now();
+        timer.start();
 
         this->on_event(data);
 
-        auto stop = std::chrono::high_resolution_clock::now();
-        this->work_time += std::chrono::duration_cast<interval>(stop - start);
+        this->work_time += timer.stop();
     }
 
     virtual void on_event (void* data) = 0;

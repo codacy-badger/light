@@ -59,7 +59,7 @@ struct Parser : Async_Phase {
     void on_event (void* data) {
 		auto module = reinterpret_cast<Module*>(data);
 
-		this->tokens = module->tokens;
+		this->tokens = &module->tokens;
 		module->global_scope = this->build_ast();
 
 		Events::trigger(CE_MODULE_RESOLVE_IMPORTS, module);
