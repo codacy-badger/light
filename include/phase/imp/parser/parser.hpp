@@ -32,7 +32,7 @@ struct Parser : Async_Phase {
 	size_t all_lines = 0;
 	double total_time = 0;
 
-	Parser () : Async_Phase("Parser", CE_MODULE_RUN_PARSER) {
+	Parser () : Async_Phase("Parser") {
 	    DECL_TYPE(this->internal_scope, Types::type_type);
 	    DECL_TYPE(this->internal_scope, Types::type_void);
 	    DECL_TYPE(this->internal_scope, Types::type_bool);
@@ -60,7 +60,7 @@ struct Parser : Async_Phase {
 		this->tokens = &module->tokens;
 		module->global_scope = this->build_ast();
 
-		Events::trigger(CE_MODULE_RESOLVE_LOCAL_SYMBOLS, module);
+		Events::trigger(this->event_to_id, module);
     }
 
 	Ast_Scope* build_ast () {

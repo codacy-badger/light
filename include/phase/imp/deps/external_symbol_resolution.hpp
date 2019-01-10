@@ -9,14 +9,14 @@
 struct External_Symbol_Resolution : Phase, Ast_Navigator {
     Ast_Scope* current_scope = NULL;
 
-    External_Symbol_Resolution() : Phase("External Symbol Resolution", CE_MODULE_RESOLVE_EXTERNAL_SYMBOLS) { /* empty */ }
+    External_Symbol_Resolution() : Phase("External Symbol Resolution") { /* empty */ }
 
     void on_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 
         this->ast_handle(module->global_scope);
 
-        Events::trigger(CE_MODULE_RESOLVE_IFS, module);
+        Events::trigger(this->event_to_id, module);
     }
 
     void ast_handle (Ast_Ident* ident) {

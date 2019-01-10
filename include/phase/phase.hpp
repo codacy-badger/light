@@ -15,11 +15,15 @@ struct Phase {
     timer_interval work_time = 0ms;
 
     Compiler_Settings* settings = NULL;
+    size_t event_from_id = 0;
+    size_t event_to_id = 0;
+
     Timer timer;
 
-    Phase (const char* name, size_t event_id) {
-        this->name = name;
-        Events::add_observer(event_id, &Phase::handle_event, this);
+    Phase (const char* name) { this->name = name; }
+
+    virtual void start () {
+        Events::add_observer(this->event_from_id, &Phase::handle_event, this);
     }
 
     virtual void handle_event (void* data) {

@@ -15,7 +15,7 @@ struct External_Modules : Async_Phase, Ast_Navigator {
 
     Module* current_module = NULL;
 
-    External_Modules() : Async_Phase("External Modules", CE_MODULE_RESOLVE_IMPORTS) {
+    External_Modules() : Async_Phase("External Modules") {
         Events::add_observer(CE_MODULE_READY, &External_Modules::on_module_ready, this);
     }
 
@@ -26,7 +26,7 @@ struct External_Modules : Async_Phase, Ast_Navigator {
 
         auto it = this->module_dependencies.find(this->current_module);
         if (it == this->module_dependencies.end()) {
-            Events::trigger(CE_MODULE_RESOLVE_EXTERNAL_SYMBOLS, this->current_module);
+            Events::trigger(this->event_to_id, this->current_module);
         }
     }
 
@@ -51,7 +51,7 @@ struct External_Modules : Async_Phase, Ast_Navigator {
             if (_it != modules->end()) modules->erase(_it);
 
             if (modules->empty()) {
-                Events::trigger(CE_MODULE_RESOLVE_EXTERNAL_SYMBOLS, it->first);
+                Events::trigger(this->event_to_id, it->first);
                 it = this->module_dependencies.erase(it);
             } else it++;
         }

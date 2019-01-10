@@ -15,7 +15,10 @@ struct Async_Phase : Phase {
     bool keep_working = true;
     bool is_working = false;
 
-    Async_Phase (const char* name, size_t event_id) : Phase(name, event_id) {
+    Async_Phase (const char* name) : Phase(name) { /* empty */ }
+
+    void start () {
+        Phase::start();
         this->thread = new std::thread(&Async_Phase::async_run, this);
     }
 

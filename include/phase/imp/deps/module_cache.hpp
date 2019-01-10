@@ -17,7 +17,7 @@ struct Module_Cache : Phase {
     std::map<const char*, Module*, cmp_str2> cache;
     std::vector<const char*> in_progress;
 
-    Module_Cache() : Phase("Module Cache", CE_IMPORT_MODULE) {
+    Module_Cache() : Phase("Module Cache") {
         Events::add_observer(CE_MODULE_READY, &Module_Cache::on_module_ready, this);
     }
 
@@ -28,7 +28,7 @@ struct Module_Cache : Phase {
         if (it == this->cache.end()) {
             if (!this->is_in_progress(absolute_path)) {
                 this->add_in_progress(absolute_path);
-                Events::trigger(CE_MODULE_RUN_LEXER, absolute_path);
+                Events::trigger(this->event_to_id, absolute_path);
             }
         } else {
             auto cached_module = this->cache[absolute_path];

@@ -10,7 +10,7 @@ struct Static_If : Phase, Ast_Navigator {
     Ast_Scope* current_scope = NULL;
     bool static_ifs_found = false;
 
-    Static_If() : Phase("Static If", CE_MODULE_RESOLVE_IFS) { /* empty */ }
+    Static_If() : Phase("Static If") { /* empty */ }
 
     void on_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
@@ -20,7 +20,7 @@ struct Static_If : Phase, Ast_Navigator {
         if (this->static_ifs_found) {
             Events::trigger(CE_MODULE_RESOLVE_IMPORTS, module);
         } else {
-            Events::trigger(CE_MODULE_CHECK_DEPENDENCIES, module);
+            Events::trigger(this->event_to_id, module);
         }
     }
 

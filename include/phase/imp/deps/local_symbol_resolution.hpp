@@ -9,14 +9,14 @@
 struct Local_Symbol_Resolution : Phase, Ast_Navigator {
     Ast_Scope* current_scope = NULL;
 
-    Local_Symbol_Resolution() : Phase("Local Symbol Resolution", CE_MODULE_RESOLVE_LOCAL_SYMBOLS) { /* empty */ }
+    Local_Symbol_Resolution() : Phase("Local Symbol Resolution") { /* empty */ }
 
     void on_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 
         this->ast_handle(module->global_scope);
 
-        Events::trigger(CE_MODULE_RESOLVE_IMPORTS, module);
+        Events::trigger(this->event_to_id, module);
     }
 
     void ast_handle (Ast_Ident* ident) {
