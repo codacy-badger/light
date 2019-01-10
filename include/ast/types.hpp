@@ -5,8 +5,6 @@
 
 #include "ast/ast.hpp"
 
-using namespace std;
-
 enum Internal_Type : uint8_t {
     INTERNAL_TYPE_UNDEFINED  = 0,
     INTERNAL_TYPE_VOID       = 1,
@@ -18,12 +16,12 @@ enum Internal_Type : uint8_t {
 };
 
 struct Types {
-    vector<Ast_Type_Instance*> all_types;
+    std::vector<Ast_Type_Instance*> all_types;
 
-    map<Ast_Type_Instance*, Ast_Pointer_Type*> ptr_types;
-    map<Ast_Type_Instance*, Ast_Slice_Type*> sli_types;
-    map<Ast_Expression*, map<uint64_t, Ast_Array_Type*>> arr_types;
-    vector<Ast_Function_Type*> func_types;
+    std::map<Ast_Type_Instance*, Ast_Pointer_Type*> ptr_types;
+    std::map<Ast_Type_Instance*, Ast_Slice_Type*> sli_types;
+    std::map<Ast_Expression*, std::map<uint64_t, Ast_Array_Type*>> arr_types;
+    std::vector<Ast_Function_Type*> func_types;
 
 	static Ast_Struct_Type* type_type;
 	static Ast_Struct_Type* type_void;

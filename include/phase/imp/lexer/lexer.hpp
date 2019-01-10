@@ -4,7 +4,7 @@
 #include "scanner.hpp"
 #include "token.hpp"
 #include "compiler_events.hpp"
-#include "events.hpp"
+#include "util/events.hpp"
 
 #include "phase/async_phase.hpp"
 
@@ -12,16 +12,23 @@
 
 #define LEXER_IGNORED " \n\t"
 
-#define CHECK_STR_TOKEN(text, type, length) if (scanner->is_next(text, length))	\
-	{ scanner->skip(length); return new Token(&scanner->location, type); }
+#define CASE_TOKEN(c, type) case c: { scanner->skip();							\
+	return new Token(&scanner->location, type); }
 
-#define CHECK_STR2_TOKEN(text, type) CHECK_STR_TOKEN(text, type, 2)
-
-#define CHECK_CHAR_TOKEN(c, type) if (scanner->is_next(c))						\
-	{ scanner->skip(); return new Token(&scanner->location, type); }
+#define MULTI_CASE_TOKEN(c, type, body) case c: { scanner->skip();				\
+	switch (scanner->peek()) {													\
+		body																	\
+		default: return new Token(&scanner->location, type);					\
+	}																			\
+}
 
 #define CHECK_DYN_TOKEN(func, type) tmp = func(scanner);						\
 	if (tmp) return new Token(&scanner->location, type, scanner->ref() - tmp, tmp);
+
+#define LEN(text) (sizeof(text) - 1)
+
+#define CHECK_STR_TOKEN(text, type) if (scanner->is_next(text, LEN(text)))		\
+	{ scanner->skip(LEN(text)); return new Token(&scanner->location, type); }
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
 #define DIGIT(c) (c >= '0' && c <= '9')
@@ -65,67 +72,72 @@ struct Lexer : Async_Phase {
 
 		this->skip_ignored_and_comments(scanner);
 
-		CHECK_STR2_TOKEN("->", TOKEN_ARROW);
-		CHECK_STR2_TOKEN("&&", TOKEN_DOUBLE_AMP);
-		CHECK_STR2_TOKEN("||", TOKEN_DOUBLE_PIPE);
-		CHECK_STR2_TOKEN(">>", TOKEN_RIGHT_SHIFT);
-		CHECK_STR2_TOKEN("<<", TOKEN_LEFT_SHIFT);
-		CHECK_STR2_TOKEN("==", TOKEN_DOUBLE_EQUAL);
-		CHECK_STR2_TOKEN("!=", TOKEN_NOT_EQUAL);
-		CHECK_STR2_TOKEN(">=", TOKEN_GREATER_EQUAL);
-		CHECK_STR2_TOKEN("<=", TOKEN_LESSER_EQUAL);
-		CHECK_STR2_TOKEN("++", TOKEN_DOUBLE_ADD);
-		CHECK_STR2_TOKEN("--", TOKEN_DOUBLE_SUB);
-		CHECK_STR2_TOKEN("..", TOKEN_DOUBLE_DOT);
+		switch (scanner->peek()) {
+			CASE_TOKEN(';', TOKEN_STM_END)
+			CASE_TOKEN('(', TOKEN_PAR_OPEN)
+			CASE_TOKEN(')', TOKEN_PAR_CLOSE)
+			CASE_TOKEN('+', TOKEN_ADD)
+			CASE_TOKEN('*', TOKEN_MUL)
+			CASE_TOKEN('/', TOKEN_DIV)
+			CASE_TOKEN('%', TOKEN_PERCENT)
+			CASE_TOKEN('^', TOKEN_CARET)
+			CASE_TOKEN('~', TOKEN_TILDE)
+			CASE_TOKEN('$', TOKEN_DOLLAR)
+			CASE_TOKEN('@', TOKEN_AT)
+			CASE_TOKEN('#', TOKEN_HASH)
+			CASE_TOKEN(':', TOKEN_COLON)
+			CASE_TOKEN('.', TOKEN_DOT)
+			CASE_TOKEN(',', TOKEN_COMMA)
+			CASE_TOKEN('{', TOKEN_BRAC_OPEN)
+			CASE_TOKEN('}', TOKEN_BRAC_CLOSE)
+			CASE_TOKEN('[', TOKEN_SQ_BRAC_OPEN)
+			CASE_TOKEN(']', TOKEN_SQ_BRAC_CLOSE)
+			MULTI_CASE_TOKEN('&', TOKEN_AMP,
+				CASE_TOKEN('&', TOKEN_DOUBLE_AMP)
+			)
+			MULTI_CASE_TOKEN('|', TOKEN_PIPE,
+				CASE_TOKEN('|', TOKEN_DOUBLE_PIPE)
+			)
+			MULTI_CASE_TOKEN('>', TOKEN_GREATER,
+				CASE_TOKEN('>', TOKEN_RIGHT_SHIFT)
+				CASE_TOKEN('=', TOKEN_GREATER_EQUAL)
+			)
+			MULTI_CASE_TOKEN('<', TOKEN_LESSER,
+				CASE_TOKEN('<', TOKEN_LEFT_SHIFT)
+				CASE_TOKEN('=', TOKEN_LESSER_EQUAL)
+			)
+			MULTI_CASE_TOKEN('!', TOKEN_EXCLAMATION,
+				CASE_TOKEN('=', TOKEN_NOT_EQUAL)
+			)
+			MULTI_CASE_TOKEN('=', TOKEN_EQUAL,
+				CASE_TOKEN('=', TOKEN_DOUBLE_EQUAL)
+			)
+			MULTI_CASE_TOKEN('-', TOKEN_SUB,
+				CASE_TOKEN('>', TOKEN_ARROW)
+			)
+			default: {
+				CHECK_STR_TOKEN("break", 	TOKEN_BREAK);
+				CHECK_STR_TOKEN("cast", 	TOKEN_CAST);
+				CHECK_STR_TOKEN("else", 	TOKEN_ELSE);
+				CHECK_STR_TOKEN("fn", 		TOKEN_FUNCTION);
+				CHECK_STR_TOKEN("false", 	TOKEN_FALSE);
+				CHECK_STR_TOKEN("foreign", 	TOKEN_FOREIGN);
+				CHECK_STR_TOKEN("if", 		TOKEN_IF);
+				CHECK_STR_TOKEN("import", 	TOKEN_IMPORT);
+				CHECK_STR_TOKEN("null", 	TOKEN_NULL);
+				CHECK_STR_TOKEN("run", 		TOKEN_RUN);
+				CHECK_STR_TOKEN("return", 	TOKEN_RETURN);
+				CHECK_STR_TOKEN("struct", 	TOKEN_STRUCT);
+				CHECK_STR_TOKEN("true", 	TOKEN_TRUE);
+				CHECK_STR_TOKEN("while", 	TOKEN_WHILE);
 
-		CHECK_CHAR_TOKEN(';', TOKEN_STM_END);
-	    CHECK_CHAR_TOKEN('(', TOKEN_PAR_OPEN);
-	    CHECK_CHAR_TOKEN(')', TOKEN_PAR_CLOSE);
-		CHECK_CHAR_TOKEN('+', TOKEN_ADD);
-		CHECK_CHAR_TOKEN('-', TOKEN_SUB);
-		CHECK_CHAR_TOKEN('*', TOKEN_MUL);
-		CHECK_CHAR_TOKEN('/', TOKEN_DIV);
-		CHECK_CHAR_TOKEN('%', TOKEN_PERCENT);
-		CHECK_CHAR_TOKEN('>', TOKEN_GREATER);
-		CHECK_CHAR_TOKEN('<', TOKEN_LESSER);
-		CHECK_CHAR_TOKEN('&', TOKEN_AMP);
-		CHECK_CHAR_TOKEN('|', TOKEN_PIPE);
-		CHECK_CHAR_TOKEN('^', TOKEN_CARET);
-		CHECK_CHAR_TOKEN('~', TOKEN_TILDE);
-		CHECK_CHAR_TOKEN('!', TOKEN_EXCLAMATION);
-		CHECK_CHAR_TOKEN('$', TOKEN_DOLLAR);
-		CHECK_CHAR_TOKEN('@', TOKEN_AT);
-		CHECK_CHAR_TOKEN('#', TOKEN_HASH);
-		CHECK_CHAR_TOKEN('=', TOKEN_EQUAL);
-		CHECK_CHAR_TOKEN(':', TOKEN_COLON);
-	    CHECK_CHAR_TOKEN('.', TOKEN_DOT);
-	    CHECK_CHAR_TOKEN(',', TOKEN_COMMA);
-	    CHECK_CHAR_TOKEN('{', TOKEN_BRAC_OPEN);
-	    CHECK_CHAR_TOKEN('}', TOKEN_BRAC_CLOSE);
-	    CHECK_CHAR_TOKEN('[', TOKEN_SQ_BRAC_OPEN);
-	    CHECK_CHAR_TOKEN(']', TOKEN_SQ_BRAC_CLOSE);
+				CHECK_DYN_TOKEN(this->identifier, TOKEN_ID);
+				CHECK_DYN_TOKEN(this->string, TOKEN_STRING);
+				CHECK_DYN_TOKEN(this->number, TOKEN_NUMBER);
 
-		CHECK_STR_TOKEN("if", 		TOKEN_IF, 		2);
-		CHECK_STR_TOKEN("else", 	TOKEN_ELSE, 	4);
-		CHECK_STR_TOKEN("while", 	TOKEN_WHILE, 	5);
-		CHECK_STR_TOKEN("break", 	TOKEN_BREAK, 	5);
-		CHECK_STR_TOKEN("cast", 	TOKEN_CAST, 	4);
-		CHECK_STR_TOKEN("struct", 	TOKEN_STRUCT, 	6);
-		CHECK_STR_TOKEN("fn", 		TOKEN_FUNCTION, 2);
-		CHECK_STR_TOKEN("return", 	TOKEN_RETURN, 	6);
-		CHECK_STR_TOKEN("import", 	TOKEN_IMPORT, 	6);
-		CHECK_STR_TOKEN("include", 	TOKEN_INCLUDE, 	7);
-		CHECK_STR_TOKEN("foreign", 	TOKEN_FOREIGN, 	7);
-		CHECK_STR_TOKEN("run", 		TOKEN_RUN, 		3);
-		CHECK_STR_TOKEN("false", 	TOKEN_FALSE, 	5);
-		CHECK_STR_TOKEN("true", 	TOKEN_TRUE, 	4);
-		CHECK_STR_TOKEN("null", 	TOKEN_NULL, 	4);
-
-		CHECK_DYN_TOKEN(this->identifier, TOKEN_ID);
-		CHECK_DYN_TOKEN(this->string, TOKEN_STRING);
-		CHECK_DYN_TOKEN(this->number, TOKEN_NUMBER);
-
-		return new Token(&scanner->location, TOKEN_EOF);
+				return new Token(&scanner->location, TOKEN_EOF);
+			}
+		}
 	}
 
 	size_t identifier (Scanner* scanner) {

@@ -2,7 +2,7 @@
 
 #include "phase.hpp"
 
-#include "async_queue.hpp"
+#include "util/async_queue.hpp"
 
 #include <thread>
 
@@ -47,5 +47,9 @@ struct Async_Phase : Phase {
             this->keep_working = false;
             this->thread->join();
         }
+    }
+
+    const char* get_phase_name_format () {
+        return "  - [*] %-31s %8.6fs\n";
     }
 };

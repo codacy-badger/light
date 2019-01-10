@@ -35,14 +35,13 @@ enum Token_Type : uint8_t {
 	TOKEN_FUNCTION,
 	TOKEN_RETURN,
 	TOKEN_IMPORT,
-	TOKEN_INCLUDE,
 	TOKEN_FOREIGN,
 	TOKEN_RUN,
 	TOKEN_FALSE,
 	TOKEN_TRUE,
-	TOKEN_NULL,				// 30
+	TOKEN_NULL,
 
-	TOKEN_EXCLAMATION,
+	TOKEN_EXCLAMATION,		// 30
 	TOKEN_DOLLAR,
 
 	TOKEN_AMP,
@@ -52,8 +51,8 @@ enum Token_Type : uint8_t {
 	TOKEN_ADD,
 	TOKEN_SUB,
 	TOKEN_DIV,
-	TOKEN_MUL,				// 40
-	TOKEN_PERCENT,
+	TOKEN_MUL,
+	TOKEN_PERCENT,			// 40
 	TOKEN_GREATER,
 	TOKEN_LESSER,
 
@@ -64,8 +63,8 @@ enum Token_Type : uint8_t {
 	TOKEN_PAR_OPEN,
 	TOKEN_PAR_CLOSE,
 	TOKEN_BRAC_OPEN,
-	TOKEN_BRAC_CLOSE,		// 50
-	TOKEN_SQ_BRAC_OPEN,
+	TOKEN_BRAC_CLOSE,
+	TOKEN_SQ_BRAC_OPEN,		// 50
 	TOKEN_SQ_BRAC_CLOSE,
 	TOKEN_COLON,
 	TOKEN_COMMA,
@@ -80,10 +79,8 @@ struct Token {
     const char* text;
 	size_t length;
 
-	Token () : Token (NULL, TOKEN_EOF) { /* empty */ }
-
 	Token (Location* location, Token_Type type, const char* text = NULL, size_t text_length = 0) {
-		if (location) this->location = (*location);
+		this->location = (*location);
 		this->length = text_length;
 		this->type = type;
 		this->text = text;
@@ -126,7 +123,6 @@ struct Token {
 			case TOKEN_FUNCTION:		return "fn";
 			case TOKEN_RETURN:			return "return";
 			case TOKEN_IMPORT:			return "import";
-			case TOKEN_INCLUDE:			return "include";
 			case TOKEN_FOREIGN:			return "foreign";
 			case TOKEN_RUN:				return "run";
 			case TOKEN_FALSE:			return "false";

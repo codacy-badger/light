@@ -4,8 +4,6 @@
 
 #include <vector>
 
-using namespace std;
-
 struct Register_State {
     Ast_Declaration* decl = NULL;
     bool expired = false;
@@ -15,7 +13,7 @@ struct Register_State {
 };
 
 struct Register_Allocator : Pipe {
-    vector<Register_State*> decl_regs;
+    std::vector<Register_State*> decl_regs;
 
     size_t registers_used = 0;
     bool is_left_value = false;

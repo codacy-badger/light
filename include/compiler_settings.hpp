@@ -1,7 +1,7 @@
 #pragma once
 
-#include "os.hpp"
-#include "arch.hpp"
+#include "util/os.hpp"
+#include "util/arch.hpp"
 
 #include <vector>
 

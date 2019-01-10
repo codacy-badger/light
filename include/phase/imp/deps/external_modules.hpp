@@ -26,13 +26,13 @@ struct External_Modules : Async_Phase, Ast_Navigator {
 
         auto it = this->module_dependencies.find(this->current_module);
         if (it == this->module_dependencies.end()) {
-            Events::trigger(CE_MODULE_RESOLVE_SYMBOLS, this->current_module);
+            Events::trigger(CE_MODULE_RESOLVE_EXTERNAL_SYMBOLS, this->current_module);
         }
     }
 
     void ast_handle (Ast_Directive_Import* import) {
         import->remove_from_scope = true;
-        
+
 		find_existing_absolute_path(import);
 
         this->module_dependencies[this->current_module].push_back(import->absolute_path);
@@ -51,7 +51,7 @@ struct External_Modules : Async_Phase, Ast_Navigator {
             if (_it != modules->end()) modules->erase(_it);
 
             if (modules->empty()) {
-                Events::trigger(CE_MODULE_RESOLVE_SYMBOLS, it->first);
+                Events::trigger(CE_MODULE_RESOLVE_EXTERNAL_SYMBOLS, it->first);
                 it = this->module_dependencies.erase(it);
             } else it++;
         }

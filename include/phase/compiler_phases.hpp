@@ -8,8 +8,9 @@
 #include "imp/parser/parser.hpp"
 #include "imp/deps/module_cache.hpp"
 #include "imp/deps/static_if.hpp"
+#include "imp/deps/local_symbol_resolution.hpp"
 #include "imp/deps/external_modules.hpp"
-#include "imp/deps/symbol_resolution.hpp"
+#include "imp/deps/external_symbol_resolution.hpp"
 #include "imp/check/check_dependencies.hpp"
 
 #include <vector>
@@ -28,8 +29,9 @@ struct Compiler_Phases {
         this->add_phase(new Lexer());
         this->add_phase(new Parser());
 
+        this->add_phase(new Local_Symbol_Resolution());
         this->add_phase(new External_Modules());
-        this->add_phase(new Symbol_Resolution());
+        this->add_phase(new External_Symbol_Resolution());
         this->add_phase(new Static_If());
 
         this->add_phase(new Check_Dependencies());

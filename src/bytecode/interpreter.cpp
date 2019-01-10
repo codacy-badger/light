@@ -25,7 +25,7 @@ void Interpreter::run (Ast_Function* func) {
 	this->run(&func->bytecode);
 }
 
-void Interpreter::run (vector<Instruction*>* instructions) {
+void Interpreter::run (std::vector<Instruction*>* instructions) {
 	auto _tmp = this->stack_index;
 	for (instruction_index = 0; instruction_index < instructions->size(); instruction_index++) {
 		auto inst = (*instructions)[instruction_index];
@@ -189,7 +189,7 @@ void Interpreter::run (Instruction* inst) {
 
 void Interpreter::call (void* func_ptr, Bytecode_Type bytecode_type, uint8_t reg_result) {
 	auto func = reinterpret_cast<Ast_Function*>(func_ptr);
-	
+
 	if (!func->is_native()) {
 		auto _base = this->stack_base;
 		auto _inst = this->instruction_index;

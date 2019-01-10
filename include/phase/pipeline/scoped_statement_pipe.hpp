@@ -10,12 +10,12 @@ struct Scoped_Statement_Pipe : Scoped_Pipe {
         Pipe::handle(stm_ptr);
     }
 
-    vector<Ast_Statement*>::iterator get_current_stm_location () {
+    std::vector<Ast_Statement*>::iterator get_current_stm_location () {
         return find(this->current_scope->statements.begin(),
             this->current_scope->statements.end(), this->current_stm);
     }
 
-    vector<Ast_Statement*>::iterator delete_current_statement () {
+    std::vector<Ast_Statement*>::iterator delete_current_statement () {
         auto location = this->get_current_stm_location();
 		return this->current_scope->statements.erase(location);
     }

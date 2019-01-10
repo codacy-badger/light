@@ -4,15 +4,12 @@
 #include <vector>
 #include <map>
 
-using namespace std;
-
 typedef void (*ObserverFunction)(void*);
-typedef function<void(void*)> ObserverStdFunction;
-typedef map<size_t, vector<ObserverStdFunction>> ObserverMap;
+typedef std::function<void(void*)> ObserverStdFunction;
+typedef std::map<size_t, std::vector<ObserverStdFunction>> ObserverMap;
 
 struct Events {
     static ObserverMap event_observers;
-    static bool is_debug;
 
     static void trigger (size_t event_id) {
         trigger(event_id, NULL);
@@ -38,10 +35,10 @@ struct Events {
 
     template<typename T>
     static void add_observer (size_t event_id, void (T::*observer)(void*), T* instance) {
-        add_observer(event_id, bind(observer, instance, std::placeholders::_1));
+        add_observer(event_id, std::bind(observer, instance, std::placeholders::_1));
     }
 
-    static vector<ObserverStdFunction>* get_observers (size_t event_id) {
+    static std::vector<ObserverStdFunction>* get_observers (size_t event_id) {
         return &(event_observers[event_id]);
     }
 

@@ -9,8 +9,6 @@
 
 #include <vector>
 
-using namespace std;
-
 #define DECL_TYPE(scope, type) scope->statements.push_back(ast_make_declaration(type->name, type));
 
 #define IS_WINDOWS_LITERAL ast_make_literal(os_get_type() == OS_TYPE_WINDOWS)
@@ -27,7 +25,7 @@ struct Parser : Async_Phase {
 	Ast_Factory* factory = new Ast_Factory();
 	Ast_Scope* current_scope = NULL;
 
-	vector<Token*>* tokens = NULL;
+	std::vector<Token*>* tokens = NULL;
 	size_t index;
 
 	// for metrics
@@ -62,7 +60,7 @@ struct Parser : Async_Phase {
 		this->tokens = &module->tokens;
 		module->global_scope = this->build_ast();
 
-		Events::trigger(CE_MODULE_RESOLVE_IMPORTS, module);
+		Events::trigger(CE_MODULE_RESOLVE_LOCAL_SYMBOLS, module);
     }
 
 	Ast_Scope* build_ast () {
@@ -390,13 +388,7 @@ struct Parser : Async_Phase {
 				return new Ast_Slice_Type(base_type);
 			}
 		} else {
-			auto ident = this->ident();
-			if (ident) {
-				auto decl = this->current_scope->find_const_declaration(ident->name);
-				if (decl && decl->expression && decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-					return decl->expression;
-				} else return ident;
-			} else return NULL;
+			return this->ident();
 		}
 	}
 
@@ -486,12 +478,12 @@ struct Parser : Async_Phase {
 
 		// @Info this is the right time to do this, since on a non-constant
 		// reference the declaration should already be in the scope.
-		ident->declaration = this->current_scope->find_non_const_declaration(ident->name);
+		ident->declaration = this->current_scope->find_local_declaration(ident->name, false);
 
 		if (ident->declaration == NULL) {
 			// @Info if we haven't found any var declaration it means it must
 			// be a constant, we check now in case it's pre-declared
-			ident->declaration = this->current_scope->find_const_declaration(ident->name);
+			ident->declaration = this->current_scope->find_local_declaration(ident->name, true);
 		}
 
 		return ident;

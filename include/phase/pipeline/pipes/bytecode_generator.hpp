@@ -10,10 +10,10 @@ struct Bytecode_Generator : Pipe {
 	bool reserved[INTERP_REGISTER_COUNT] = {};
 	size_t data_offset = 0;
 
-	vector<Instruction*>* bytecode = NULL;
+	std::vector<Instruction*>* bytecode = NULL;
 	bool is_left_value = false;
 
-	vector<Inst_Jump*> pending_breaks;
+	std::vector<Inst_Jump*> pending_breaks;
 
 	// for metrics
 	size_t instruction_count = 0;

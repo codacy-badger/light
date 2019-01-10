@@ -1,0 +1,45 @@
+#pragma once
+
+#include "phase/phase.hpp"
+#include "phase/ast_navigator.hpp"
+
+#include "module.hpp"
+#include "compiler_events.hpp"
+
+struct External_Symbol_Resolution : Phase, Ast_Navigator {
+    Ast_Scope* current_scope = NULL;
+
+    External_Symbol_Resolution() : Phase("External Symbol Resolution", CE_MODULE_RESOLVE_EXTERNAL_SYMBOLS) { /* empty */ }
+
+    void on_event (void* data) {
+        auto module = reinterpret_cast<Module*>(data);
+
+        this->ast_handle(module->global_scope);
+
+        Events::trigger(CE_MODULE_RESOLVE_IFS, module);
+    }
+
+    void ast_handle (Ast_Ident* ident) {
+        if (!ident->declaration) {
+            auto decl = this->current_scope->find_external_declaration(ident->name);
+            if (decl) {
+                ident->declaration = decl;
+            }
+        }
+    }
+
+    void ast_handle (Ast_Binary* binary) {
+        // @Info we can't resolve atrtibutes just yet, since we
+        // still don't have type information on expressions
+        if (binary->binary_op != AST_BINARY_ATTRIBUTE) {
+            Ast_Navigator::ast_handle(binary);
+        }
+    }
+
+    void ast_handle (Ast_Scope* scope) {
+        auto tmp = this->current_scope;
+        this->current_scope = scope;
+        Ast_Navigator::ast_handle(scope);
+        this->current_scope = tmp;
+    }
+};

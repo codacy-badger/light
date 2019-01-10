@@ -6,22 +6,22 @@
 #include "module.hpp"
 #include "compiler_events.hpp"
 
-struct Symbol_Resolution : Phase, Ast_Navigator {
+struct Local_Symbol_Resolution : Phase, Ast_Navigator {
     Ast_Scope* current_scope = NULL;
 
-    Symbol_Resolution() : Phase("Symbol Resolution", CE_MODULE_RESOLVE_SYMBOLS) { /* empty */ }
+    Local_Symbol_Resolution() : Phase("Local Symbol Resolution", CE_MODULE_RESOLVE_LOCAL_SYMBOLS) { /* empty */ }
 
     void on_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 
         this->ast_handle(module->global_scope);
 
-        Events::trigger(CE_MODULE_RESOLVE_IFS, module);
+        Events::trigger(CE_MODULE_RESOLVE_IMPORTS, module);
     }
 
     void ast_handle (Ast_Ident* ident) {
         if (!ident->declaration) {
-            auto decl = this->current_scope->find_declaration(ident->name, true);
+            auto decl = this->current_scope->find_local_declaration(ident->name, true);
             if (decl) {
                 ident->declaration = decl;
             }

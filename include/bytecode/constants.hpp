@@ -2,10 +2,8 @@
 
 #include <vector>
 
-using namespace std;
-
 struct Bytecode_Constants {
-    vector<void*> allocated;
+    std::vector<void*> allocated;
 
     size_t add (const char* string) {
         this->allocated.push_back((void*) string);

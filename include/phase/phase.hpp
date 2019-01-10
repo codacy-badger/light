@@ -1,12 +1,14 @@
 #pragma once
 
-#include "events.hpp"
+#include "util/events.hpp"
 #include "compiler_settings.hpp"
 #include "util/timer.hpp"
 
+using namespace std::chrono_literals;
+
 typedef std::chrono::duration<double> interval;
 
-#define print_extra_metric(name, type, value) printf("\t%-25s " type "\n", name, value)
+#define print_extra_metric(name, type, value) printf("\t%-35s " type "\n", name, value)
 
 struct Phase {
     const char* name = NULL;
@@ -35,8 +37,12 @@ struct Phase {
     virtual void stop () { /* empty */ }
 
     void print_metrics () {
-        printf("  - %-25s %8.6fs\n", this->name, this->work_time.count());
+        printf(this->get_phase_name_format(), this->name, this->work_time.count());
         this->print_extra_metrics();
+    }
+
+    virtual const char* get_phase_name_format () {
+        return "  - %-35s %8.6fs\n";
     }
 
     virtual void print_extra_metrics () { /* empty */ }

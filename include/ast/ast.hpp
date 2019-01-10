@@ -17,8 +17,6 @@ struct Ast_Type_Instance;
 
 struct Instruction;
 
-using namespace std;
-
 struct cmp_str {
    bool operator()(char const *a, char const *b) const {
       return std::strcmp(a, b) < 0;
@@ -38,8 +36,8 @@ struct Ast {
 };
 
 struct Ast_Arguments : Ast {
-	vector<Ast_Expression*> unnamed;
-	map<const char*, Ast_Expression*, cmp_str> named;
+	std::vector<Ast_Expression*> unnamed;
+	std::map<const char*, Ast_Expression*, cmp_str> named;
 
 	bool add (Ast_Expression* exp);
     Ast_Expression* get_named_value (const char* param_name);
@@ -60,21 +58,21 @@ enum Ast_Statement_Type {
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 
-	vector<const char*> notes;
+	std::vector<const char*> notes;
     bool remove_from_scope = false;
 
 	bool remove_note (const char* name);
 };
 
 struct Ast_Scope : Ast_Statement {
-	vector<Ast_Statement*> statements;
-	vector<Ast_Scope*> import_scopes;
+	std::vector<Ast_Statement*> statements;
+	std::vector<Ast_Scope*> import_scopes;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
 
 	// for symbol resolution
-	vector<Ast_Ident*> unresolved_idents;
+	std::vector<Ast_Ident*> unresolved_idents;
 
 	Ast_Scope (Ast_Scope* parent = NULL) {
 		this->stm_type = AST_STATEMENT_SCOPE;
@@ -96,15 +94,12 @@ struct Ast_Scope : Ast_Statement {
     }
 
     Ast_Declaration* find_global_declaration (const char* _name, bool is_const = false) {
-        return this->get_global_scope()->find_declaration(_name, is_const);
+        return this->get_global_scope()->find_local_declaration(_name, is_const);
     }
 
-    Ast_Declaration* find_declaration (const char* _name, bool is_const = false);
-    Ast_Declaration* find_external_declaration (const char* _name, bool is_const = false);
+    Ast_Declaration* find_local_declaration (const char* _name, bool is_const = false);
+    Ast_Declaration* find_external_declaration (const char* _name);
 
-	Ast_Declaration* find_non_const_declaration (const char* name);
-	Ast_Declaration* find_const_declaration (const char* name);
-	Ast_Declaration* find_declaration (const char* name);
 	bool is_ancestor (Ast_Scope* other);
 	Ast_Function* get_parent_function ();
 };
@@ -207,7 +202,7 @@ struct Ast_Directive_Import : Ast_Directive {
 struct Ast_Directive_Foreign : Ast_Directive {
     const char* module_name = NULL;
     const char* function_name = NULL;
-	vector<Ast_Declaration*> declarations;
+	std::vector<Ast_Declaration*> declarations;
 
 	Ast_Directive_Foreign () { this->dir_type = AST_DIRECTIVE_FOREIGN; }
 
@@ -233,7 +228,7 @@ struct Ast_Directive_Run : Ast_Directive {
 	Ast_Expression* expression = NULL;
 
 	// for bytecode
-	vector<Instruction*> bytecode;
+	std::vector<Instruction*> bytecode;
 
 	Ast_Directive_Run () { this->dir_type = AST_DIRECTIVE_RUN; }
 };
@@ -309,7 +304,7 @@ struct Ast_Type_Instance : Ast_Expression {
 };
 
 struct Ast_Struct_Type : Ast_Type_Instance {
-	vector<Ast_Declaration*> attributes;
+	std::vector<Ast_Declaration*> attributes;
 	bool is_slice = false;
 
 	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0, bool is_primitive = false, bool is_signed = false) {
@@ -370,7 +365,7 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 };
 
 struct Ast_Function_Type : Ast_Type_Instance {
-	vector<Ast_Declaration*> arg_decls;
+	std::vector<Ast_Declaration*> arg_decls;
 	Ast_Expression* ret_type = NULL;
 
 	Ast_Function_Type() { this->typedef_type = AST_TYPEDEF_FUNCTION; }
@@ -406,7 +401,7 @@ struct Ast_Function : Ast_Expression {
 	void* foreign_function_pointer = NULL;
 
 	// for bytecode
-	vector<Instruction*> bytecode;
+	std::vector<Instruction*> bytecode;
 
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 

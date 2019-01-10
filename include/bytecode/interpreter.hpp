@@ -35,7 +35,7 @@ struct Interpreter {
 	~Interpreter () { dcFree(this->vm); }
 
 	void run (Ast_Function* func);
-	void run (vector<Instruction*>* instructions);
+	void run (std::vector<Instruction*>* instructions);
 	void run (Instruction* inst);
 
 	void call (void* func_ptr, Bytecode_Type bytecode_type, uint8_t reg_result);
