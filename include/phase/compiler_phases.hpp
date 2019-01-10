@@ -62,18 +62,15 @@ struct Compiler_Phases {
     }
 
     void join () {
-        while (!this->are_all_done()) {
-			std::this_thread::sleep_for(this->sleep_interval);
-		}
+        while (!this->are_all_done());
     }
 
     bool are_all_done () {
+        bool all_done = true;
         for (auto phase : this->phases) {
-            if (!phase->is_done()) {
-                return false;
-            }
+            all_done &= phase->is_done();
         }
-        return true;
+        return all_done;
     }
 
     void shutdown () {

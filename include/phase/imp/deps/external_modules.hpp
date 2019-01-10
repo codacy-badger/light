@@ -19,6 +19,7 @@ struct External_Modules : Async_Phase, Ast_Navigator {
         Events::add_observer(CE_MODULE_READY, &External_Modules::on_module_ready, this);
     }
 
+
     void on_event (void* data) {
         this->current_module = reinterpret_cast<Module*>(data);
 

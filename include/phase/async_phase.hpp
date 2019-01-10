@@ -2,28 +2,24 @@
 
 #include "phase.hpp"
 
-#include "util/thread_safe_queue.hpp"
-
 #include <thread>
 
 #define DEFAULT_SLEEP_INTERVAL 100ns
+#define DEFAULT_ASYNC_PRINT_FORMAT "  + %-35s %8.6fs\n"
 
 struct Async_Phase : Phase {
-    Thread_Safe_Queue<void*> queue;
-    std::thread* thread;
+    std::thread* thread = NULL;
 
     bool keep_working = true;
     bool is_working = false;
 
-    Async_Phase (const char* name) : Phase(name) { /* empty */ }
+    Async_Phase (const char* name) : Phase(name, DEFAULT_ASYNC_PRINT_FORMAT) { /* empty */ }
 
     void start () {
         Phase::start();
-        this->thread = new std::thread(&Async_Phase::async_run, this);
-    }
-
-    void handle_event (void* data) {
-        this->queue.push(data);
+        if (settings->is_multithread) {
+            this->thread = new std::thread(&Async_Phase::async_run, this);
+        }
     }
 
     void async_run () {
@@ -37,17 +33,15 @@ struct Async_Phase : Phase {
     }
 
     bool is_done () {
-        return !this->is_working && this->queue.empty();
+        if (settings->is_multithread) {
+            return !this->is_working && this->queue.empty();
+        } else return Phase::is_done();
     }
 
     void stop () {
-        if (this->keep_working) {
+        if (settings->is_multithread && this->keep_working) {
             this->keep_working = false;
             this->thread->join();
         }
-    }
-
-    const char* get_phase_name_format () {
-        return "  - [*] %-31s %8.6fs\n";
     }
 };
