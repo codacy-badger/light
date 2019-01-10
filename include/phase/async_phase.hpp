@@ -2,14 +2,14 @@
 
 #include "phase.hpp"
 
-#include "util/async_queue.hpp"
+#include "util/thread_safe_queue.hpp"
 
 #include <thread>
 
 #define DEFAULT_SLEEP_INTERVAL 100ns
 
 struct Async_Phase : Phase {
-    Async_Queue<void*> queue;
+    Thread_Safe_Queue<void*> queue;
     std::thread* thread;
 
     bool keep_working = true;
@@ -30,12 +30,7 @@ struct Async_Phase : Phase {
         while (this->keep_working) {
             if (!this->queue.empty()) {
                 this->is_working = true;
-
-                auto start = std::chrono::high_resolution_clock::now();
-                this->on_event(this->queue.pop());
-                auto stop = std::chrono::high_resolution_clock::now();
-                this->work_time += std::chrono::duration_cast<interval>(stop - start);
-
+                Phase::handle_event(this->queue.pop());
                 this->is_working = false;
             } else std::this_thread::sleep_for(DEFAULT_SLEEP_INTERVAL);
         }

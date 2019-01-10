@@ -6,8 +6,6 @@
 
 using namespace std::chrono_literals;
 
-typedef std::chrono::duration<double> interval;
-
 #define print_extra_metric(name, type, value) printf("\t%-35s " type "\n", name, value)
 
 struct Phase {
