@@ -10,7 +10,7 @@ struct Check_Dependencies : Async_Phase, Ast_Navigator {
 
     Check_Dependencies() : Async_Phase("Check Dependencies") { /* empty */ }
 
-    void on_event (void* data) {
+    void handle_main_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 
         this->ast_handle(module->global_scope);

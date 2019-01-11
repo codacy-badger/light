@@ -16,11 +16,10 @@ struct External_Modules : Async_Phase, Ast_Navigator {
     Module* current_module = NULL;
 
     External_Modules() : Async_Phase("External Modules") {
-        Events::add_observer(CE_MODULE_READY, &External_Modules::on_module_ready, this);
+        this->bind(CE_MODULE_READY, &External_Modules::on_module_ready, this);
     }
 
-
-    void on_event (void* data) {
+    void handle_main_event (void* data) {
         this->current_module = reinterpret_cast<Module*>(data);
 
         Ast_Navigator::ast_handle(this->current_module->global_scope);

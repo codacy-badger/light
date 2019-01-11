@@ -11,7 +11,7 @@ struct External_Symbol_Resolution : Phase, Ast_Navigator {
 
     External_Symbol_Resolution() : Phase("External Symbol Resolution") { /* empty */ }
 
-    void on_event (void* data) {
+    void handle_main_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 
         this->ast_handle(module->global_scope);

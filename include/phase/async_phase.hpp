@@ -24,9 +24,9 @@ struct Async_Phase : Phase {
 
     void async_run () {
         while (this->keep_working) {
-            if (!this->queue.empty()) {
+            if (!this->event_queue.empty()) {
                 this->is_working = true;
-                Phase::handle_event(this->queue.pop());
+                Phase::handle_event(this->event_queue.pop());
                 this->is_working = false;
             } else std::this_thread::sleep_for(DEFAULT_SLEEP_INTERVAL);
         }
@@ -34,7 +34,7 @@ struct Async_Phase : Phase {
 
     bool is_done () {
         if (settings->is_multithread) {
-            return !this->is_working && this->queue.empty();
+            return !this->is_working && this->event_queue.empty();
         } else return Phase::is_done();
     }
 

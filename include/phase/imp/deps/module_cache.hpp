@@ -18,10 +18,10 @@ struct Module_Cache : Phase {
     std::vector<const char*> in_progress;
 
     Module_Cache() : Phase("Module Cache") {
-        Events::add_observer(CE_MODULE_READY, &Module_Cache::on_module_ready, this);
+        this->bind(CE_MODULE_READY, &Module_Cache::on_module_ready, this);
     }
 
-    void on_event (void* data) {
+    void handle_main_event (void* data) {
         auto absolute_path = reinterpret_cast<char*>(data);
 
         auto it = this->cache.find(absolute_path);

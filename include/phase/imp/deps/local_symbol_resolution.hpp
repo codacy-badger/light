@@ -11,7 +11,7 @@ struct Local_Symbol_Resolution : Phase, Ast_Navigator {
 
     Local_Symbol_Resolution() : Phase("Local Symbol Resolution") { /* empty */ }
 
-    void on_event (void* data) {
+    void handle_main_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 
         this->ast_handle(module->global_scope);

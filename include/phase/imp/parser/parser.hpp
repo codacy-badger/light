@@ -54,7 +54,7 @@ struct Parser : Async_Phase {
 	    this->internal_scope->add(ast_make_declaration("OS_MAC", IS_MAC_LITERAL));
 	}
 
-    void on_event (void* data) {
+    void handle_main_event (void* data) {
 		auto module = reinterpret_cast<Module*>(data);
 
 		this->tokens = &module->tokens;

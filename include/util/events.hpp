@@ -1,18 +1,18 @@
 #pragma once
 
+#include "event_queue.hpp"
+
 #include <functional>
 #include <vector>
 #include <map>
 
-typedef void (*ObserverFunction)(void*);
-typedef std::function<void(void*)> ObserverStdFunction;
-typedef std::map<size_t, std::vector<ObserverStdFunction>> ObserverMap;
+typedef std::map<size_t, std::vector<Event_Queue*>> ObserverMap;
 
 struct Events {
     static ObserverMap event_observers;
 
     static void trigger (size_t event_id) {
-        trigger(event_id, NULL);
+        Events::trigger(event_id, NULL);
     }
 
     template<typename T>
@@ -20,29 +20,12 @@ struct Events {
         void* event_data = NULL;
         memcpy(&event_data, &data, sizeof(data));
 
-        for (auto observer : event_observers[event_id]) {
-            observer(event_data);
+        for (auto event_queue : event_observers[event_id]) {
+            event_queue->push(event_id, event_data);
         }
     }
 
-    static void add_observer (size_t event_id, ObserverStdFunction observer) {
-        event_observers[event_id].push_back(observer);
-    }
-
-    static void add_observer (size_t event_id, ObserverFunction observer) {
-        add_observer(event_id, bind(observer, std::placeholders::_1));
-    }
-
-    template<typename T>
-    static void add_observer (size_t event_id, void (T::*observer)(void*), T* instance) {
-        add_observer(event_id, std::bind(observer, instance, std::placeholders::_1));
-    }
-
-    static std::vector<ObserverStdFunction>* get_observers (size_t event_id) {
-        return &(event_observers[event_id]);
-    }
-
-    static void remove_observers (size_t event_id) {
-        event_observers[event_id].clear();
+    static void bind (size_t event_id, Event_Queue* event_queue) {
+        event_observers[event_id].push_back(event_queue);
     }
 };

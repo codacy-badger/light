@@ -42,7 +42,7 @@ struct Lexer : Async_Phase {
 
 	Lexer () : Async_Phase("Lexer") {}
 
-    void on_event (void* data) {
+    void handle_main_event (void* data) {
 		auto absolute_path = reinterpret_cast<char*>(data);
 
 		auto module = new Module();

@@ -26,6 +26,7 @@ struct Compiler {
 	static Compiler* inst;
 
 	std::chrono::high_resolution_clock::time_point clock_start;
+	Event_Queue event_queue;
 
 	Compiler (int argc = 0, char** argv = NULL) {
 		if (argc > 0) this->settings->handle_arguments(argc, argv);
@@ -34,21 +35,11 @@ struct Compiler {
 
 		Compiler::inst = this;
 
-		Events::add_observer(CE_COMPILER_ERROR, &Compiler::on_compiler_error, this);
-		Events::add_observer(CE_COMPILER_STOP, &Compiler::on_compiler_stop, this);
-	}
+		Events::bind(CE_COMPILER_ERROR, &this->event_queue);
+		Events::bind(CE_COMPILER_STOP, &this->event_queue);
 
-	void on_compiler_stop (void* data) {
-		auto exit_code = reinterpret_cast<size_t>(data);
-
-		this->phases->shutdown();
-
-		this->phases->print_metrics();
-
-		auto total_interval = this->timer.stop().count();
-	    printf("\nCompleted in %8.6fs\n", total_interval);
-
-		exit((int) exit_code);
+		//Events::add_observer(CE_COMPILER_ERROR, &Compiler::on_compiler_error, this);
+		//Events::add_observer(CE_COMPILER_STOP, &Compiler::on_compiler_stop, this);
 	}
 
 	void compile_input_files () {
@@ -64,8 +55,35 @@ struct Compiler {
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
 		}
 
-		this->phases->join();
-		Events::trigger(CE_COMPILER_STOP);
+		while (!this->is_all_work_done()) {
+			this->handle_compiler_events();
+		}
+
+		this->on_compiler_stop(NULL);
+	}
+
+	void handle_compiler_events () {
+		while (!this->event_queue.empty()) {
+			auto event = this->event_queue.pop();
+
+			switch (event.id) {
+				case CE_COMPILER_ERROR: this->on_compiler_stop(event.data);
+				case CE_COMPILER_STOP: this->on_compiler_error(event.data);
+			}
+		}
+	}
+
+	void on_compiler_stop (void* data) {
+		auto exit_code = reinterpret_cast<size_t>(data);
+
+		this->phases->shutdown();
+
+		this->phases->print_metrics();
+
+		auto total_interval = this->timer.stop().count();
+	    printf("\nCompleted in %8.6fs\n", total_interval);
+
+		exit((int) exit_code);
 	}
 
 	void on_compiler_error (void* data) {
@@ -74,5 +92,9 @@ struct Compiler {
 		printf("Compiler error: %s\n", error_description);
 
 		Events::trigger(CE_COMPILER_STOP, 1);
+	}
+
+	bool is_all_work_done () {
+		return this->phases->are_all_done() && this->event_queue.empty();
 	}
 };

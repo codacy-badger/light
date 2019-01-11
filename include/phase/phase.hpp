@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util/thread_safe_queue.hpp"
+#include "util/event_queue.hpp"
 #include "util/events.hpp"
 #include "util/timer.hpp"
 #include "compiler_settings.hpp"
@@ -10,12 +10,16 @@ using namespace std::chrono_literals;
 #define DEFAULT_PRINT_FORMAT "  - %-35s %8.6fs\n"
 #define print_extra_metric(name, type, value) printf("\t%-35s " type "\n", name, value)
 
+typedef std::function<void(void*)> ObserverStdFunction;
+
 struct Phase {
     const char* name = NULL;
     const char* print_format = NULL;
-    Thread_Safe_Queue<void*> queue;
 
     Compiler_Settings* settings = NULL;
+
+    std::map<size_t, ObserverStdFunction> function_map;
+    Event_Queue event_queue;
     size_t event_from_id = 0;
     size_t event_to_id = 0;
 
@@ -28,33 +32,47 @@ struct Phase {
     }
 
     virtual void start () {
-        Events::add_observer(this->event_from_id, &Phase::push_event, this);
+        this->bind(this->event_from_id, &Phase::handle_main_event, this);
     }
 
-    // @TODO this method could be removed by referencing the
-    // Queue push method directly
-    void push_event (void* data) {
-        this->queue.push(data);
-    }
+    virtual void handle_main_event (void* data) = 0;
 
-    void handle_event (void* data) {
+    void handle_event (Event event) {
         timer.start();
-        this->on_event(data);
+
+        auto callback = this->function_map.find(event.id);
+        if (callback != this->function_map.end()) {
+            callback->second(event.data);
+        } else {
+            printf("Unexpected event: can't handle this!\n");
+            exit(1);
+        }
+
         this->work_time += timer.stop();
     }
 
-    virtual void on_event (void* data) = 0;
-
     virtual bool is_done () {
-        if (!this->queue.empty()) {
-            while (!this->queue.empty()) {
-                this->handle_event(this->queue.pop());
+        if (!this->event_queue.empty()) {
+            while (!this->event_queue.empty()) {
+                this->handle_event(this->event_queue.pop());
             }
             return false;
         } else return true;
     }
 
     virtual void stop () { /* empty */ }
+
+    template<typename T>
+    void bind (size_t event_id, void (T::*method)(void*), T* instance) {
+        static_assert(std::is_base_of<Phase, T>::value, "Not a sub-type of Phase");
+
+        this->bind(event_id, std::bind(method, instance, std::placeholders::_1));
+    }
+
+    void bind (size_t event_id, ObserverStdFunction observer_function) {
+        this->function_map[event_id] = observer_function;
+        Events::bind(event_id, &this->event_queue);
+    }
 
     void print_metrics () {
         printf(this->print_format, this->name, this->work_time.count());

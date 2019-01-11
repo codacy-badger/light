@@ -12,7 +12,7 @@ struct Static_If : Phase, Ast_Navigator {
 
     Static_If() : Phase("Static If") { /* empty */ }
 
-    void on_event (void* data) {
+    void handle_main_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 
         this->static_ifs_found = false;
