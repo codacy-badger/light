@@ -3,8 +3,6 @@
 enum Compiler_Events : size_t {
     CE_UNDEFINED = 0,
 
-    CE_COMPILER_START,
-
     CE_IMPORT_MODULE,
 
     CE_MODULE_RUN_LEXER,
@@ -20,5 +18,4 @@ enum Compiler_Events : size_t {
     CE_MODULE_READY,
 
     CE_COMPILER_ERROR,
-    CE_COMPILER_STOP,
 };

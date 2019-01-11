@@ -44,10 +44,8 @@ void report_error (Location* location, char* format, ...) {
 
 void report_internal (Location* location, char* format, ...) {
 	VA_REPORT("INTERNAL ERROR", stderr);
-	Events::trigger(CE_COMPILER_STOP, 1);
 }
 
 void report_error_and_stop (Location* location, char* format, ...) {
 	VA_REPORT("ERROR", stderr);
-	Events::trigger(CE_COMPILER_STOP, 1);
 }

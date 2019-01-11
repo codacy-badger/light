@@ -37,11 +37,9 @@ struct Compiler {
 		Compiler::inst = this;
 
 		Events::bind(CE_COMPILER_ERROR, &this->event_queue);
-		Events::bind(CE_COMPILER_STOP, &this->event_queue);
 	}
 
 	void compile_input_files () {
-		Events::trigger(CE_COMPILER_START, this);
 		printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
 
 		this->timer.start();
@@ -55,7 +53,11 @@ struct Compiler {
 			std::this_thread::sleep_for(100ns);
 		}
 
-		this->on_compiler_stop(NULL);
+		this->phases->shutdown();
+
+		auto total_interval = this->timer.stop().count();
+		this->phases->print_metrics();
+	    printf("\nCompleted in %8.6fs\n", total_interval);
 	}
 
 	void handle_compiler_events () {
@@ -63,22 +65,9 @@ struct Compiler {
 			auto event = this->event_queue.pop();
 
 			switch (event.id) {
-				case CE_COMPILER_ERROR: this->on_compiler_stop(event.data);
-				case CE_COMPILER_STOP: this->on_compiler_error(event.data);
+				case CE_COMPILER_ERROR: this->on_compiler_error(event.data);
 			}
 		}
-	}
-
-	void on_compiler_stop (void* data) {
-		auto exit_code = reinterpret_cast<size_t>(data);
-
-		this->phases->shutdown();
-
-		auto total_interval = this->timer.stop().count();
-		this->phases->print_metrics();
-	    printf("\nCompleted in %8.6fs\n", total_interval);
-
-		exit((int) exit_code);
 	}
 
 	void on_compiler_error (void* data) {
@@ -86,7 +75,7 @@ struct Compiler {
 
 		printf("Compiler error: %s\n", error_description);
 
-		Events::trigger(CE_COMPILER_STOP, 1);
+		exit(1);
 	}
 
 	bool is_all_work_done () {
