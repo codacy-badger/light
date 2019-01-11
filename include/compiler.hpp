@@ -52,6 +52,7 @@ struct Compiler {
 
 		while (!this->is_all_work_done()) {
 			this->handle_compiler_events();
+			std::this_thread::sleep_for(100ns);
 		}
 
 		this->on_compiler_stop(NULL);
