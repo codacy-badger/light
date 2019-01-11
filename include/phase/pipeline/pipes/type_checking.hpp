@@ -174,7 +174,7 @@ struct Type_Checking : Scoped_Pipe {
 	void handle (Ast_Pointer_Type** ptr_ptr) {
 		auto ptr = (*ptr_ptr);
 
-		ptr->byte_size = Compiler::inst->settings->target_arch->register_size;
+		ptr->byte_size = Compiler::inst->settings.target_arch->register_size;
 
 		Pipe::handle(ptr_ptr);
 	}

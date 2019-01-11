@@ -30,7 +30,7 @@ void Interpreter::run (std::vector<Instruction*>* instructions) {
 	for (instruction_index = 0; instruction_index < instructions->size(); instruction_index++) {
 		auto inst = (*instructions)[instruction_index];
 
-		if (Compiler::inst->settings->is_debug) {
+		if (Compiler::inst->settings.is_debug) {
 			bytecode_print(inst);
 		}
 

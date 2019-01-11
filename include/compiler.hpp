@@ -16,7 +16,8 @@
 #define LIGHT_VERSION "0.1.0"
 
 struct Compiler {
-	Compiler_Settings* settings = new Compiler_Settings();
+	Compiler_Settings settings;
+
 	Compiler_Phases* phases = NULL;
 	Timer timer;
 
@@ -29,17 +30,14 @@ struct Compiler {
 	Event_Queue event_queue;
 
 	Compiler (int argc = 0, char** argv = NULL) {
-		if (argc > 0) this->settings->handle_arguments(argc, argv);
+		if (argc > 0) this->settings.handle_arguments(argc, argv);
 
-		this->phases = new Compiler_Phases(this->settings);
+		this->phases = new Compiler_Phases(&this->settings);
 
 		Compiler::inst = this;
 
 		Events::bind(CE_COMPILER_ERROR, &this->event_queue);
 		Events::bind(CE_COMPILER_STOP, &this->event_queue);
-
-		//Events::add_observer(CE_COMPILER_ERROR, &Compiler::on_compiler_error, this);
-		//Events::add_observer(CE_COMPILER_STOP, &Compiler::on_compiler_stop, this);
 	}
 
 	void compile_input_files () {
@@ -48,10 +46,7 @@ struct Compiler {
 
 		this->timer.start();
 
-		for (auto &filename : this->settings->input_files) {
-			auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
-		    os_get_absolute_path(filename, absolute_path);
-
+		for (auto &absolute_path : this->settings.input_files) {
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
 		}
 
@@ -78,9 +73,8 @@ struct Compiler {
 
 		this->phases->shutdown();
 
-		this->phases->print_metrics();
-
 		auto total_interval = this->timer.stop().count();
+		this->phases->print_metrics();
 	    printf("\nCompleted in %8.6fs\n", total_interval);
 
 		exit((int) exit_code);

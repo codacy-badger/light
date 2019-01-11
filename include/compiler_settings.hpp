@@ -36,6 +36,8 @@ struct Compiler_Settings {
     				this->is_verbose = true;
     			} else if (CHECK_ARG_2("-d", "-debug")) {
     				this->is_debug = true;
+    			} else if (CHECK_ARG_2("-mt", "-multithread")) {
+    				this->is_multithread = true;
     			} else report_warning(NULL, UKNOWN_ARG_FORMAT, i, argv[i]);
     		} else {
     			auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
