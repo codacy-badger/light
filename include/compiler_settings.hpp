@@ -16,7 +16,7 @@ struct Compiler_Settings {
 
 	char initial_path[MAX_PATH_LENGTH];
 
-	bool is_multithread = true;
+	bool is_multithread = false;
 	bool is_verbose = false;
 	bool is_debug = false;
 
