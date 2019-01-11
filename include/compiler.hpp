@@ -3,10 +3,6 @@
 #include "compiler_settings.hpp"
 #include "phase/compiler_phases.hpp"
 
-#include "platform.hpp"
-
-#include "modules.hpp"
-
 #include "bytecode/interpreter.hpp"
 #include "ast/types.hpp"
 
@@ -17,8 +13,7 @@
 
 struct Compiler {
 	Compiler_Settings settings;
-
-	Compiler_Phases* phases = NULL;
+	Compiler_Phases* phases;
 	Timer timer;
 
 	Interpreter* interp = new Interpreter();
@@ -26,12 +21,10 @@ struct Compiler {
 
 	static Compiler* inst;
 
-	std::chrono::high_resolution_clock::time_point clock_start;
 	Event_Queue event_queue;
 
 	Compiler (int argc = 0, char** argv = NULL) {
-		if (argc > 0) this->settings.handle_arguments(argc, argv);
-
+		this->settings.handle_arguments(argc, argv);
 		this->phases = new Compiler_Phases(&this->settings);
 
 		Compiler::inst = this;
@@ -50,7 +43,9 @@ struct Compiler {
 
 		while (!this->is_all_work_done()) {
 			this->handle_compiler_events();
-			std::this_thread::sleep_for(100ns);
+			if (this->settings.is_multithread) {
+				std::this_thread::sleep_for(100ns);
+			}
 		}
 
 		this->phases->shutdown();
@@ -65,17 +60,13 @@ struct Compiler {
 			auto event = this->event_queue.pop();
 
 			switch (event.id) {
-				case CE_COMPILER_ERROR: this->on_compiler_error(event.data);
+				case CE_COMPILER_ERROR: {
+					auto error_description = reinterpret_cast<char*>(event.data);
+					printf("Compiler error: %s\n", error_description);
+					exit(1);
+				}
 			}
 		}
-	}
-
-	void on_compiler_error (void* data) {
-		auto error_description = reinterpret_cast<char*>(data);
-
-		printf("Compiler error: %s\n", error_description);
-
-		exit(1);
 	}
 
 	bool is_all_work_done () {

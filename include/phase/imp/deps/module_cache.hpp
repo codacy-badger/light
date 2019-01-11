@@ -3,18 +3,12 @@
 #include "phase/async_phase.hpp"
 #include "phase/ast_navigator.hpp"
 #include "compiler_events.hpp"
+#include "util/string_map.hpp"
 
 #include <vector>
-#include <map>
-
-struct cmp_str2 {
-   bool operator()(char const *a, char const *b) const {
-      return std::strcmp(a, b) < 0;
-   }
-};
 
 struct Module_Cache : Phase {
-    std::map<const char*, Module*, cmp_str2> cache;
+    String_Map<Module*> cache;
     std::vector<const char*> in_progress;
 
     Module_Cache() : Phase("Module Cache") {

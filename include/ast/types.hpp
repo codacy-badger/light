@@ -16,13 +16,6 @@ enum Internal_Type : uint8_t {
 };
 
 struct Types {
-    std::vector<Ast_Type_Instance*> all_types;
-
-    std::map<Ast_Type_Instance*, Ast_Pointer_Type*> ptr_types;
-    std::map<Ast_Type_Instance*, Ast_Slice_Type*> sli_types;
-    std::map<Ast_Expression*, std::map<uint64_t, Ast_Array_Type*>> arr_types;
-    std::vector<Ast_Function_Type*> func_types;
-
 	static Ast_Struct_Type* type_type;
 	static Ast_Struct_Type* type_void;
 	static Ast_Struct_Type* type_bool;
@@ -40,23 +33,47 @@ struct Types {
 	static Ast_Slice_Type* type_string;
     static Ast_Struct_Type* type_any;
 
-    static Internal_Type get_internal_type (Ast_Type_Instance* type);
+    static Internal_Type get_internal_type (Ast_Type_Instance* type) {
+    	if (type == Types::type_void) 	return INTERNAL_TYPE_VOID;
+    	if (type == Types::type_bool) 	return INTERNAL_TYPE_BOOL;
+    	if (type == Types::type_s8) 	return INTERNAL_TYPE_INTEGER;
+    	if (type == Types::type_s16) 	return INTERNAL_TYPE_INTEGER;
+    	if (type == Types::type_s32) 	return INTERNAL_TYPE_INTEGER;
+    	if (type == Types::type_s64) 	return INTERNAL_TYPE_INTEGER;
+    	if (type == Types::type_u8) 	return INTERNAL_TYPE_INTEGER;
+    	if (type == Types::type_u16) 	return INTERNAL_TYPE_INTEGER;
+    	if (type == Types::type_u32) 	return INTERNAL_TYPE_INTEGER;
+    	if (type == Types::type_u64) 	return INTERNAL_TYPE_INTEGER;
+    	if (type == Types::type_f32) 	return INTERNAL_TYPE_DECIMAL;
+    	if (type == Types::type_f64) 	return INTERNAL_TYPE_DECIMAL;
+    	if (type == Types::type_any) 	return INTERNAL_TYPE_ANY;
+    	return INTERNAL_TYPE_UNDEFINED;
+    }
 
-    void add_type_if_new (Ast_Type_Instance* type);
-
-    void add_struct_type_if_new (Ast_Struct_Type* _struct);
-
-    void add_pointer_type_if_new (Ast_Pointer_Type* ptr_type);
-
-    void add_array_type_if_new (Ast_Array_Type* arr_type);
-
-    void add_function_type_if_new (Ast_Function_Type*);
-
-    void add_new_global_unique_type (Ast_Type_Instance* type_inst);
-
-	Ast_Pointer_Type* get_pointer_type (Ast_Expression* base_type);
-
-	Ast_Slice_Type* get_slice_type (Ast_Expression* base_type);
-
-    bool is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to);
+    static bool is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
+    	if (type_to == Types::type_any) {
+    		return true;
+    	} else if (type_from->is_primitive && type_to->is_primitive) {
+    		if (type_to == Types::type_bool) return true;
+    		else if (type_from->is_signed == type_to->is_signed) {
+    			return type_to->byte_size >= type_from->byte_size;
+    		} else if (!type_from->is_signed && type_to->is_signed) {
+    			return type_to->byte_size > type_from->byte_size;
+    		} else return false;
+    	} else if (!type_from->is_primitive && !type_to->is_primitive) {
+    		if (type_from->typedef_type == AST_TYPEDEF_ARRAY && type_to->typedef_type == AST_TYPEDEF_STRUCT) {
+    			auto array_type = static_cast<Ast_Array_Type*>(type_from);
+    			auto struct_type = static_cast<Ast_Struct_Type*>(type_to);
+    			if (struct_type->is_slice) {
+    				// TODO: we're assuming both base types are instance of types
+    				// (we should check that once in the whole code!)
+    				auto slice_type = static_cast<Ast_Slice_Type*>(struct_type);
+    				auto base_type1 = static_cast<Ast_Type_Instance*>(array_type->base);
+    				auto base_type2 = slice_type->get_typed_base();
+    				return ast_types_are_equal(base_type1, base_type2);
+    			}
+    		}
+    	}
+    	return false;
+    }
 };

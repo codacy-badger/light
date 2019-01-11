@@ -4,9 +4,9 @@
 #include "platform.hpp"
 #include "report.hpp"
 #include "phase/imp/lexer/token.hpp"
+#include "util/string_map.hpp"
 
 #include <vector>
-#include <map>
 
 struct Ast_Ident;
 struct Ast_Function;
@@ -16,12 +16,6 @@ struct Ast_Struct_Type;
 struct Ast_Type_Instance;
 
 struct Instruction;
-
-struct cmp_str {
-   bool operator()(char const *a, char const *b) const {
-      return std::strcmp(a, b) < 0;
-   }
-};
 
 #define WARN_MAX_DEREF_COUNT 3
 
@@ -37,7 +31,7 @@ struct Ast {
 
 struct Ast_Arguments : Ast {
 	std::vector<Ast_Expression*> unnamed;
-	std::map<const char*, Ast_Expression*, cmp_str> named;
+	String_Map<Ast_Expression*> named;
 
 	bool add (Ast_Expression* exp);
     Ast_Expression* get_named_value (const char* param_name);

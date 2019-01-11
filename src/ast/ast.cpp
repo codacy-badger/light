@@ -1,6 +1,6 @@
 #include "ast/ast.hpp"
 
-#include "compiler.hpp"
+#include "ast/types.hpp"
 
 uint64_t Ast::node_count = 0;
 
@@ -416,7 +416,7 @@ bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type
 
 bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
 	if (ast_types_are_equal(type_from, type_to)) return true;
-	else if (Compiler::inst->types->is_implicid_cast(type_from, type_to)) {
+	else if (Types::is_implicid_cast(type_from, type_to)) {
         auto cast = new Ast_Cast();
 		cast->location = (*exp_ptr)->location;
         cast->value = (*exp_ptr);
