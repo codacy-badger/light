@@ -9,7 +9,7 @@
 #include "util/timer.hpp"
 
 #define LIGHT_NAME "Light Compiler"
-#define LIGHT_VERSION "0.1.0"
+#define LIGHT_VERSION "0.0.0"
 
 struct Compiler {
 	Compiler_Settings settings;
@@ -21,6 +21,8 @@ struct Compiler {
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
 
+	// @TODO @FIXME this property should not exists, it makes everything
+	// harder to reason about and complicates debugging
 	static Compiler* inst;
 
 	Event_Queue event_queue;

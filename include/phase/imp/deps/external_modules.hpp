@@ -40,6 +40,12 @@ struct External_Modules : Async_Phase, Ast_Navigator {
         Events::trigger(CE_IMPORT_MODULE, import->absolute_path);
     }
 
+    void ast_handle (Ast_Directive_Foreign* foreign) {
+        foreign->remove_from_scope = true;
+
+		report_warning(&foreign->location, "TODO: Replace directive by scope's content and look for foreign code");
+    }
+
     void on_module_ready (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 

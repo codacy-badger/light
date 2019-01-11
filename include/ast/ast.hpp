@@ -34,8 +34,21 @@ struct Ast_Arguments : Ast {
 	String_Map<Ast_Expression*> named;
 
 	bool add (Ast_Expression* exp);
-    Ast_Expression* get_named_value (const char* param_name);
-    Ast_Expression* get_unnamed_value (const size_t index);
+
+    Ast_Expression* get_named_value (const char* param_name) {
+	    for (auto entry : this->named) {
+	        if (strcmp(entry.first, param_name) == 0) {
+	            return entry.second;
+	        }
+	    }
+	    return NULL;
+	}
+
+    Ast_Expression* get_unnamed_value (const size_t index) {
+	    if (index < this->unnamed.size()) {
+	        return this->unnamed[index];
+	    } else return NULL;
+	}
 };
 
 enum Ast_Statement_Type {
@@ -55,7 +68,16 @@ struct Ast_Statement : Ast {
 	std::vector<const char*> notes;
     bool remove_from_scope = false;
 
-	bool remove_note (const char* name);
+	bool remove_note (const char* name) {
+	    auto it = this->notes.begin();
+	    while (it != this->notes.end()) {
+	        if (strcmp((*it), name) == 0) {
+	            this->notes.erase(it);
+	            return true;
+	        } else it++;
+	    }
+	    return NULL;
+	}
 };
 
 struct Ast_Scope : Ast_Statement {
@@ -64,9 +86,6 @@ struct Ast_Scope : Ast_Statement {
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
-
-	// for symbol resolution
-	std::vector<Ast_Ident*> unresolved_idents;
 
 	Ast_Scope (Ast_Scope* parent = NULL) {
 		this->stm_type = AST_STATEMENT_SCOPE;
@@ -79,19 +98,15 @@ struct Ast_Scope : Ast_Statement {
 		this->statements.push_back(stm);
 	}
 
-    Ast_Scope* get_global_scope () {
+    Ast_Declaration* find_global_declaration (const char* _name, bool is_const = true) {
         auto global_scope = this;
         while (global_scope->parent != NULL) {
             global_scope = global_scope->parent;
         }
-        return global_scope;
+        return global_scope->find_local_declaration(_name, is_const);
     }
 
-    Ast_Declaration* find_global_declaration (const char* _name, bool is_const = false) {
-        return this->get_global_scope()->find_local_declaration(_name, is_const);
-    }
-
-    Ast_Declaration* find_local_declaration (const char* _name, bool is_const = false);
+    Ast_Declaration* find_local_declaration (const char* _name, bool is_const = true);
     Ast_Declaration* find_external_declaration (const char* _name);
 
 	bool is_ancestor (Ast_Scope* other);

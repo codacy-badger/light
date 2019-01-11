@@ -480,12 +480,6 @@ struct Parser : Async_Phase {
 		// reference the declaration should already be in the scope.
 		ident->declaration = this->current_scope->find_local_declaration(ident->name, false);
 
-		if (ident->declaration == NULL) {
-			// @Info if we haven't found any var declaration it means it must
-			// be a constant, we check now in case it's pre-declared
-			ident->declaration = this->current_scope->find_local_declaration(ident->name, true);
-		}
-
 		return ident;
 	}
 

@@ -9,6 +9,8 @@
 struct External_Symbol_Resolution : Phase, Ast_Navigator {
     Ast_Scope* current_scope = NULL;
 
+    size_t symbols_resolved = 0;
+
     External_Symbol_Resolution() : Phase("External Symbol Resolution") { /* empty */ }
 
     void handle_main_event (void* data) {
@@ -24,6 +26,7 @@ struct External_Symbol_Resolution : Phase, Ast_Navigator {
             auto decl = this->current_scope->find_external_declaration(ident->name);
             if (decl) {
                 ident->declaration = decl;
+                this->symbols_resolved++;
             }
         }
     }
@@ -42,4 +45,8 @@ struct External_Symbol_Resolution : Phase, Ast_Navigator {
         Ast_Navigator::ast_handle(scope);
         this->current_scope = tmp;
     }
+
+	void print_extra_metrics() {
+		print_extra_metric("Symbols resolved", "%zd", this->symbols_resolved);
+	}
 };

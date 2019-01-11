@@ -19,32 +19,6 @@ bool Ast_Arguments::add (Ast_Expression* exp) {
     return false;
 }
 
-Ast_Expression* Ast_Arguments::get_named_value (const char* param_name) {
-    for (auto entry : this->named) {
-        if (strcmp(entry.first, param_name) == 0) {
-            return entry.second;
-        }
-    }
-    return NULL;
-}
-
-Ast_Expression* Ast_Arguments::get_unnamed_value (const size_t index) {
-    if (index < this->unnamed.size()) {
-        return this->unnamed[index];
-    } else return NULL;
-}
-
-bool Ast_Statement::remove_note (const char* name) {
-    auto it = this->notes.begin();
-    while (it != this->notes.end()) {
-        if (strcmp((*it), name) == 0) {
-            this->notes.erase(it);
-            return true;
-        } else it++;
-    }
-    return NULL;
-}
-
 Ast_Declaration* Ast_Scope::find_local_declaration (const char* _name, bool is_const) {
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
