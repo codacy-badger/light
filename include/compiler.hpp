@@ -14,7 +14,9 @@
 struct Compiler {
 	Compiler_Settings settings;
 	Compiler_Phases* phases;
-	Timer timer;
+
+	Timer user_timer = Timer(TIMER_TYPE_USER_TIME);
+	Timer wall_timer;
 
 	Interpreter* interp = new Interpreter();
 	Types* types = new Types();
@@ -35,7 +37,8 @@ struct Compiler {
 	void compile_input_files () {
 		printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
 
-		this->timer.start();
+		this->wall_timer.start();
+		this->user_timer.start();
 
 		for (auto &absolute_path : this->settings.input_files) {
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
@@ -50,9 +53,10 @@ struct Compiler {
 
 		this->phases->shutdown();
 
-		auto total_interval = this->timer.stop().count();
+		auto executing_time = this->user_timer.stop();
+		auto running_time = this->wall_timer.stop();
 		this->phases->print_metrics();
-	    printf("\nCompleted in %8.6fs\n", total_interval);
+	    printf("\nDone in %8.6fs (%8.6fs)\n", running_time, executing_time);
 	}
 
 	void handle_compiler_events () {

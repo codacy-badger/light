@@ -24,7 +24,7 @@ struct Phase {
     size_t event_to_id = 0;
 
     Timer timer;
-    timer_interval work_time = 0ms;
+    timer_interval work_time = 0;
 
     Phase (const char* name, const char* print_format = DEFAULT_PRINT_FORMAT) {
         this->print_format = print_format;
@@ -75,7 +75,7 @@ struct Phase {
     }
 
     void print_metrics () {
-        printf(this->print_format, this->name, this->work_time.count());
+        printf(this->print_format, this->name, this->work_time);
         this->print_extra_metrics();
     }
 

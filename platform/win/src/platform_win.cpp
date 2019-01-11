@@ -5,7 +5,15 @@
 
 typedef uint64_t Timer_Function();
 
-double g_clock_frequency = 0;
+double query_clock_frequency () {
+	LARGE_INTEGER li;
+	if(!QueryPerformanceFrequency(&li)) {
+		fprintf(stderr, "[ERROR] QueryPerformanceFrequency failed!\n");
+		exit(1);
+	} else return double(li.QuadPart);
+}
+
+double g_clock_frequency = query_clock_frequency();
 HANDLE g_pid = GetCurrentProcess();
 
 OS_Type os_get_type () { return OS_TYPE_WINDOWS; }
@@ -33,17 +41,10 @@ uint64_t os_get_user_time () {
 	uint64_t user_system_clocks = 0;
 	if (QueryProcessCycleTime(g_pid, &user_system_clocks)) {
 		return user_system_clocks / 1000;
-	} else abort();
+	} else exit(1);
 }
 
 double os_time_stop (uint64_t start, Timer_Function func) {
-	if (g_clock_frequency == 0) {
-		LARGE_INTEGER li;
-		if(!QueryPerformanceFrequency(&li))
-			fprintf(stderr, "[ERROR] QueryPerformanceFrequency failed!\n");
-		else g_clock_frequency = double(li.QuadPart);
-	}
-
     return double(func() - start) / g_clock_frequency;
 }
 
