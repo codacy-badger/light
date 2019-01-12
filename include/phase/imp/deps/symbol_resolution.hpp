@@ -6,12 +6,12 @@
 #include "module.hpp"
 #include "compiler_events.hpp"
 
-struct Local_Symbol_Resolution : Phase, Ast_Navigator {
+struct Symbol_Resolution : Phase, Ast_Navigator {
     Ast_Scope* current_scope = NULL;
 
     size_t symbols_resolved = 0;
 
-    Local_Symbol_Resolution() : Phase("Local Symbol Resolution") { /* empty */ }
+    Symbol_Resolution() : Phase("External Symbol Resolution") { /* empty */ }
 
     void handle_main_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
@@ -23,7 +23,7 @@ struct Local_Symbol_Resolution : Phase, Ast_Navigator {
 
     void ast_handle (Ast_Ident* ident) {
         if (!ident->declaration) {
-            auto decl = this->current_scope->find_local_declaration(ident->name);
+            auto decl = this->current_scope->find_declaration(ident->name, true, true, true);
             if (decl) {
                 ident->declaration = decl;
                 this->symbols_resolved++;
@@ -33,7 +33,7 @@ struct Local_Symbol_Resolution : Phase, Ast_Navigator {
 
     void ast_handle (Ast_Binary* binary) {
         // @Info we can't resolve atrtibutes just yet, since we
-        // still don't have type information on lhs
+        // still don't have type information on expressions
         if (binary->binary_op != AST_BINARY_ATTRIBUTE) {
             Ast_Navigator::ast_handle(binary);
         }

@@ -11,9 +11,12 @@
 #include <map>
 
 struct External_Modules : Async_Phase, Ast_Navigator {
-    std::map<Module*, std::vector<const char*>> module_dependencies;
+    std::map<Module*, std::vector<Ast_Directive_Import*>> module_dependencies;
 
     Module* current_module = NULL;
+    Ast_Scope* current_scope = NULL;
+
+    size_t foreign_functions = 0;
 
     External_Modules() : Async_Phase("External Modules") {
         this->bind(CE_MODULE_READY, &External_Modules::on_module_ready, this);
@@ -22,7 +25,7 @@ struct External_Modules : Async_Phase, Ast_Navigator {
     void handle_main_event (void* data) {
         this->current_module = reinterpret_cast<Module*>(data);
 
-        Ast_Navigator::ast_handle(this->current_module->global_scope);
+        this->ast_handle(this->current_module->global_scope);
 
         auto it = this->module_dependencies.find(this->current_module);
         if (it == this->module_dependencies.end()) {
@@ -35,7 +38,7 @@ struct External_Modules : Async_Phase, Ast_Navigator {
 
 		find_existing_absolute_path(import);
 
-        this->module_dependencies[this->current_module].push_back(import->absolute_path);
+        this->module_dependencies[this->current_module].push_back(import);
 
         Events::trigger(CE_IMPORT_MODULE, import->absolute_path);
     }
@@ -43,7 +46,19 @@ struct External_Modules : Async_Phase, Ast_Navigator {
     void ast_handle (Ast_Directive_Foreign* foreign) {
         foreign->remove_from_scope = true;
 
-		report_warning(&foreign->location, "TODO: Replace directive by scope's content and look for foreign code");
+        auto new_stms = &foreign->declarations;
+        auto stms = &this->current_scope->statements;
+        auto foreign_stm = std::find(stms->begin(), stms->end(), foreign);
+        stms->insert(foreign_stm + 1, new_stms->begin(), new_stms->end());
+
+        this->foreign_functions += new_stms->size();
+    }
+
+    void ast_handle (Ast_Scope* scope) {
+        auto tmp = this->current_scope;
+        this->current_scope = scope;
+        Ast_Navigator::ast_handle(scope);
+        this->current_scope = tmp;
     }
 
     void on_module_ready (void* data) {
@@ -51,12 +66,22 @@ struct External_Modules : Async_Phase, Ast_Navigator {
 
         auto it = this->module_dependencies.begin();
         while (it != this->module_dependencies.end()) {
-            auto modules = &it->second;
+            auto global_scope = it->first->global_scope;
+            auto imports = &it->second;
 
-            auto _it = std::find(modules->begin(), modules->begin(), module->absolute_path);
-            if (_it != modules->end()) modules->erase(_it);
+            for (int i = 0; i < imports->size();) {
+                auto import = (*imports)[i];
+                if (strcmp(module->absolute_path, import->absolute_path) == 0) {
+                    if (import->include) {
+                        global_scope->includes.push_back(module->global_scope);
+                    } else global_scope->imports.push_back(module->global_scope);
 
-            if (modules->empty()) {
+                    imports->erase(imports->begin() + i);
+                    break;
+                } else i++;
+            }
+
+            if (imports->empty()) {
                 Events::trigger(this->event_to_id, it->first);
                 it = this->module_dependencies.erase(it);
             } else it++;
@@ -90,5 +115,9 @@ struct External_Modules : Async_Phase, Ast_Navigator {
 		os_set_current_directory(this->settings->initial_path);
 		os_get_absolute_path(import->path, import->absolute_path);
 		os_set_current_directory(tmp);
+	}
+
+	void print_extra_metrics() {
+		print_extra_metric("Foreign functions", "%zd", this->foreign_functions);
 	}
 };

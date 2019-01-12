@@ -5,6 +5,7 @@
 #include "report.hpp"
 #include "phase/imp/lexer/token.hpp"
 #include "util/string_map.hpp"
+#include "util/string_vector.hpp"
 
 #include <vector>
 
@@ -65,24 +66,17 @@ enum Ast_Statement_Type {
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 
-	std::vector<const char*> notes;
-    bool remove_from_scope = false;
+	String_Vector notes;
 
-	bool remove_note (const char* name) {
-	    auto it = this->notes.begin();
-	    while (it != this->notes.end()) {
-	        if (strcmp((*it), name) == 0) {
-	            this->notes.erase(it);
-	            return true;
-	        } else it++;
-	    }
-	    return NULL;
-	}
+	// @TODO remove this, it should be part of the Ast_Navigator struct
+    bool remove_from_scope = false;
 };
 
 struct Ast_Scope : Ast_Statement {
 	std::vector<Ast_Statement*> statements;
-	std::vector<Ast_Scope*> import_scopes;
+
+	std::vector<Ast_Scope*> imports;
+	std::vector<Ast_Scope*> includes;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
@@ -98,16 +92,19 @@ struct Ast_Scope : Ast_Statement {
 		this->statements.push_back(stm);
 	}
 
-    Ast_Declaration* find_global_declaration (const char* _name, bool is_const = true) {
-        auto global_scope = this;
+	Ast_Scope* get_global_scope () {
+		auto global_scope = this;
         while (global_scope->parent != NULL) {
             global_scope = global_scope->parent;
         }
-        return global_scope->find_local_declaration(_name, is_const);
-    }
+		return global_scope;
+	}
 
-    Ast_Declaration* find_local_declaration (const char* _name, bool is_const = true);
-    Ast_Declaration* find_external_declaration (const char* _name);
+	// @TODO this methods could be simplified, since most of the calls use
+	// constants for the boolean flags. We have to be sure they works properly
+	Ast_Declaration* find_declaration (const char* _name, bool use_includes, bool use_imports, bool recurse);
+	Ast_Declaration* find_const_declaration (const char* _name);
+	Ast_Declaration* find_var_declaration (const char* _name);
 
 	bool is_ancestor (Ast_Scope* other);
 	Ast_Function* get_parent_function ();
@@ -202,6 +199,8 @@ struct Ast_Directive : Ast_Expression {
 
 struct Ast_Directive_Import : Ast_Directive {
 	const char* path = NULL;
+
+	bool include = false;
 
 	char absolute_path[MAX_PATH_LENGTH];
 

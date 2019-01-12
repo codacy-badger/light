@@ -215,9 +215,7 @@ test_scopes :: fn {
 		assert(func() == 12);
 
 		var : u8 = 2;
-		var2 : u8 = 3;
 		assert(var == 2);
-		assert(var2 == 3);
 	}
 
 	{

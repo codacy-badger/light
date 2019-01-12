@@ -65,7 +65,7 @@ struct Parser : Async_Phase {
 
 	Ast_Scope* build_ast () {
 		auto global_scope = AST_NEW(Ast_Scope);
-		global_scope->import_scopes.push_back(this->internal_scope);
+		global_scope->imports.push_back(this->internal_scope);
 
 		this->index = 0;
 		this->scope(global_scope);
@@ -187,6 +187,8 @@ struct Parser : Async_Phase {
 				this->skip();
 				auto import = AST_NEW(Ast_Directive_Import);
 
+				import->include = this->try_skip(TOKEN_EXCLAMATION);
+
 				auto literal = this->string_literal();
 				auto new_length = strlen(literal->string_value) + 4;
 
@@ -212,6 +214,10 @@ struct Parser : Async_Phase {
 
 				if (this->is_next(TOKEN_STRING)) {
 					foreign->function_name = this->escaped_string();
+				}
+
+				if (foreign->function_name && this->is_next(TOKEN_BRAC_OPEN)) {
+					printf("[ERROR] foreign function name can only be used with scopes");
 				}
 
 				if (this->try_skip(TOKEN_BRAC_OPEN)) {
@@ -478,7 +484,7 @@ struct Parser : Async_Phase {
 
 		// @Info this is the right time to do this, since on a non-constant
 		// reference the declaration should already be in the scope.
-		ident->declaration = this->current_scope->find_local_declaration(ident->name, false);
+		ident->declaration = this->current_scope->find_var_declaration(ident->name);
 
 		return ident;
 	}

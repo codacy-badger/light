@@ -19,43 +19,84 @@ bool Ast_Arguments::add (Ast_Expression* exp) {
     return false;
 }
 
-Ast_Declaration* Ast_Scope::find_local_declaration (const char* _name, bool is_const) {
+Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_includes, bool use_imports, bool recurse) {
+    Ast_Declaration* decl = NULL;
+
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-            auto decl = static_cast<Ast_Declaration*>(stm);
-            if (decl->is_constant == is_const && strcmp(decl->name, _name) == 0) {
-				return decl;
-			}
-        }
-    }
-
-	if (!is_const && this->scope_of) {
-		for (auto decl : this->scope_of->type->arg_decls) {
-			if (strcmp(decl->name, _name) == 0) {
-				return decl;
-			}
-		}
-        // @TODO do we really need this? maybe changing the structure of
-        // the scope struct we can avoid having this, since it conflicts
-        // with the internal scope (u8, u16, u32, etc.)
-        return this->find_global_declaration(_name, is_const);
-	}
-
-    if (this->parent) {
-        return this->parent->find_local_declaration(_name, is_const);
-    } else return NULL;
-}
-
-Ast_Declaration* Ast_Scope::find_external_declaration (const char* _name) {
-    for (auto scope : this->import_scopes) {
-        for (auto stm : scope->statements) {
-            if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-                auto decl = static_cast<Ast_Declaration*>(stm);
-                if (strcmp(decl->name, _name) == 0) return decl;
+            decl = static_cast<Ast_Declaration*>(stm);
+            if (strcmp(decl->name, _name) == 0) {
+                return decl;
             }
         }
     }
-    return NULL;
+    if (this->scope_of) {
+		for (auto arg_decl : this->scope_of->type->arg_decls) {
+			if (strcmp(arg_decl->name, _name) == 0) {
+				return arg_decl;
+			}
+		}
+        decl = this->parent->find_const_declaration(_name);
+        if (!decl) {
+            return this->get_global_scope()->find_declaration(_name, true, true, false);
+        } else return decl;
+	}
+
+    if (use_includes) {
+        for (auto scope : this->includes) {
+            decl = scope->find_declaration(_name, true, false, false);
+            if (decl) return decl;
+        }
+    }
+
+    if (use_imports) {
+        for (auto scope : this->imports) {
+            decl = scope->find_declaration(_name, true, false, false);
+            if (decl) return decl;
+        }
+    }
+
+    if (recurse && this->parent) {
+        return this->parent->find_declaration(_name, use_includes, use_imports, recurse);
+    } else return NULL;
+}
+
+Ast_Declaration* Ast_Scope::find_var_declaration (const char* _name) {
+    for (auto stm : this->statements) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            if (!decl->is_constant && strcmp(decl->name, _name) == 0) {
+                return decl;
+            }
+        }
+    }
+    if (this->scope_of) {
+		for (auto arg_decl : this->scope_of->type->arg_decls) {
+			if (strcmp(arg_decl->name, _name) == 0) {
+				return arg_decl;
+			}
+		}
+        return this->get_global_scope()->find_var_declaration(_name);
+	}
+
+    if (this->parent) {
+        return this->parent->find_var_declaration(_name);
+    } else return NULL;
+}
+
+Ast_Declaration* Ast_Scope::find_const_declaration (const char* _name) {
+    for (auto stm : this->statements) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            if (decl->is_constant && strcmp(decl->name, _name) == 0) {
+                return decl;
+            }
+        }
+    }
+
+    if (this->parent) {
+        return this->parent->find_const_declaration(_name);
+    } else return NULL;
 }
 
 Ast_Function* Ast_Scope::get_parent_function () {

@@ -20,7 +20,7 @@ struct Check_Dependencies : Async_Phase, Ast_Navigator {
 
     void ast_handle (Ast_Ident* ident) {
         if (!ident->declaration) {
-            //report_error(&ident->location, "NO DECLARATION -> '%s'\n", ident->name);
+            report_error(&ident->location, "NO DECLARATION -> '%s'", ident->name);
         }
     }
 
