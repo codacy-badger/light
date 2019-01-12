@@ -11,7 +11,7 @@ struct Symbol_Resolution : Phase, Ast_Navigator {
 
     size_t symbols_resolved = 0;
 
-    Symbol_Resolution() : Phase("External Symbol Resolution") { /* empty */ }
+    Symbol_Resolution() : Phase("Symbol Resolution") { /* empty */ }
 
     void handle_main_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
