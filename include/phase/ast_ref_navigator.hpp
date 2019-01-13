@@ -32,6 +32,18 @@ struct Ast_Ref_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Break**>(stm));
 				break;
 			}
+			case AST_STATEMENT_IMPORT: {
+				this->ast_handle(reinterpret_cast<Ast_Import**>(stm));
+				break;
+			}
+			case AST_STATEMENT_FOREIGN: {
+				this->ast_handle(reinterpret_cast<Ast_Foreign**>(stm));
+				break;
+			}
+			case AST_STATEMENT_STATIC_IF: {
+				this->ast_handle(reinterpret_cast<Ast_Static_If**>(stm));
+				break;
+			}
 			case AST_STATEMENT_EXPRESSION: {
 				this->ast_handle(reinterpret_cast<Ast_Expression**>(stm));
 				break;
@@ -87,12 +99,20 @@ struct Ast_Ref_Navigator {
 		this->ast_handle(&(*_while)->scope);
 	}
 
+	virtual void ast_handle (Ast_Static_If** _if) {
+		this->ast_handle(&(*_if)->stm_if->condition);
+	}
+
+	virtual void ast_handle (Ast_Import**) { /* empty */ }
+
+	virtual void ast_handle (Ast_Foreign**) { /* empty */ }
+
 	virtual void ast_handle (Ast_Break**) {}
 
 	virtual void ast_handle (Ast_Expression** exp) {
 		switch ((*exp)->exp_type) {
-			case AST_EXPRESSION_DIRECTIVE: {
-				this->ast_handle(reinterpret_cast<Ast_Directive**>(exp));
+			case AST_EXPRESSION_RUN: {
+				this->ast_handle(reinterpret_cast<Ast_Run**>(exp));
 				break;
 			}
 			case AST_EXPRESSION_FUNCTION: {
@@ -130,38 +150,8 @@ struct Ast_Ref_Navigator {
 		}
 	}
 
-	virtual void ast_handle (Ast_Directive** directive) {
-		switch ((*directive)->dir_type) {
-			case AST_DIRECTIVE_IMPORT: {
-				this->ast_handle(reinterpret_cast<Ast_Directive_Import**>(directive));
-				break;
-			}
-			case AST_DIRECTIVE_FOREIGN: {
-				this->ast_handle(reinterpret_cast<Ast_Directive_Foreign**>(directive));
-				break;
-			}
-			case AST_DIRECTIVE_RUN: {
-				this->ast_handle(reinterpret_cast<Ast_Directive_Run**>(directive));
-				break;
-			}
-			case AST_DIRECTIVE_IF: {
-				this->ast_handle(reinterpret_cast<Ast_Directive_If**>(directive));
-				break;
-			}
-			default: break;
-		}
-	}
-
-	virtual void ast_handle (Ast_Directive_Import**) { /* empty */ }
-
-	virtual void ast_handle (Ast_Directive_Foreign**) { /* empty */ }
-
-	virtual void ast_handle (Ast_Directive_Run** run) {
+	virtual void ast_handle (Ast_Run** run) {
 		this->ast_handle(&(*run)->expression);
-	}
-
-	virtual void ast_handle (Ast_Directive_If** _if) {
-		this->ast_handle(&(*_if)->stm_if->condition);
 	}
 
 	virtual void ast_handle (Ast_Function** func) {

@@ -12,7 +12,7 @@ struct Register_State {
     Register_State (Ast_Declaration* decl) { this->decl = decl; }
 };
 
-struct Register_Allocator : Pipe {
+struct Register_Allocator {
     std::vector<Register_State*> decl_regs;
 
     size_t registers_used = 0;
@@ -104,7 +104,7 @@ struct Register_Allocator : Pipe {
         }
     }
 
-    void handle (Ast_Directive_Run** run_ptr) {
+    void handle (Ast_Run** run_ptr) {
         Pipe::handle(run_ptr);
 
         (*run_ptr)->reg = (*run_ptr)->expression->reg;

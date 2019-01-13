@@ -5,7 +5,7 @@ STD_ERROR_HANDLE  :: cast(u32) -12;
 
 INVALID_HANDLE_VALUE :: cast(*void) -1;
 
-#foreign {
+foreign {
     ExitProcess         :: fn (uExitCode: u32);
     GetLastError        :: fn -> u16;
     GetModuleHandleA    :: fn (lpModuleName: *u8) -> *void;

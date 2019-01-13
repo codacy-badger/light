@@ -1,7 +1,7 @@
-#import "std/print";
+import "std/print";
 
-#import "api/kernel32";
-#import "api/user32";
+import "api/kernel32";
+import "api/user32";
 
 window_create :: fn (name: *u8) -> *void {
 	window_class: WNDCLASSEXA;

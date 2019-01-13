@@ -112,14 +112,14 @@ Ast_Function* Ast_Scope::get_parent_function () {
 	}
 }
 
-void Ast_Directive_Foreign::add (Ast_Statement* stm) {
+void Ast_Foreign::add (Ast_Statement* stm) {
     if (stm->stm_type == AST_STATEMENT_DECLARATION) {
         auto decl = static_cast<Ast_Declaration*>(stm);
         this->add(decl);
     } else Logger::error(stm, "Only declarations can go inside #foreign scopes");
 }
 
-void Ast_Directive_Foreign::add (Ast_Declaration* decl) {
+void Ast_Foreign::add (Ast_Declaration* decl) {
     if (!decl->is_constant) Logger::error(decl, "Declarations inside #foreign scope must be function types");
     if (!decl->expression) Logger::error(decl, "Declarations inside #foreign scope must have values");
     if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {

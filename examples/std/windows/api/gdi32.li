@@ -53,7 +53,7 @@ PIXELFORMATDESCRIPTOR :: struct {
 	dwDamageMask: 		u32;
 }
 
-#foreign {
+foreign {
 	ChoosePixelFormat 	:: fn (hdc: *void, ppfd: *PIXELFORMATDESCRIPTOR) -> s32;
 	DescribePixelFormat :: fn (hdc: *void, iPixelFormat: s32, nBytes: u32, ppfd: *PIXELFORMATDESCRIPTOR) -> s32;
 	SetPixelFormat 		:: fn (hdc: *void, iPixelFormat: s32, ppfd: *PIXELFORMATDESCRIPTOR) -> u8;

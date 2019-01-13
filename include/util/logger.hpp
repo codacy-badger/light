@@ -2,6 +2,8 @@
 
 #include "ast/ast.hpp"
 #include "util/location.hpp"
+#include "util/events.hpp"
+#include "compiler_events.hpp"
 
 #include <stdint.h>
 #include <stdarg.h>
@@ -52,11 +54,11 @@ struct Logger {
 
         if (location) {
     		if (location->filename) {
-    			fprintf(output, "\t@ %s:%zd\n\n", location->filename, location->line);
+    			fprintf(output, "\t@ %s:%zd", location->filename, location->line);
     		} else {
-    			fprintf(output, "\t@ [Compiler defined]\n\n");
+    			fprintf(output, "\t@ [Compiler defined]");
     		}
-    	} else fprintf(output, "\n");
+    	}
 
         return output;
     }
@@ -92,6 +94,30 @@ struct Logger {
     AST_NODE_LEVEL_ALIAS(error,     LOG_LEVEL_ERROR)
     AST_NODE_LEVEL_ALIAS(internal,  LOG_LEVEL_INTERNAL)
 
+    static void error_and_stop (const char* format, ...) {
+        va_list argptr;
+        va_start(argptr, format);
+        auto output = Logger::log(LOG_LEVEL_ERROR, format, argptr);
+        fprintf(output, "\n\n");
+        va_end(argptr);
+    }
+
+    static void error_and_stop (Location* location, const char* format, ...) {
+        va_list argptr;
+        va_start(argptr, format);
+        auto output = Logger::log(LOG_LEVEL_ERROR, location, format, argptr);
+        fprintf(output, "\n\n");
+        va_end(argptr);
+    }
+
+    static void error_and_stop (Ast* node, const char* format, ...) {
+        va_list argptr;
+        va_start(argptr, format);
+        auto output = Logger::log(LOG_LEVEL_ERROR, node, format, argptr);
+        fprintf(output, "\n\n");
+        va_end(argptr);
+    }
+
     static const char* get_level_string (Log_Level level) {
         switch (level) {
             case LOG_LEVEL_VERBOSE:     return "VERBOSE";
@@ -110,6 +136,10 @@ struct Logger {
             case LOG_LEVEL_INTERNAL:    return stderr;
             default:                    return stdout;
         }
+    }
+
+    static void stop_compilation () {
+        Events::trigger(CE_COMPILER_ERROR);
     }
 };
 

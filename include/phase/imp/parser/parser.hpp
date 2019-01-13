@@ -1,19 +1,14 @@
 #pragma once
 
-#include "ast/ast_factory.hpp"
-#include "phase/pipeline/pipe.hpp"
-#include "ast/ast.hpp"
-#include "ast/types.hpp"
-
 #include "phase/async_phase.hpp"
 
+#include "ast/ast.hpp"
+#include "ast/types.hpp"
+#include "ast/ast_factory.hpp"
+#include "internal_scope.hpp"
+#include "util/logger.hpp"
+
 #include <vector>
-
-#define DECL_TYPE(scope, type) scope->statements.push_back(ast_make_declaration(type->name, type));
-
-#define IS_WINDOWS_LITERAL ast_make_literal(os_get_type() == OS_TYPE_WINDOWS)
-#define IS_LINUX_LITERAL ast_make_literal(os_get_type() == OS_TYPE_LINUX)
-#define IS_MAC_LITERAL ast_make_literal(os_get_type() == OS_TYPE_MAC)
 
 #define DEFAULT_FILE_EXTENSION ".li"
 
@@ -21,7 +16,7 @@
 
 struct Parser : Async_Phase {
 	// TODO: merge this attribute with current_scope
-	Ast_Scope* internal_scope = new Ast_Scope();
+	Ast_Scope* internal_scope = new Internal_Scope();
 	Ast_Factory* factory = new Ast_Factory();
 	Ast_Scope* current_scope = NULL;
 
@@ -32,27 +27,7 @@ struct Parser : Async_Phase {
 	size_t all_lines = 0;
 	double total_time = 0;
 
-	Parser () : Async_Phase("Parser") {
-	    DECL_TYPE(this->internal_scope, Types::type_type);
-	    DECL_TYPE(this->internal_scope, Types::type_void);
-	    DECL_TYPE(this->internal_scope, Types::type_bool);
-	    DECL_TYPE(this->internal_scope, Types::type_s8);
-	    DECL_TYPE(this->internal_scope, Types::type_s16);
-	    DECL_TYPE(this->internal_scope, Types::type_s32);
-	    DECL_TYPE(this->internal_scope, Types::type_s64);
-	    DECL_TYPE(this->internal_scope, Types::type_u8);
-	    DECL_TYPE(this->internal_scope, Types::type_u16);
-	    DECL_TYPE(this->internal_scope, Types::type_u32);
-	    DECL_TYPE(this->internal_scope, Types::type_u64);
-	    DECL_TYPE(this->internal_scope, Types::type_f32);
-	    DECL_TYPE(this->internal_scope, Types::type_f64);
-	    DECL_TYPE(this->internal_scope, Types::type_string);
-	    DECL_TYPE(this->internal_scope, Types::type_any);
-
-	    this->internal_scope->add(ast_make_declaration("OS_WINDOWS", IS_WINDOWS_LITERAL));
-	    this->internal_scope->add(ast_make_declaration("OS_LINUX", IS_LINUX_LITERAL));
-	    this->internal_scope->add(ast_make_declaration("OS_MAC", IS_MAC_LITERAL));
-	}
+	Parser () : Async_Phase("Parser", CE_MODULE_RUN_PARSER) { /* empty */ }
 
     void handle_main_event (void* data) {
 		auto module = reinterpret_cast<Module*>(data);
@@ -107,13 +82,6 @@ struct Parser : Async_Phase {
 				this->skip();
 				return this->statement();
 			}
-			case TOKEN_AT: {
-				this->skip();
-				auto note = this->next()->copy_text();
-				auto stm = this->statement();
-				stm->notes.push_back(note);
-				return stm;
-			}
 			case TOKEN_BRAC_OPEN: {
 				this->skip();
 				auto _scope = this->scope();
@@ -140,6 +108,54 @@ struct Parser : Async_Phase {
 				auto output = AST_NEW(Ast_Return, this->expression());
 				this->try_skip(TOKEN_STM_END);
 				return output;
+			}
+			case TOKEN_IMPORT: {
+				this->skip();
+				auto import = AST_NEW(Ast_Import);
+
+				import->include = this->try_skip(TOKEN_EXCLAMATION);
+
+				auto literal = this->string_literal();
+				auto new_length = strlen(literal->string_value) + 4;
+
+				auto tmp = (char*) malloc(new_length);
+				sprintf_s(tmp, new_length, "%s" DEFAULT_FILE_EXTENSION, literal->string_value);
+				import->path = tmp;
+
+				return import;
+			}
+			case TOKEN_FOREIGN: {
+				this->skip();
+				auto foreign = AST_NEW(Ast_Foreign);
+
+				if (this->is_next(TOKEN_STRING)) {
+					foreign->module_name = this->escaped_string();
+				} else foreign->module_name = foreign->get_foreign_module_name_from_file();
+
+				if (this->is_next(TOKEN_STRING)) {
+					foreign->function_name = this->escaped_string();
+				}
+
+				if (foreign->function_name && this->is_next(TOKEN_BRAC_OPEN)) {
+					Logger::error_and_stop(&this->peek()->location, "foreign function name can only be used with scopes");
+				}
+
+				if (this->try_skip(TOKEN_BRAC_OPEN)) {
+					auto scope = this->scope();
+					for (auto stm : scope->statements) {
+						foreign->add(stm);
+					}
+					this->expect(TOKEN_BRAC_CLOSE);
+				} else foreign->add(this->declaration());
+
+				return foreign;
+			}
+			case TOKEN_HASH: {
+				this->skip();
+				switch (this->peek()->type) {
+					case TOKEN_IF: return AST_NEW(Ast_Static_If, this->_if());
+					default: return AST_NEW(Ast_Run, this->expression());
+				}
 			}
 			case TOKEN_ID: {
 				if (this->peek(1)->type == TOKEN_COLON) {
@@ -169,7 +185,10 @@ struct Parser : Async_Phase {
 			}
 
 			return stm_if;
-		} else return NULL;
+		} else {
+			//Logger::error_and_stop(&this->peek()->location, "if-statement expected");
+			return NULL;
+		}
 	}
 
 	Ast_Scope* scoped_statement () {
@@ -179,64 +198,6 @@ struct Parser : Async_Phase {
 			scope->add(stm);
 			return scope;
 		} else return static_cast<Ast_Scope*>(stm);
-	}
-
-	Ast_Directive* directive () {
-		switch (this->peek()->type) {
-			case TOKEN_IMPORT: {
-				this->skip();
-				auto import = AST_NEW(Ast_Directive_Import);
-
-				import->include = this->try_skip(TOKEN_EXCLAMATION);
-
-				auto literal = this->string_literal();
-				auto new_length = strlen(literal->string_value) + 4;
-
-				auto tmp = (char*) malloc(new_length);
-				sprintf_s(tmp, new_length, "%s" DEFAULT_FILE_EXTENSION, literal->string_value);
-				import->path = tmp;
-
-				return import;
-			}
-			case TOKEN_RUN: {
-				this->skip();
-				auto run = AST_NEW(Ast_Directive_Run);
-				run->expression = this->expression();
-				return run;
-			}
-			case TOKEN_FOREIGN: {
-				this->skip();
-				auto foreign = AST_NEW(Ast_Directive_Foreign);
-
-				if (this->is_next(TOKEN_STRING)) {
-					foreign->module_name = this->escaped_string();
-				} else foreign->module_name = foreign->get_foreign_module_name_from_file();
-
-				if (this->is_next(TOKEN_STRING)) {
-					foreign->function_name = this->escaped_string();
-				}
-
-				if (foreign->function_name && this->is_next(TOKEN_BRAC_OPEN)) {
-					printf("[ERROR] foreign function name can only be used with scopes");
-				}
-
-				if (this->try_skip(TOKEN_BRAC_OPEN)) {
-					auto scope = this->scope();
-					for (auto stm : scope->statements) {
-						foreign->add(stm);
-					}
-					this->expect(TOKEN_BRAC_CLOSE);
-				} else foreign->add(this->declaration());
-
-				return foreign;
-			}
-			case TOKEN_IF: {
-				auto directive_if = AST_NEW(Ast_Directive_If);
-				directive_if->stm_if = this->_if();
-				return directive_if;
-			}
-			default: return NULL;
-		}
 	}
 
 	Ast_Declaration* declaration () {
@@ -354,7 +315,8 @@ struct Parser : Async_Phase {
 			this->expect(TOKEN_PAR_CLOSE);
 			return result;
 		} else if (this->try_skip(TOKEN_HASH)) {
-			return this->directive();
+			this->skip();
+			return AST_NEW(Ast_Run, this->expression());
 		} else if (this->try_skip(TOKEN_FALSE)) {
 			return ast_make_literal(false);
 		} else if (this->try_skip(TOKEN_TRUE)) {
@@ -379,19 +341,16 @@ struct Parser : Async_Phase {
 			auto base_type = this->type_instance();
 			return new Ast_Pointer_Type(base_type);
 		} else if (this->try_skip(TOKEN_SQ_BRAC_OPEN)) {
-			auto length = this->expression();
-			if (length) {
+			if (this->try_skip(TOKEN_SQ_BRAC_CLOSE)) {
+				return new Ast_Slice_Type(this->type_instance());
+			} else {
+				auto length = this->expression();
 				this->expect(TOKEN_SQ_BRAC_CLOSE);
-				auto base_type = this->type_instance();
 
 				auto _array = AST_NEW(Ast_Array_Type);
+				_array->base = this->type_instance();
 				_array->length = length;
-				_array->base = base_type;
 				return _array;
-			} else {
-				this->expect(TOKEN_SQ_BRAC_CLOSE);
-				auto base_type = this->type_instance();
-				return new Ast_Slice_Type(base_type);
 			}
 		} else {
 			return this->ident();
@@ -402,14 +361,12 @@ struct Parser : Async_Phase {
 		auto fn_type = AST_NEW(Ast_Function_Type);
 
 		if (this->try_skip(TOKEN_PAR_OPEN)) {
-			auto decl = this->declaration();
-			while (decl != NULL) {
+			while (!this->try_skip(TOKEN_PAR_CLOSE)) {
+				auto decl = this->declaration();
 				fn_type->arg_decls.push_back(decl);
 
-				if (!this->try_skip(TOKEN_COMMA)) break;
-				decl = this->declaration();
+				this->try_skip(TOKEN_COMMA);
 			}
-			this->expect(TOKEN_PAR_CLOSE);
 		}
 
 		if (this->try_skip(TOKEN_ARROW)) {
@@ -462,15 +419,15 @@ struct Parser : Async_Phase {
 		auto args = AST_NEW(Ast_Arguments);
 
 		bool parsing_named = false;
-		auto exp = this->expression();
-		while (exp != NULL) {
+		while (!this->is_next(TOKEN_PAR_CLOSE)) {
+			auto exp = this->expression();
+
 			auto last_is_named = args->add(exp);
 			if (parsing_named && !last_is_named) {
 				Logger::error(exp, "All named parameters must be on the right part");
 			} else parsing_named = last_is_named;
 
 			this->try_skip(TOKEN_COMMA);
-			exp = this->expression();
 		}
 
 		return args;
@@ -552,7 +509,7 @@ struct Parser : Async_Phase {
 
 	void report_expected (const char* expected_name) {
 		// @TODO allow to print an isolated Ast location
-		Logger::error("Expected '%s' but got %s",
+		Logger::error(&this->peek()->location, "Expected '%s' but got %s",
 			expected_name, Token::to_string(this->peek()->type));
 	}
 

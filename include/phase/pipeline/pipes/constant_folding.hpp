@@ -65,7 +65,7 @@ Ast_Type_Instance* unary_type (Ast_Unary_Type unary_op, Ast_Expression* exp) {
 	}
 }
 
-struct Constant_Folding : Pipe {
+struct Constant_Folding {
 	Constant_Folding () { this->pipe_name = "Constant_Folding"; }
 
 	void handle (Ast_Cast** cast_ptr) {

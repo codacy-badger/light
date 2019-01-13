@@ -5,7 +5,7 @@
 
 #define INST(node, name, ...) this->add_instruction(node, new Inst_##name(__VA_ARGS__));
 
-struct Bytecode_Generator : Pipe {
+struct Bytecode_Generator {
 	Ast_Declaration* reg_declarations[INTERP_REGISTER_COUNT] = {};
 	bool reserved[INTERP_REGISTER_COUNT] = {};
 	size_t data_offset = 0;
@@ -198,7 +198,7 @@ struct Bytecode_Generator : Pipe {
 		} else Pipe::handle(exp_ptr);
 	}
 
-	void handle (Ast_Directive_Run** run_ptr) {
+	void handle (Ast_Run** run_ptr) {
 		auto run = (*run_ptr);
 
 		if (run->bytecode.size() == 0) {

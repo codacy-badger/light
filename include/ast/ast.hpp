@@ -60,6 +60,9 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_BREAK,
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
+	AST_STATEMENT_IMPORT,
+	AST_STATEMENT_STATIC_IF,
+	AST_STATEMENT_FOREIGN,
 	AST_STATEMENT_EXPRESSION,
 };
 
@@ -159,60 +162,22 @@ struct Ast_Return : Ast_Statement {
     }
 };
 
-enum Ast_Expression_Type {
-	AST_EXPRESSION_UNDEFINED = 0,
-	AST_EXPRESSION_TYPE_INSTANCE,
-	AST_EXPRESSION_DIRECTIVE,
-	AST_EXPRESSION_FUNCTION,
-	AST_EXPRESSION_BINARY,
-	AST_EXPRESSION_UNARY,
-	AST_EXPRESSION_CALL,
-	AST_EXPRESSION_IDENT,
-	AST_EXPRESSION_LITERAL,
-	AST_EXPRESSION_CAST,
-};
-
-struct Ast_Expression : Ast_Statement {
-	Ast_Expression_Type exp_type = AST_EXPRESSION_UNDEFINED;
-	Ast_Type_Instance* inferred_type = NULL;
-
-	// for bytecode
-	int8_t reg = -1;
-
-	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
-};
-
-enum Ast_Directive_Type {
-	AST_DIRECTIVE_UNDEFINED = 0,
-	AST_DIRECTIVE_INCLUDE,
-	AST_DIRECTIVE_IMPORT,
-	AST_DIRECTIVE_FOREIGN,
-	AST_DIRECTIVE_RUN,
-	AST_DIRECTIVE_IF,
-};
-
-struct Ast_Directive : Ast_Expression {
-	Ast_Directive_Type dir_type = AST_DIRECTIVE_UNDEFINED;
-
-	Ast_Directive () { this->exp_type = AST_EXPRESSION_DIRECTIVE; }
-};
-
-struct Ast_Directive_Import : Ast_Directive {
+struct Ast_Import : Ast_Statement {
 	const char* path = NULL;
 
 	bool include = false;
 
 	char absolute_path[MAX_PATH_LENGTH];
 
-	Ast_Directive_Import () { this->dir_type = AST_DIRECTIVE_IMPORT; }
+	Ast_Import () { this->stm_type = AST_STATEMENT_IMPORT; }
 };
 
-struct Ast_Directive_Foreign : Ast_Directive {
+struct Ast_Foreign : Ast_Statement {
     const char* module_name = NULL;
     const char* function_name = NULL;
 	std::vector<Ast_Declaration*> declarations;
 
-	Ast_Directive_Foreign () { this->dir_type = AST_DIRECTIVE_FOREIGN; }
+	Ast_Foreign () { this->stm_type = AST_STATEMENT_FOREIGN; }
 
     void add (Ast_Statement* stm);
     void add (Ast_Declaration* decl);
@@ -232,19 +197,48 @@ struct Ast_Directive_Foreign : Ast_Directive {
     }
 };
 
-struct Ast_Directive_Run : Ast_Directive {
+struct Ast_Static_If : Ast_Statement {
+	Ast_If* stm_if = NULL;
+
+	Ast_Static_If (Ast_If* stm_if = NULL) {
+		this->stm_type = AST_STATEMENT_STATIC_IF;
+		this->stm_if = stm_if;
+	}
+};
+
+enum Ast_Expression_Type {
+	AST_EXPRESSION_UNDEFINED = 0,
+	AST_EXPRESSION_TYPE_INSTANCE,
+	AST_EXPRESSION_RUN,
+	AST_EXPRESSION_FUNCTION,
+	AST_EXPRESSION_BINARY,
+	AST_EXPRESSION_UNARY,
+	AST_EXPRESSION_CALL,
+	AST_EXPRESSION_IDENT,
+	AST_EXPRESSION_LITERAL,
+	AST_EXPRESSION_CAST,
+};
+
+struct Ast_Expression : Ast_Statement {
+	Ast_Expression_Type exp_type = AST_EXPRESSION_UNDEFINED;
+	Ast_Type_Instance* inferred_type = NULL;
+
+	// for bytecode
+	int8_t reg = -1;
+
+	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
+};
+
+struct Ast_Run : Ast_Expression {
 	Ast_Expression* expression = NULL;
 
 	// for bytecode
 	std::vector<Instruction*> bytecode;
 
-	Ast_Directive_Run () { this->dir_type = AST_DIRECTIVE_RUN; }
-};
-
-struct Ast_Directive_If : Ast_Directive {
-	Ast_If* stm_if = NULL;
-
-	Ast_Directive_If () { this->dir_type = AST_DIRECTIVE_IF; }
+	Ast_Run (Ast_Expression* expression = NULL) {
+		this->exp_type = AST_EXPRESSION_RUN;
+		this->expression = expression;
+	}
 };
 
 struct Ast_Cast : Ast_Expression {

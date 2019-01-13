@@ -7,16 +7,14 @@
 #include "compiler_events.hpp"
 
 struct Symbol_Resolution : Phase, Ast_Navigator {
-    Ast_Scope* current_scope = NULL;
-
     size_t symbols_resolved = 0;
 
-    Symbol_Resolution() : Phase("Symbol Resolution") { /* empty */ }
+    Symbol_Resolution() : Phase("Symbol Resolution", CE_MODULE_RESOLVE_SYMBOLS) { /* empty */ }
 
     void handle_main_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 
-        this->ast_handle(module->global_scope);
+        Ast_Navigator::ast_handle(module->global_scope);
 
         Events::trigger(this->event_to_id, module);
     }
@@ -37,13 +35,6 @@ struct Symbol_Resolution : Phase, Ast_Navigator {
         if (binary->binary_op != AST_BINARY_ATTRIBUTE) {
             Ast_Navigator::ast_handle(binary);
         }
-    }
-
-    void ast_handle (Ast_Scope* scope) {
-        auto tmp = this->current_scope;
-        this->current_scope = scope;
-        Ast_Navigator::ast_handle(scope);
-        this->current_scope = tmp;
     }
 
 	void print_extra_metrics() {

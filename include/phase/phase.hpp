@@ -26,7 +26,8 @@ struct Phase {
     Timer timer;
     timer_interval work_time = 0;
 
-    Phase (const char* name, const char* print_format = DEFAULT_PRINT_FORMAT) {
+    Phase (const char* name, size_t main_event_id, const char* print_format = DEFAULT_PRINT_FORMAT) {
+        this->event_from_id = main_event_id;
         this->print_format = print_format;
         this->name = name;
     }
@@ -72,6 +73,11 @@ struct Phase {
     void bind (size_t event_id, ObserverStdFunction observer_function) {
         this->function_map[event_id] = observer_function;
         Events::bind(event_id, &this->event_queue);
+    }
+
+    template<typename T>
+    void push (T event_data) {
+        Events::trigger(this->event_to_id, event_data);
     }
 
     void print_metrics () {

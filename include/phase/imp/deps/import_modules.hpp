@@ -5,27 +5,25 @@
 
 #include "module.hpp"
 #include "compiler_events.hpp"
-#include "phase/pipeline/pipeline.hpp"
 
 #include <vector>
 #include <map>
 
 struct Import_Modules : Async_Phase, Ast_Navigator {
-    std::map<Module*, std::vector<Ast_Directive_Import*>> dependencies;
+    std::map<Module*, std::vector<Ast_Import*>> dependencies;
 
     Module* current_module = NULL;
-    Ast_Scope* current_scope = NULL;
 
     size_t foreign_functions = 0;
 
-    Import_Modules() : Async_Phase("Import Modules") {
+    Import_Modules() : Async_Phase("Import Modules", CE_MODULE_RESOLVE_IMPORTS) {
         this->bind(CE_MODULE_READY, &Import_Modules::on_module_ready, this);
     }
 
     void handle_main_event (void* data) {
         this->current_module = reinterpret_cast<Module*>(data);
 
-        this->ast_handle(this->current_module->global_scope);
+        Ast_Navigator::ast_handle(this->current_module->global_scope);
 
         auto it = this->dependencies.find(this->current_module);
         if (it == this->dependencies.end()) {
@@ -33,7 +31,7 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
         }
     }
 
-    void ast_handle (Ast_Directive_Import* import) {
+    void ast_handle (Ast_Import* import) {
         import->remove_from_scope = true;
 
 		find_existing_absolute_path(import);
@@ -43,7 +41,7 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
         Events::trigger(CE_IMPORT_MODULE, import->absolute_path);
     }
 
-    void ast_handle (Ast_Directive_Foreign* foreign) {
+    void ast_handle (Ast_Foreign* foreign) {
         foreign->remove_from_scope = true;
 
         auto new_stms = &foreign->declarations;
@@ -52,13 +50,6 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
         stms->insert(foreign_stm + 1, new_stms->begin(), new_stms->end());
 
         this->foreign_functions += new_stms->size();
-    }
-
-    void ast_handle (Ast_Scope* scope) {
-        auto tmp = this->current_scope;
-        this->current_scope = scope;
-        Ast_Navigator::ast_handle(scope);
-        this->current_scope = tmp;
     }
 
     void on_module_ready (void* data) {
@@ -88,7 +79,7 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
         }
     }
 
-	void find_existing_absolute_path (Ast_Directive_Import* import) {
+	void find_existing_absolute_path (Ast_Import* import) {
 		// @TODO this method should use the path in the location ptr to
 		// compute the absolute path relative to the current folder
 		this->get_relative_to_current_file(import);
@@ -105,11 +96,11 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
 		Logger::error(import, "Here is the calling site");
 	}
 
-	void get_relative_to_current_file (Ast_Directive_Import* import) {
+	void get_relative_to_current_file (Ast_Import* import) {
 		os_get_absolute_path_relative_to(import->path, import->location.filename, import->absolute_path);
 	}
 
-	void get_relative_to_main_file (Ast_Directive_Import* import) {
+	void get_relative_to_main_file (Ast_Import* import) {
 		char tmp[MAX_PATH_LENGTH];
 		os_get_current_directory(tmp);
 		os_set_current_directory(this->settings->initial_path);

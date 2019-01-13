@@ -11,7 +11,7 @@ struct Module_Cache : Phase {
     String_Map<Module*> cache;
     std::vector<const char*> in_progress;
 
-    Module_Cache() : Phase("Module Cache") {
+    Module_Cache() : Phase("Module Cache", CE_IMPORT_MODULE) {
         this->bind(CE_MODULE_READY, &Module_Cache::on_module_ready, this);
     }
 

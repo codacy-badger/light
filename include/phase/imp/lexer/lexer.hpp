@@ -40,7 +40,7 @@ struct Lexer : Async_Phase {
 	uint64_t lines_of_code = 0;
 	uint64_t token_count = 0;
 
-	Lexer () : Async_Phase("Lexer") {}
+	Lexer () : Async_Phase("Lexer", CE_MODULE_RUN_LEXER) { /* empty */ }
 
     void handle_main_event (void* data) {
 		auto absolute_path = reinterpret_cast<char*>(data);
@@ -49,6 +49,7 @@ struct Lexer : Async_Phase {
 		module->absolute_path = absolute_path;
 
 		auto scanner = Scanner(absolute_path);
+		module->full_source = scanner.source;
 
 		this->source_to_tokens(&scanner, &module->tokens);
 		Events::trigger(this->event_to_id, module);

@@ -1,6 +1,6 @@
 
 #if OS_WINDOWS {
-    #import! "windows/print";
+    import! "windows/print";
 };
 
 print_ptr :: fn (str: *u8) {

@@ -4,7 +4,7 @@
 
 #include "ast/ast.hpp"
 
-struct Call_Arguments : Pipe {
+struct Call_Arguments {
     Call_Arguments () { this->pipe_name = "Call_Arguments"; }
 
     void handle (Ast_Function_Call** call_ptr) {

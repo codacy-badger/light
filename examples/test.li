@@ -1,8 +1,6 @@
-#import "std/types";
-#import "std/print";
-#import "std/sys";
-
-#run main();
+import "std/types";
+import "std/print";
+import "std/sys";
 
 main :: fn {
 	test_factorial();
@@ -23,6 +21,8 @@ main :: fn {
 	test_any();
 	test_string();
 }
+
+#(main());
 
 test_string :: fn {
     text := "Hello string!";

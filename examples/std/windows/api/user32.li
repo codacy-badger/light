@@ -100,7 +100,7 @@ MSG :: struct {
 
 WM_NULL :: 0;
 
-#foreign {
+foreign {
 	MessageBoxA 		:: fn (hWnd: *void, lpText: *u8, lpCaption: *u8, uType: u32) -> s32;
 	DefWindowProcA 		:: fn (hwnd: *void, uMsg: u32, wParam: s64, lParam: s64) -> s64;
 	RegisterClassExA 	:: fn (lpWndClass: *WNDCLASSEXA) -> u16;

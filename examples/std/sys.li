@@ -1,6 +1,6 @@
 
 #if OS_WINDOWS {
-    #import "windows/api/kernel32";
+    import "windows/api/kernel32";
 };
 
 sys_exit :: fn (exit_code: u32) {

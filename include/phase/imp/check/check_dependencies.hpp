@@ -9,16 +9,16 @@
 #include "util/logger.hpp"
 
 struct Check_Dependencies : Async_Phase, Ast_Navigator {
-    bool missing_declarations_found = false;
+    bool errors_found = false;
 
-    Check_Dependencies() : Async_Phase("Check Dependencies") { /* empty */ }
+    Check_Dependencies() : Async_Phase("Check Dependencies", CE_MODULE_CHECK_DEPENDENCIES) { /* empty */ }
 
     void handle_main_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
 
         this->ast_handle(module->global_scope);
 
-        if (this->missing_declarations_found) {
+        if (this->errors_found) {
             Events::trigger(CE_COMPILER_ERROR);
         } else Events::trigger(this->event_to_id, module);
     }
@@ -26,8 +26,16 @@ struct Check_Dependencies : Async_Phase, Ast_Navigator {
     void ast_handle (Ast_Ident* ident) {
         if (!ident->declaration) {
             Logger::error(ident, "Identifier '%s' has no declaration", ident->name);
-            this->missing_declarations_found = true;
+            this->errors_found = true;
         }
+    }
+
+    void ast_handle (Ast_Expression* exp) {
+        if (!exp->inferred_type) {
+            //Logger::error(exp, "Expression type could not be inferred");
+            //this->errors_found = true;
+        }
+        Ast_Navigator::ast_handle(exp);
     }
 
     void ast_handle (Ast_Scope* scope) {

@@ -13,7 +13,8 @@ struct Async_Phase : Phase {
     bool keep_working = true;
     bool is_working = false;
 
-    Async_Phase (const char* name) : Phase(name, DEFAULT_ASYNC_PRINT_FORMAT) { /* empty */ }
+    Async_Phase (const char* name, size_t main_event_id)
+        : Phase(name, main_event_id, DEFAULT_ASYNC_PRINT_FORMAT) { /* empty */ }
 
     void start () {
         Phase::start();
