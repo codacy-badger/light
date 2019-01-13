@@ -61,7 +61,7 @@ struct Cast_Strings : Scoped_Statement_Pipe {
                 tmp_ident3->inferred_type = Types::type_string;
 				tmp_ident3->location = lit->location;
                 *lit_ptr = reinterpret_cast<Ast_Literal*>(tmp_ident3);
-            } else INTERNAL(lit, "Current statement can't be found");
+            } else Logger::internal(lit, "Current statement can't be found");
         }
     }
 };

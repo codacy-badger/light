@@ -56,7 +56,7 @@ Ast_Type_Instance* unary_type (Ast_Unary_Type unary_op, Ast_Expression* exp) {
 			else if (exp->inferred_type == Types::type_u16) return Types::type_s32;
 			else if (exp->inferred_type == Types::type_u32) return Types::type_s64;
 			else if (exp->inferred_type == Types::type_u64) {
-				WARN(exp, "negating a u64 integer may not give the right value");
+				Logger::warning(exp, "negating a u64 integer may not give the right value");
 				return Types::type_s64;
 			} else return exp->inferred_type;
 		}
@@ -110,7 +110,7 @@ struct Constant_Folding : Pipe {
 					break;
 				}
 				case AST_LITERAL_STRING: {
-					report_warning(&unary->location, "String literal folding not supported yet!");
+					Logger::warning(unary, "String literal folding not supported yet!");
 					break;
 				}
 			}

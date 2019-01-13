@@ -2,7 +2,7 @@
 
 #include "phase/pipeline/scoped_statement_pipe.hpp"
 
-#include "report.hpp"
+#include "util/logger.hpp"
 
 struct Foreign_Function : Scoped_Statement_Pipe {
 	Foreign_Function () { this->pipe_name = "Foreign_Function"; }
@@ -21,10 +21,10 @@ struct Foreign_Function : Scoped_Statement_Pipe {
 			if (module) {
 				func->foreign_function_pointer = os_get_function(module, func->foreign_function_name);
 				if (!func->foreign_function_pointer) {
-					ERROR_STOP(func, "Function '%s' not found in module '%s'!",
+					Logger::error(func, "Function '%s' not found in module '%s'!",
 						func->foreign_function_name, func->foreign_module_name);
 				}
-			} else ERROR_STOP(func, "Module '%s' not found!", func->foreign_module_name);
+			} else Logger::error(func, "Module '%s' not found!", func->foreign_module_name);
 
 			stm_location = this->current_scope->statements.insert(stm_location, decl);
 		}

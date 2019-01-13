@@ -20,7 +20,7 @@ struct Ast_Cloner {
                 break;
             }
             default: {
-                INTERNAL(source, "Trying to clone ast node, but it's not "
+                Logger::internal(source, "Trying to clone ast node, but it's not "
                     "implemented for this kind (%d) of ast node yet", source->exp_type);
                 return NULL;
             }

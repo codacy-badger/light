@@ -24,7 +24,7 @@ struct Run_Directive : Scoped_Pipe {
             auto reg = this->interp->registers[run->expression->reg];
             memcpy(&output->int_value, reg, INTERP_REGISTER_SIZE);
 
-            DEBUG(run, "Run directive output: %d (%lld)\n",
+            Logger::debug(run, "Run directive output: %d (%lld)\n",
                 run->expression->reg, output->uint_value);
 
             (*run_ptr) = reinterpret_cast<Ast_Directive_Run*>(output);

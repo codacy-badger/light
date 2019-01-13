@@ -17,11 +17,11 @@ struct Type_Checking : Scoped_Pipe {
 		auto decl = (*decl_ptr);
 
 		if (!decl->expression && !decl->type) {
-			ERROR_STOP(decl, "Cannot infer type without an expression");
+			Logger::error(decl, "Cannot infer type without an expression");
 		}
 
 		if (decl->is_constant && !decl->expression) {
-			ERROR_STOP(decl, "All constant declarations must have a value");
+			Logger::error(decl, "All constant declarations must have a value");
 		}
 
 		if (decl->expression) {
@@ -30,7 +30,7 @@ struct Type_Checking : Scoped_Pipe {
 			if (decl->type) {
 				auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
 				if (!try_cast(&decl->expression, decl_type_inst)) {
-					ERROR_STOP(decl, "Type mismatch on declaration: value is '%s' but declaration wants '%s'",
+					Logger::error(decl, "Type mismatch on declaration: value is '%s' but declaration wants '%s'",
 						decl->expression->inferred_type->name, decl_type_inst->name);
 				}
 			} else decl->type = decl->expression->inferred_type;
@@ -51,8 +51,8 @@ struct Type_Checking : Scoped_Pipe {
 
 		Pipe::handle(&decl->type);
 
-		ASSERT(decl->type != NULL);
-		ASSERT(decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
+		assert(decl->type != NULL);
+		assert(decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
 	}
 
 	void handle (Ast_If** if_ptr) {
@@ -61,7 +61,7 @@ struct Type_Checking : Scoped_Pipe {
 		Pipe::handle(if_ptr);
 
 		if (!try_cast(&_if->condition, Types::type_bool)) {
-			ERROR_STOP(_if, "The condition for the IF statement must be of type boolean, but it is '%s'",
+			Logger::error(_if, "The condition for the IF statement must be of type boolean, but it is '%s'",
 				_if->condition->inferred_type->name);
 		}
 	}
@@ -72,7 +72,7 @@ struct Type_Checking : Scoped_Pipe {
 		Pipe::handle(while_ptr);
 
 		if (!try_cast(&_while->condition, Types::type_bool)) {
-			ERROR_STOP(_while, "The condition for the IF statement must be of type boolean, but it is '%s'",
+			Logger::error(_while, "The condition for the IF statement must be of type boolean, but it is '%s'",
 				_while->condition->inferred_type->name);
 		}
 	}
@@ -81,23 +81,23 @@ struct Type_Checking : Scoped_Pipe {
 		auto ret = (*ret_ptr);
 
 		auto fn = this->current_scope->get_parent_function();
-		if (!fn) ERROR_STOP(ret, "Return statement must be inside a function");
+		if (!fn) Logger::error(ret, "Return statement must be inside a function");
 
 		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->type->ret_type);
 		if (ret->expression) {
 			Pipe::handle(&ret->expression);
 
 			if (fn->type->ret_type == Types::type_void) {
-				ERROR_STOP(ret, "Return statment has expression, but function returns void");
+				Logger::error(ret, "Return statment has expression, but function returns void");
 			}
 
             if (!try_cast(&ret->expression, ret_type_def)) {
-    			ERROR_STOP(ret, "Type mismatch, return expression is '%s', but function expects '%s'",
+    			Logger::error(ret, "Type mismatch, return expression is '%s', but function expects '%s'",
     				ret->expression->inferred_type->name, ret_type_def->name);
             }
 		} else {
 			if (fn->type->ret_type != Types::type_void)
-				ERROR_STOP(ret, "Return statment has no expression, but function returns '%s'",
+				Logger::error(ret, "Return statment has no expression, but function returns '%s'",
 					ret_type_def->name);
 		}
 	}
@@ -110,7 +110,7 @@ struct Type_Checking : Scoped_Pipe {
 
 			exp = (*exp_ptr);
 			if (!exp->inferred_type) {
-				ERROR_STOP(exp, "Expression type could not be inferred");
+				Logger::error(exp, "Expression type could not be inferred");
 			}
 		}
 	}
@@ -138,7 +138,7 @@ struct Type_Checking : Scoped_Pipe {
 		auto cast = (*cast_ptr);
 		if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
 			cast->inferred_type = static_cast<Ast_Type_Instance*>(cast->cast_to);
-		} else ERROR_STOP(cast, "Cast target is not a type");
+		} else Logger::error(cast, "Cast target is not a type");
 	}
 
 	void handle (Ast_Type_Instance** type_inst_ptr) {
@@ -186,9 +186,9 @@ struct Type_Checking : Scoped_Pipe {
 		if (arr->length->exp_type == AST_EXPRESSION_LITERAL) {
 			auto lit = static_cast<Ast_Literal*>(arr->length);
 			if (lit->literal_type != AST_LITERAL_UNSIGNED_INT) {
-				ERROR_STOP(arr, "Arrays size must be an unsigned integer");
+				Logger::error(arr, "Arrays size must be an unsigned integer");
 			}
-		} else ERROR_STOP(arr, "Arrays can only have constant size");
+		} else Logger::error(arr, "Arrays can only have constant size");
 
 		auto type_def = static_cast<Ast_Type_Instance*>(arr->base);
 		arr->byte_size = arr->get_length() * type_def->byte_size;
@@ -213,7 +213,7 @@ struct Type_Checking : Scoped_Pipe {
 		Pipe::handle(&call->func);
 
 	    if (call->func->inferred_type->typedef_type != AST_TYPEDEF_FUNCTION) {
-			ERROR_STOP(call, "Function calls can only be performed to functions types");
+			Logger::error(call, "Function calls can only be performed to functions types");
 		}
 
 		auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
@@ -225,11 +225,11 @@ struct Type_Checking : Scoped_Pipe {
 
 			Pipe::handle(&call->arguments->unnamed[i]);
 			auto param_exp = call->arguments->unnamed[i];
-			ASSERT(param_exp->inferred_type);
+			assert(param_exp->inferred_type);
 
 			auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
 			if (!try_cast(&call->arguments->unnamed[i], arg_type)) {
-				ERROR_STOP(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
+				Logger::error(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
 					i + 1, arg_type->name, param_exp->inferred_type->name);
 			}
 		}
@@ -239,7 +239,7 @@ struct Type_Checking : Scoped_Pipe {
 			auto decl = func_type->get_declaration(entry.first);
 			auto arg_type = static_cast<Ast_Type_Instance*>(decl->type);
 			if (!try_cast(&entry.second, arg_type)) {
-				ERROR_STOP(call, "Type mismatch on named parameter '%s', expected '%s' but got '%s'",
+				Logger::error(call, "Type mismatch on named parameter '%s', expected '%s' but got '%s'",
 					entry.first, arg_type->name, entry.second->inferred_type->name);
 			}
 
@@ -266,8 +266,8 @@ struct Type_Checking : Scoped_Pipe {
 	                    auto attr_type = static_cast<Ast_Type_Instance*>(attribute->type);
 	                    binop->inferred_type = attr_type;
 	                    ident->declaration = attribute;
-	                } else ERROR_STOP(binop, "The type '%s' has no attribute named '%s'", _struct->name, ident->name);
-	            } else ERROR_STOP(binop, "Right of attribute access is NOT an identifier");
+	                } else Logger::error(binop, "The type '%s' has no attribute named '%s'", _struct->name, ident->name);
+	            } else Logger::error(binop, "Right of attribute access is NOT an identifier");
 	        } else if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
 				auto _array = static_cast<Ast_Array_Type*>(type_def);
 				if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
@@ -276,9 +276,9 @@ struct Type_Checking : Scoped_Pipe {
 						binop->inferred_type = Types::type_u64;
 					} else if (strcmp(ident->name, "data") == 0) {
 						binop->inferred_type = new Ast_Pointer_Type(_array->base);
-					} else ERROR_STOP(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
-				} else ERROR_STOP(binop, "Right of attribute access is NOT an identifier");
-			} else ERROR_STOP(binop, "Left of attribute access has invalid type: '%s'", type_def->name);
+					} else Logger::error(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
+				} else Logger::error(binop, "Right of attribute access is NOT an identifier");
+			} else Logger::error(binop, "Left of attribute access has invalid type: '%s'", type_def->name);
 	    } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
 			if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 				auto arr_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
@@ -286,7 +286,7 @@ struct Type_Checking : Scoped_Pipe {
 
 				Pipe::handle(&binop->rhs);
 				if (!try_cast(&binop->rhs, Types::type_u64)) {
-					ERROR_STOP(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
+					Logger::error(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
 				}
 			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
 				// TODO: refactor this once we have subscript operator overloading
@@ -297,20 +297,20 @@ struct Type_Checking : Scoped_Pipe {
 					auto data_decl = _struct->find_attribute("data");
 					auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
 					binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
-				} else ERROR_STOP(binop, "Left struct is not a slice");
+				} else Logger::error(binop, "Left struct is not a slice");
 			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
 				auto ptr_type = static_cast<Ast_Pointer_Type*>(binop->lhs->inferred_type);
 				binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 
 				Pipe::handle(&binop->rhs);
 				if (!try_cast(&binop->rhs, Types::type_u64)) {
-					ERROR_STOP(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
+					Logger::error(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
 				}
-			} else ERROR_STOP(binop, "Left of subscript is not of array, slice or pointer type");
+			} else Logger::error(binop, "Left of subscript is not of array, slice or pointer type");
 		} else if (binop->binary_op == AST_BINARY_ASSIGN) {
 			Pipe::handle(&binop->rhs);
             if (!try_cast(&binop->rhs, binop->lhs->inferred_type)) {
-                ERROR_STOP(binop, "Type mismatch on assign: from '%s' to '%s'",
+                Logger::error(binop, "Type mismatch on assign: from '%s' to '%s'",
                     binop->rhs->inferred_type->name, binop->lhs->inferred_type->name);
             }
 			binop->inferred_type = binop->rhs->inferred_type;
@@ -320,7 +320,7 @@ struct Type_Checking : Scoped_Pipe {
             // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...
             if (!try_cast(&binop->lhs, binop->rhs->inferred_type)) {
                 if (!try_cast(&binop->rhs, binop->lhs->inferred_type)) {
-                    ERROR_STOP(binop, "Type mismatch on binary expression: '%s' and '%s'",
+                    Logger::error(binop, "Type mismatch on binary expression: '%s' and '%s'",
                         binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
                 }
             }
@@ -347,7 +347,7 @@ struct Type_Checking : Scoped_Pipe {
 	                auto ptr_type = static_cast<Ast_Pointer_Type*>(inf_type);
 	                auto base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 	                unop->inferred_type = base_type;
-	            } else ERROR_STOP(unop, "Can't dereference a non-pointer type expression");
+	            } else Logger::error(unop, "Can't dereference a non-pointer type expression");
 	            break;
 			}
 			case AST_UNARY_REFERENCE: {
@@ -363,7 +363,7 @@ struct Type_Checking : Scoped_Pipe {
 
 		if (ident->declaration) {
 			ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
-		} else ERROR_STOP(ident, "Indetifier '%s' has no declaration", ident->name);
+		} else Logger::error(ident, "Indetifier '%s' has no declaration", ident->name);
 	}
 
 	void handle (Ast_Literal** lit_ptr) {
@@ -387,7 +387,7 @@ struct Type_Checking : Scoped_Pipe {
 					lit->inferred_type = Types::type_string;
 		            break;
 		        }
-		        default: INTERNAL(lit, "Unknown literal type: %d", lit->literal_type);
+		        default: Logger::internal(lit, "Unknown literal type: %d", lit->literal_type);
 		    }
 		}
 	}

@@ -337,7 +337,7 @@ struct Bytecode_Generator : Pipe {
 			                    INST(binop, Load, binop->reg, binop->reg, binop->inferred_type->byte_size);
 			                }
 						} else abort();
-					} else ERROR_STOP(binop->lhs, "Struct is not a slice");
+					} else Logger::error(binop->lhs, "Struct is not a slice");
 				} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
 		        	this->handle_left(&binop->lhs);
 
@@ -414,7 +414,7 @@ struct Bytecode_Generator : Pipe {
 	            INST(lit, Constant_Offset, lit->reg, lit->data_offset);
 				break;
 			}
-			default: ERROR_STOP(lit, "Literal type to bytecode conversion not supported!");
+			default: Logger::error(lit, "Literal type to bytecode conversion not supported!");
 		}
 	}
 

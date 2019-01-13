@@ -1,6 +1,6 @@
 #pragma once
 
-#include "report.hpp"
+#include "util/logger.hpp"
 
 #include <malloc.h>
 #include <string.h>
@@ -21,7 +21,7 @@ struct Scanner {
         if (err) {
             char buffer[256];
             strerror_s(buffer, sizeof buffer, err);
-            report_error_and_stop(NULL, "Cannot open file '%s': %s", absolute_path, buffer);
+            Logger::error("Cannot open file '%s': %s", absolute_path, buffer);
         }
 
         fseek(file, 0L, SEEK_END);

@@ -314,7 +314,7 @@ struct Parser : Async_Phase {
 						auto decl = static_cast<Ast_Declaration*>(stm);
 						_struct->attributes.push_back(decl);
 					} else {
-						report_error_and_stop(&stm->location, "Only declarations can go inside a struct");
+						Logger::error(stm, "Only declarations can go inside a struct");
 					}
 				}
 				delete _scope;
@@ -466,7 +466,7 @@ struct Parser : Async_Phase {
 		while (exp != NULL) {
 			auto last_is_named = args->add(exp);
 			if (parsing_named && !last_is_named) {
-				ERROR_STOP(exp, "All named parameters must be on the right part");
+				Logger::error(exp, "All named parameters must be on the right part");
 			} else parsing_named = last_is_named;
 
 			this->try_skip(TOKEN_COMMA);
@@ -551,7 +551,8 @@ struct Parser : Async_Phase {
 	}
 
 	void report_expected (const char* expected_name) {
-		report_error_and_stop(&this->peek()->location, "Expected '%s' but got %s",
+		// @TODO allow to print an isolated Ast location
+		Logger::error("Expected '%s' but got %s",
 			expected_name, Token::to_string(this->peek()->type));
 	}
 

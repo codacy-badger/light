@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include "ast/ast.hpp"
-#include "report.hpp"
+#include "util/logger.hpp"
 
 enum Inst_Bytecode : uint8_t {
 	BYTECODE_NOOP = 0,
@@ -109,7 +109,7 @@ struct Inst_Copy : Instruction {
 		this->reg2 = reg2;
 
 		if (reg1 == reg2) {
-			report_warning(NULL, "BYTECODE GENERATOR: Copying to the same register: %d", reg1);
+			Logger::warning("BYTECODE GENERATOR: Copying to the same register: %d", reg1);
 		}
 	}
 };
@@ -126,10 +126,10 @@ struct Inst_Copy_Memory : Instruction {
 		this->size = size;
 
 		if (reg_to == reg_from) {
-			report_warning(NULL, "BYTECODE GENERATOR: Copying memory to the same register: %d", reg_to);
+			Logger::warning("BYTECODE GENERATOR: Copying memory to the same register: %d", reg_to);
 		}
 		if (size == 0) {
-			report_warning(NULL, "BYTECODE GENERATOR: Copying 0-sized memory");
+			Logger::warning("BYTECODE GENERATOR: Copying 0-sized memory");
 		}
 	}
 };
@@ -148,7 +148,7 @@ struct Inst_Cast : Instruction {
 		this->type_to = type_to;
 
 		if (type_from == type_to) {
-			report_warning(NULL, "BYTECODE GENERATOR: casting value to the same type: %d", type_from);
+			Logger::warning("BYTECODE GENERATOR: casting value to the same type: %d", type_from);
 		}
 	}
 
@@ -211,7 +211,7 @@ struct Inst_Stack_Allocate : Instruction {
 		this->size = size;
 
 		if (size == 0) {
-			report_warning(NULL, "BYTECODE GENERATOR: allocation 0 bytes in stack");
+			Logger::warning("BYTECODE GENERATOR: allocation 0 bytes in stack");
 		}
 	}
 };
@@ -239,7 +239,7 @@ struct Inst_Load : Instruction {
 		this->size = size;
 
 		if (size == 0) {
-			report_warning(NULL, "BYTECODE GENERATOR: loading 0-sized bytes");
+			Logger::warning("BYTECODE GENERATOR: loading 0-sized bytes");
 		}
 	}
 };
@@ -256,7 +256,7 @@ struct Inst_Store : Instruction {
 		this->size = size;
 
 		if (size == 0) {
-			report_warning(NULL, "BYTECODE GENERATOR: storing 0-sized bytes");
+			Logger::warning("BYTECODE GENERATOR: storing 0-sized bytes");
 		}
 	}
 };
@@ -311,7 +311,7 @@ struct Inst_Add_Const : Instruction {
 		this->number = number;
 
 		if (number == 0) {
-			report_warning(NULL, "BYTECODE GENERATOR: adding 0");
+			Logger::warning("BYTECODE GENERATOR: adding 0");
 		}
 	}
 
@@ -331,11 +331,11 @@ struct Inst_Mul_Const : Instruction {
 		this->number = number;
 
 		if (number == 0) {
-			report_warning(NULL, "BYTECODE GENERATOR: multiplying by 0");
+			Logger::warning("BYTECODE GENERATOR: multiplying by 0");
 		}
 
 		if (number == 1) {
-			report_warning(NULL, "BYTECODE GENERATOR: multiplying by 1, duh");
+			Logger::warning("BYTECODE GENERATOR: multiplying by 1, duh");
 		}
 	}
 

@@ -2,7 +2,7 @@
 
 #include "module.hpp"
 #include "platform.hpp"
-#include "report.hpp"
+#include "util/location.hpp"
 #include "phase/imp/lexer/token.hpp"
 #include "util/string_map.hpp"
 #include "util/string_vector.hpp"

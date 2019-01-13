@@ -1,6 +1,6 @@
 #pragma once
 
-#include "report.hpp"
+#include "util/logger.hpp"
 #include "platform.hpp"
 
 struct Arch {
@@ -21,7 +21,7 @@ struct Arch {
         auto current_arch = os_get_arch();
         switch (current_arch) {
             case ARCH_TYPE_X64:     return new Arch ("x64", ARCH_TYPE_X64, 16, 8);
-            default:                report_error(NULL, "Unknown target arch");
+            default:                Logger::error("Unknown target arch");
         }
         return NULL;
     }

@@ -10,8 +10,6 @@ struct Static_If : Phase, Ast_Navigator {
     Ast_Scope* current_scope = NULL;
     bool static_ifs_found = false;
 
-    size_t back_flows = 0;
-
     Static_If() : Phase("Static If") { /* empty */ }
 
     void handle_main_event (void* data) {
@@ -21,7 +19,6 @@ struct Static_If : Phase, Ast_Navigator {
         this->ast_handle(module->global_scope);
         if (this->static_ifs_found) {
             Events::trigger(CE_MODULE_RESOLVE_IMPORTS, module);
-            this->back_flows++;
         } else {
             Events::trigger(this->event_to_id, module);
         }
@@ -64,8 +61,4 @@ struct Static_If : Phase, Ast_Navigator {
         Ast_Navigator::ast_handle(scope);
         this->current_scope = tmp;
     }
-
-	void print_extra_metrics() {
-		print_extra_metric("Back-flows", "%zd", this->back_flows);
-	}
 };

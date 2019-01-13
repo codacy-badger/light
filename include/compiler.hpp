@@ -67,8 +67,7 @@ struct Compiler {
 
 			switch (event.id) {
 				case CE_COMPILER_ERROR: {
-					auto error_description = reinterpret_cast<char*>(event.data);
-					printf("Compiler error: %s\n", error_description);
+					printf("Errors found during compilation...\n");
 					exit(1);
 				}
 			}

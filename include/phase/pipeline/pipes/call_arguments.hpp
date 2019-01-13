@@ -16,7 +16,7 @@ struct Call_Arguments : Pipe {
         //auto arg_without_defaults = func_type->count_arguments_without_defaults();
 
         if (unnamed->size() > func_type->arg_decls.size()) {
-            ERROR_STOP(call, "Too many arguments, function has %d, but call has %d",
+            Logger::error(call, "Too many arguments, function has %d, but call has %d",
                 func_type->arg_decls.size(), unnamed->size());
         } else {
             for (auto i = 0; i < func_type->arg_decls.size(); i++) {
@@ -28,9 +28,9 @@ struct Call_Arguments : Pipe {
                     if (decl->expression) {
                         if (unnamed->size() <= (i + 1)) unnamed->resize(i + 1);
                         (*unnamed)[i] = decl->expression;
-                    } else ERROR_STOP(call, "No value provided for argument '%s'", decl->name);
+                    } else Logger::error(call, "No value provided for argument '%s'", decl->name);
                 } else if (unnamed_value != NULL && named_value != NULL) {
-                    ERROR_STOP(call, "The parameter '%s' has both named & unnamed values", decl->name);
+                    Logger::error(call, "The parameter '%s' has both named & unnamed values", decl->name);
                 } else if (named_value != NULL) {
                     if (unnamed->size() <= (i + 1)) unnamed->resize(i + 1);
                     (*unnamed)[i] = named_value;
@@ -47,7 +47,7 @@ struct Call_Arguments : Pipe {
             if (decl->expression) {
                 default_args_found = true;
             } else if (default_args_found) {
-                ERROR_STOP(func_type, "All default arguments must be "
+                Logger::error(func_type, "All default arguments must be "
                     "at the end of the functions arguments, "
                     "but argument '%s' has no default value", decl->name);
             }

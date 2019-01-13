@@ -13,7 +13,7 @@
 	memcpy(&var_name, this->registers[reg], INTERP_REGISTER_SIZE)
 
 void Interpreter::run (Ast_Function* func) {
-	ASSERT(func->bytecode.size() > 0);
+	assert(func->bytecode.size() > 0);
 
 	if (this->call_record) {
 		for (uint8_t i = 0; i < this->call_record->param_count; i++) {
@@ -83,7 +83,7 @@ void Interpreter::run (Instruction* inst) {
 		}
 		case BYTECODE_STACK_ALLOCATE: {
 			auto alloca = static_cast<Inst_Stack_Allocate*>(inst);
-			ASSERT((this->stack_index + alloca->size) < INTERP_STACK_SIZE);
+			assert((this->stack_index + alloca->size) < INTERP_STACK_SIZE);
 
 			auto over = this->stack_index % alloca->size;
 			if (over > 0) {
@@ -234,14 +234,14 @@ void Interpreter::call (void* func_ptr, Bytecode_Type bytecode_type, uint8_t reg
 				case BYTECODE_TYPE_POINTER: dcArgPointer(vm, (DCpointer) param_value); break;
 				case BYTECODE_TYPE_F32: {
 					DCfloat tmp;
-					ASSERT(sizeof(DCfloat) <= sizeof(size_t));
+					assert(sizeof(DCfloat) <= sizeof(size_t));
 					memcpy(&tmp, &param_value, sizeof(DCfloat));
 					dcArgFloat(vm, (DCfloat) tmp);
 					break;
 				}
 				case BYTECODE_TYPE_F64: {
 					DCdouble tmp;
-					ASSERT(sizeof(DCdouble) <= sizeof(size_t));
+					assert(sizeof(DCdouble) <= sizeof(size_t));
 					memcpy(&tmp, &param_value, sizeof(DCdouble));
 					dcArgDouble(vm, (DCdouble) tmp);
 					break;

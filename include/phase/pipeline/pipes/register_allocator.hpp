@@ -225,8 +225,8 @@ struct Register_Allocator : Pipe {
     }
 
     void set_declaration (Ast_Declaration* decl) {
-        ASSERT(decl->expression->reg >= 0);
-        ASSERT(this->decl_regs[decl->expression->reg]);
+        assert(decl->expression->reg >= 0);
+        assert(this->decl_regs[decl->expression->reg]);
         this->decl_regs[decl->expression->reg]->decl = decl;
     }
 

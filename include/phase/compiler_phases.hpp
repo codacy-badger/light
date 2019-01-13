@@ -8,7 +8,7 @@
 #include "imp/parser/parser.hpp"
 #include "imp/deps/module_cache.hpp"
 #include "imp/deps/static_if.hpp"
-#include "imp/deps/external_modules.hpp"
+#include "imp/deps/import_modules.hpp"
 #include "imp/deps/symbol_resolution.hpp"
 #include "imp/check/check_dependencies.hpp"
 
@@ -29,7 +29,7 @@ struct Compiler_Phases {
         this->add_phase<Lexer>(CE_MODULE_RUN_PARSER);
         this->add_phase<Parser>(CE_MODULE_RESOLVE_IMPORTS);
 
-        this->add_phase<External_Modules>(CE_MODULE_RESOLVE_EXTERNAL_SYMBOLS);
+        this->add_phase<Import_Modules>(CE_MODULE_RESOLVE_EXTERNAL_SYMBOLS);
         this->add_phase<Symbol_Resolution>(CE_MODULE_RESOLVE_IFS);
         this->add_phase<Static_If>(CE_MODULE_CHECK_DEPENDENCIES);
 

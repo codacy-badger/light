@@ -6,7 +6,10 @@
 #include "module.hpp"
 #include "compiler_events.hpp"
 
+#include "util/logger.hpp"
+
 struct Check_Dependencies : Async_Phase, Ast_Navigator {
+    bool missing_declarations_found = false;
 
     Check_Dependencies() : Async_Phase("Check Dependencies") { /* empty */ }
 
@@ -15,12 +18,15 @@ struct Check_Dependencies : Async_Phase, Ast_Navigator {
 
         this->ast_handle(module->global_scope);
 
-        Events::trigger(this->event_to_id, module);
+        if (this->missing_declarations_found) {
+            Events::trigger(CE_COMPILER_ERROR);
+        } else Events::trigger(this->event_to_id, module);
     }
 
     void ast_handle (Ast_Ident* ident) {
         if (!ident->declaration) {
-            report_error(&ident->location, "NO DECLARATION -> '%s'", ident->name);
+            Logger::error(ident, "Identifier '%s' has no declaration", ident->name);
+            this->missing_declarations_found = true;
         }
     }
 
