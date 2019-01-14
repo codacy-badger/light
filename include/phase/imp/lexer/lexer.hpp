@@ -1,6 +1,5 @@
 #pragma once
 
-#include "module.hpp"
 #include "scanner.hpp"
 #include "token.hpp"
 #include "compiler_events.hpp"
@@ -45,14 +44,11 @@ struct Lexer : Async_Phase {
     void handle_main_event (void* data) {
 		auto absolute_path = reinterpret_cast<char*>(data);
 
-		auto module = new Module();
-		module->absolute_path = absolute_path;
-
 		auto scanner = Scanner(absolute_path);
-		module->full_source = scanner.source;
 
-		this->source_to_tokens(&scanner, &module->tokens);
-		Events::trigger(this->event_to_id, module);
+		auto tokens = new std::vector<Token*>();
+		this->source_to_tokens(&scanner, tokens);
+		this->push(tokens);
     }
 
 	void source_to_tokens (Scanner* scanner, std::vector<Token*>* tokens) {

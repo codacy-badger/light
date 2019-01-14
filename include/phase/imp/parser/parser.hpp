@@ -31,20 +31,15 @@ struct Parser : Async_Phase {
 
 	void start () {
 		Async_Phase::start();
-
-		auto internal_module = new Module();
-		internal_module->absolute_path = "INTERNAL";
-		internal_module->global_scope = this->internal_scope;
-		//this->push(internal_module);
+		//this->push(this->internal_scope);
 	}
 
     void handle_main_event (void* data) {
-		auto module = reinterpret_cast<Module*>(data);
+		this->tokens = reinterpret_cast<std::vector<Token*>*>(data);
+		auto global_scope = this->build_ast();
+		delete this->tokens;
 
-		this->tokens = &module->tokens;
-		module->global_scope = this->build_ast();
-
-		Events::trigger(this->event_to_id, module);
+		this->push(global_scope);
     }
 
 	Ast_Scope* build_ast () {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 struct String_Vector : std::vector<const char*> {
     bool contains (const char* another) {
         for (size_t i = 0; i < this->size(); i++) {

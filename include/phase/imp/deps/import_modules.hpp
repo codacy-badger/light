@@ -3,16 +3,15 @@
 #include "phase/async_phase.hpp"
 #include "phase/ast_navigator.hpp"
 
-#include "module.hpp"
 #include "compiler_events.hpp"
 
 #include <vector>
 #include <map>
 
 struct Import_Modules : Async_Phase, Ast_Navigator {
-    std::map<Module*, std::vector<Ast_Import*>> dependencies;
+    std::map<Ast_Scope*, std::vector<Ast_Import*>> dependencies;
 
-    Module* current_module = NULL;
+    Ast_Scope* current_global_scope = NULL;
 
     size_t foreign_functions = 0;
 
@@ -21,13 +20,13 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
     }
 
     void handle_main_event (void* data) {
-        this->current_module = reinterpret_cast<Module*>(data);
+        this->current_global_scope = reinterpret_cast<Ast_Scope*>(data);
 
-        Ast_Navigator::ast_handle(this->current_module->global_scope);
+        Ast_Navigator::ast_handle(this->current_global_scope);
 
-        auto it = this->dependencies.find(this->current_module);
+        auto it = this->dependencies.find(this->current_global_scope);
         if (it == this->dependencies.end()) {
-            Events::trigger(this->event_to_id, this->current_module);
+            this->push(this->current_global_scope);
         }
     }
 
@@ -36,7 +35,7 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
 
 		find_existing_absolute_path(import);
 
-        this->dependencies[this->current_module].push_back(import);
+        this->dependencies[this->current_global_scope].push_back(import);
 
         Events::trigger(CE_IMPORT_MODULE, import->absolute_path);
     }
@@ -53,19 +52,20 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
     }
 
     void on_module_ready (void* data) {
-        auto module = reinterpret_cast<Module*>(data);
+        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
 
         auto it = this->dependencies.begin();
         while (it != this->dependencies.end()) {
-            auto global_scope = it->first->global_scope;
+            auto dep_global_scope = it->first;
             auto imports = &it->second;
 
             for (int i = 0; i < imports->size();) {
                 auto import = (*imports)[i];
-                if (strcmp(module->absolute_path, import->absolute_path) == 0) {
+                auto scope_absolute_path = global_scope->get_absolute_path();
+                if (strcmp(scope_absolute_path, import->absolute_path) == 0) {
                     if (import->include) {
-                        global_scope->includes.push_back(module->global_scope);
-                    } else global_scope->imports.push_back(module->global_scope);
+                        dep_global_scope->includes.push_back(global_scope);
+                    } else dep_global_scope->imports.push_back(global_scope);
 
                     imports->erase(imports->begin() + i);
                     break;

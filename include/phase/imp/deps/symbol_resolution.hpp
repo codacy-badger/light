@@ -3,7 +3,6 @@
 #include "phase/async_phase.hpp"
 #include "phase/ast_ref_navigator.hpp"
 
-#include "module.hpp"
 #include "ast/ast_cloner.hpp"
 #include "compiler_events.hpp"
 
@@ -13,11 +12,11 @@ struct Symbol_Resolution : Async_Phase, Ast_Ref_Navigator {
     Symbol_Resolution() : Async_Phase("Symbol Resolution", CE_MODULE_RESOLVE_SYMBOLS) { /* empty */ }
 
     void handle_main_event (void* data) {
-        auto module = reinterpret_cast<Module*>(data);
+        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
 
-        Ast_Ref_Navigator::ast_handle(&module->global_scope);
+        Ast_Ref_Navigator::ast_handle(&global_scope);
 
-        Events::trigger(this->event_to_id, module);
+        this->push(global_scope);
     }
 
     void ast_handle (Ast_Ident** ident_ptr) {

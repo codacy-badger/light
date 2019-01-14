@@ -1,6 +1,5 @@
 #pragma once
 
-#include "module.hpp"
 #include "platform.hpp"
 #include "util/location.hpp"
 #include "phase/imp/lexer/token.hpp"
@@ -90,6 +89,10 @@ struct Ast_Scope : Ast_Statement {
 	}
 
     bool is_global () { return this->parent == NULL; }
+
+	const char* get_absolute_path () {
+		return this->location.filename;
+	}
 
 	void add (Ast_Statement* stm) {
 		this->statements.push_back(stm);

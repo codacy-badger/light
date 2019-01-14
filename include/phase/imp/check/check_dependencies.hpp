@@ -3,7 +3,6 @@
 #include "phase/phase.hpp"
 #include "phase/ast_navigator.hpp"
 
-#include "module.hpp"
 #include "compiler_events.hpp"
 
 #include "util/logger.hpp"
@@ -14,13 +13,13 @@ struct Check_Dependencies : Phase, Ast_Navigator {
     Check_Dependencies() : Phase("Check Dependencies", CE_MODULE_CHECK_DEPENDENCIES) { /* empty */ }
 
     void handle_main_event (void* data) {
-        auto module = reinterpret_cast<Module*>(data);
+        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
 
-        this->ast_handle(module->global_scope);
+        this->ast_handle(global_scope);
 
         if (this->errors_found) {
             Events::trigger(CE_COMPILER_ERROR);
-        } else Events::trigger(this->event_to_id, module);
+        } else this->push(global_scope);
     }
 
     void ast_handle (Ast_Ident* ident) {

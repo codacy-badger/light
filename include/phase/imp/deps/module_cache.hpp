@@ -8,7 +8,7 @@
 #include <vector>
 
 struct Module_Cache : Phase {
-    String_Map<Module*> cache;
+    String_Map<Ast_Scope*> cache;
     std::vector<const char*> in_progress;
 
     Module_Cache() : Phase("Module Cache", CE_IMPORT_MODULE) {
@@ -27,9 +27,9 @@ struct Module_Cache : Phase {
     }
 
     void on_module_ready (void* data) {
-        auto module = reinterpret_cast<Module*>(data);
+        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
 
-        this->remove_in_progress(module->absolute_path);
+        this->remove_in_progress(global_scope->get_absolute_path());
     }
 
     std::vector<const char*>::iterator find_in_progress (const char* absolute_path) {

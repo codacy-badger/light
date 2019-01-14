@@ -3,7 +3,6 @@
 #include "phase/phase.hpp"
 #include "phase/ast_navigator.hpp"
 
-#include "module.hpp"
 #include "compiler_events.hpp"
 
 struct Static_If : Phase, Ast_Navigator {
@@ -12,15 +11,14 @@ struct Static_If : Phase, Ast_Navigator {
     Static_If() : Phase("Static If", CE_MODULE_RESOLVE_IFS) { /* empty */ }
 
     void handle_main_event (void* data) {
-        auto module = reinterpret_cast<Module*>(data);
+        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
 
         this->static_ifs_found = false;
-        Ast_Navigator::ast_handle(module->global_scope);
+        Ast_Navigator::ast_handle(global_scope);
+
         if (this->static_ifs_found) {
-            Events::trigger(CE_MODULE_RESOLVE_IMPORTS, module);
-        } else {
-            Events::trigger(this->event_to_id, module);
-        }
+            Events::trigger(CE_MODULE_RESOLVE_IMPORTS, global_scope);
+        } else this->push(global_scope);
     }
 
     void ast_handle (Ast_Static_If* if_dir) {

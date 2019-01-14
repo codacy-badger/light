@@ -3,7 +3,6 @@
 #include "phase/async_phase.hpp"
 #include "phase/ast_navigator.hpp"
 
-#include "module.hpp"
 #include "compiler_events.hpp"
 
 #include "util/logger.hpp"
@@ -15,11 +14,11 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
 	// and that all types in the tree make sense (binary ops, func calls, etc.).
 
     void handle_main_event (void* data) {
-        auto module = reinterpret_cast<Module*>(data);
+        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
 
-        Ast_Navigator::ast_handle(module->global_scope);
+        Ast_Navigator::ast_handle(global_scope);
 
-        Events::trigger(this->event_to_id, module);
+        this->push(global_scope);
     }
 
 	void ast_handle (Ast_Declaration* decl) {

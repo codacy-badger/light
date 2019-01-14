@@ -3,7 +3,6 @@
 #include "phase/async_phase.hpp"
 #include "phase/ast_navigator.hpp"
 
-#include "module.hpp"
 #include "compiler_events.hpp"
 #include "ast/ast_factory.hpp"
 
@@ -13,11 +12,11 @@ struct Type_Inference : Async_Phase, Ast_Navigator {
     Type_Inference() : Async_Phase("Type Inference", CE_MODULE_INFER_TYPES) { /* empty */ }
 
     void handle_main_event (void* data) {
-        auto module = reinterpret_cast<Module*>(data);
+        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
 
-        Ast_Navigator::ast_handle(module->global_scope);
+        Ast_Navigator::ast_handle(global_scope);
 
-        this->push(module);
+        this->push(global_scope);
     }
 
 	void ast_handle (Ast_Declaration* decl) {
