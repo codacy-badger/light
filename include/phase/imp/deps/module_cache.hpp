@@ -18,15 +18,11 @@ struct Module_Cache : Phase {
     void handle_main_event (void* data) {
         auto absolute_path = reinterpret_cast<char*>(data);
 
-        auto it = this->cache.find(absolute_path);
-        if (it == this->cache.end()) {
+        if (!this->cache.contains(absolute_path)) {
             if (!this->is_in_progress(absolute_path)) {
                 this->add_in_progress(absolute_path);
-                Events::trigger(this->event_to_id, absolute_path);
+                this->push(absolute_path);
             }
-        } else {
-            auto cached_module = this->cache[absolute_path];
-            Events::trigger(CE_MODULE_READY, cached_module);
         }
     }
 

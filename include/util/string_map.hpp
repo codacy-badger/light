@@ -9,4 +9,8 @@ struct cmp_str {
 };
 
 template<typename T>
-struct String_Map : std::map<const char*, T, cmp_str> { /* empty */ };
+struct String_Map : std::map<const char*, T, cmp_str> {
+    bool contains (const char* key) {
+        return this->find(key) != this->end();
+    }
+};
