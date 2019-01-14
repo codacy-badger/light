@@ -141,10 +141,12 @@ struct Parser : Async_Phase {
 				}
 
 				if (this->try_skip(TOKEN_BRAC_OPEN)) {
+					// @TODO implement custom method instead of using scope()
 					auto scope = this->scope();
 					for (auto stm : scope->statements) {
 						foreign->add(stm);
 					}
+					delete scope;
 					this->expect(TOKEN_BRAC_CLOSE);
 				} else foreign->add(this->declaration());
 
@@ -338,11 +340,10 @@ struct Parser : Async_Phase {
 		if (this->try_skip(TOKEN_FUNCTION)) {
 			return this->function_type();
 		} else if (this->try_skip(TOKEN_MUL)) {
-			auto base_type = this->type_instance();
-			return new Ast_Pointer_Type(base_type);
+			return AST_NEW(Ast_Pointer_Type, this->type_instance());
 		} else if (this->try_skip(TOKEN_SQ_BRAC_OPEN)) {
 			if (this->try_skip(TOKEN_SQ_BRAC_CLOSE)) {
-				return new Ast_Slice_Type(this->type_instance());
+				return AST_NEW(Ast_Slice_Type, this->type_instance());
 			} else {
 				auto length = this->expression();
 				this->expect(TOKEN_SQ_BRAC_CLOSE);

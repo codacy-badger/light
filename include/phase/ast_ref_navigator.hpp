@@ -3,6 +3,8 @@
 #include "ast/ast.hpp"
 
 struct Ast_Ref_Navigator {
+    Ast_Scope* current_scope = NULL;
+
     virtual void ast_handle (Ast_Statement** stm) {
 		for (auto &note : (*stm)->notes) {
 			this->ast_handle(&note);
@@ -63,18 +65,23 @@ struct Ast_Ref_Navigator {
 		}
 	}
 
-	virtual void ast_handle (Ast_Scope** _block) {
-		size_t initial_size = (*_block)->statements.size();
-		for (uint64_t i = 0; i < (*_block)->statements.size(); i++) {
-			this->ast_handle(&((*_block)->statements[i]));
+	virtual void ast_handle (Ast_Scope** scope) {
+        auto tmp = this->current_scope;
+        this->current_scope = (*scope);
+
+		size_t initial_size = (*scope)->statements.size();
+		for (uint64_t i = 0; i < (*scope)->statements.size(); i++) {
+			this->ast_handle(&((*scope)->statements[i]));
 
 			// INFO: if we add something to the scope, we have to increment
 			// the counter the same amount of items
-			if ((*_block)->statements.size() != initial_size) {
-				initial_size = (*_block)->statements.size();
+			if ((*scope)->statements.size() != initial_size) {
+				initial_size = (*scope)->statements.size();
 				i -= 1;
 			}
 		}
+
+        this->current_scope = tmp;
 	}
 
 	virtual void ast_handle (Ast_Declaration** decl) {
@@ -107,7 +114,7 @@ struct Ast_Ref_Navigator {
 
 	virtual void ast_handle (Ast_Foreign**) { /* empty */ }
 
-	virtual void ast_handle (Ast_Break**) {}
+	virtual void ast_handle (Ast_Break**) { /* empty */ }
 
 	virtual void ast_handle (Ast_Expression** exp) {
 		switch ((*exp)->exp_type) {
@@ -180,8 +187,9 @@ struct Ast_Ref_Navigator {
 		this->ast_handle(&(*cast)->cast_to);
 	}
 
-	virtual void ast_handle (Ast_Ident**) {}
-	virtual void ast_handle (Ast_Literal**) {}
+	virtual void ast_handle (Ast_Ident**) { /* empty */ }
+
+	virtual void ast_handle (Ast_Literal**) { /* empty */ }
 
 	virtual void ast_handle (Ast_Type_Instance** type_def) {
 		switch ((*type_def)->typedef_type) {

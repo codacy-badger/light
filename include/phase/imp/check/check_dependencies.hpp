@@ -31,11 +31,11 @@ struct Check_Dependencies : Async_Phase, Ast_Navigator {
     }
 
     void ast_handle (Ast_Expression* exp) {
-        if (!exp->inferred_type) {
-            //Logger::error(exp, "Expression type could not be inferred");
-            //this->errors_found = true;
-        }
         Ast_Navigator::ast_handle(exp);
+        if (!exp->inferred_type) {
+            Logger::error(exp, "Expression type could not be inferred");
+            this->errors_found = true;
+        }
     }
 
     void ast_handle (Ast_Scope* scope) {

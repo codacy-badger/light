@@ -67,6 +67,7 @@ struct Compiler {
 
 			switch (event.id) {
 				case CE_COMPILER_ERROR: {
+					this->phases->shutdown();
 					printf("Errors found during compilation...\n");
 					exit(1);
 				}

@@ -42,9 +42,9 @@ struct Ast_Factory {
     	return lit;
     }
 
-    static Ast_Literal* literal (unsigned long long value) {
+    static Ast_Literal* literal (uint64_t value) {
     	auto lit = new Ast_Literal();
-        lit->inferred_type = ast_get_smallest_type(lit->uint_value);
+        lit->inferred_type = ast_get_smallest_type(value);
     	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
     	lit->uint_value = value;
     	return lit;

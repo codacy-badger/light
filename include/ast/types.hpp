@@ -6,13 +6,14 @@
 #include "ast/ast.hpp"
 
 enum Internal_Type : uint8_t {
-    INTERNAL_TYPE_UNDEFINED  = 0,
-    INTERNAL_TYPE_VOID       = 1,
-    INTERNAL_TYPE_BOOL       = 2,
-    INTERNAL_TYPE_INTEGER    = 3,
-    INTERNAL_TYPE_DECIMAL    = 4,
-    INTERNAL_TYPE_STRING     = 5,
-    INTERNAL_TYPE_ANY        = 6,
+    INTERNAL_TYPE_UNDEFINED,
+
+    INTERNAL_TYPE_VOID = 0,
+    INTERNAL_TYPE_BOOL,
+    INTERNAL_TYPE_INTEGER,
+    INTERNAL_TYPE_DECIMAL,
+    INTERNAL_TYPE_STRING,
+    INTERNAL_TYPE_ANY,
 };
 
 struct Types {

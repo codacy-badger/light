@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <mutex>
 
 enum Log_Level : uint8_t {
     LOG_LEVEL_VERBOSE,
@@ -21,15 +22,13 @@ enum Log_Level : uint8_t {
 #define LEVEL_ALIAS(name, level) static void                                    \
     name (const char* format, ...) {                                            \
     va_list argptr; va_start(argptr, format);                                   \
-    auto output = Logger::log(level, format, argptr);                           \
-    fprintf(output, "\n\n");                                                    \
+    Logger::log(level, format, argptr);                                         \
     va_end(argptr); }
 
 #define LOCATION_LEVEL_ALIAS(name, level) static void                           \
     name (Location* location, const char* format, ...) {                        \
     va_list argptr; va_start(argptr, format);                                   \
-    auto output = Logger::log(level, location, format, argptr);                 \
-    fprintf(output, "\n\n");                                                    \
+    Logger::log(level, location, format, argptr);                               \
     va_end(argptr); }
 
 #define AST_NODE_LEVEL_ALIAS(name, level) static void                           \
@@ -39,38 +38,40 @@ enum Log_Level : uint8_t {
     va_end(argptr); }
 
 struct Logger {
+    static Log_Level current_level;
+    static std::mutex mutex;
+
     static FILE* log (Log_Level level, const char* format, va_list argptr) {
-        auto output = Logger::get_output_buffer(level);
-
-        fprintf(output, "[%s] ", Logger::get_level_string(level));
-        vfprintf(output, format, argptr);
-
-        return output;
-    }
-
-    static FILE* log (Log_Level level, Location* location, const char* format, va_list argptr) {
-        auto output = Logger::log(level, format, argptr);
-    	fprintf(output, "\n");
-
-        if (location) {
-    		if (location->filename) {
-    			fprintf(output, "\t@ %s:%zd", location->filename, location->line);
-    		} else {
-    			fprintf(output, "\t@ [Compiler defined]");
-    		}
-    	}
-
-        return output;
+        return Logger::log(level, (Location*)NULL, format, argptr);
     }
 
     static FILE* log (Log_Level level, Ast* node, const char* format, va_list argptr) {
         if (node != NULL) {
             return Logger::log(level, &node->location, format, argptr);
         } else {
-            auto output = Logger::log(level, format, argptr);
-            fprintf(output, "\n\n");
-            return output;
+            return Logger::log(level, format, argptr);
         }
+    }
+
+    static FILE* log (Log_Level level, Location* location, const char* format, va_list argptr) {
+        auto output = Logger::get_output_buffer(level);
+
+        std::lock_guard<std::mutex> lock(Logger::mutex);
+
+        fprintf(output, "[%s] ", Logger::get_level_string(level));
+        vfprintf(output, format, argptr);
+    	fprintf(output, "\n");
+
+        if (location) {
+    		if (location->filename) {
+    			fprintf(output, "\t@ %s", location->filename);
+                if (location->line > 0) {
+        			fprintf(output, ":%zd\n", location->line);
+        		} else fprintf(output, "\n");
+    		} else fprintf(output, "\t@ UNDEFINED\n");
+    	}
+
+        return output;
     }
 
     LEVEL_ALIAS(verbose,    LOG_LEVEL_VERBOSE)
@@ -97,24 +98,21 @@ struct Logger {
     static void error_and_stop (const char* format, ...) {
         va_list argptr;
         va_start(argptr, format);
-        auto output = Logger::log(LOG_LEVEL_ERROR, format, argptr);
-        fprintf(output, "\n\n");
+        Logger::log(LOG_LEVEL_ERROR, format, argptr);
         va_end(argptr);
     }
 
     static void error_and_stop (Location* location, const char* format, ...) {
         va_list argptr;
         va_start(argptr, format);
-        auto output = Logger::log(LOG_LEVEL_ERROR, location, format, argptr);
-        fprintf(output, "\n\n");
+        Logger::log(LOG_LEVEL_ERROR, location, format, argptr);
         va_end(argptr);
     }
 
     static void error_and_stop (Ast* node, const char* format, ...) {
         va_list argptr;
         va_start(argptr, format);
-        auto output = Logger::log(LOG_LEVEL_ERROR, node, format, argptr);
-        fprintf(output, "\n\n");
+        Logger::log(LOG_LEVEL_ERROR, node, format, argptr);
         va_end(argptr);
     }
 

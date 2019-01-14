@@ -1,7 +1,0 @@
-
-TYPE_VOID       :: 1;
-TYPE_BOOL       :: 2;
-TYPE_INTEGER    :: 3;
-TYPE_DECIMAL    :: 4;
-TYPE_STRING     :: 5;
-TYPE_ANY        :: 6;

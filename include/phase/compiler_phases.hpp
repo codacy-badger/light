@@ -10,7 +10,6 @@
 #include "imp/deps/static_if.hpp"
 #include "imp/deps/import_modules.hpp"
 #include "imp/deps/symbol_resolution.hpp"
-#include "imp/deps/constant_propagation.hpp"
 #include "imp/type_inference.hpp"
 #include "imp/check/type_checking.hpp"
 #include "imp/check/check_dependencies.hpp"
@@ -32,8 +31,7 @@ struct Compiler_Phases {
 
         this->add_phase<Import_Modules>();
         this->add_phase<Symbol_Resolution>();
-        this->add_phase<Constant_Propagation>();
-        //this->add_phase<Type_Inference>();
+        this->add_phase<Type_Inference>();
         this->add_phase<Static_If>();
 
         this->add_phase<Check_Dependencies>();

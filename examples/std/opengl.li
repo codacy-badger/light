@@ -18,7 +18,7 @@ GL_COLOR_BUFFER_BIT  	:: 0x00004000;
 
 #if OS_WINDOWS {
     import "windows/opengl32";
-};
+}
 
 foreign "opengl32" {
     glGetError      :: fn -> u32;
