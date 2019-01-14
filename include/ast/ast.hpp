@@ -245,13 +245,17 @@ struct Ast_Run : Ast_Expression {
 };
 
 struct Ast_Cast : Ast_Expression {
-	Ast_Expression* value = NULL;
-	Ast_Expression* cast_to = NULL;
+	Ast_Expression* value;
+	Ast_Expression* cast_to;
 
 	bool is_array_to_slice_cast = false;
     bool is_value_to_any_cast = false;
 
-	Ast_Cast() { this->exp_type = AST_EXPRESSION_CAST; }
+	Ast_Cast (Ast_Expression* value = NULL, Ast_Expression* cast_to = NULL) {
+		this->exp_type = AST_EXPRESSION_CAST;
+		this->cast_to = cast_to;
+		this->value = value;
+	}
 };
 
 enum Ast_Literal_Type {
@@ -503,8 +507,6 @@ struct Ast_Ident : Ast_Expression {
 Ast_Struct_Type* build_type_any();
 
 void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);
-bool ast_function_types_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2);
-bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2);
 
 bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to);
 bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to);

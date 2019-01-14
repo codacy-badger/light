@@ -51,30 +51,96 @@ struct Types {
     	return INTERNAL_TYPE_UNDEFINED;
     }
 
-    static bool is_implicid_cast (Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-    	if (type_to == Types::type_any) {
-    		return true;
-    	} else if (type_from->is_primitive && type_to->is_primitive) {
-    		if (type_to == Types::type_bool) return true;
-    		else if (type_from->is_signed == type_to->is_signed) {
-    			return type_to->byte_size >= type_from->byte_size;
+    // TODO: solve this: either we unique all types or we make deep comparisons
+    static bool equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2) {
+        //return type_inst1 == type_inst2;
+        if (type_inst1 == type_inst2) return true;
+        else {
+            if (type_inst1->typedef_type != type_inst2->typedef_type) return false;
+            switch (type_inst1->typedef_type) {
+                case AST_TYPEDEF_STRUCT: return false;
+                case AST_TYPEDEF_POINTER: {
+                    auto ptr_type1 = static_cast<Ast_Pointer_Type*>(type_inst1);
+                    auto ptr_type2 = static_cast<Ast_Pointer_Type*>(type_inst2);
+                    auto base_type1 = static_cast<Ast_Type_Instance*>(ptr_type1->base);
+                    auto base_type2 = static_cast<Ast_Type_Instance*>(ptr_type2->base);
+                    return Types::equal(base_type1, base_type2);
+                }
+                case AST_TYPEDEF_ARRAY: {
+                    auto arr_type1 = static_cast<Ast_Array_Type*>(type_inst1);
+                    auto arr_type2 = static_cast<Ast_Array_Type*>(type_inst2);
+
+                    if (arr_type1->get_length() != arr_type2->get_length()) return false;
+
+                    auto base_type1 = static_cast<Ast_Type_Instance*>(arr_type1->base);
+                    auto base_type2 = static_cast<Ast_Type_Instance*>(arr_type2->base);
+                    return Types::equal(base_type1, base_type2);
+                }
+                case AST_TYPEDEF_FUNCTION: {
+                    auto func_type1 = static_cast<Ast_Function_Type*>(type_inst1);
+                    auto func_type2 = static_cast<Ast_Function_Type*>(type_inst2);
+                    return Types::function_types_equal(func_type1, func_type2);
+                }
+                default: abort();
+            }
+        }
+    }
+
+    static bool function_types_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
+        if (func_type1->arg_decls.size() != func_type2->arg_decls.size()) return false;
+
+        for (size_t i = 0; i < func_type1->arg_decls.size(); i++) {
+            auto arg_type1 = static_cast<Ast_Type_Instance*>(func_type1->arg_decls[i]->type);
+            auto arg_type2 = static_cast<Ast_Type_Instance*>(func_type2->arg_decls[i]->type);
+            if (!Types::equal(arg_type1, arg_type2)) return false;
+        }
+
+        auto ret_type1 = static_cast<Ast_Type_Instance*>(func_type1->ret_type);
+        auto ret_type2 = static_cast<Ast_Type_Instance*>(func_type2->ret_type);
+        return Types::equal(ret_type1, ret_type2);
+    }
+
+    static bool try_convert (Ast_Expression** exp_ptr,
+            Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
+        return Types::try_implicid_cast(exp_ptr, type_from, type_to)
+            || Types::try_coercion(exp_ptr, type_from, type_to);
+    }
+
+    static bool try_implicid_cast (Ast_Expression** exp_ptr,
+            Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
+    	if (type_from->is_primitive && type_to->is_primitive) {
+    		if (type_to == Types::type_bool) {
+                auto cast = new Ast_Cast((*exp_ptr), type_to);
+        		cast->location = (*exp_ptr)->location;
+                cast->inferred_type = type_to;
+                (*exp_ptr) = cast;
+                return true;
+    		} else if (type_from->is_signed == type_to->is_signed) {
+                if (type_to->byte_size >= type_from->byte_size) {
+                    auto cast = new Ast_Cast((*exp_ptr), type_to);
+            		cast->location = (*exp_ptr)->location;
+                    cast->inferred_type = type_to;
+                    (*exp_ptr) = cast;
+                    return true;
+                }
     		} else if (!type_from->is_signed && type_to->is_signed) {
-    			return type_to->byte_size > type_from->byte_size;
-    		} else return false;
-    	} else if (!type_from->is_primitive && !type_to->is_primitive) {
-    		if (type_from->typedef_type == AST_TYPEDEF_ARRAY && type_to->typedef_type == AST_TYPEDEF_STRUCT) {
-    			auto array_type = static_cast<Ast_Array_Type*>(type_from);
-    			auto struct_type = static_cast<Ast_Struct_Type*>(type_to);
-    			if (struct_type->is_slice) {
-    				// TODO: we're assuming both base types are instance of types
-    				// (we should check that once in the whole code!)
-    				auto slice_type = static_cast<Ast_Slice_Type*>(struct_type);
-    				auto base_type1 = static_cast<Ast_Type_Instance*>(array_type->base);
-    				auto base_type2 = slice_type->get_typed_base();
-    				return ast_types_are_equal(base_type1, base_type2);
-    			}
+                if (type_to->byte_size > type_from->byte_size) {
+                    auto cast = new Ast_Cast((*exp_ptr), type_to);
+            		cast->location = (*exp_ptr)->location;
+                    cast->inferred_type = type_to;
+                    (*exp_ptr) = cast;
+                    return true;
+                }
     		}
     	}
-    	return false;
+        return false;
+    }
+
+    static bool try_implicid_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to) {
+    	return Types::try_implicid_cast(exp_ptr, (*exp_ptr)->inferred_type, type_to);
+    }
+
+    static bool try_coercion (Ast_Expression**, Ast_Type_Instance*, Ast_Type_Instance*) {
+        return false;
     }
 };

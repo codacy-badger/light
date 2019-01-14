@@ -382,58 +382,9 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 	}
 }
 
-bool ast_function_types_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
-    if (func_type1->arg_decls.size() != func_type2->arg_decls.size()) return false;
-
-    for (size_t i = 0; i < func_type1->arg_decls.size(); i++) {
-        auto arg_type1 = static_cast<Ast_Type_Instance*>(func_type1->arg_decls[i]->type);
-        auto arg_type2 = static_cast<Ast_Type_Instance*>(func_type2->arg_decls[i]->type);
-        if (!ast_types_are_equal(arg_type1, arg_type2)) return false;
-    }
-
-    auto ret_type1 = static_cast<Ast_Type_Instance*>(func_type1->ret_type);
-    auto ret_type2 = static_cast<Ast_Type_Instance*>(func_type2->ret_type);
-    return ast_types_are_equal(ret_type1, ret_type2);
-}
-
-// TODO: solve this: either we unique all types or we make deep comparisons
-bool ast_types_are_equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2) {
-    //return type_inst1 == type_inst2;
-    if (type_inst1 == type_inst2) return true;
-    else {
-        if (type_inst1->typedef_type != type_inst2->typedef_type) return false;
-        switch (type_inst1->typedef_type) {
-            case AST_TYPEDEF_STRUCT: return false;
-            case AST_TYPEDEF_POINTER: {
-                auto ptr_type1 = static_cast<Ast_Pointer_Type*>(type_inst1);
-                auto ptr_type2 = static_cast<Ast_Pointer_Type*>(type_inst2);
-                auto base_type1 = static_cast<Ast_Type_Instance*>(ptr_type1->base);
-                auto base_type2 = static_cast<Ast_Type_Instance*>(ptr_type2->base);
-                return ast_types_are_equal(base_type1, base_type2);
-            }
-            case AST_TYPEDEF_ARRAY: {
-                auto arr_type1 = static_cast<Ast_Array_Type*>(type_inst1);
-                auto arr_type2 = static_cast<Ast_Array_Type*>(type_inst2);
-
-                if (arr_type1->get_length() != arr_type2->get_length()) return false;
-
-                auto base_type1 = static_cast<Ast_Type_Instance*>(arr_type1->base);
-                auto base_type2 = static_cast<Ast_Type_Instance*>(arr_type2->base);
-                return ast_types_are_equal(base_type1, base_type2);
-            }
-            case AST_TYPEDEF_FUNCTION: {
-                auto func_type1 = static_cast<Ast_Function_Type*>(type_inst1);
-                auto func_type2 = static_cast<Ast_Function_Type*>(type_inst2);
-                return ast_function_types_are_equal(func_type1, func_type2);
-            }
-            default: abort();
-        }
-    }
-}
-
 bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-	if (ast_types_are_equal(type_from, type_to)) return true;
-	else if (Types::is_implicid_cast(type_from, type_to)) {
+	if (Types::equal(type_from, type_to)) return true;
+	else if (Types::try_implicid_cast(exp_ptr, type_from, type_to)) {
         auto cast = new Ast_Cast();
 		cast->location = (*exp_ptr)->location;
         cast->value = (*exp_ptr);

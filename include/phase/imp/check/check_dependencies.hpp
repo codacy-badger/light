@@ -32,7 +32,7 @@ struct Check_Dependencies : Phase, Ast_Navigator {
     void ast_handle (Ast_Expression* exp) {
         Ast_Navigator::ast_handle(exp);
         if (!exp->inferred_type) {
-            Logger::error(exp, "Expression type could not be inferred");
+            Logger::internal(exp, "Expression type could not be inferred");
             this->errors_found = true;
         }
     }
