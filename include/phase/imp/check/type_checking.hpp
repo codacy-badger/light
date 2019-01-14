@@ -124,7 +124,7 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
 
 	void ast_handle (Ast_Function_Call* call) {
 	    if (call->func->inferred_type->typedef_type != AST_TYPEDEF_FUNCTION) {
-			Logger::error_and_stop(call, "Function calls can only be performed to functions types");
+			Logger::error_and_stop(call, "Function calls can only be performed with functions types");
 		}
 
 		auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
@@ -153,113 +153,69 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
 					entry.first, arg_type->name, entry.second->inferred_type->name);
 			}
 		}
-
-		Ast_Navigator::ast_handle(call->func);
 	}
 
 	void ast_handle (Ast_Binary* binop) {
-	    Ast_Navigator::ast_handle(binop->lhs);
-	    if (binop->binary_op == AST_BINARY_ATTRIBUTE) {
-			auto type_def = binop->lhs->inferred_type;
-			if (type_def->typedef_type == AST_TYPEDEF_POINTER) {
-				auto ptr_type = static_cast<Ast_Pointer_Type*>(type_def);
-				type_def = ptr_type->get_base_type_recursive();
-			}
+	    Ast_Navigator::ast_handle(binop);
 
-			if (type_def->typedef_type == AST_TYPEDEF_STRUCT) {
-	            auto _struct = static_cast<Ast_Struct_Type*>(type_def);
-	            if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
-	                auto ident = static_cast<Ast_Ident*>(binop->rhs);
-	                auto attribute = _struct->find_attribute(ident->name);
-	                if (attribute) {
-	                    auto attr_type = static_cast<Ast_Type_Instance*>(attribute->type);
-	                    binop->inferred_type = attr_type;
-	                    ident->declaration = attribute;
-	                } else Logger::error_and_stop(binop, "The type '%s' has no attribute named '%s'", _struct->name, ident->name);
-	            } else Logger::error_and_stop(binop, "Right of attribute access is NOT an identifier");
-	        } else if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {
-				auto _array = static_cast<Ast_Array_Type*>(type_def);
-				if (binop->rhs->exp_type == AST_EXPRESSION_IDENT) {
-					auto ident = static_cast<Ast_Ident*>(binop->rhs);
-					if (strcmp(ident->name, "length") == 0) {
-						binop->inferred_type = Types::type_u64;
-					} else if (strcmp(ident->name, "data") == 0) {
-						binop->inferred_type = new Ast_Pointer_Type(_array->base);
-					} else Logger::error_and_stop(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
-				} else Logger::error_and_stop(binop, "Right of attribute access is NOT an identifier");
-			} else Logger::error_and_stop(binop, "Left of attribute access has invalid type: '%s'", type_def->name);
-	    } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
-			if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
-				auto arr_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
-				binop->inferred_type = static_cast<Ast_Type_Instance*>(arr_type->base);
+        if (binop->binary_op == AST_BINARY_ATTRIBUTE) {
+            if (binop->rhs->exp_type != AST_EXPRESSION_IDENT) {
+                Logger::error_and_stop(binop, "Attribute name must be an identifier");
+            }
+        } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
+            if (!try_cast(&binop->rhs, Types::type_u64)) {
+                Logger::error_and_stop(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
+            }
 
-				Ast_Navigator::ast_handle(binop->rhs);
-				if (!try_cast(&binop->rhs, Types::type_u64)) {
-					Logger::error_and_stop(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
-				}
-			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
-				// TODO: refactor this once we have subscript operator overloading
-				auto _struct = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
-				if (_struct->is_slice) {
-					Ast_Navigator::ast_handle(binop->rhs);
-
-					auto data_decl = _struct->find_attribute("data");
-					auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
-					binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
-				} else Logger::error_and_stop(binop, "Left struct is not a slice");
-			} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
-				auto ptr_type = static_cast<Ast_Pointer_Type*>(binop->lhs->inferred_type);
-				binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
-
-				Ast_Navigator::ast_handle(binop->rhs);
-				if (!try_cast(&binop->rhs, Types::type_u64)) {
-					Logger::error_and_stop(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
-				}
-			} else Logger::error_and_stop(binop, "Left of subscript is not of array, slice or pointer type");
+            auto left_type = binop->lhs->inferred_type->typedef_type;
+            if (left_type != AST_TYPEDEF_ARRAY
+                    && left_type != AST_TYPEDEF_STRUCT
+                    && left_type != AST_TYPEDEF_POINTER) {
+                Logger::error_and_stop(binop, "Left of subscript operator is not array, slice or pointer type");
+            }
 		} else if (binop->binary_op == AST_BINARY_ASSIGN) {
-			Ast_Navigator::ast_handle(binop->rhs);
             if (!try_cast(&binop->rhs, binop->lhs->inferred_type)) {
-                Logger::error_and_stop(binop, "Type mismatch on assign: from '%s' to '%s'",
+                Logger::error_and_stop(binop, "Type mismatch on assignment: '%s' -> '%s'",
                     binop->rhs->inferred_type->name, binop->lhs->inferred_type->name);
             }
-			binop->inferred_type = binop->rhs->inferred_type;
 		} else {
-	    	Ast_Navigator::ast_handle(binop->rhs);
-            // Types don't match, but maybe we can add an implicid cast
+            // @INFO Types don't match, but maybe we can add an implicid cast
             // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...
-            if (!try_cast(&binop->lhs, binop->rhs->inferred_type)) {
-                if (!try_cast(&binop->rhs, binop->lhs->inferred_type)) {
-                    Logger::error_and_stop(binop, "Type mismatch on binary expression: '%s' and '%s'",
-                        binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
-                }
+            if (!try_cast(&binop->lhs, binop->rhs->inferred_type)
+                    && !try_cast(&binop->rhs, binop->lhs->inferred_type)) {
+                Logger::error_and_stop(binop, "Type mismatch on binary expression: '%s' and '%s'",
+                    binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
             }
 	    	binop->inferred_type = binop->get_result_type();
 	    }
 	}
 
 	void ast_handle (Ast_Unary* unop) {
-		Ast_Navigator::ast_handle(unop->exp);
+		Ast_Navigator::ast_handle(unop);
+
 		switch (unop->unary_op) {
 			case AST_UNARY_NEGATE: {
-				unop->inferred_type = ast_get_container_signed(unop->exp->inferred_type);
+                if (!unop->exp->inferred_type->is_number) {
+                    Logger::error_and_stop(unop, "Only numeric type expressions can be negated (-)");
+                }
 	            break;
 			}
 			case AST_UNARY_NOT: {
-				unop->inferred_type = Types::type_bool;
+                if (!unop->exp->inferred_type->is_primitive) {
+                    Logger::error_and_stop(unop, "Only primitive type expressions can be negated (!)");
+                }
 				break;
 			}
 			case AST_UNARY_DEREFERENCE: {
-	            auto inf_type = unop->exp->inferred_type;
-	            if (inf_type->typedef_type == AST_TYPEDEF_POINTER) {
-	                auto ptr_type = static_cast<Ast_Pointer_Type*>(inf_type);
-	                auto base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
-	                unop->inferred_type = base_type;
-	            } else Logger::error_and_stop(unop, "Can't dereference a non-pointer type expression");
+	            if (unop->exp->inferred_type->typedef_type != AST_TYPEDEF_POINTER) {
+                    Logger::error_and_stop(unop, "Can't dereference (&) a non-pointer type expression");
+	            }
 	            break;
 			}
 			case AST_UNARY_REFERENCE: {
-			    unop->inferred_type = new Ast_Pointer_Type(unop->exp->inferred_type);
-				Ast_Navigator::ast_handle(unop->inferred_type);
+	            if (unop->exp->exp_type == AST_EXPRESSION_LITERAL) {
+                    Logger::error_and_stop(unop, "Literal expression cannot be referenced (*)");
+	            }
 	            break;
 			}
 		}

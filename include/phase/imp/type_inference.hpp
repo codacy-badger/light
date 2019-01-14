@@ -155,7 +155,7 @@ struct Type_Inference : Async_Phase, Ast_Navigator {
                     auto type_def = binop->lhs->inferred_type;
 
                     if (binop->rhs->exp_type != AST_EXPRESSION_IDENT) {
-                        Logger::error_and_stop(binop, "Right of attribute access is NOT an identifier");
+                        Logger::error_and_stop(binop, "Expected identifier after attribute access");
                     }
 
                     if (type_def->typedef_type == AST_TYPEDEF_POINTER) {

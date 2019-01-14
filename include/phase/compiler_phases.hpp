@@ -35,7 +35,7 @@ struct Compiler_Phases {
         this->add_phase<Static_If>();
 
         this->add_phase<Check_Dependencies>();
-        //this->add_phase<Type_Checking>();
+        this->add_phase<Type_Checking>();
     }
 
     template<typename T>

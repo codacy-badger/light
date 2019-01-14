@@ -299,8 +299,9 @@ struct Ast_Type_Instance : Ast_Expression {
 	Ast_Type_Instance_Type typedef_type = AST_TYPEDEF_UNDEFINED;
 	const char* name = NULL;
 
-	bool is_signed = false;
 	bool is_primitive = false;
+	bool is_number = false;
+	bool is_signed = false;
 
 	size_t byte_size = 0;
 	size_t byte_padding = 0;
@@ -316,9 +317,11 @@ struct Ast_Struct_Type : Ast_Type_Instance {
 	std::vector<Ast_Declaration*> attributes;
 	bool is_slice = false;
 
-	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0, bool is_primitive = false, bool is_signed = false) {
+	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0, bool is_primitive = false,
+			bool is_number = false, bool is_signed = false) {
 		this->typedef_type = AST_TYPEDEF_STRUCT;
 		this->is_primitive = is_primitive;
+		this->is_number = is_number;
 		this->is_signed = is_signed;
 		this->byte_size = byte_size;
 		this->name = name;
