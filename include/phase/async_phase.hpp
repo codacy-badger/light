@@ -16,7 +16,7 @@ struct Async_Phase : Phase {
     Async_Phase (const char* name, size_t main_event_id)
         : Phase(name, main_event_id, DEFAULT_ASYNC_PRINT_FORMAT) { /* empty */ }
 
-    void start () {
+    virtual void start () {
         Phase::start();
         if (settings->is_multithread) {
             this->thread = new std::thread(&Async_Phase::async_run, this);

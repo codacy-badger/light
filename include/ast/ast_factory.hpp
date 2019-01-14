@@ -34,6 +34,12 @@ struct Ast_Factory {
         return decl;
     }
 
+    static Ast_Pointer_Type* pointer_type (Ast_Expression* base_type) {
+        auto pointer_type = new Ast_Pointer_Type(base_type);
+        pointer_type->inferred_type = Types::type_type;
+        return pointer_type;
+    }
+
     static Ast_Literal* literal (const char* value) {
     	auto lit = new Ast_Literal();
         lit->inferred_type = Types::type_string;

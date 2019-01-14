@@ -5,6 +5,7 @@
 
 #include "module.hpp"
 #include "compiler_events.hpp"
+#include "ast/ast_factory.hpp"
 
 #include "util/logger.hpp"
 
@@ -138,10 +139,8 @@ struct Type_Inference : Async_Phase, Ast_Navigator {
     	            break;
     			}
     			case AST_UNARY_REFERENCE: {
-    			    unop->inferred_type = new Ast_Pointer_Type(unop->exp->inferred_type);
+    			    unop->inferred_type = Ast_Factory::pointer_type(unop->exp->inferred_type);
                     unop->inferred_type->location = unop->exp->location;
-                    unop->inferred_type->inferred_type = Types::type_type;
-    				Ast_Navigator::ast_handle(unop->inferred_type);
     	            break;
     			}
     		}
@@ -181,10 +180,8 @@ struct Type_Inference : Async_Phase, Ast_Navigator {
                         if (strcmp(ident->name, "length") == 0) {
                             binop->inferred_type = Types::type_u64;
                         } else if (strcmp(ident->name, "data") == 0) {
-                            binop->inferred_type = new Ast_Pointer_Type(_array->base);
+                            binop->inferred_type = Ast_Factory::pointer_type(_array->base);
                             binop->inferred_type->location = _array->base->location;
-                            binop->inferred_type->inferred_type = Types::type_type;
-                            Ast_Navigator::ast_handle(binop->inferred_type);
                         } else Logger::error_and_stop(binop->rhs, "'%s' is not a valid attribute for array (use length or data)", ident->name);
                     }
                     break;

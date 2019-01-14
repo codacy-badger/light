@@ -1,6 +1,6 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 #include "phase/ast_navigator.hpp"
 
 #include "module.hpp"
@@ -8,10 +8,10 @@
 
 #include "util/logger.hpp"
 
-struct Check_Dependencies : Async_Phase, Ast_Navigator {
+struct Check_Dependencies : Phase, Ast_Navigator {
     bool errors_found = false;
 
-    Check_Dependencies() : Async_Phase("Check Dependencies", CE_MODULE_CHECK_DEPENDENCIES) { /* empty */ }
+    Check_Dependencies() : Phase("Check Dependencies", CE_MODULE_CHECK_DEPENDENCIES) { /* empty */ }
 
     void handle_main_event (void* data) {
         auto module = reinterpret_cast<Module*>(data);
