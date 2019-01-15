@@ -39,7 +39,7 @@ Ast_Struct_Type* build_type_any () {
 Ast_Struct_Type* Types::type_type   = new Ast_Struct_Type("type",   0, true /* primitive */ );
 Ast_Struct_Type* Types::type_void   = new Ast_Struct_Type("void",   0, true);
 Ast_Struct_Type* Types::type_bool   = new Ast_Struct_Type("bool",   1, true);
-Ast_Struct_Type* Types::type_char   = new Ast_Struct_Type("char",   1, true);
+Ast_Struct_Type* Types::type_byte   = new Ast_Struct_Type("byte",   1, true);
 Ast_Struct_Type* Types::type_s8     = new Ast_Struct_Type("s8",     1, true, true /* number */ , true /* signed */ );
 Ast_Struct_Type* Types::type_s16    = new Ast_Struct_Type("s16",    2, true, true, true);
 Ast_Struct_Type* Types::type_s32    = new Ast_Struct_Type("s32",    4, true, true, true);

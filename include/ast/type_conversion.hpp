@@ -52,7 +52,7 @@ struct Type_Conversion {
                 return true;
             } else if (type_from->typedef_type == AST_TYPEDEF_ARRAY) {
                 auto type_from_array = static_cast<Ast_Array_Type*>(type_from);
-                if (type_from_array->base == Types::type_char && type_to == Types::type_string) {
+                if (type_from_array->base == Types::type_byte && type_to == Types::type_string) {
                     Type_Conversion::coerce_char_array_to_string(to_prepend, exp_ptr);
                     return true;
                 } else if (type_to->typedef_type == AST_TYPEDEF_STRUCT) {

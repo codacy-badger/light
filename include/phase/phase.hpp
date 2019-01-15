@@ -24,7 +24,7 @@ struct Phase {
     size_t event_to_id = 0;
 
     Timer timer;
-    timer_interval work_time = 0;
+    double work_time = 0;
 
     Phase (const char* name, size_t main_event_id, const char* print_format = DEFAULT_PRINT_FORMAT) {
         this->event_from_id = main_event_id;

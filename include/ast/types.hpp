@@ -23,7 +23,7 @@ struct Types {
 	static Ast_Struct_Type* type_type;
 	static Ast_Struct_Type* type_void;
 	static Ast_Struct_Type* type_bool;
-	static Ast_Struct_Type* type_char;
+	static Ast_Struct_Type* type_byte;
 	static Ast_Struct_Type* type_s8;
 	static Ast_Struct_Type* type_s16;
 	static Ast_Struct_Type* type_s32;

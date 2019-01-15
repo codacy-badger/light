@@ -74,7 +74,7 @@ struct Ast_Factory {
     }
 
     static Ast_Array_Type* literal_string_type (const char* text) {
-        return Ast_Factory::array_type(Types::type_char, strlen(text));
+        return Ast_Factory::array_type(Types::type_byte, strlen(text));
     }
 
     static Ast_Literal* literal (const char* value) {

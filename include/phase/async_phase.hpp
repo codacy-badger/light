@@ -4,7 +4,7 @@
 
 #include <thread>
 
-#define DEFAULT_SLEEP_INTERVAL 100ns
+#define DEFAULT_SLEEP_INTERVAL 0ns
 #define DEFAULT_ASYNC_PRINT_FORMAT "  + %-35s %8.6fs\n"
 
 struct Async_Phase : Phase {
@@ -29,7 +29,7 @@ struct Async_Phase : Phase {
                 this->is_working = true;
                 Phase::handle_event(this->event_queue.pop());
                 this->is_working = false;
-            } else std::this_thread::sleep_for(DEFAULT_SLEEP_INTERVAL);
+            } else os_sleep_for(0);
         }
     }
 

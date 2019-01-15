@@ -7,7 +7,7 @@ typedef uint64_t Timer_Function();
 
 double query_clock_frequency () {
 	LARGE_INTEGER li;
-	if(!QueryPerformanceFrequency(&li)) {
+	if (!QueryPerformanceFrequency(&li)) {
 		fprintf(stderr, "[ERROR] QueryPerformanceFrequency failed!\n");
 		exit(1);
 	} else return double(li.QuadPart);
@@ -31,29 +31,18 @@ Arch_Type os_get_arch () {
 	}
 }
 
-uint64_t os_get_wall_time () {
+uint64_t os_get_time () {
 	LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
     return static_cast<uint64_t>(li.QuadPart);
 }
 
-uint64_t os_get_user_time () {
-	uint64_t user_system_clocks = 0;
-	if (QueryProcessCycleTime(g_pid, &user_system_clocks)) {
-		return user_system_clocks / 1000;
-	} else exit(1);
+double os_time_stop (uint64_t start) {
+	return double(os_get_time() - start) / g_clock_frequency;
 }
 
-double os_time_stop (uint64_t start, Timer_Function func) {
-    return double(func() - start) / g_clock_frequency;
-}
-
-double os_time_wall_stop (uint64_t start) {
-	return os_time_stop(start, os_get_wall_time);
-}
-
-double os_time_user_stop (uint64_t start) {
-	return os_time_stop(start, os_get_user_time);
+void os_sleep_for (uint32_t milliseconds) {
+	Sleep(milliseconds);
 }
 
 void* os_get_module (const char* module_name) {

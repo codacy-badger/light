@@ -23,11 +23,10 @@ enum Arch_Type : uint8_t {
 OS_Type os_get_type ();
 Arch_Type os_get_arch ();
 
-uint64_t os_get_wall_time ();
-uint64_t os_get_user_time ();
-double os_time_stop (uint64_t start, Timer_Function func);
-double os_time_wall_stop (uint64_t start);
-double os_time_user_stop (uint64_t start);
+uint64_t os_get_time ();
+double os_time_stop (uint64_t start);
+
+void os_sleep_for (uint32_t milliseconds);
 
 void* os_get_module (const char* module_name);
 void* os_get_function (void* module, const char* function_name);

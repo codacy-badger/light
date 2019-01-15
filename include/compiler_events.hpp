@@ -19,6 +19,7 @@ enum Compiler_Events : size_t {
     CE_MODULE_CHECK_DEPENDENCIES,
 
     CE_BYTECODE_GENERATE,
+    CE_BYTECODE_RUN,
 
     CE_MODULE_READY,
 

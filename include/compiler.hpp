@@ -3,9 +3,6 @@
 #include "compiler_settings.hpp"
 #include "phase/compiler_phases.hpp"
 
-#include "bytecode/interpreter.hpp"
-#include "ast/types.hpp"
-
 #include "util/timer.hpp"
 
 #define LIGHT_NAME "Light Compiler"
@@ -15,11 +12,7 @@ struct Compiler {
 	Compiler_Settings settings;
 	Compiler_Phases* phases;
 
-	Timer user_timer = Timer(TIMER_TYPE_USER_TIME);
-	Timer wall_timer;
-
-	Interpreter* interp = new Interpreter();
-	Types* types = new Types();
+	Timer timer;
 
 	// @TODO @FIXME this property should not exists, it makes everything
 	// harder to reason about and complicates debugging
@@ -37,10 +30,8 @@ struct Compiler {
 	}
 
 	void compile_input_files () {
+		this->timer.start();
 		printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
-
-		this->wall_timer.start();
-		this->user_timer.start();
 
 		for (auto &absolute_path : this->settings.input_files) {
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
@@ -48,17 +39,11 @@ struct Compiler {
 
 		while (!this->is_all_work_done()) {
 			this->handle_compiler_events();
-			if (this->settings.is_multithread) {
-				std::this_thread::sleep_for(100ns);
-			}
 		}
 
 		this->phases->shutdown();
-
-		auto executing_time = this->user_timer.stop();
-		auto running_time = this->wall_timer.stop();
 		this->phases->print_metrics();
-	    printf("\nDone in %8.6fs (%8.6fs)\n", running_time, executing_time);
+	    printf("\nDone in %8.6fs\n", this->timer.stop());
 	}
 
 	void handle_compiler_events () {
@@ -70,6 +55,7 @@ struct Compiler {
 					this->phases->shutdown();
 					printf("\nErrors found during compilation...\n");
 					exit(1);
+					break;
 				}
 			}
 		}

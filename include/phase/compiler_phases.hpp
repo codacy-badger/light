@@ -4,6 +4,9 @@
 
 #include "compiler_settings.hpp"
 #include "ast/type_table.hpp"
+#include "bytecode/interpreter.hpp"
+#include "bytecode/constants.hpp"
+#include "bytecode/globals.hpp"
 
 #include "imp/lexer/lexer.hpp"
 #include "imp/parser/parser.hpp"
@@ -16,6 +19,7 @@
 #include "imp/check/type_checking.hpp"
 #include "imp/check/check_dependencies.hpp"
 #include "imp/bytecode/generate_bytecode.hpp"
+#include "imp/bytecode/run_bytecode.hpp"
 
 #include <vector>
 #include <type_traits>
@@ -23,6 +27,7 @@
 struct Compiler_Phases {
     Compiler_Settings* settings;
 
+    Interpreter* interpreter = new Interpreter();
     Type_Table* type_table = new Type_Table();
 
     std::vector<Phase*> phases;
@@ -45,6 +50,7 @@ struct Compiler_Phases {
         this->add_phase<Type_Checking>();
 
         this->add_phase<Generate_Bytecode>();
+        this->add_phase<Run_Bytecode>();
     }
 
     template<typename T, typename... Args>
@@ -76,6 +82,8 @@ struct Compiler_Phases {
     }
 
     void shutdown () {
+        Timer timer;
+        timer.start();
         for (auto phase : this->phases) {
             phase->stop();
         }

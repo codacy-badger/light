@@ -17,7 +17,7 @@ struct Internal_Scope : Ast_Scope {
 	    this->add_type(Types::type_type);
 	    this->add_type(Types::type_void);
 	    this->add_type(Types::type_bool);
-	    this->add_type(Types::type_char);
+	    this->add_type(Types::type_byte);
 	    this->add_type(Types::type_s8);
 	    this->add_type(Types::type_s16);
 	    this->add_type(Types::type_s32);
