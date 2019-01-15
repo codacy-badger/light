@@ -150,8 +150,9 @@ struct Ast_Declaration : Ast_Statement {
 	size_t attribute_byte_offset = 0;
 
 	// for bytecode
-	int64_t bytecode_data_offset = -1;
-	bool is_spilled = false;
+	int64_t bytecode_global_offset = -1;
+	int64_t bytecode_stack_offset = -1;
+	bool is_spilled = true;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 };

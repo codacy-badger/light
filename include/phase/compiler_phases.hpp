@@ -15,6 +15,7 @@
 #include "imp/unique_types.hpp"
 #include "imp/check/type_checking.hpp"
 #include "imp/check/check_dependencies.hpp"
+#include "imp/bytecode/generate_bytecode.hpp"
 
 #include <vector>
 #include <type_traits>
@@ -42,6 +43,8 @@ struct Compiler_Phases {
         this->add_phase<Check_Dependencies>();
         this->add_phase<Unique_Types>(this->type_table);
         this->add_phase<Type_Checking>();
+
+        this->add_phase<Generate_Bytecode>();
     }
 
     template<typename T, typename... Args>

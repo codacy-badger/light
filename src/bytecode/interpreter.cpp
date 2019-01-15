@@ -70,15 +70,15 @@ void Interpreter::run (Instruction* inst) {
 			return;
 		}
 		case BYTECODE_CONSTANT_OFFSET: {
-			auto coff = static_cast<Inst_Constant_Offset*>(inst);
+			/*auto coff = static_cast<Inst_Constant_Offset*>(inst);
 			auto ptr = this->constants->allocated[coff->offset];
-			MOVE(this->registers[coff->reg], &ptr);
+			MOVE(this->registers[coff->reg], &ptr);*/
 			return;
 		}
 		case BYTECODE_GLOBAL_OFFSET: {
-			auto gloff = static_cast<Inst_Global_Offset*>(inst);
+			/*auto gloff = static_cast<Inst_Global_Offset*>(inst);
 			auto ptr = this->globals->get(gloff->offset);
-			MOVE(this->registers[gloff->reg], &ptr);
+			MOVE(this->registers[gloff->reg], &ptr);*/
 			return;
 		}
 		case BYTECODE_STACK_ALLOCATE: {
