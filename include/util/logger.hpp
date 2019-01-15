@@ -98,6 +98,7 @@ struct Logger {
         va_start(argptr, format);
         Logger::log(LOG_LEVEL_ERROR, format, argptr);
         va_end(argptr);
+        Logger::stop_compilation();
     }
 
     static void error_and_stop (Location* location, const char* format, ...) {
@@ -105,6 +106,7 @@ struct Logger {
         va_start(argptr, format);
         Logger::log(LOG_LEVEL_ERROR, location, format, argptr);
         va_end(argptr);
+        Logger::stop_compilation();
     }
 
     static void error_and_stop (Ast* node, const char* format, ...) {
@@ -112,6 +114,7 @@ struct Logger {
         va_start(argptr, format);
         Logger::log(LOG_LEVEL_ERROR, node, format, argptr);
         va_end(argptr);
+        Logger::stop_compilation();
     }
 
     static const char* get_level_string (Log_Level level) {

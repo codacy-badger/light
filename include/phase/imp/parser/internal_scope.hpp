@@ -4,14 +4,16 @@
 #include "ast/types.hpp"
 #include "ast/ast_factory.hpp"
 
-#define DECLARE_TYPE_INT(name) this->add_uint("TYPE_" #name, INTERNAL_TYPE_##name)
+#include "util/arch.hpp"
 
-#define IS_OS(os_type) (os_get_type() == OS_TYPE_##os_type)
+#define DECLARE_TYPE_INT(name) this->add_uint("TYPE_" #name, INTERNAL_TYPE_##name)
 
 struct Internal_Scope : Ast_Scope {
     Location internal_location = Location("INTERNAL");
 
-    Internal_Scope () {
+    Internal_Scope (Arch* target_arch, OS* target_os) {
+        Types::type_usize->byte_size = target_arch->register_size;
+
 	    this->add_type(Types::type_type);
 	    this->add_type(Types::type_void);
 	    this->add_type(Types::type_bool);
@@ -30,9 +32,9 @@ struct Internal_Scope : Ast_Scope {
 	    this->add_type(Types::type_string);
 	    this->add_type(Types::type_any);
 
-	    this->add_boolean("OS_WINDOWS", IS_OS(WINDOWS));
-        this->add_boolean("OS_LINUX",   IS_OS(LINUX));
-        this->add_boolean("OS_MAC",     IS_OS(MAC));
+	    this->add_boolean("OS_WINDOWS", target_os->type == OS_TYPE_WINDOWS);
+        this->add_boolean("OS_LINUX",   target_os->type == OS_TYPE_LINUX);
+        this->add_boolean("OS_MAC",     target_os->type == OS_TYPE_MAC);
 
         DECLARE_TYPE_INT(VOID);
         DECLARE_TYPE_INT(BOOL);

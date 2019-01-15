@@ -50,6 +50,6 @@ Ast_Struct_Type* Types::type_u32    = new Ast_Struct_Type("u32",    4, true, tru
 Ast_Struct_Type* Types::type_u64    = new Ast_Struct_Type("u64",    8, true, true);
 Ast_Struct_Type* Types::type_f32    = new Ast_Struct_Type("f32",    4, true, true);
 Ast_Struct_Type* Types::type_f64    = new Ast_Struct_Type("f64",    8, true, true);
-Ast_Struct_Type* Types::type_usize  = new Ast_Struct_Type("usize",  8, true);
+Ast_Struct_Type* Types::type_usize  = new Ast_Struct_Type("usize",  8, true, true);
 Ast_Struct_Type* Types::type_string = build_type_string();
 Ast_Struct_Type* Types::type_any    = build_type_any();

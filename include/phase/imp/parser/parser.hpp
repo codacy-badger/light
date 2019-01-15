@@ -15,9 +15,7 @@
 #define AST_NEW(T, ...) Ast_Factory::create<T>(&this->peek()->location, __VA_ARGS__)
 
 struct Parser : Async_Phase {
-	// TODO: merge this attribute with current_scope
-	Ast_Scope* internal_scope = new Internal_Scope();
-	Ast_Factory* factory = new Ast_Factory();
+	Ast_Scope* internal_scope = NULL;
 	Ast_Scope* current_scope = NULL;
 
 	std::vector<Token*>* tokens = NULL;
@@ -29,9 +27,9 @@ struct Parser : Async_Phase {
 
 	Parser () : Async_Phase("Parser", CE_MODULE_RUN_PARSER) { /* empty */ }
 
-	void start () {
-		Async_Phase::start();
-		//this->push(this->internal_scope);
+	void custom_start () {
+		this->internal_scope = new Internal_Scope(
+			this->settings->target_arch, this->settings->target_os);
 	}
 
     void handle_main_event (void* data) {

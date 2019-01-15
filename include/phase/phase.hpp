@@ -32,9 +32,12 @@ struct Phase {
         this->name = name;
     }
 
-    virtual void start () {
+    void start () {
         this->bind(this->event_from_id, &Phase::handle_main_event, this);
+        this->custom_start();
     }
+
+    virtual void custom_start () { /* empty */ }
 
     virtual void handle_main_event (void* data) = 0;
 
