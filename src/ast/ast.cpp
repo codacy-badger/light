@@ -369,33 +369,6 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 	}
 }
 
-bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-	if (Types::equal(type_from, type_to)) return true;
-	else if (Types::try_implicid_cast(exp_ptr, type_from, type_to)) {
-        auto cast = new Ast_Cast();
-		cast->location = (*exp_ptr)->location;
-        cast->value = (*exp_ptr);
-        cast->cast_to = type_to;
-        cast->inferred_type = type_to;
-
-		// INFO: if the cast comes from an implicid array cast, mark it!
-		if (type_from->typedef_type == AST_TYPEDEF_ARRAY) {
-			cast->is_array_to_slice_cast = true;
-		}
-        // INFO: if the cast comes from an implicid any cast, mark it!
-        if (type_to == Types::type_any) {
-            cast->is_value_to_any_cast = true;
-        }
-
-        (*exp_ptr) = cast;
-        return true;
-    } else return false;
-}
-
-bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to) {
-    return try_cast(exp_ptr, (*exp_ptr)->inferred_type, type_to);
-}
-
 Ast_Type_Instance* ast_get_container_signed (Ast_Type_Instance* unsigned_type) {
     if (unsigned_type == Types::type_u8) {
         return Types::type_s16;

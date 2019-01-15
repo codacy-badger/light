@@ -18,9 +18,17 @@ struct Type_Table {
     }
 
     Ast_Type_Instance* find_unique (Ast_Type_Instance* type) {
-        for (auto _type : this->all_types) {
-            if (Types::equal(type, _type)) {
-                return _type;
+        if (type->name) {
+            for (auto _type : this->all_types) {
+                if (strcmp(type->name, _type->name) == 0) {
+                    return _type;
+                }
+            }
+        } else {
+            for (auto _type : this->all_types) {
+                if (Types::equal(type, _type)) {
+                    return _type;
+                }
             }
         }
 

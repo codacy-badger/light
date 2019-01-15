@@ -2,11 +2,30 @@
 
 #include "ast/ast.hpp"
 
+#include <vector>
+
 struct Ast_Navigator {
     Ast_Scope* current_scope = NULL;
-    Ast_Expression* replace_expression_by = NULL;
+    Ast_Statement* current_statement = NULL;
+
+    void prepend_statements (std::vector<Ast_Statement*>* stms) {
+        if (!stms->empty()) {
+            auto scope_stms = &this->current_scope->statements;
+
+            auto it = this->get_current_stm_location();
+            scope_stms->insert (it, stms->begin(), stms->end());
+        }
+    }
+
+    std::vector<Ast_Statement*>::iterator get_current_stm_location () {
+        auto stms = &this->current_scope->statements;
+        return std::find(stms->begin(), stms->end(), this->current_statement);
+    }
 
     virtual void ast_handle (Ast_Statement* stm) {
+        auto tmp = this->current_statement;
+        this->current_statement = stm;
+
 		for (auto note : stm->notes) {
 			this->ast_handle(note);
 		}
@@ -53,6 +72,8 @@ struct Ast_Navigator {
 			}
 			default: break;
 		}
+
+        this->current_statement = tmp;
 	}
 
 	virtual void ast_handle (const char*) { /* empty */ }

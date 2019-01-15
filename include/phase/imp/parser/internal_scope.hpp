@@ -15,6 +15,7 @@ struct Internal_Scope : Ast_Scope {
 	    this->add_type(Types::type_type);
 	    this->add_type(Types::type_void);
 	    this->add_type(Types::type_bool);
+	    this->add_type(Types::type_char);
 	    this->add_type(Types::type_s8);
 	    this->add_type(Types::type_s16);
 	    this->add_type(Types::type_s32);
@@ -25,6 +26,7 @@ struct Internal_Scope : Ast_Scope {
 	    this->add_type(Types::type_u64);
 	    this->add_type(Types::type_f32);
 	    this->add_type(Types::type_f64);
+	    this->add_type(Types::type_usize);
 	    this->add_type(Types::type_string);
 	    this->add_type(Types::type_any);
 
@@ -46,14 +48,14 @@ struct Internal_Scope : Ast_Scope {
 
     void add_type (Ast_Type_Instance* type) {
         type->inferred_type = Types::type_type;
-        this->add(Ast_Factory::declaration(type->name, type, NULL));
+        this->add(Ast_Factory::declaration(internal_location, type->name, type, NULL));
     }
 
     void add_boolean (const char* name, bool value) {
-        this->add(Ast_Factory::declaration(name, Ast_Factory::literal(value)));
+        this->add(Ast_Factory::declaration(internal_location, name, Ast_Factory::literal(value)));
     }
 
     void add_uint (const char* name, uint64_t value) {
-        this->add(Ast_Factory::declaration(name, Ast_Factory::literal(value)));
+        this->add(Ast_Factory::declaration(internal_location, name, Ast_Factory::literal(value)));
     }
 };

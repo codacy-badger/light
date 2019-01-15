@@ -4,21 +4,17 @@
 #include "ast/types.hpp"
 
 struct Ast_Factory {
-    uint64_t node_count = 0;
-
     template<typename T, typename ... Arguments>
-    T* create (Location* loc, Arguments ... args) {
-        this->node_count++;
+    static T* create (Location* loc, Arguments ... args) {
         auto node = new T(args...);
-        if (loc != NULL) {
-            node->location = (*loc);
-        }
+        node->location = (*loc);
         return node;
     }
 
-    static Ast_Declaration* declaration (const char* name, Ast_Expression* value,
+    static Ast_Declaration* declaration (Location location, const char* name, Ast_Expression* value,
             Ast_Expression* type = NULL, bool is_const = true) {
         auto decl = new Ast_Declaration();
+        decl->location = location;
         decl->type = type ? type : value->inferred_type;
         decl->is_constant = is_const;
         decl->expression = value;
@@ -26,8 +22,9 @@ struct Ast_Factory {
         return decl;
     }
 
-    static Ast_Declaration* declaration (const char* name, Ast_Type_Instance* type_inst) {
+    static Ast_Declaration* declaration (Location location, const char* name, Ast_Type_Instance* type_inst) {
         auto decl = new Ast_Declaration();
+        decl->location = location;
         decl->is_constant = true;
         decl->type = type_inst;
         decl->name = name;
@@ -37,6 +34,7 @@ struct Ast_Factory {
     static Ast_Pointer_Type* pointer_type (Ast_Expression* base_type) {
         auto pointer_type = new Ast_Pointer_Type(base_type);
         pointer_type->inferred_type = Types::type_type;
+        pointer_type->location = base_type->location;
         return pointer_type;
     }
 
@@ -44,12 +42,44 @@ struct Ast_Factory {
         auto length_literal = Ast_Factory::literal(length);
         auto array_type = new Ast_Array_Type(base_type, length_literal);
         array_type->inferred_type = Types::type_type;
+        array_type->location = base_type->location;
         return array_type;
+    }
+
+    static Ast_Binary* attr (Ast_Expression* exp, const char* attr_name, Ast_Type_Instance* inferred_type = NULL) {
+    	auto binop = new Ast_Binary(AST_BINARY_ATTRIBUTE);
+        binop->inferred_type = inferred_type;
+        binop->location = exp->location;
+        binop->rhs = Ast_Factory::ident(exp->location, attr_name);
+        binop->lhs = exp;
+    	return binop;
+    }
+
+    static Ast_Binary* assign (Ast_Expression* exp1, Ast_Expression* exp2, Ast_Type_Instance* inferred_type = NULL) {
+    	auto binop = new Ast_Binary(AST_BINARY_ASSIGN);
+        binop->inferred_type = inferred_type;
+        binop->location = exp1->location;
+        binop->lhs = exp1;
+        binop->rhs = exp2;
+    	return binop;
+    }
+
+    static Ast_Ident* ident (Location location, const char* name,
+            Ast_Declaration* decl = NULL, Ast_Type_Instance* inferred_type = NULL) {
+    	auto ident = new Ast_Ident();
+        ident->inferred_type = inferred_type;
+        ident->location = location;
+        ident->declaration = decl;
+    	ident->name = name;
+    	return ident;
+    }
+
+    static Ast_Array_Type* literal_string_type (const char* text) {
+        return Ast_Factory::array_type(Types::type_char, strlen(text));
     }
 
     static Ast_Literal* literal (const char* value) {
     	auto lit = new Ast_Literal();
-        lit->inferred_type = Types::type_string;
     	lit->literal_type = AST_LITERAL_STRING;
     	lit->string_value = value;
     	return lit;

@@ -5,6 +5,9 @@
 
 #include "compiler_events.hpp"
 
+#include "ast/types.hpp"
+#include "ast/type_conversion.hpp"
+
 #include "util/logger.hpp"
 
 struct Type_Checking : Async_Phase, Ast_Navigator {
@@ -21,16 +24,42 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
         this->push(global_scope);
     }
 
+    void match_types (Ast_Expression** exp_ptr, Ast_Type_Instance* given, Ast_Type_Instance* expected) {
+        std::vector<Ast_Statement*> to_prepend;
+        if (!this->check_type_match(&to_prepend, exp_ptr, given, expected)) {
+            Logger::error_and_stop(*exp_ptr, "Type mismatch: given '%s' but '%s' was expected",
+                given->name, expected->name);
+        } else this->prepend_statements(&to_prepend);
+    }
+
+    void match_types (Ast_Expression** exp_ptr1, Ast_Expression** exp_ptr2) {
+        std::vector<Ast_Statement*> to_prepend;
+        if (!this->check_type_match(&to_prepend, exp_ptr1, (*exp_ptr2)->inferred_type)
+                && !this->check_type_match(&to_prepend, exp_ptr2, (*exp_ptr1)->inferred_type)) {
+            Logger::error_and_stop(*exp_ptr1, "Type mismatch: '%s' and '%s' are not compatible",
+                (*exp_ptr1)->inferred_type->name, (*exp_ptr2)->inferred_type->name);
+        } else this->prepend_statements(&to_prepend);
+    }
+
+    void match_types (Ast_Expression** exp_ptr, Ast_Type_Instance* expected) {
+        this->match_types(exp_ptr, (*exp_ptr)->inferred_type, expected);
+    }
+
+    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type_Instance* expected) {
+        return this->check_type_match(to_prepend, exp_ptr, (*exp_ptr)->inferred_type, expected);
+    }
+
+    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type_Instance* given, Ast_Type_Instance* expected) {
+        return (given == expected) || Type_Conversion::try_convert(to_prepend, exp_ptr, given, expected);
+    }
+
 	void ast_handle (Ast_Declaration* decl) {
 		if (decl->expression) {
 			Ast_Navigator::ast_handle(decl->expression);
 
 			if (decl->type) {
 				auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
-				if (!try_cast(&decl->expression, decl_type_inst)) {
-					Logger::error_and_stop(decl, "Type mismatch on declaration: value is '%s' but declaration wants '%s'",
-						decl->expression->inferred_type->name, decl_type_inst->name);
-				}
+                this->match_types(&decl->expression, decl_type_inst);
 			}
 		}
 
@@ -43,19 +72,13 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
 	void ast_handle (Ast_If* _if) {
 		Ast_Navigator::ast_handle(_if);
 
-		if (!try_cast(&_if->condition, Types::type_bool)) {
-			Logger::error_and_stop(_if, "The condition for the IF statement must be of type boolean, but it is '%s'",
-				_if->condition->inferred_type->name);
-		}
+        this->match_types(&_if->condition, Types::type_bool);
 	}
 
 	void ast_handle (Ast_While* _while) {
 		Ast_Navigator::ast_handle(_while);
 
-		if (!try_cast(&_while->condition, Types::type_bool)) {
-			Logger::error_and_stop(_while, "The condition for the IF statement must be of type boolean, but it is '%s'",
-				_while->condition->inferred_type->name);
-		}
+        this->match_types(&_while->condition, Types::type_bool);
 	}
 
 	void ast_handle (Ast_Return* ret) {
@@ -70,21 +93,13 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
 				Logger::error_and_stop(ret, "Return statment has expression, but function returns void");
 			}
 
-            if (!try_cast(&ret->expression, ret_type_def)) {
-    			Logger::error_and_stop(ret, "Type mismatch, return expression is '%s', but function expects '%s'",
-    				ret->expression->inferred_type->name, ret_type_def->name);
-            }
+            this->match_types(&ret->expression, ret_type_def);
 		} else {
 			if (fn->type->ret_type != Types::type_void)
 				Logger::error_and_stop(ret, "Return statment has no expression, but function returns '%s'",
 					ret_type_def->name);
 		}
 	}
-
-    void ast_handle (Ast_Type_Instance* type) {
-        //printf("Type name: '%s'\n", Types::get_name(type));
-        Ast_Navigator::ast_handle(type);
-    }
 
 	void ast_handle (Ast_Struct_Type* _struct) {
 		Ast_Navigator::ast_handle(_struct);
@@ -142,10 +157,7 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
 			assert(param_exp->inferred_type);
 
 			auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
-			if (!try_cast(&call->arguments->unnamed[i], arg_type)) {
-				Logger::error_and_stop(call, "Type mismatch on parameter %d, expected '%s' but got '%s'",
-					i + 1, arg_type->name, param_exp->inferred_type->name);
-			}
+            this->match_types(&call->arguments->unnamed[i], arg_type);
 		}
 
 		for (auto entry : call->arguments->named) {
@@ -153,10 +165,7 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
 
 			auto decl = func_type->get_declaration(entry.first);
 			auto arg_type = static_cast<Ast_Type_Instance*>(decl->type);
-			if (!try_cast(&entry.second, arg_type)) {
-				Logger::error_and_stop(call, "Type mismatch on named parameter '%s', expected '%s' but got '%s'",
-					entry.first, arg_type->name, entry.second->inferred_type->name);
-			}
+            this->match_types(&entry.second, arg_type);
 		}
 	}
 
@@ -168,9 +177,7 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
                 Logger::error_and_stop(binop, "Attribute name must be an identifier");
             }
         } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
-            if (!try_cast(&binop->rhs, Types::type_u64)) {
-                Logger::error_and_stop(binop, "Type '%s' cannot be casted to u64 (index)", binop->rhs->inferred_type->name);
-            }
+            this->match_types(&binop->rhs, Types::type_u64);
 
             auto left_type = binop->lhs->inferred_type->typedef_type;
             if (left_type != AST_TYPEDEF_ARRAY
@@ -179,18 +186,11 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
                 Logger::error_and_stop(binop, "Left of subscript operator is not array, slice or pointer type");
             }
 		} else if (binop->binary_op == AST_BINARY_ASSIGN) {
-            if (!try_cast(&binop->rhs, binop->lhs->inferred_type)) {
-                Logger::error_and_stop(binop, "Type mismatch on assignment: '%s' -> '%s'",
-                    binop->rhs->inferred_type->name, binop->lhs->inferred_type->name);
-            }
+            this->match_types(&binop->rhs, binop->lhs->inferred_type);
 		} else {
             // @INFO Types don't match, but maybe we can add an implicid cast
             // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...
-            if (!try_cast(&binop->lhs, binop->rhs->inferred_type)
-                    && !try_cast(&binop->rhs, binop->lhs->inferred_type)) {
-                Logger::error_and_stop(binop, "Type mismatch on binary expression: '%s' and '%s'",
-                    binop->lhs->inferred_type->name, binop->rhs->inferred_type->name);
-            }
+            this->match_types(&binop->lhs, &binop->rhs);
 	    	binop->inferred_type = binop->get_result_type();
 	    }
 	}

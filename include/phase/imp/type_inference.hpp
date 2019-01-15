@@ -241,8 +241,7 @@ struct Type_Inference : Async_Phase, Ast_Navigator {
 		            break;
 		        }
 		        case AST_LITERAL_STRING: {
-                    auto length = strlen(lit->string_value);
-					lit->inferred_type = Ast_Factory::array_type(Types::type_u8, length);
+					lit->inferred_type = Ast_Factory::literal_string_type(lit->string_value);
                     lit->inferred_type->location = lit->location;
 		            break;
 		        }

@@ -38,9 +38,6 @@ enum Log_Level : uint8_t {
     va_end(argptr); }
 
 struct Logger {
-    static Log_Level current_level;
-    static std::mutex mutex;
-
     static FILE* log (Log_Level level, const char* format, va_list argptr) {
         return Logger::log(level, (Location*)NULL, format, argptr);
     }
@@ -56,7 +53,8 @@ struct Logger {
     static FILE* log (Log_Level level, Location* location, const char* format, va_list argptr) {
         auto output = Logger::get_output_buffer(level);
 
-        std::lock_guard<std::mutex> lock(Logger::mutex);
+        static std::mutex mutex;
+        std::lock_guard<std::mutex> lock(mutex);
 
         fprintf(output, "[%s] ", Logger::get_level_string(level));
         vfprintf(output, format, argptr);

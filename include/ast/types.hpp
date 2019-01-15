@@ -6,6 +6,8 @@
 #include "ast/ast.hpp"
 #include "util/logger.hpp"
 
+#define TMP_NAME_SIZE 35
+
 enum Internal_Type : uint8_t {
     INTERNAL_TYPE_UNDEFINED,
 
@@ -21,6 +23,7 @@ struct Types {
 	static Ast_Struct_Type* type_type;
 	static Ast_Struct_Type* type_void;
 	static Ast_Struct_Type* type_bool;
+	static Ast_Struct_Type* type_char;
 	static Ast_Struct_Type* type_s8;
 	static Ast_Struct_Type* type_s16;
 	static Ast_Struct_Type* type_s32;
@@ -88,54 +91,8 @@ struct Types {
         return Types::equal(ret_type1, ret_type2);
     }
 
-    static bool try_convert (Ast_Expression** exp_ptr,
-            Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-        return Types::try_implicid_cast(exp_ptr, type_from, type_to)
-            || Types::try_coercion(exp_ptr, type_from, type_to);
-    }
-
-    static bool try_implicid_cast (Ast_Expression** exp_ptr,
-            Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-    	if (type_from->is_primitive && type_to->is_primitive) {
-    		if (type_to == Types::type_bool) {
-                auto cast = new Ast_Cast((*exp_ptr), type_to);
-        		cast->location = (*exp_ptr)->location;
-                cast->inferred_type = type_to;
-                (*exp_ptr) = cast;
-                return true;
-    		} else if (type_from->is_signed == type_to->is_signed) {
-                if (type_to->byte_size >= type_from->byte_size) {
-                    auto cast = new Ast_Cast((*exp_ptr), type_to);
-            		cast->location = (*exp_ptr)->location;
-                    cast->inferred_type = type_to;
-                    (*exp_ptr) = cast;
-                    return true;
-                }
-    		} else if (!type_from->is_signed && type_to->is_signed) {
-                if (type_to->byte_size > type_from->byte_size) {
-                    auto cast = new Ast_Cast((*exp_ptr), type_to);
-            		cast->location = (*exp_ptr)->location;
-                    cast->inferred_type = type_to;
-                    (*exp_ptr) = cast;
-                    return true;
-                }
-    		}
-    	}
-        return false;
-    }
-
-    static bool try_implicid_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to) {
-    	return Types::try_implicid_cast(exp_ptr, (*exp_ptr)->inferred_type, type_to);
-    }
-
-    static bool try_coercion (Ast_Expression**, Ast_Type_Instance*, Ast_Type_Instance*) {
-        return false;
-    }
-
     static void set_name (Ast_Type_Instance* type_inst) {
-        if (!type_inst->name) {
-            type_inst->name = Types::get_name(type_inst);
-        }
+        if (!type_inst->name) type_inst->name = Types::get_name(type_inst);
     }
 
     static const char* get_name (Ast_Expression* exp) {

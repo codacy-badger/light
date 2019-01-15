@@ -24,9 +24,13 @@ struct Ast {
 
     static uint64_t node_count;
 
-    Ast () { node_count++; }
+    Ast () {
+		node_count++;
+	}
 
-    ~Ast () { node_count--; }
+    ~Ast () {
+		node_count--;
+	}
 };
 
 struct Ast_Arguments : Ast {

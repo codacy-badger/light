@@ -12,7 +12,7 @@
 
 #define DEFAULT_FILE_EXTENSION ".li"
 
-#define AST_NEW(T, ...) this->factory->create<T>(&this->peek()->location, __VA_ARGS__)
+#define AST_NEW(T, ...) Ast_Factory::create<T>(&this->peek()->location, __VA_ARGS__)
 
 struct Parser : Async_Phase {
 	// TODO: merge this attribute with current_scope
@@ -519,6 +519,6 @@ struct Parser : Async_Phase {
 	}
 
 	void print_extra_metrics() {
-		print_extra_metric("AST Nodes created", "%zd", this->factory->node_count);
+		print_extra_metric("AST Nodes created", "%zd", Ast::node_count);
 	}
 };
