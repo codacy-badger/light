@@ -11,8 +11,6 @@
 struct Import_Modules : Async_Phase, Ast_Navigator {
     std::map<Ast_Scope*, std::vector<Ast_Import*>> dependencies;
 
-    Ast_Scope* current_global_scope = NULL;
-
     size_t foreign_functions = 0;
 
     Import_Modules() : Async_Phase("Import Modules", CE_MODULE_RESOLVE_IMPORTS) {
@@ -20,13 +18,13 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
     }
 
     void handle_main_event (void* data) {
-        this->current_global_scope = reinterpret_cast<Ast_Scope*>(data);
+        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
 
-        Ast_Navigator::ast_handle(this->current_global_scope);
+        Ast_Navigator::ast_handle(global_scope);
 
-        auto it = this->dependencies.find(this->current_global_scope);
+        auto it = this->dependencies.find(global_scope);
         if (it == this->dependencies.end()) {
-            this->push(this->current_global_scope);
+            this->push(global_scope);
         }
     }
 
@@ -35,7 +33,9 @@ struct Import_Modules : Async_Phase, Ast_Navigator {
 
 		find_existing_absolute_path(import);
 
-        this->dependencies[this->current_global_scope].push_back(import);
+        if (this->current_scope->is_global()) {
+            this->dependencies[this->current_scope].push_back(import);
+        } else Logger::error_and_stop(import, "Only global scopes can have import statements");
 
         Events::trigger(CE_IMPORT_MODULE, import->absolute_path);
     }
