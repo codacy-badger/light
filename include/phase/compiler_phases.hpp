@@ -3,6 +3,7 @@
 #include "phase/async_phase.hpp"
 
 #include "compiler_settings.hpp"
+#include "ast/type_table.hpp"
 
 #include "imp/lexer/lexer.hpp"
 #include "imp/parser/parser.hpp"
@@ -11,6 +12,7 @@
 #include "imp/deps/import_modules.hpp"
 #include "imp/deps/symbol_resolution.hpp"
 #include "imp/type_inference.hpp"
+#include "imp/unique_types.hpp"
 #include "imp/check/type_checking.hpp"
 #include "imp/check/check_dependencies.hpp"
 
@@ -19,6 +21,9 @@
 
 struct Compiler_Phases {
     Compiler_Settings* settings;
+
+    Type_Table* type_table = new Type_Table();
+
     std::vector<Phase*> phases;
 
     Compiler_Phases (Compiler_Settings* settings) {
@@ -35,15 +40,15 @@ struct Compiler_Phases {
         this->add_phase<Static_If>();
 
         this->add_phase<Check_Dependencies>();
+        this->add_phase<Unique_Types>(this->type_table);
         this->add_phase<Type_Checking>();
     }
 
-    template<typename T>
-    void add_phase () {
+    template<typename T, typename... Args>
+    void add_phase (Args&&... args) {
         static_assert(std::is_base_of<Phase, T>::value, "Not a sub-type of Phase");
-        static_assert(std::is_default_constructible<T>::value, "No default constructor");
 
-        auto phase = new T();
+        auto phase = new T(std::forward<Args>(args)...);
         phase->event_to_id = CE_MODULE_READY;
         phase->settings = this->settings;
         phase->start();

@@ -40,6 +40,13 @@ struct Ast_Factory {
         return pointer_type;
     }
 
+    static Ast_Array_Type* array_type (Ast_Expression* base_type, uint64_t length) {
+        auto length_literal = Ast_Factory::literal(length);
+        auto array_type = new Ast_Array_Type(base_type, length_literal);
+        array_type->inferred_type = Types::type_type;
+        return array_type;
+    }
+
     static Ast_Literal* literal (const char* value) {
     	auto lit = new Ast_Literal();
         lit->inferred_type = Types::type_string;

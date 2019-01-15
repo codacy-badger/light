@@ -343,12 +343,16 @@ struct Ast_Pointer_Type : Ast_Type_Instance {
 };
 
 struct Ast_Array_Type : Ast_Type_Instance {
-	Ast_Expression* base = NULL;
-	Ast_Expression* length = NULL;
+	Ast_Expression* base;
+	Ast_Expression* length;
 
 	uint64_t length_as_number = 0;
 
-	Ast_Array_Type() { this->typedef_type = AST_TYPEDEF_ARRAY; }
+	Ast_Array_Type(Ast_Expression* base = NULL, Ast_Expression* length = NULL) {
+		this->typedef_type = AST_TYPEDEF_ARRAY;
+		this->length = length;
+		this->base = base;
+	}
 
 	uint64_t get_length () {
     	if (!this->length_as_number) {
@@ -506,8 +510,6 @@ struct Ast_Ident : Ast_Expression {
 
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };
-
-Ast_Struct_Type* build_type_any();
 
 void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);
 

@@ -81,6 +81,11 @@ struct Type_Checking : Async_Phase, Ast_Navigator {
 		}
 	}
 
+    void ast_handle (Ast_Type_Instance* type) {
+        //printf("Type name: '%s'\n", Types::get_name(type));
+        Ast_Navigator::ast_handle(type);
+    }
+
 	void ast_handle (Ast_Struct_Type* _struct) {
 		Ast_Navigator::ast_handle(_struct);
 

@@ -54,10 +54,10 @@ struct Compiler {
 		}
 
 		this->phases->shutdown();
+		this->phases->print_metrics();
 
 		auto executing_time = this->user_timer.stop();
 		auto running_time = this->wall_timer.stop();
-		this->phases->print_metrics();
 	    printf("\nDone in %8.6fs (%8.6fs)\n", running_time, executing_time);
 	}
 

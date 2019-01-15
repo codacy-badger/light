@@ -266,19 +266,6 @@ bool Ast_Binary::is_left_associative (Token_Type opToken) {
 	}
 }
 
-Ast_Struct_Type* build_type_any () {
-    auto type_any = new Ast_Struct_Type("any");
-
-    auto type_decl = ast_make_declaration_with_type("type", Types::type_u8);
-    type_any->attributes.push_back(type_decl);
-
-    auto ptr_type = new Ast_Pointer_Type(Types::type_void);
-    auto value_decl = ast_make_declaration_with_type("value", ptr_type);
-    type_any->attributes.push_back(value_decl);
-
-    return type_any;
-}
-
 const char* _get_type_name (Ast_Expression* exp) {
 	if (exp->exp_type == AST_EXPRESSION_IDENT) {
 		auto ident = static_cast<Ast_Ident*>(exp);

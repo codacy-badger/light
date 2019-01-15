@@ -241,7 +241,9 @@ struct Type_Inference : Async_Phase, Ast_Navigator {
 		            break;
 		        }
 		        case AST_LITERAL_STRING: {
-					lit->inferred_type = Types::type_string;
+                    auto length = strlen(lit->string_value);
+					lit->inferred_type = Ast_Factory::array_type(Types::type_u8, length);
+                    lit->inferred_type->location = lit->location;
 		            break;
 		        }
 		        default: Logger::internal(lit, "Unknown literal type: %d", lit->literal_type);
