@@ -146,8 +146,6 @@ struct Ast_Declaration : Ast_Statement {
 
     bool is_constant = false;
 
-	Ast_Scope* scope = NULL;
-
 	// for struct property
 	size_t attribute_byte_offset = 0;
 
@@ -156,8 +154,6 @@ struct Ast_Declaration : Ast_Statement {
 	bool is_spilled = false;
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
-
-	bool is_global () { return this->scope->is_global(); }
 };
 
 struct Ast_Return : Ast_Statement {

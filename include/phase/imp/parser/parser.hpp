@@ -208,7 +208,6 @@ struct Parser : Async_Phase {
 		if(!this->is_next(TOKEN_ID)) return NULL;
 
 		auto decl = AST_NEW(Ast_Declaration);
-		decl->scope = this->current_scope;
 		decl->name = this->next()->copy_text();
 
 		this->expect(TOKEN_COLON);

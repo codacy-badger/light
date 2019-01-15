@@ -22,6 +22,16 @@ struct Check_Dependencies : Phase, Ast_Navigator {
         } else this->push(global_scope);
     }
 
+    void ast_handle (Ast_Declaration* decl) {
+        if (!decl->type) {
+            Logger::internal(decl, "Type of declaration could not be inferred");
+            this->errors_found = true;
+        } else if (decl->type->exp_type != AST_EXPRESSION_TYPE_INSTANCE) {
+            Logger::error(decl, "Type of declaration is not a type instance");
+            this->errors_found = true;
+        }
+    }
+
     void ast_handle (Ast_Ident* ident) {
         if (!ident->declaration) {
             Logger::error(ident, "Identifier '%s' has no declaration", ident->name);

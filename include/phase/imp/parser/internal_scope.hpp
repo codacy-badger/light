@@ -42,22 +42,20 @@ struct Internal_Scope : Ast_Scope {
         DECLARE_TYPE_INT(DECIMAL);
         DECLARE_TYPE_INT(STRING);
         DECLARE_TYPE_INT(ANY);
-
-        for (auto stm : this->statements) {
-            stm->location = this->internal_location;
-        }
     }
 
     void add_type (Ast_Type_Instance* type) {
         type->inferred_type = Types::type_type;
-        this->add(Ast_Factory::declaration(internal_location, type->name, type, NULL));
+        this->add(Ast_Factory::declaration(internal_location, type->name, Types::type_type, type));
     }
 
     void add_boolean (const char* name, bool value) {
-        this->add(Ast_Factory::declaration(internal_location, name, Ast_Factory::literal(value)));
+        auto literal = Ast_Factory::literal(value);
+        this->add(Ast_Factory::declaration(internal_location, name, literal->inferred_type, literal));
     }
 
     void add_uint (const char* name, uint64_t value) {
-        this->add(Ast_Factory::declaration(internal_location, name, Ast_Factory::literal(value)));
+        auto literal = Ast_Factory::literal(value);
+        this->add(Ast_Factory::declaration(internal_location, name, literal->inferred_type, literal));
     }
 };

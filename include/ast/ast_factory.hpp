@@ -11,22 +11,13 @@ struct Ast_Factory {
         return node;
     }
 
-    static Ast_Declaration* declaration (Location location, const char* name, Ast_Expression* value,
-            Ast_Expression* type = NULL, bool is_const = true) {
+    static Ast_Declaration* declaration (Location location, const char* name,
+            Ast_Expression* type = NULL, Ast_Expression* value = NULL, bool is_const = true) {
         auto decl = new Ast_Declaration();
         decl->location = location;
         decl->type = type ? type : value->inferred_type;
         decl->is_constant = is_const;
         decl->expression = value;
-        decl->name = name;
-        return decl;
-    }
-
-    static Ast_Declaration* declaration (Location location, const char* name, Ast_Type_Instance* type_inst) {
-        auto decl = new Ast_Declaration();
-        decl->location = location;
-        decl->is_constant = true;
-        decl->type = type_inst;
         decl->name = name;
         return decl;
     }
@@ -62,6 +53,14 @@ struct Ast_Factory {
         binop->lhs = exp1;
         binop->rhs = exp2;
     	return binop;
+    }
+
+    static Ast_Unary* ref (Ast_Expression* exp, Ast_Type_Instance* inferred_type = NULL) {
+    	auto unop = new Ast_Unary(AST_UNARY_REFERENCE);
+        unop->inferred_type = inferred_type;
+        unop->location = exp->location;
+        unop->exp = exp;
+    	return unop;
     }
 
     static Ast_Ident* ident (Location location, const char* name,
