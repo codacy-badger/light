@@ -2,4 +2,6 @@ os: windows
 language: cpp
 
 script:
- - dir
+ - call platform\win\setup.bat
+ - call platform\win\build.bat
+ - call platform\win\test.bat
