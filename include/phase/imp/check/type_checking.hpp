@@ -11,10 +11,16 @@
 #include "util/logger.hpp"
 
 struct Type_Checking : Phase, Ast_Navigator {
-    Type_Checking() : Phase("Type Checking", CE_MODULE_CHECK_TYPES) { /* empty */ }
+    Arch* target_arch;
+
+    Type_Checking() : Phase("Type Checking", CE_MODULE_CHECK_TYPES, true) { /* empty */ }
 
     // @Info this pipe ensures that all expressions have a valid inferred_type
 	// and that all types in the tree make sense (binary ops, func calls, etc.).
+
+    void on_start (Compiler_Settings* settings) {
+        this->target_arch = settings->target_arch;
+    }
 
     void handle_main_event (void* data) {
         auto global_scope = reinterpret_cast<Ast_Scope*>(data);
@@ -122,7 +128,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 	}
 
 	void ast_handle (Ast_Pointer_Type* ptr) {
-		ptr->byte_size = this->settings->target_arch->register_size;
+		ptr->byte_size = this->target_arch->register_size;
 
 		Ast_Navigator::ast_handle(ptr);
 	}

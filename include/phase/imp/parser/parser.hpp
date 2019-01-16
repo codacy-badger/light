@@ -18,22 +18,22 @@ struct Parser : Phase {
 	Ast_Scope* internal_scope = NULL;
 	Ast_Scope* current_scope = NULL;
 
-	std::vector<Token*>* tokens = NULL;
+	std::vector<Token>* tokens = NULL;
 	size_t index;
 
 	// for metrics
 	size_t all_lines = 0;
 	double total_time = 0;
 
-	Parser () : Phase("Parser", CE_MODULE_RUN_PARSER) { /* empty */ }
+	Parser () : Phase("Parser", CE_MODULE_RUN_PARSER, true) { /* empty */ }
 
-	void on_start () {
+	void on_start (Compiler_Settings* settings) {
 		this->internal_scope = new Internal_Scope(
-			this->settings->target_arch, this->settings->target_os);
+			settings->target_arch, settings->target_os);
 	}
 
     void handle_main_event (void* data) {
-		this->tokens = reinterpret_cast<std::vector<Token*>*>(data);
+		this->tokens = reinterpret_cast<std::vector<Token>*>(data);
 		auto global_scope = this->build_ast();
 		delete this->tokens;
 
@@ -46,9 +46,6 @@ struct Parser : Phase {
 
 		this->index = 0;
 		this->scope(global_scope);
-
-		for (auto token : *this->tokens)
-			delete token;
 		this->tokens->clear();
 
 		return global_scope;
@@ -479,13 +476,13 @@ struct Parser : Phase {
 		if (new_index >= this->tokens->size()) {
 			new_index = this->tokens->size() - 1;
 		}
-		return (*this->tokens)[new_index];
+		return &((*this->tokens)[new_index]);
 	}
 
 	Token* next () {
 		if (this->index == (this->tokens->size() - 1)) {
-			return (*this->tokens)[this->index];
-		} else return (*this->tokens)[this->index++];
+			return &((*this->tokens)[this->index]);
+		} else return &((*this->tokens)[this->index++]);
 	}
 
 	bool is_next (Token_Type type) {

@@ -9,7 +9,11 @@ struct Event_Queue {
     std::queue<Event> wrapped;
     std::mutex mutex;
 
-    Event_Queue () { /* empty */ }
+    std::condition_variable* condition;
+
+    Event_Queue (std::condition_variable* condition = NULL) {
+        this->condition = condition;
+    }
 
     void push (size_t event_id, void* data = NULL) {
         this->push(Event(event_id, data));
@@ -18,6 +22,9 @@ struct Event_Queue {
     void push (Event event) {
         std::lock_guard<std::mutex> lock(this->mutex);
         this->wrapped.push(event);
+        if (this->condition) {
+            this->condition->notify_all();
+        }
     }
 
     Event pop () {

@@ -12,22 +12,21 @@
 #define LEXER_IGNORED " \n\t"
 
 #define CASE_TOKEN(c, type) case c: { scanner->skip();							\
-	return new Token(&scanner->location, type); }
+	return Token(&scanner->location, type); }
 
 #define MULTI_CASE_TOKEN(c, type, body) case c: { scanner->skip();				\
 	switch (scanner->peek()) {													\
 		body																	\
-		default: return new Token(&scanner->location, type);					\
+		default: return Token(&scanner->location, type);					\
 	}																			\
 }
 
 #define CHECK_DYN_TOKEN(func, type) tmp = func(scanner);						\
-	if (tmp) return new Token(&scanner->location, type, scanner->ref() - tmp, tmp);
+	if (tmp) return Token(&scanner->location, type, scanner->ref() - tmp, tmp);
 
 #define LEN(text) (sizeof(text) - 1)
-
 #define CHECK_STR_TOKEN(text, type) if (scanner->is_next(text, LEN(text)))		\
-	{ scanner->skip(LEN(text)); return new Token(&scanner->location, type); }
+	{ scanner->skip(LEN(text)); return Token(&scanner->location, type); }
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
 #define DIGIT(c) (c >= '0' && c <= '9')
@@ -39,32 +38,32 @@ struct Lexer : Phase {
 	uint64_t lines_of_code = 0;
 	uint64_t token_count = 0;
 
-	Lexer () : Phase("Lexer", CE_MODULE_RUN_LEXER) { /* empty */ }
+	Lexer () : Phase("Lexer", CE_MODULE_RUN_LEXER, true) { /* empty */ }
 
     void handle_main_event (void* data) {
 		auto absolute_path = reinterpret_cast<char*>(data);
 
 		auto scanner = Scanner(absolute_path);
 
-		auto tokens = new std::vector<Token*>();
+		auto tokens = new std::vector<Token>();
 		this->source_to_tokens(&scanner, tokens);
 		this->push(tokens);
     }
 
-	void source_to_tokens (Scanner* scanner, std::vector<Token*>* tokens) {
-		Token* token = NULL;
-		do {
-			token = this->get_next_token(scanner);
-
+	void source_to_tokens (Scanner* scanner, std::vector<Token>* tokens) {
+		Token token = this->get_next_token(scanner);
+		while (token.type != TOKEN_EOF) {
 			tokens->push_back(token);
-		} while (token->type != TOKEN_EOF);
+			token = this->get_next_token(scanner);
+		}
+		tokens->push_back(token);
 
 		this->lines_of_code += scanner->location.line;
 		this->token_count += tokens->size();
 		this->files_lexed += 1;
 	}
 
-	Token* get_next_token (Scanner* scanner) {
+	Token get_next_token (Scanner* scanner) {
 		size_t tmp;
 
 		this->skip_ignored_and_comments(scanner);
@@ -132,7 +131,7 @@ struct Lexer : Phase {
 				CHECK_DYN_TOKEN(this->string, TOKEN_STRING);
 				CHECK_DYN_TOKEN(this->number, TOKEN_NUMBER);
 
-				return new Token(&scanner->location, TOKEN_EOF);
+				return Token(&scanner->location, TOKEN_EOF);
 			}
 		}
 	}

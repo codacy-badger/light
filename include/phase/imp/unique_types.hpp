@@ -12,8 +12,7 @@ struct Unique_Types : Phase, Ast_Ref_Navigator {
 
     size_t uniqued_types = 0;
 
-    Unique_Types(Type_Table* type_table)
-            : Phase("Unique Types", CE_MODULE_UNIQUE_TYPES) {
+    Unique_Types(Type_Table* type_table) : Phase("Unique Types", CE_MODULE_UNIQUE_TYPES, true) {
         this->type_table = type_table;
     }
 

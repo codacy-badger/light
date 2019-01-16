@@ -57,8 +57,7 @@ struct Compiler_Phases {
 
         auto phase = new T(std::forward<Args>(args)...);
         phase->event_to_id = CE_MODULE_READY;
-        phase->settings = this->settings;
-        phase->start();
+        phase->start(this->settings);
 
         if (!this->phases.empty()) {
             this->phases.back()->event_to_id = phase->event_from_id;
@@ -73,9 +72,13 @@ struct Compiler_Phases {
 
     bool are_all_done () {
         bool all_done = true;
+        //printf("[ ");
         for (auto phase : this->phases) {
-            all_done &= phase->is_done();
+            auto is_done = phase->is_done();
+            all_done &= is_done;
+            //printf("%d ", is_done);
         }
+        //printf("]\n");
         return all_done;
     }
 

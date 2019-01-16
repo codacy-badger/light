@@ -10,11 +10,16 @@
 
 struct Import_Modules : Phase, Ast_Navigator {
     std::map<Ast_Scope*, std::vector<Ast_Import*>> dependencies;
+    const char* initial_path;
 
     size_t foreign_functions = 0;
 
-    Import_Modules() : Phase("Import Modules", CE_MODULE_RESOLVE_IMPORTS) {
+    Import_Modules() : Phase("Import Modules", CE_MODULE_RESOLVE_IMPORTS, true) {
         this->bind(CE_MODULE_READY, &Import_Modules::on_module_ready, this);
+    }
+
+    void on_start (Compiler_Settings* settings) {
+        this->initial_path = settings->initial_path;
     }
 
     void handle_main_event (void* data) {
@@ -103,7 +108,7 @@ struct Import_Modules : Phase, Ast_Navigator {
 	void get_relative_to_main_file (Ast_Import* import) {
 		char tmp[MAX_PATH_LENGTH];
 		os_get_current_directory(tmp);
-		os_set_current_directory(this->settings->initial_path);
+		os_set_current_directory(this->initial_path);
 		os_get_absolute_path(import->path, import->absolute_path);
 		os_set_current_directory(tmp);
 	}

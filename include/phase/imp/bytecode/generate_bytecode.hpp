@@ -31,7 +31,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 	// for metrics
 	size_t instruction_count = 0;
 
-	Generate_Bytecode () : Phase("Generate Bytecode", CE_BYTECODE_GENERATE) { /* empty */ }
+	Generate_Bytecode () : Phase("Generate Bytecode", CE_BYTECODE_GENERATE, true) { /* empty */ }
 
     void handle_main_event (void* data) {
         auto global_scope = reinterpret_cast<Ast_Scope*>(data);
