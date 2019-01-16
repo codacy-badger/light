@@ -2,6 +2,4 @@ os: windows
 language: cpp
 
 script:
- - platform/win/setup
- - platform/win/build
- - platform/win/test
+ - dir
