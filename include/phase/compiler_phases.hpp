@@ -1,7 +1,5 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
-
 #include "compiler_settings.hpp"
 #include "ast/type_table.hpp"
 #include "bytecode/interpreter.hpp"
@@ -82,8 +80,6 @@ struct Compiler_Phases {
     }
 
     void shutdown () {
-        Timer timer;
-        timer.start();
         for (auto phase : this->phases) {
             phase->stop();
         }

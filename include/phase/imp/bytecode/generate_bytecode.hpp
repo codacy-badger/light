@@ -1,6 +1,6 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 #include "phase/ast_navigator.hpp"
 
 #include "compiler_events.hpp"
@@ -15,7 +15,7 @@
 
 #define INST(node, name, ...) this->add_instruction(node, new Inst_##name(__VA_ARGS__));
 
-struct Generate_Bytecode : Async_Phase, Ast_Navigator {
+struct Generate_Bytecode : Phase, Ast_Navigator {
     Bytecode_Constants* constants = new Bytecode_Constants();
     Bytecode_Globals* globals = new Bytecode_Globals();
 
@@ -31,7 +31,7 @@ struct Generate_Bytecode : Async_Phase, Ast_Navigator {
 	// for metrics
 	size_t instruction_count = 0;
 
-	Generate_Bytecode () : Async_Phase("Generate Bytecode", CE_BYTECODE_GENERATE) { /* empty */ }
+	Generate_Bytecode () : Phase("Generate Bytecode", CE_BYTECODE_GENERATE) { /* empty */ }
 
     void handle_main_event (void* data) {
         auto global_scope = reinterpret_cast<Ast_Scope*>(data);

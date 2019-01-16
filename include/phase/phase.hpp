@@ -2,7 +2,6 @@
 
 #include "util/event_queue.hpp"
 #include "util/events.hpp"
-#include "util/timer.hpp"
 #include "compiler_settings.hpp"
 
 using namespace std::chrono_literals;
@@ -17,14 +16,20 @@ struct Phase {
     const char* print_format = NULL;
 
     Compiler_Settings* settings = NULL;
+    char prefix = '-';
+    bool is_async = false;
 
     std::map<size_t, ObserverStdFunction> function_map;
     Event_Queue event_queue;
     size_t event_from_id = 0;
     size_t event_to_id = 0;
 
-    Timer timer;
     double work_time = 0;
+
+    // async
+    std::thread* thread = NULL;
+    bool keep_working = true;
+    bool is_working = false;
 
     Phase (const char* name, size_t main_event_id, const char* print_format = DEFAULT_PRINT_FORMAT) {
         this->event_from_id = main_event_id;
@@ -34,15 +39,30 @@ struct Phase {
 
     void start () {
         this->bind(this->event_from_id, &Phase::handle_main_event, this);
-        this->custom_start();
+        if (settings->is_multithread) {
+            this->thread = new std::thread(&Phase::async_run, this);
+            this->is_async = true;
+            this->prefix = '+';
+        }
+        this->on_start();
     }
 
-    virtual void custom_start () { /* empty */ }
+    virtual void on_start () { /* empty */ }
 
     virtual void handle_main_event (void* data) = 0;
 
+    void async_run () {
+        while (this->keep_working) {
+            if (!this->event_queue.empty()) {
+                this->is_working = true;
+                Phase::handle_event(this->event_queue.pop());
+                this->is_working = false;
+            } else os_sleep_for(1);
+        }
+    }
+
     void handle_event (Event event) {
-        timer.start();
+        auto start = os_get_time();
 
         auto callback = this->function_map.find(event.id);
         if (callback != this->function_map.end()) {
@@ -52,19 +72,28 @@ struct Phase {
             exit(1);
         }
 
-        this->work_time += timer.stop();
+        this->work_time += os_time_stop(start);
     }
 
-    virtual bool is_done () {
-        if (!this->event_queue.empty()) {
-            while (!this->event_queue.empty()) {
-                this->handle_event(this->event_queue.pop());
-            }
-            return false;
-        } else return true;
+    bool is_done () {
+        if (this->is_async) {
+            return !this->is_working && this->event_queue.empty();
+        } else {
+            if (!this->event_queue.empty()) {
+                while (!this->event_queue.empty()) {
+                    this->handle_event(this->event_queue.pop());
+                }
+                return false;
+            } else return true;
+        }
     }
 
-    virtual void stop () { /* empty */ }
+    void stop () {
+        if (this->is_async && this->keep_working) {
+            this->keep_working = false;
+            this->thread->join();
+        }
+    }
 
     template<typename T>
     void bind (size_t event_id, void (T::*method)(void*), T* instance) {
@@ -84,8 +113,8 @@ struct Phase {
     }
 
     void print_metrics () {
-        printf(this->print_format, this->name, this->work_time);
-        this->print_extra_metrics();
+        printf("  %c %-35s %8.6fs\n", this->prefix, this->name, this->work_time);
+        //this->print_extra_metrics();
     }
 
     virtual void print_extra_metrics () { /* empty */ }

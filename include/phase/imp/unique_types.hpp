@@ -1,19 +1,19 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 #include "phase/ast_ref_navigator.hpp"
 
 #include "ast/type_table.hpp"
 #include "ast/ast_cloner.hpp"
 #include "compiler_events.hpp"
 
-struct Unique_Types : Async_Phase, Ast_Ref_Navigator {
+struct Unique_Types : Phase, Ast_Ref_Navigator {
     Type_Table* type_table;
 
     size_t uniqued_types = 0;
 
     Unique_Types(Type_Table* type_table)
-            : Async_Phase("Unique Types", CE_MODULE_UNIQUE_TYPES) {
+            : Phase("Unique Types", CE_MODULE_UNIQUE_TYPES) {
         this->type_table = type_table;
     }
 

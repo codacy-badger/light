@@ -1,6 +1,6 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 #include "phase/ast_navigator.hpp"
 
 #include "compiler_events.hpp"
@@ -13,9 +13,9 @@
 
 #include "util/logger.hpp"
 
-struct Run_Bytecode : Async_Phase, Ast_Navigator {
+struct Run_Bytecode : Phase, Ast_Navigator {
 
-    Run_Bytecode () : Async_Phase("Run Bytecode", CE_BYTECODE_RUN) { /* empty */ }
+    Run_Bytecode () : Phase("Run Bytecode", CE_BYTECODE_RUN) { /* empty */ }
 
     void handle_main_event (void* data) {
         auto global_scope = reinterpret_cast<Ast_Scope*>(data);

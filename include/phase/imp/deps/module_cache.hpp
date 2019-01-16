@@ -1,6 +1,6 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 #include "phase/ast_navigator.hpp"
 #include "compiler_events.hpp"
 #include "util/string_map.hpp"

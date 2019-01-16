@@ -1,6 +1,6 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 #include "phase/ast_navigator.hpp"
 
 #include "compiler_events.hpp"
@@ -10,8 +10,8 @@
 
 #include "util/logger.hpp"
 
-struct Type_Checking : Async_Phase, Ast_Navigator {
-    Type_Checking() : Async_Phase("Type Checking", CE_MODULE_CHECK_TYPES) { /* empty */ }
+struct Type_Checking : Phase, Ast_Navigator {
+    Type_Checking() : Phase("Type Checking", CE_MODULE_CHECK_TYPES) { /* empty */ }
 
     // @Info this pipe ensures that all expressions have a valid inferred_type
 	// and that all types in the tree make sense (binary ops, func calls, etc.).

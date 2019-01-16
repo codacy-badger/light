@@ -3,16 +3,12 @@
 #include "compiler_settings.hpp"
 #include "phase/compiler_phases.hpp"
 
-#include "util/timer.hpp"
-
 #define LIGHT_NAME "Light Compiler"
 #define LIGHT_VERSION "0.0.0"
 
 struct Compiler {
 	Compiler_Settings settings;
 	Compiler_Phases* phases;
-
-	Timer timer;
 
 	// @TODO @FIXME this property should not exists, it makes everything
 	// harder to reason about and complicates debugging
@@ -30,20 +26,26 @@ struct Compiler {
 	}
 
 	void compile_input_files () {
-		this->timer.start();
+		auto start = os_get_time();
 		printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
 
+		auto tmp1 = os_get_time();
 		for (auto &absolute_path : this->settings.input_files) {
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
 		}
+	    printf("\nTIME1: %8.6fs\n", os_time_stop(tmp1));
 
+		auto tmp2 = os_get_time();
 		while (!this->is_all_work_done()) {
 			this->handle_compiler_events();
 		}
+	    printf("\nTIME2: %8.6fs\n", os_time_stop(tmp2));
 
+		auto tmp3 = os_get_time();
 		this->phases->shutdown();
+		printf("\nTIME3: %8.6fs\n", os_time_stop(tmp3));
 		this->phases->print_metrics();
-	    printf("\nDone in %8.6fs\n", this->timer.stop());
+	    printf("Done in %8.6fs\n", os_time_stop(start));
 	}
 
 	void handle_compiler_events () {

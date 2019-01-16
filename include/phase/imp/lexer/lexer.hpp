@@ -5,7 +5,7 @@
 #include "compiler_events.hpp"
 #include "util/events.hpp"
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 
 #include <vector>
 
@@ -34,12 +34,12 @@
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 #define SIGN(c) (c == '+' || c == '-')
 
-struct Lexer : Async_Phase {
+struct Lexer : Phase {
 	uint64_t files_lexed = 0;
 	uint64_t lines_of_code = 0;
 	uint64_t token_count = 0;
 
-	Lexer () : Async_Phase("Lexer", CE_MODULE_RUN_LEXER) { /* empty */ }
+	Lexer () : Phase("Lexer", CE_MODULE_RUN_LEXER) { /* empty */ }
 
     void handle_main_event (void* data) {
 		auto absolute_path = reinterpret_cast<char*>(data);

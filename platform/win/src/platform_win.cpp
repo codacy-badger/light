@@ -5,6 +5,8 @@
 
 typedef uint64_t Timer_Function();
 
+#define TARGET_RESOLUTION 1         // 1-millisecond target resolution
+
 double query_clock_frequency () {
 	LARGE_INTEGER li;
 	if (!QueryPerformanceFrequency(&li)) {

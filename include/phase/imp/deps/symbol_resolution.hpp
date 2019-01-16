@@ -1,15 +1,15 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 #include "phase/ast_ref_navigator.hpp"
 
 #include "ast/ast_cloner.hpp"
 #include "compiler_events.hpp"
 
-struct Symbol_Resolution : Async_Phase, Ast_Ref_Navigator {
+struct Symbol_Resolution : Phase, Ast_Ref_Navigator {
     size_t symbols_resolved = 0;
 
-    Symbol_Resolution() : Async_Phase("Symbol Resolution", CE_MODULE_RESOLVE_SYMBOLS) { /* empty */ }
+    Symbol_Resolution() : Phase("Symbol Resolution", CE_MODULE_RESOLVE_SYMBOLS) { /* empty */ }
 
     void handle_main_event (void* data) {
         auto global_scope = reinterpret_cast<Ast_Scope*>(data);

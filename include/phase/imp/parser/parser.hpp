@@ -1,6 +1,6 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 
 #include "ast/ast.hpp"
 #include "ast/types.hpp"
@@ -14,7 +14,7 @@
 
 #define AST_NEW(T, ...) Ast_Factory::create<T>(&this->peek()->location, __VA_ARGS__)
 
-struct Parser : Async_Phase {
+struct Parser : Phase {
 	Ast_Scope* internal_scope = NULL;
 	Ast_Scope* current_scope = NULL;
 
@@ -25,9 +25,9 @@ struct Parser : Async_Phase {
 	size_t all_lines = 0;
 	double total_time = 0;
 
-	Parser () : Async_Phase("Parser", CE_MODULE_RUN_PARSER) { /* empty */ }
+	Parser () : Phase("Parser", CE_MODULE_RUN_PARSER) { /* empty */ }
 
-	void custom_start () {
+	void on_start () {
 		this->internal_scope = new Internal_Scope(
 			this->settings->target_arch, this->settings->target_os);
 	}

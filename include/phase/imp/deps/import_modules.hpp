@@ -1,6 +1,6 @@
 #pragma once
 
-#include "phase/async_phase.hpp"
+#include "phase/phase.hpp"
 #include "phase/ast_navigator.hpp"
 
 #include "compiler_events.hpp"
@@ -8,12 +8,12 @@
 #include <vector>
 #include <map>
 
-struct Import_Modules : Async_Phase, Ast_Navigator {
+struct Import_Modules : Phase, Ast_Navigator {
     std::map<Ast_Scope*, std::vector<Ast_Import*>> dependencies;
 
     size_t foreign_functions = 0;
 
-    Import_Modules() : Async_Phase("Import Modules", CE_MODULE_RESOLVE_IMPORTS) {
+    Import_Modules() : Phase("Import Modules", CE_MODULE_RESOLVE_IMPORTS) {
         this->bind(CE_MODULE_READY, &Import_Modules::on_module_ready, this);
     }
 
