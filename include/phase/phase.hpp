@@ -6,15 +6,12 @@
 
 #define print_extra_metric(name, type, value) printf("\t%-35s " type "\n", name, value)
 
-typedef std::function<void(void*)> ObserverStdFunction;
-
 struct Phase {
     const char* name = NULL;
 
     char prefix = '-';
     bool is_async = false;
 
-    std::map<size_t, ObserverStdFunction> function_map;
     Event_Queue* event_queue;
     size_t event_from_id = 0;
     size_t event_to_id = 0;
@@ -39,7 +36,7 @@ struct Phase {
     }
 
     void start (Compiler_Settings* settings) {
-        this->bind(this->event_from_id, &Phase::handle_main_event, this);
+        this->bind(this->event_from_id);
         if (this->is_async && settings->is_multithread) {
             this->thread = new std::thread(&Phase::async_run, this);
             this->is_async = true;
@@ -50,16 +47,12 @@ struct Phase {
 
     virtual void on_start (Compiler_Settings*) { /* empty */ }
 
-    virtual void handle_main_event (void* data) = 0;
-
     void async_run () {
         std::unique_lock<std::mutex> lock(mutex);
         while (this->keep_working) {
             if (!this->event_queue->empty()) {
                 this->is_working = true;
-                while (!this->event_queue->empty()) {
-                    this->handle_event(this->event_queue->pop());
-                }
+                this->process_events();
                 this->is_working = false;
             } else {
                 auto start = os_get_time();
@@ -70,14 +63,12 @@ struct Phase {
         }
     }
 
-    void handle_event (Event event) {
+    virtual void on_event (Event event) = 0;
+
+    void process_events () {
         auto start = os_get_time();
-        auto callback = this->function_map.find(event.id);
-        if (callback != this->function_map.end()) {
-            callback->second(event.data);
-        } else {
-            printf("Unexpected event: can't handle this!\n");
-            exit(1);
+        while (!this->event_queue->empty()) {
+            this->on_event(this->event_queue->pop());
         }
         this->work_time += os_time_stop(start);
     }
@@ -86,32 +77,19 @@ struct Phase {
         if (this->is_async) {
             return !this->is_working && this->event_queue->empty();
         } else {
-            if (!this->event_queue->empty()) {
-                while (!this->event_queue->empty()) {
-                    this->handle_event(this->event_queue->pop());
-                }
-                return false;
-            } else return true;
+            return this->event_queue->empty();
         }
     }
 
     void stop () {
         if (this->is_async && this->keep_working) {
             this->keep_working = false;
-            this->condition.notify_all();
+            this->condition.notify_one();
             this->thread->join();
         }
     }
 
-    template<typename T>
-    void bind (size_t event_id, void (T::*method)(void*), T* instance) {
-        static_assert(std::is_base_of<Phase, T>::value, "Not a sub-type of Phase");
-
-        this->bind(event_id, std::bind(method, instance, std::placeholders::_1));
-    }
-
-    void bind (size_t event_id, ObserverStdFunction observer_function) {
-        this->function_map[event_id] = observer_function;
+    void bind (size_t event_id) {
         Events::bind(event_id, this->event_queue);
     }
 

@@ -33,8 +33,9 @@ struct Compiler {
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
 		}
 
-		while (!this->is_all_work_done()) {
+		while (!this->phases->all_done()) {
 			this->handle_compiler_events();
+			this->phases->handle_sync_events();
 		}
 
 		this->phases->shutdown();
@@ -55,9 +56,5 @@ struct Compiler {
 				}
 			}
 		}
-	}
-
-	bool is_all_work_done () {
-		return this->phases->are_all_done() && this->event_queue.empty();
 	}
 };

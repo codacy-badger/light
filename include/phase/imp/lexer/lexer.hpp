@@ -40,8 +40,8 @@ struct Lexer : Phase {
 
 	Lexer () : Phase("Lexer", CE_MODULE_RUN_LEXER, true) { /* empty */ }
 
-    void handle_main_event (void* data) {
-		auto absolute_path = reinterpret_cast<char*>(data);
+    void on_event (Event event) {
+		auto absolute_path = reinterpret_cast<char*>(event.data);
 
 		auto scanner = Scanner(absolute_path);
 

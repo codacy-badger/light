@@ -11,8 +11,8 @@ struct Symbol_Resolution : Phase, Ast_Ref_Navigator {
 
     Symbol_Resolution() : Phase("Symbol Resolution", CE_MODULE_RESOLVE_SYMBOLS) { /* empty */ }
 
-    void handle_main_event (void* data) {
-        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
+    void on_event (Event event) {
+        auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
 
         Ast_Ref_Navigator::ast_handle(&global_scope);
 

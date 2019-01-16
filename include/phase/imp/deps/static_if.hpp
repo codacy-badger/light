@@ -10,8 +10,8 @@ struct Static_If : Phase, Ast_Navigator {
 
     Static_If() : Phase("Static If", CE_MODULE_RESOLVE_IFS) { /* empty */ }
 
-    void handle_main_event (void* data) {
-        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
+    void on_event (Event event) {
+        auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
 
         this->static_ifs_found = false;
         Ast_Navigator::ast_handle(global_scope);

@@ -23,7 +23,7 @@ struct Event_Queue {
         std::lock_guard<std::mutex> lock(this->mutex);
         this->wrapped.push(event);
         if (this->condition) {
-            this->condition->notify_all();
+            this->condition->notify_one();
         }
     }
 

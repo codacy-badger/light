@@ -22,8 +22,8 @@ struct Type_Checking : Phase, Ast_Navigator {
         this->target_arch = settings->target_arch;
     }
 
-    void handle_main_event (void* data) {
-        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
+    void on_event (Event event) {
+        auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
 
         Ast_Navigator::ast_handle(global_scope);
 

@@ -17,8 +17,8 @@ struct Run_Bytecode : Phase, Ast_Navigator {
 
     Run_Bytecode () : Phase("Run Bytecode", CE_BYTECODE_RUN, true) { /* empty */ }
 
-    void handle_main_event (void* data) {
-        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
+    void on_event (Event event) {
+        auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
 
         Ast_Navigator::ast_handle(global_scope);
 

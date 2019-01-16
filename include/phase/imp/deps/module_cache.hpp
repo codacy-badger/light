@@ -12,16 +12,25 @@ struct Module_Cache : Phase {
     std::vector<const char*> in_progress;
 
     Module_Cache() : Phase("Module Cache", CE_IMPORT_MODULE) {
-        this->bind(CE_MODULE_READY, &Module_Cache::on_module_ready, this);
+        this->bind(CE_MODULE_READY);
     }
 
-    void handle_main_event (void* data) {
-        auto absolute_path = reinterpret_cast<char*>(data);
+    void on_event (Event event) {
+        switch (event.id) {
+            case CE_IMPORT_MODULE: {
+                auto absolute_path = reinterpret_cast<char*>(event.data);
 
-        if (!this->cache.contains(absolute_path)) {
-            if (!this->is_in_progress(absolute_path)) {
-                this->add_in_progress(absolute_path);
-                this->push(absolute_path);
+                if (!this->cache.contains(absolute_path)) {
+                    if (!this->is_in_progress(absolute_path)) {
+                        this->add_in_progress(absolute_path);
+                        this->push(absolute_path);
+                    }
+                }
+                break;
+            }
+            case CE_MODULE_READY: {
+                this->on_module_ready(event.data);
+                break;
             }
         }
     }

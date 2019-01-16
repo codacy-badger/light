@@ -33,8 +33,8 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 
 	Generate_Bytecode () : Phase("Generate Bytecode", CE_BYTECODE_GENERATE, true) { /* empty */ }
 
-    void handle_main_event (void* data) {
-        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
+    void on_event (Event event) {
+        auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
 
         Ast_Navigator::ast_handle(global_scope);
 

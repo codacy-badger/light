@@ -15,21 +15,30 @@ struct Import_Modules : Phase, Ast_Navigator {
     size_t foreign_functions = 0;
 
     Import_Modules() : Phase("Import Modules", CE_MODULE_RESOLVE_IMPORTS, true) {
-        this->bind(CE_MODULE_READY, &Import_Modules::on_module_ready, this);
+        this->bind(CE_MODULE_READY);
     }
 
     void on_start (Compiler_Settings* settings) {
         this->initial_path = settings->initial_path;
     }
 
-    void handle_main_event (void* data) {
-        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
+    void on_event (Event event) {
+        switch (event.id) {
+            case CE_MODULE_RESOLVE_IMPORTS: {
+                auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
 
-        Ast_Navigator::ast_handle(global_scope);
+                Ast_Navigator::ast_handle(global_scope);
 
-        auto it = this->dependencies.find(global_scope);
-        if (it == this->dependencies.end()) {
-            this->push(global_scope);
+                auto it = this->dependencies.find(global_scope);
+                if (it == this->dependencies.end()) {
+                    this->push(global_scope);
+                }
+                break;
+            }
+            case CE_MODULE_READY: {
+                this->on_module_ready(event.data);
+                break;
+            }
         }
     }
 

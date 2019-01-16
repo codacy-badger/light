@@ -66,19 +66,20 @@ struct Compiler_Phases {
         this->phases.push_back(phase);
     }
 
-    void join () {
-        while (!this->are_all_done());
+    void handle_sync_events () {
+        for (auto phase : this->phases) {
+            if (!phase->is_async) {
+                phase->process_events();
+            }
+        }
     }
 
-    bool are_all_done () {
+    bool all_done () {
         bool all_done = true;
-        //printf("[ ");
         for (auto phase : this->phases) {
             auto is_done = phase->is_done();
             all_done &= is_done;
-            //printf("%d ", is_done);
         }
-        //printf("]\n");
         return all_done;
     }
 

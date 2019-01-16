@@ -12,8 +12,8 @@ struct Check_Dependencies : Phase, Ast_Navigator {
 
     Check_Dependencies() : Phase("Check Dependencies", CE_MODULE_CHECK_DEPENDENCIES) { /* empty */ }
 
-    void handle_main_event (void* data) {
-        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
+    void on_event (Event event) {
+        auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
 
         this->ast_handle(global_scope);
 

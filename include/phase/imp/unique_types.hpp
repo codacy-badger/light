@@ -16,8 +16,8 @@ struct Unique_Types : Phase, Ast_Ref_Navigator {
         this->type_table = type_table;
     }
 
-    void handle_main_event (void* data) {
-        auto global_scope = reinterpret_cast<Ast_Scope*>(data);
+    void on_event (Event event) {
+        auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
 
         Ast_Ref_Navigator::ast_handle(&global_scope);
 

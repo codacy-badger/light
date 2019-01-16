@@ -32,8 +32,8 @@ struct Parser : Phase {
 			settings->target_arch, settings->target_os);
 	}
 
-    void handle_main_event (void* data) {
-		this->tokens = reinterpret_cast<std::vector<Token>*>(data);
+    void on_event (Event event) {
+		this->tokens = reinterpret_cast<std::vector<Token>*>(event.data);
 		auto global_scope = this->build_ast();
 		delete this->tokens;
 
