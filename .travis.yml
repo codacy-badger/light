@@ -3,3 +3,5 @@ language: cpp
 
 script:
  - powershell cmd.exe /c '\platform\win\setup.bat'
+ - powershell cmd.exe /c '\platform\win\build.bat'
+ - powershell cmd.exe /c '\platform\win\test.bat'
