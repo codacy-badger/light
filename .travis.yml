@@ -2,6 +2,4 @@ os: windows
 language: cpp
 
 script:
- - .\platform\win\setup.bat
- - .\platform\win\build.bat
- - .\platform\win\test.bat
+ - powershell cmd.exe /c '\platform\win\setup.bat'
