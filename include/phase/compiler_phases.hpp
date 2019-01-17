@@ -88,8 +88,11 @@ struct Compiler_Phases {
     }
 
     void print_metrics () {
-        for (auto phase : this->phases) {
-            phase->print_metrics();
+        if (Logger::is_debug()) {
+            Logger::debug("Printing compiler phases metrics:");
+            for (auto phase : this->phases) {
+                phase->print_metrics();
+            }
         }
     }
 };

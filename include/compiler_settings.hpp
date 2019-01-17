@@ -5,10 +5,15 @@
 
 #include <vector>
 
-#define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\" (Ignored)"
+#define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\""
+#define UKNOWN_LOGGER_LEVEL "Unkown logger level at %d: \"%s\""
+#define UKNOWN_LOGGER_LEVEL_TIP "Use one of the following: VERBOSE, INFO, DEBUG, WARNING or ERROR"
 
 #define CHECK_ARG(arg) (strcmp(argv[i], arg) == 0)
 #define CHECK_ARG_2(arg_short, arg_long) (CHECK_ARG(arg_short) || CHECK_ARG(arg_long))
+
+#define WARN(msg) Logger::warning(msg, i, argv[i])
+#define WARN_TIP(msg, tip) WARN(msg "\n\t" tip)
 
 struct Compiler_Settings {
 	std::vector<char*> input_files;
@@ -38,7 +43,12 @@ struct Compiler_Settings {
     				this->is_debug = true;
     			} else if (CHECK_ARG_2("-mt", "-multithread")) {
     				this->is_multithread = true;
-    			} else Logger::warning(UKNOWN_ARG_FORMAT, i, argv[i]);
+    			} else if (CHECK_ARG_2("-l", "-log")) {
+					auto requested_log_level = Logger::get_level_by_string(argv[++i]);
+					if (requested_log_level == LOG_LEVEL_UNDEFINED) {
+						WARN_TIP(UKNOWN_LOGGER_LEVEL, UKNOWN_LOGGER_LEVEL_TIP);
+					} else Logger::current_level = requested_log_level;
+    			} else WARN(UKNOWN_ARG_FORMAT);
     		} else {
     			auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
     			os_get_absolute_path(argv[i], absolute_path);

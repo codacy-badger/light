@@ -1,5 +1,5 @@
 @echo off
 
 cd examples
-..\bin\light -mt test.li
+..\bin\light -l WARNING test.li
 cd ..

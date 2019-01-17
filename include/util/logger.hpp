@@ -11,12 +11,16 @@
 #include <mutex>
 
 enum Log_Level : uint8_t {
+    LOG_LEVEL_UNDEFINED = 0,
+
     LOG_LEVEL_VERBOSE,
     LOG_LEVEL_INFO,
     LOG_LEVEL_DEBUG,
     LOG_LEVEL_WARNING,
     LOG_LEVEL_ERROR,
     LOG_LEVEL_INTERNAL,
+
+    LOG_LEVEL_NONE,
 };
 
 #define LEVEL_ALIAS(name, level) static void                                    \
@@ -38,38 +42,40 @@ enum Log_Level : uint8_t {
     va_end(argptr); }
 
 struct Logger {
-    static FILE* log (Log_Level level, const char* format, va_list argptr) {
-        return Logger::log(level, (Location*)NULL, format, argptr);
+    static Log_Level current_level;
+
+    static void log (Log_Level level, const char* format, va_list argptr) {
+        Logger::log(level, (Location*)NULL, format, argptr);
     }
 
-    static FILE* log (Log_Level level, Ast* node, const char* format, va_list argptr) {
+    static void log (Log_Level level, Ast* node, const char* format, va_list argptr) {
         if (node != NULL) {
-            return Logger::log(level, &node->location, format, argptr);
+            Logger::log(level, &node->location, format, argptr);
         } else {
-            return Logger::log(level, format, argptr);
+            Logger::log(level, format, argptr);
         }
     }
 
-    static FILE* log (Log_Level level, Location* location, const char* format, va_list argptr) {
-        auto output = Logger::get_output_buffer(level);
+    static void log (Log_Level level, Location* location, const char* format, va_list argptr) {
+        if (Logger::should_print(level)) {
+            auto output = Logger::get_output_buffer(level);
 
-        static std::mutex mutex;
-        std::lock_guard<std::mutex> lock(mutex);
+            static std::mutex mutex;
+            std::lock_guard<std::mutex> lock(mutex);
 
-        fprintf(output, "[%s] ", Logger::get_level_string(level));
-        vfprintf(output, format, argptr);
-    	fprintf(output, "\n");
+            fprintf(output, "[%s] ", Logger::get_level_string(level));
+            vfprintf(output, format, argptr);
+        	fprintf(output, "\n");
 
-        if (location) {
-    		if (location->filename) {
-    			fprintf(output, "\t@ %s", location->filename);
-                if (location->line > 0) {
-        			fprintf(output, ":%zd\n", location->line);
-        		} else fprintf(output, "\n");
-    		} else fprintf(output, "\t@ UNDEFINED\n");
-    	}
-
-        return output;
+            if (location) {
+        		if (location->filename) {
+        			fprintf(output, "\t@ %s", location->filename);
+                    if (location->line > 0) {
+            			fprintf(output, ":%zd\n", location->line);
+            		} else fprintf(output, "\n");
+        		} else fprintf(output, "\t@ UNDEFINED\n");
+        	}
+        }
     }
 
     LEVEL_ALIAS(verbose,    LOG_LEVEL_VERBOSE)
@@ -117,6 +123,12 @@ struct Logger {
         Logger::stop_compilation();
     }
 
+    static bool should_print (Log_Level level) {
+        return Logger::current_level <= level;
+    }
+
+    static bool is_debug () { return Logger::should_print(LOG_LEVEL_DEBUG); }
+
     static const char* get_level_string (Log_Level level) {
         switch (level) {
             case LOG_LEVEL_VERBOSE:     return "VERBOSE";
@@ -127,6 +139,16 @@ struct Logger {
             case LOG_LEVEL_INTERNAL:    return "INTERNAL";
             default:                    return "?";
         }
+    }
+
+    static Log_Level get_level_by_string (const char* level_string) {
+        if (strcmp(level_string, "VERBOSE") == 0)   return LOG_LEVEL_VERBOSE;
+        if (strcmp(level_string, "INFO") == 0)      return LOG_LEVEL_INFO;
+        if (strcmp(level_string, "DEBUG") == 0)     return LOG_LEVEL_DEBUG;
+        if (strcmp(level_string, "WARNING") == 0)   return LOG_LEVEL_WARNING;
+        if (strcmp(level_string, "ERROR") == 0)     return LOG_LEVEL_ERROR;
+        if (strcmp(level_string, "INTERNAL") == 0)  return LOG_LEVEL_INTERNAL;
+        return LOG_LEVEL_UNDEFINED;
     }
 
     static FILE* get_output_buffer (Log_Level level) {

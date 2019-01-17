@@ -10,8 +10,7 @@ struct Compiler {
 	Compiler_Settings settings;
 	Compiler_Phases* phases;
 
-	// @TODO @FIXME this property should not exists, it makes everything
-	// harder to reason about and complicates debugging
+	// @TODO @FIXME NO NO NO, bad programmer, don't be bad!
 	static Compiler* inst;
 
 	Event_Queue event_queue;
@@ -40,7 +39,7 @@ struct Compiler {
 
 		this->phases->shutdown();
 		this->phases->print_metrics();
-	    printf("\nDone in %8.6fs\n", os_time_stop(start));
+	    printf("Done in %8.6fs\n", os_time_stop(start));
 	}
 
 	void handle_compiler_events () {

@@ -37,15 +37,12 @@ struct Parser : Phase {
 
 		this->lexer.set_input_file(absolute_path);
 
-		/*auto token = this->lexer.peek();
-		while (token->type != TOKEN_EOF) {
-			printf("TOKEN: %s\n", Token::to_string(token->type));
-			token = this->lexer.next();
-		}
-		printf("LAST: %s\n", Token::to_string(token->type));*/
+		auto start = os_get_time();
 
 		this->push(this->build_ast());
 		this->run_count++;
+
+		Logger::debug("Parsed '%s' (%fs)", absolute_path, os_time_stop(start));
     }
 
 	Ast_Scope* build_ast () {
