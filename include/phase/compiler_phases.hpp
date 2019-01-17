@@ -15,6 +15,7 @@
 #include "imp/unique_types.hpp"
 #include "imp/check/type_checking.hpp"
 #include "imp/check/check_dependencies.hpp"
+#include "imp/array_attributes.hpp"
 #include "imp/bytecode/generate_bytecode.hpp"
 #include "imp/bytecode/run_bytecode.hpp"
 
@@ -42,11 +43,12 @@ struct Compiler_Phases {
         this->add_phase<Static_If>();
 
         this->add_phase<Check_Dependencies>();
-        this->add_phase<Unique_Types>(this->type_table);
-        this->add_phase<Type_Checking>();
+        //this->add_phase<Array_Attributes>();
+        //this->add_phase<Unique_Types>(this->type_table);
+        //this->add_phase<Type_Checking>();
 
-        this->add_phase<Generate_Bytecode>();
-        this->add_phase<Run_Bytecode>();
+        //this->add_phase<Generate_Bytecode>();
+        //this->add_phase<Run_Bytecode>();
     }
 
     template<typename T, typename... Args>

@@ -309,7 +309,7 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 					auto base_name = _get_type_name(_arr->base);
 	        		auto base_name_length = strlen(base_name);
 					auto tmp = (char*) malloc(base_name_length + 23);
-					sprintf_s(tmp, base_name_length + 23, "[%lld]%s", _arr->get_length(), base_name);
+					sprintf_s(tmp, base_name_length + 23, "[%lld]%s", _arr->length_uint, base_name);
                     _arr->name = tmp;
 	        	}
 				break;

@@ -58,7 +58,7 @@ struct Types {
                     auto arr_type1 = static_cast<Ast_Array_Type*>(type_inst1);
                     auto arr_type2 = static_cast<Ast_Array_Type*>(type_inst2);
 
-                    if (arr_type1->get_length() != arr_type2->get_length()) return false;
+                    if (arr_type1->length_uint != arr_type2->length_uint) return false;
 
                     auto base_type1 = static_cast<Ast_Type_Instance*>(arr_type1->base);
                     auto base_type2 = static_cast<Ast_Type_Instance*>(arr_type2->base);
@@ -136,7 +136,7 @@ struct Types {
 					auto base_name = Types::get_name(_arr->base);
 	        		auto base_name_length = strlen(base_name);
 					auto tmp = (char*) malloc(base_name_length + 23);
-					sprintf_s(tmp, base_name_length + 23, "[%lld]%s", _arr->get_length(), base_name);
+					sprintf_s(tmp, base_name_length + 23, "[%lld]%s", _arr->length_uint, base_name);
                     return tmp;
     	        }
     	        case AST_TYPEDEF_FUNCTION: {

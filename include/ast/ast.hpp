@@ -347,23 +347,13 @@ struct Ast_Array_Type : Ast_Type_Instance {
 	Ast_Expression* base;
 	Ast_Expression* length;
 
-	uint64_t length_as_number = 0;
+	uint64_t length_uint = 0;
 
 	Ast_Array_Type(Ast_Expression* base = NULL, Ast_Expression* length = NULL) {
 		this->typedef_type = AST_TYPEDEF_ARRAY;
 		this->length = length;
 		this->base = base;
 	}
-
-	uint64_t get_length () {
-    	if (!this->length_as_number) {
-            if (this->length->exp_type == AST_EXPRESSION_LITERAL) {
-                auto literal = static_cast<Ast_Literal*>(this->length);
-                this->length_as_number = literal->uint_value;
-            }
-    	}
-    	return this->length_as_number;
-    }
 };
 
 struct Ast_Slice_Type : Ast_Struct_Type {

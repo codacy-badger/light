@@ -1,6 +1,10 @@
 #pragma once
 
+#include "util/logger.hpp"
+
 #include <stdint.h>
+
+#define CAPACITY_INCREMENT 256
 
 struct Bytecode_Constants {
     uint8_t* memory = NULL;
@@ -10,9 +14,15 @@ struct Bytecode_Constants {
     size_t add (const char* text) {
         auto length = strlen(text);
 
-        if ((this->index + length) > this->capacity) {
-            this->capacity *= 2;
-            realloc(this->memory, this->capacity);
+        while ((this->index + length) > this->capacity) {
+            this->capacity += CAPACITY_INCREMENT;
+
+            auto last_memory = this->memory;
+            this->memory = (uint8_t*) realloc(this->memory, this->capacity);
+            if (last_memory != NULL && this->memory != last_memory) {
+                Logger::debug("Realloc memory copy triggered: [ %zd / %zd ]",
+                    this->index, this->capacity);
+            }
         }
 
         memcpy(memory + index, text, length);

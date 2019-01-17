@@ -50,12 +50,12 @@ struct Internal_Scope : Ast_Scope {
     }
 
     void add_boolean (const char* name, bool value) {
-        auto literal = Ast_Factory::literal(value);
+        auto literal = Ast_Factory::literal(internal_location, value);
         this->add(Ast_Factory::declaration(internal_location, name, literal->inferred_type, literal));
     }
 
     void add_uint (const char* name, uint64_t value) {
-        auto literal = Ast_Factory::literal(value);
+        auto literal = Ast_Factory::literal(internal_location, value);
         this->add(Ast_Factory::declaration(internal_location, name, literal->inferred_type, literal));
     }
 };

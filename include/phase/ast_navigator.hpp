@@ -250,6 +250,6 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_Array_Type* arr) {
 		this->ast_handle(arr->base);
-		if (arr->length) this->ast_handle(arr->length);
+		this->ast_handle(arr->length);
 	}
 };

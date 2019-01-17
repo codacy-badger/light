@@ -207,7 +207,7 @@ struct Type_Inference : Phase, Ast_Navigator {
                 }
                 case AST_BINARY_ASSIGN: {
                     Ast_Navigator::ast_handle(binop->rhs);
-                    binop->inferred_type = binop->rhs->inferred_type;
+                    binop->inferred_type = Types::type_void;
                     break;
                 }
                 default: {

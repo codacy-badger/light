@@ -129,7 +129,7 @@ struct Constant_Folding {
 			if (binary->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 				auto arr_type = static_cast<Ast_Array_Type*>(binary->lhs->inferred_type);
 				if (strcmp(ident->name, "length") == 0) {
-					auto lit = ast_make_literal(arr_type->get_length());
+					auto lit = ast_make_literal(arr_type->length_uint);
 					lit->inferred_type = Types::type_u64;
 					lit->location = binary->location;
 

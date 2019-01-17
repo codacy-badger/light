@@ -26,7 +26,7 @@ struct Compiler {
 
 	void compile_input_files () {
 		auto start = os_get_time();
-		printf("%s v%s\n\n", LIGHT_NAME, LIGHT_VERSION);
+		Logger::info(LIGHT_NAME " v" LIGHT_VERSION "\n\n");
 
 		for (auto &absolute_path : this->settings.input_files) {
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);

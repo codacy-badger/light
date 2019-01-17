@@ -47,21 +47,21 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		this->instruction_count += 1;
 	}
 
-	void handle (const char*) { /* Notes don't produce any bytecode by themselves */ }
+	void ast_handle (const char*) { /* Notes don't produce any bytecode by themselves */ }
 
-    void handle (Ast_Statement* stm) {
+    void ast_handle (Ast_Statement* stm) {
 		this->is_left_value = false;
 		Ast_Navigator::ast_handle(stm);
 		//this->clear_registers();
 	}
 
-	void handle (Ast_Scope* scope) {
+	void ast_handle (Ast_Scope* scope) {
 		for (auto stm : scope->statements) {
-			this->handle(stm);
+			this->ast_handle(stm);
 		}
 	}
 
-	void handle (Ast_Return* ret) {
+	void ast_handle (Ast_Return* ret) {
 	    Ast_Navigator::ast_handle(ret);
 
 		if (ret->expression) {
@@ -70,7 +70,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		} else INST(ret, Return);
 	}
 
-	void handle (Ast_If* _if) {
+	void ast_handle (Ast_If* _if) {
 		Ast_Navigator::ast_handle(_if->condition);
 
 		auto inst = new Inst_Jump_If_False(_if->condition->reg);
@@ -90,7 +90,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		}
 	}
 
-	void handle (Ast_While* _while) {
+	void ast_handle (Ast_While* _while) {
 		auto index1 = this->bytecode->size();
 
 		Ast_Navigator::ast_handle(_while->condition);
@@ -109,7 +109,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		this->update_pending_breaks();
 	}
 
-	void handle (Ast_Break* _break) {
+	void ast_handle (Ast_Break* _break) {
 		auto jump = new Inst_Jump();
 		this->add_instruction(_break, jump);
 		this->pending_breaks.push_back(jump);
@@ -140,7 +140,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 				}
 	        }
 
-			this->handle(func->scope);
+			this->ast_handle(func->scope);
 
 			if (func->type->ret_type == Types::type_void) {
 				if (this->bytecode->size() == 0) {
@@ -157,7 +157,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		}
 	}
 
-    void handle (Ast_Declaration* decl) {
+    void ast_handle (Ast_Declaration* decl) {
 	    if (decl->is_constant) {
 			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 	            auto func = static_cast<Ast_Function*>(decl->expression);
@@ -193,7 +193,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		}
 	}
 
-	void handle (Ast_Expression* exp) {
+	void ast_handle (Ast_Expression* exp) {
 		if (this->is_left_value != false) {
 			auto tmp = this->is_left_value;
 			this->is_left_value = false;
@@ -202,7 +202,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		} else Ast_Navigator::ast_handle(exp);
 	}
 
-	void handle_left (Ast_Expression* exp) {
+	void ast_handle_left (Ast_Expression* exp) {
 		if (this->is_left_value != true) {
 			auto tmp = this->is_left_value;
 			this->is_left_value = true;
@@ -211,18 +211,18 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		} else Ast_Navigator::ast_handle(exp);
 	}
 
-	void handle (Ast_Run* run) {
+	void ast_handle (Ast_Run* run) {
 		if (run->bytecode.size() == 0) {
 	        auto _tmp = this->bytecode;
 	        this->bytecode = &run->bytecode;
 
-			this->handle(run->expression);
+			this->ast_handle(run->expression);
 
 	        this->bytecode = _tmp;
 		}
 	}
 
-	void handle (Ast_Cast* cast) {
+	void ast_handle (Ast_Cast* cast) {
 		Ast_Navigator::ast_handle(cast->value);
 
 		auto type_from = bytecode_get_type(cast->value->inferred_type);
@@ -234,7 +234,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		}
 	}
 
-	void handle (Ast_Unary* unop) {
+	void ast_handle (Ast_Unary* unop) {
 		switch (unop->unary_op) {
 			case AST_UNARY_NOT: {
 				Ast_Navigator::ast_handle(unop->exp);
@@ -255,7 +255,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 				break;
 			}
 			case AST_UNARY_REFERENCE: {
-				this->handle_left(unop->exp);
+				this->ast_handle_left(unop->exp);
 				break;
 			}
 	        case AST_UNARY_DEREFERENCE: {
@@ -269,10 +269,10 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		}
 	}
 
-	void handle (Ast_Binary* binop) {
+	void ast_handle (Ast_Binary* binop) {
 		switch (binop->binary_op) {
 			case AST_BINARY_ATTRIBUTE: {
-	        	this->handle_left(binop->lhs);
+	        	this->ast_handle_left(binop->lhs);
 
 				if (binop->reg != binop->lhs->reg) {
 					INST(binop, Copy, binop->reg, binop->lhs->reg);
@@ -303,7 +303,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 			}
 			case AST_BINARY_SUBSCRIPT: {
 				if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
-		        	this->handle_left(binop->lhs);
+		        	this->ast_handle_left(binop->lhs);
 
 					Ast_Navigator::ast_handle(binop->rhs);
 
@@ -328,7 +328,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 							auto array_base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 				            auto element_size = array_base_type->byte_size;
 
-				        	this->handle_left(binop->lhs);
+				        	this->ast_handle_left(binop->lhs);
 							INST(binop, Add_Const, binop->reg, binop->lhs->reg, data_decl->attribute_byte_offset);
 							INST(binop, Load, binop->reg, binop->reg, ptr_type->byte_size);
 
@@ -344,7 +344,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 						} else abort();
 					} else Logger::error(binop->lhs, "Struct is not a slice");
 				} else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
-		        	this->handle_left(binop->lhs);
+		        	this->ast_handle_left(binop->lhs);
 
 					Ast_Navigator::ast_handle(binop->rhs);
 
@@ -366,7 +366,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 	            auto size = binop->rhs->inferred_type->byte_size;
 				Ast_Navigator::ast_handle(binop->rhs);
 
-	        	this->handle_left(binop->lhs);
+	        	this->ast_handle_left(binop->lhs);
 
 				auto ident = static_cast<Ast_Ident*>(binop->lhs);
 				if (binop->lhs->exp_type == AST_EXPRESSION_IDENT && !ident->declaration->is_spilled) {
@@ -394,7 +394,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		}
 	}
 
-	void handle (Ast_Literal* lit) {
+	void ast_handle (Ast_Literal* lit) {
 		switch (lit->literal_type) {
 			case AST_LITERAL_SIGNED_INT:
 			case AST_LITERAL_UNSIGNED_INT: {
@@ -421,7 +421,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		}
 	}
 
-	void handle (Ast_Ident* ident) {
+	void ast_handle (Ast_Ident* ident) {
 		if (ident->declaration->is_spilled) {
 			if (this->current_scope->is_global()) {
 				INST(ident, Global_Offset, ident->reg, ident->declaration->bytecode_stack_offset);
@@ -435,7 +435,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		}
 	}
 
-    void handle (Ast_Function* func) {
+    void ast_handle (Ast_Function* func) {
 		if (func->is_native()) {
 			INST(func, Set, func->reg, BYTECODE_TYPE_POINTER, &func->foreign_function_pointer);
 		} else {
@@ -443,7 +443,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		}
 	}
 
-	void handle (Ast_Function_Call* call) {
+	void ast_handle (Ast_Function_Call* call) {
 		Ast_Navigator::ast_handle(call->arguments);
 
 		// TODO: move this to its own handler function

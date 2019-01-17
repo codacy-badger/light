@@ -63,7 +63,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 
 	void ast_handle (Ast_Declaration* decl) {
 		if (decl->expression) {
-			Ast_Navigator::ast_handle(decl->expression);
+			this->ast_handle(decl->expression);
 
 			if (decl->type) {
 				auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
@@ -95,7 +95,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 
 		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->type->ret_type);
 		if (ret->expression) {
-			Ast_Navigator::ast_handle(ret->expression);
+			this->ast_handle(ret->expression);
 
 			if (fn->type->ret_type == Types::type_void) {
 				Logger::error_and_stop(ret, "Return statment has expression, but function returns void");
@@ -108,6 +108,13 @@ struct Type_Checking : Phase, Ast_Navigator {
 					ret_type_def->name);
 		}
 	}
+
+    void ast_handle (Ast_Expression* exp) {
+        if (exp->inferred_type) {
+            Ast_Navigator::ast_handle(exp->inferred_type);
+        }
+        Ast_Navigator::ast_handle(exp);
+    }
 
 	void ast_handle (Ast_Struct_Type* _struct) {
 		Ast_Navigator::ast_handle(_struct);
@@ -136,18 +143,17 @@ struct Type_Checking : Phase, Ast_Navigator {
 	}
 
 	void ast_handle (Ast_Array_Type* arr) {
-		Ast_Navigator::ast_handle(arr->base);
-		Ast_Navigator::ast_handle(arr->length);
+		Ast_Navigator::ast_handle(arr);
 
 		if (arr->length->exp_type == AST_EXPRESSION_LITERAL) {
 			auto lit = static_cast<Ast_Literal*>(arr->length);
-			if (lit->literal_type != AST_LITERAL_UNSIGNED_INT) {
-				Logger::error_and_stop(arr, "Arrays size must be an unsigned integer");
-			}
+			if (lit->literal_type == AST_LITERAL_UNSIGNED_INT) {
+				arr->length_uint = lit->uint_value;
+			} else Logger::error_and_stop(arr, "Arrays size must be an unsigned integer");
 		} else Logger::error_and_stop(arr, "Arrays can only have constant size");
 
 		auto type_def = static_cast<Ast_Type_Instance*>(arr->base);
-		arr->byte_size = arr->get_length() * type_def->byte_size;
+		arr->byte_size = arr->length_uint * type_def->byte_size;
 	}
 
 	void ast_handle (Ast_Function_Call* call) {
@@ -160,7 +166,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 		for (int i = 0; i < call->arguments->unnamed.size(); i++) {
 			if (i >= func_type->arg_decls.size()) break;
 
-			Ast_Navigator::ast_handle(call->arguments->unnamed[i]);
+			this->ast_handle(call->arguments->unnamed[i]);
 			auto param_exp = call->arguments->unnamed[i];
 			assert(param_exp->inferred_type);
 
@@ -169,7 +175,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 		}
 
 		for (auto entry : call->arguments->named) {
-			Ast_Navigator::ast_handle(entry.second);
+			this->ast_handle(entry.second);
 
 			auto decl = func_type->get_declaration(entry.first);
 			auto arg_type = static_cast<Ast_Type_Instance*>(decl->type);
@@ -227,7 +233,10 @@ struct Type_Checking : Phase, Ast_Navigator {
 			}
 			case AST_UNARY_REFERENCE: {
 	            if (unop->exp->exp_type == AST_EXPRESSION_LITERAL) {
-                    Logger::error_and_stop(unop, "Literal expression cannot be referenced (*)");
+                    auto literal = static_cast<Ast_Literal*>(unop->exp);
+                    if (literal->literal_type != AST_LITERAL_STRING) {
+                        Logger::error_and_stop(unop, "Literal value cannot be referenced");
+                    }
 	            }
 	            break;
 			}
