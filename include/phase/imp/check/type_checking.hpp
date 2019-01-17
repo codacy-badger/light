@@ -10,6 +10,8 @@
 
 #include "util/logger.hpp"
 
+#include <assert.h>
+
 struct Type_Checking : Phase, Ast_Navigator {
     Arch* target_arch;
 

@@ -6,7 +6,6 @@
 #include "bytecode/constants.hpp"
 #include "bytecode/globals.hpp"
 
-#include "imp/lexer/lexer.hpp"
 #include "imp/parser/parser.hpp"
 #include "imp/deps/module_cache.hpp"
 #include "imp/deps/static_if.hpp"
@@ -35,7 +34,6 @@ struct Compiler_Phases {
 
         this->add_phase<Module_Cache>();
 
-        this->add_phase<Lexer>();
         this->add_phase<Parser>();
 
         this->add_phase<Import_Modules>();

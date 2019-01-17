@@ -3,6 +3,7 @@
 #include "phase/pipeline/pipe.hpp"
 
 #include <vector>
+#include <assert.h>
 
 struct Register_State {
     Ast_Declaration* decl = NULL;

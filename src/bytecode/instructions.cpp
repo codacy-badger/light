@@ -2,6 +2,8 @@
 
 #include "compiler.hpp"
 
+#include <assert.h>
+
 Bytecode_Type bytecode_get_type (Ast_Type_Instance* decl_ty) {
 	assert(decl_ty != NULL);
 	switch (decl_ty->typedef_type) {

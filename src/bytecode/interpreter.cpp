@@ -6,6 +6,8 @@
 #include "bytecode/primitive_unary.hpp"
 #include "bytecode/primitive_binary.hpp"
 
+#include <assert.h>
+
 #define CLEAR(reg) memset(this->registers[reg], 0, INTERP_REGISTER_SIZE)
 #define MOVE_SIZE(a, b, size) memcpy((void*)(a), (void*)(b), size)
 #define MOVE(a, b) MOVE_SIZE(a, b, INTERP_REGISTER_SIZE)

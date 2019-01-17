@@ -71,17 +71,24 @@ enum Token_Type : uint8_t {
 };
 
 struct Token {
-	Location location;
+	size_t line;
+	size_t cursor_begin;
+	size_t cursor_end;
 
     Token_Type type;
     const char* text;
 	size_t length;
 
-	Token (Location* location, Token_Type type, const char* text = NULL, size_t text_length = 0) {
-		this->location = (*location);
+	Token (Token_Type type = TOKEN_EOF, const char* text = NULL, size_t text_length = 0) {
 		this->length = text_length;
 		this->type = type;
 		this->text = text;
+	}
+
+	bool equal (const char* other, size_t other_length) {
+		if (this->length == other_length) {
+			return strncmp(this->text, other, other_length) == 0;
+		} else return false;
 	}
 
 	char* copy_text () {
@@ -95,7 +102,7 @@ struct Token {
 		switch (type) {
 			case TOKEN_EOF:				return "<EOF>";
 
-			case TOKEN_ID:				return "<identifier>";
+			case TOKEN_ID:				return "<ident>";
 			case TOKEN_NUMBER:			return "<number>";
 			case TOKEN_STRING:			return "<string>";
 

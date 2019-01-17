@@ -5,7 +5,6 @@ enum Compiler_Events : size_t {
 
     CE_IMPORT_MODULE,
 
-    CE_MODULE_RUN_LEXER,
     CE_MODULE_RUN_PARSER,
 
     CE_MODULE_RESOLVE_IMPORTS,

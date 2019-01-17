@@ -141,14 +141,3 @@ struct Logger {
         Events::trigger(CE_COMPILER_ERROR);
     }
 };
-
-#ifndef CUSTOM_DEBUG
-#define assert(condition) /* empty */
-#else
-#define assert(condition)   __pragma(warning(push))                             \
-                            __pragma(warning(disable:4127))					    \
-                            if (!(condition)) { Logger::error(		            \
-                                "Assertion failed: %s\n\t@ %s, line %d",        \
-                                #condition, __FILE__, __LINE__); }              \
-                            __pragma(warning(pop))
-#endif

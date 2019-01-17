@@ -5,9 +5,10 @@
 
 struct Ast_Factory {
     template<typename T, typename ... Arguments>
-    static T* create (Location* loc, Arguments ... args) {
+    static T* create (Lexer* lexer, Arguments ... args) {
         auto node = new T(args...);
-        node->location = (*loc);
+        node->location.filename = lexer->scanner.absolute_path;
+        node->location.line = lexer->scanner.current_line;
         return node;
     }
 

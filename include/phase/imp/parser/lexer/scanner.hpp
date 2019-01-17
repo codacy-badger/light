@@ -6,73 +6,67 @@
 #include <string.h>
 
 struct Scanner {
-	Location location;
+	const char* absolute_path;
+	size_t current_line;
+	size_t current_col;
 
-    const char* source;
-    size_t source_length;
+    const char* data;
+    size_t data_length;
     size_t index = 0;
 
-    Scanner (const char* absolute_path) {
-        this->location.filename = absolute_path;
-        this->location.line = 1;
+	errno_t set_input_file (const char* _absolute_path) {
+		this->absolute_path = _absolute_path;
+		this->current_line = 1;
+		this->current_col = 1;
+		this->index = 0;
 
         FILE* file = NULL;
-        auto err = fopen_s(&file, absolute_path, "r");
-        if (err) {
-            char buffer[256];
-            strerror_s(buffer, sizeof buffer, err);
-            Logger::error("Cannot open file '%s': %s", absolute_path, buffer);
-        }
+        auto err = fopen_s(&file, _absolute_path, "r");
+        if (err != 0) return err;
 
         fseek(file, 0L, SEEK_END);
-        this->source_length = ftell(file);
+        this->data_length = ftell(file);
         rewind(file);
 
         // @TODO @Incomplete check if the calloc call suceeded
-        this->source = (char*) calloc(this->source_length, 1);
+        this->data = (char*) calloc(this->data_length, 1);
 
         // @TODO @Incomplete check if we need to make the buffer bigger
-        auto size = fread((void*) this->source, 1, this->source_length, file);
+        auto size = fread((void*) this->data, 1, this->data_length, file);
         while (!feof(file)) {
-            size += fread((void*) (this->source + size), 1, this->source_length, file);
+            size += fread((void*) (this->data + size), 1, this->data_length, file);
         }
 
 		fclose(file);
-    }
-
-	inline
-	const char* ref () {
-		return this->source + this->index;
+		return 0;
 	}
 
-	inline
+	const char* ref () {
+		return this->data + this->index;
+	}
+
 	char next () {
-        auto c = this->source[this->index++];
+        auto c = this->data[this->index++];
         this->handle_location(c);
         return c;
     }
 
-	inline
 	bool has_next () {
-        return this->index < this->source_length;
+        return this->index < this->data_length;
     }
 
-	inline
 	char peek (size_t offset = 0) {
-        return this->source[this->index + offset];
+        return this->data[this->index + offset];
     }
 
-	inline
     bool is_next (char c) {
-    	return this->source[this->index] == c;
+    	return this->data[this->index] == c;
     }
 
-	inline
     bool is_next (const char* expected) {
     	return this->is_next(expected, strlen(expected));
     }
 
-	inline
     bool is_next (const char* expected, size_t length) {
     	for (size_t i = 0; i < length; i++) {
             if (this->peek(i) != expected[i])
@@ -81,7 +75,6 @@ struct Scanner {
         return true;
     }
 
-	inline
     void skip (size_t count = 1) {
     	size_t i = 0;
     	while (this->has_next() && i < count) {
@@ -90,13 +83,11 @@ struct Scanner {
     	}
     }
 
-	inline
 	char skip_and_peek (size_t count = 1) {
     	this->skip(count);
 		return this->peek();
     }
 
-	inline
     void skip_any (const char* chars) {
     	while (this->has_next()) {
     		char _c = this->peek(0);
@@ -106,7 +97,6 @@ struct Scanner {
     	}
     }
 
-	inline
     void skip_until (const char* stopper) {
     	size_t i = 0;
     	while (this->has_next()) {
@@ -119,8 +109,10 @@ struct Scanner {
 
     void handle_location (char character) {
     	if (character == EOF) return;
+
     	if (character == '\n') {
-    		this->location.line += 1;
-    	}
+    		this->current_line += 1;
+			this->current_col = 1;
+    	} else this->current_col += 1;
     }
 };
