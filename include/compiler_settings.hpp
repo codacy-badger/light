@@ -5,6 +5,9 @@
 
 #include <vector>
 
+#define COMPILER_NAME "Light Compiler"
+#define COMPILER_VERSION "0.0.0"
+
 #define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\""
 #define UKNOWN_LOGGER_LEVEL "Unkown logger level at %d: \"%s\""
 #define UKNOWN_LOGGER_LEVEL_TIP "Use one of the following: VERBOSE, INFO, DEBUG, WARNING or ERROR"
@@ -22,7 +25,6 @@ struct Compiler_Settings {
 	char initial_path[MAX_PATH_LENGTH];
 
 	bool is_multithread = false;
-	bool is_verbose = false;
 	bool is_debug = false;
 
 	OS* target_os = OS::get_current_os();
@@ -37,8 +39,9 @@ struct Compiler_Settings {
     		if (argv[i][0] == '-') {
     			if (CHECK_ARG_2("-o", "-output")) {
     				this->output = argv[++i];
-    			} else if (CHECK_ARG_2("-v", "-verbose")) {
-    				this->is_verbose = true;
+    			} else if (CHECK_ARG_2("-v", "-version")) {
+					printf(COMPILER_NAME " v" COMPILER_VERSION "\n");
+					exit(0);
     			} else if (CHECK_ARG_2("-d", "-debug")) {
     				this->is_debug = true;
     			} else if (CHECK_ARG_2("-mt", "-multithread")) {

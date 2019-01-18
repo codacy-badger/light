@@ -42,7 +42,7 @@ struct Parser : Phase {
 		this->push(this->build_ast());
 		this->run_count++;
 
-		Logger::debug("Parsed '%s' (%fs)", absolute_path, os_time_stop(start));
+		Logger::debug("Parsed '%s' in %fs", absolute_path, os_time_stop(start));
     }
 
 	Ast_Scope* build_ast () {

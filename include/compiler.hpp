@@ -3,9 +3,6 @@
 #include "compiler_settings.hpp"
 #include "phase/compiler_phases.hpp"
 
-#define LIGHT_NAME "Light Compiler"
-#define LIGHT_VERSION "0.0.0"
-
 struct Compiler {
 	Compiler_Settings settings;
 	Compiler_Phases* phases;
@@ -17,7 +14,18 @@ struct Compiler {
 
 	Compiler (int argc = 0, char** argv = NULL) {
 		this->settings.handle_arguments(argc, argv);
+
+		Logger::debug(COMPILER_NAME " v" COMPILER_VERSION);
 		this->phases = new Compiler_Phases(&this->settings);
+
+		if (Logger::is_debug()) {
+			size_t async_count = 0;
+			for (auto phase : this->phases->phases) {
+				if (phase->is_async) async_count++;
+			}
+			Logger::debug("Compiler phases setup: %zd (%zd async)",
+				this->phases->phases.size(), async_count);
+		}
 
 		Compiler::inst = this;
 
@@ -26,7 +34,6 @@ struct Compiler {
 
 	void compile_input_files () {
 		auto start = os_get_time();
-		Logger::info(LIGHT_NAME " v" LIGHT_VERSION "\n\n");
 
 		for (auto &absolute_path : this->settings.input_files) {
 			Events::trigger(CE_IMPORT_MODULE, absolute_path);
