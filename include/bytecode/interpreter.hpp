@@ -48,7 +48,7 @@ struct Interpreter {
 	~Interpreter () { dcFree(this->vm); }
 
 	void run (Ast_Function* func) {
-		assert(func->bytecode.size() > 0);
+		if (!func->is_native()) assert(func->bytecode.size() > 0);
 
 		if (this->call_record) {
 			for (uint8_t i = 0; i < this->call_record->param_count; i++) {
@@ -65,9 +65,10 @@ struct Interpreter {
 		for (instruction_index = 0; instruction_index < instructions->size(); instruction_index++) {
 			auto inst = (*instructions)[instruction_index];
 
-			if (Logger::is_debug())
+			if (Logger::is_verbose())
 				this->print(inst);
 			this->run(inst);
+			this->dump();
 
 			if (inst->code == BYTECODE_RETURN) break;
 		}
@@ -100,11 +101,13 @@ struct Interpreter {
 				auto size = bytecode_get_size(set->bytecode_type);
 				CLEAR(set->reg);
 				MOVE_SIZE(this->registers[set->reg], set->data, size);
+				Logger::verbose("\tSet [%zd] -> %lld", set->reg, *set->data);
 				return;
 			}
 			case BYTECODE_CONSTANT_OFFSET: {
 				auto coff = static_cast<Inst_Constant_Offset*>(inst);
-				auto ptr = this->constants->memory[coff->offset];
+				assert(coff->offset < this->constants->index);
+				auto ptr = this->constants->memory + coff->offset;
 				MOVE(this->registers[coff->reg], &ptr);
 				return;
 			}
@@ -129,6 +132,7 @@ struct Interpreter {
 			}
 			case BYTECODE_STACK_OFFSET: {
 				auto stoff = static_cast<Inst_Stack_Offset*>(inst);
+				assert(stoff->offset >= 0);
 				uint8_t* value = this->stack + this->stack_base + stoff->offset;
 				MOVE(this->registers[stoff->reg], &value);
 				return;
@@ -138,6 +142,7 @@ struct Interpreter {
 				LOAD_REG(reg_value, deref->src);
 				CLEAR(deref->dest);
 				MOVE_SIZE(this->registers[deref->dest], reg_value, deref->size);
+				Logger::verbose("\tLoad [%zd] -> %lld", deref->dest, reg_value);
 				return;
 			}
 			case BYTECODE_STORE: {
@@ -204,7 +209,7 @@ struct Interpreter {
 				auto call_param = static_cast<Inst_Call_Param*>(inst);
 				this->call_record->set_param(call_param->param_index,
 					call_param->bytecode_type, &this->registers[call_param->reg_index]);
-				Logger::verbose("\tParameter value: %lld", *(this->registers[call_param->reg_index]));
+				Logger::verbose("\tParameter value: %lld", *((uint64_t*) this->registers[call_param->reg_index]));
 				return;
 			}
 			case BYTECODE_CALL: {
@@ -303,6 +308,7 @@ struct Interpreter {
 			}
 
 			if (bytecode_type != BYTECODE_TYPE_VOID) {
+				Logger::verbose("\tForeign function [%zd] -> %zd", reg_result, result);
 				memcpy(this->registers[reg_result], &result, INTERP_REGISTER_SIZE);
 			}
 		}

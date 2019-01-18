@@ -145,6 +145,7 @@ struct Ast_Declaration : Ast_Statement {
 	Ast_Expression* expression = NULL;
 
     bool is_constant = false;
+	Ast_Scope* scope = NULL;
 
 	// for struct property
 	size_t attribute_byte_offset = 0;
@@ -153,6 +154,8 @@ struct Ast_Declaration : Ast_Statement {
 	int64_t bytecode_global_offset = -1;
 	int64_t bytecode_stack_offset = -1;
 	bool is_spilled = true;
+
+	bool is_global () { return this->scope->is_global(); }
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 };
@@ -412,7 +415,7 @@ struct Ast_Function : Ast_Expression {
 
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 
-	bool is_native () { return this->foreign_function_pointer; }
+	bool is_native () { return !!this->foreign_function_name; }
 };
 
 enum Ast_Binary_Type {

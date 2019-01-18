@@ -11,6 +11,7 @@
 #include "bytecode/constants.hpp"
 #include "bytecode/globals.hpp"
 
+#include "platform.hpp"
 #include "util/logger.hpp"
 
 #define INST(node, name, ...) this->add_instruction(node, new Inst_##name(__VA_ARGS__));
@@ -421,8 +422,8 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 
 	void ast_handle (Ast_Ident* ident) {
 		if (ident->declaration->is_spilled) {
-			if (this->current_scope->is_global()) {
-				INST(ident, Global_Offset, ident->reg, ident->declaration->bytecode_stack_offset);
+			if (ident->declaration->is_global()) {
+				INST(ident, Global_Offset, ident->reg, ident->declaration->bytecode_global_offset);
 			} else {
 				INST(ident, Stack_Offset, ident->reg, ident->declaration->bytecode_stack_offset);
 			}
@@ -464,7 +465,8 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		if (call->func->exp_type == AST_EXPRESSION_FUNCTION) {
 			auto func = static_cast<Ast_Function*>(call->func);
 			if (func->is_native()) {
-				INST(call, Call_Const, (uint64_t) func->foreign_function_pointer, call->reg, ret_type);
+                auto foreign_function_pointer = this->get_foreign_function_pointer(func);
+				INST(call, Call_Const, (uint64_t) foreign_function_pointer, call->reg, ret_type);
 			} else {
 				INST(call, Call_Const, (uint64_t) func, call->reg, ret_type);
 			}
@@ -473,6 +475,22 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		    INST(call, Call, call->reg, call->func->reg, ret_type);
 		}
 	}
+
+    void* get_foreign_function_pointer (Ast_Function* func) {
+        if (func->foreign_function_pointer == NULL) {
+            auto module = os_get_module(func->foreign_module_name);
+            if (module != NULL) {
+                func->foreign_function_pointer = os_get_function(module, func->foreign_function_name);
+                if (!func->foreign_function_pointer) {
+                    Logger::error("Foreign function '%s' not found in module '%s'",
+                        func->foreign_function_name, func->foreign_module_name);
+                } else return func->foreign_function_pointer;
+            } else {
+                Logger::error("Foreign module '%s' not found!", func->foreign_module_name);
+            }
+            return NULL;
+        } else return func->foreign_function_pointer;
+    }
 
 	// @Incomplete @Fixme this will break for nested loops: inner loop will "resolve"
 	// the break already found in the outter loop. Break (& continue) STMs should be directly

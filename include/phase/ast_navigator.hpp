@@ -13,7 +13,7 @@ struct Ast_Navigator {
             auto scope_stms = &this->current_scope->statements;
 
             auto it = this->get_current_stm_location();
-            scope_stms->insert (it, stms->begin(), stms->end());
+            scope_stms->insert(it, stms->begin(), stms->end());
         }
     }
 

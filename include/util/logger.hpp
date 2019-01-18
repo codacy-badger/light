@@ -128,6 +128,7 @@ struct Logger {
     }
 
     static bool is_debug () { return Logger::should_print(LOG_LEVEL_DEBUG); }
+    static bool is_verbose () { return Logger::should_print(LOG_LEVEL_VERBOSE); }
 
     static const char* get_level_string (Log_Level level) {
         switch (level) {

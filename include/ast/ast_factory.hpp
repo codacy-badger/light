@@ -35,6 +35,7 @@ struct Ast_Factory {
         auto array_type = new Ast_Array_Type(base_type, length_literal);
         array_type->inferred_type = Types::type_type;
         array_type->location = base_type->location;
+        array_type->length_uint = length;
         return array_type;
     }
 

@@ -138,13 +138,11 @@ struct Type_Checking : Phase, Ast_Navigator {
 
 	void ast_handle (Ast_Pointer_Type* ptr) {
 		ptr->byte_size = this->target_arch->register_size;
-
 		Ast_Navigator::ast_handle(ptr);
 	}
 
 	void ast_handle (Ast_Function_Type* fn) {
 		fn->byte_size = this->target_arch->register_size;
-
 		Ast_Navigator::ast_handle(fn);
 	}
 
@@ -158,8 +156,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 			} else Logger::error_and_stop(arr, "Arrays size must be an unsigned integer");
 		} else Logger::error_and_stop(arr, "Arrays can only have constant size");
 
-		auto type_def = static_cast<Ast_Type_Instance*>(arr->base);
-		arr->byte_size = arr->length_uint * type_def->byte_size;
+		arr->byte_size = this->target_arch->register_size;
 	}
 
 	void ast_handle (Ast_Function_Call* call) {

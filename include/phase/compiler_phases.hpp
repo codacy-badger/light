@@ -48,8 +48,8 @@ struct Compiler_Phases {
         this->add_phase<Unique_Types>(this->type_table);
         this->add_phase<Type_Checking>();
 
-        this->add_phase<Register_Allocator>(this->interpreter);
-        this->add_phase<Generate_Bytecode>(this->interpreter->constants, this->interpreter->globals);
+        //this->add_phase<Register_Allocator>(this->interpreter);
+        //this->add_phase<Generate_Bytecode>(this->interpreter->constants, this->interpreter->globals);
         //this->add_phase<Run_Bytecode>(this->interpreter);
     }
 

@@ -209,6 +209,7 @@ struct Parser : Phase {
 
 		auto decl = AST_NEW(Ast_Declaration);
 		decl->name = this->copy_token_text_and_skip();
+		decl->scope = this->current_scope;
 
 		this->lexer.expect(TOKEN_COLON);
 		decl->type = this->type_instance();
