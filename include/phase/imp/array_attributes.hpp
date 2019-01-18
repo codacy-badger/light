@@ -18,7 +18,7 @@ struct Array_Attributes : Phase, Ast_Ref_Navigator {
         this->push(global_scope);
     }
 
-    void unique (Ast_Binary** binop_ptr) {
+    void ast_handle (Ast_Binary** binop_ptr) {
         auto binop = (*binop_ptr);
 
         if (binop->binary_op == AST_BINARY_ATTRIBUTE) {
@@ -33,6 +33,6 @@ struct Array_Attributes : Phase, Ast_Ref_Navigator {
                     (*binop_ptr) = (Ast_Binary*) Ast_Factory::literal(binop->location, array_type->length_uint);
                 }
             }
-        }
+        } else Ast_Ref_Navigator::ast_handle(binop_ptr);
     }
 };

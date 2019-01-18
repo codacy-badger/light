@@ -1,5 +1,5 @@
 @echo off
 
 cd examples
-..\bin\light -l DEBUG test.li
+..\bin\light -l VERBOSE test.li
 cd ..

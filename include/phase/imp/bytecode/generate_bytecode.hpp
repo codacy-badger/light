@@ -16,8 +16,8 @@
 #define INST(node, name, ...) this->add_instruction(node, new Inst_##name(__VA_ARGS__));
 
 struct Generate_Bytecode : Phase, Ast_Navigator {
-    Bytecode_Constants* constants = new Bytecode_Constants();
-    Bytecode_Globals* globals = new Bytecode_Globals();
+    Bytecode_Constants* constants;
+    Bytecode_Globals* globals;
 
 	Ast_Declaration* reg_declarations[INTERP_REGISTER_SIZE] = {};
 	bool reserved[INTERP_REGISTER_SIZE] = {};
@@ -31,7 +31,11 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 	// for metrics
 	size_t instruction_count = 0;
 
-	Generate_Bytecode () : Phase("Generate Bytecode", CE_BYTECODE_GENERATE, true) { /* empty */ }
+	Generate_Bytecode (Bytecode_Constants* constants, Bytecode_Globals* globals)
+            : Phase("Generate Bytecode", CE_BYTECODE_GENERATE, true) {
+        this->constants = constants;
+        this->globals = globals;
+    }
 
     void on_event (Event event) {
         auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
@@ -53,12 +57,6 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		this->is_left_value = false;
 		Ast_Navigator::ast_handle(stm);
 		//this->clear_registers();
-	}
-
-	void ast_handle (Ast_Scope* scope) {
-		for (auto stm : scope->statements) {
-			this->ast_handle(stm);
-		}
 	}
 
 	void ast_handle (Ast_Return* ret) {

@@ -142,6 +142,12 @@ struct Type_Checking : Phase, Ast_Navigator {
 		Ast_Navigator::ast_handle(ptr);
 	}
 
+	void ast_handle (Ast_Function_Type* fn) {
+		fn->byte_size = this->target_arch->register_size;
+
+		Ast_Navigator::ast_handle(fn);
+	}
+
 	void ast_handle (Ast_Array_Type* arr) {
 		Ast_Navigator::ast_handle(arr);
 

@@ -1,6 +1,17 @@
 #pragma once
 
-#include "phase/pipeline/pipe.hpp"
+#include "phase/phase.hpp"
+#include "phase/ast_navigator.hpp"
+
+#include "compiler_events.hpp"
+#include "ast/ast_factory.hpp"
+
+#include "bytecode/instructions.hpp"
+#include "bytecode/interpreter.hpp"
+#include "bytecode/constants.hpp"
+#include "bytecode/globals.hpp"
+
+#include "util/logger.hpp"
 
 #include <vector>
 #include <assert.h>
@@ -13,17 +24,30 @@ struct Register_State {
     Register_State (Ast_Declaration* decl) { this->decl = decl; }
 };
 
-struct Register_Allocator {
+struct Register_Allocator : Phase, Ast_Navigator {
+    Interpreter* interpreter;
+
     std::vector<Register_State*> decl_regs;
 
     size_t registers_used = 0;
     bool is_left_value = false;
-
     size_t max_registers;
 
-	Register_Allocator (size_t max_registers) {
-        this->pipe_name = "Register_Allocator";
-        this->max_registers = max_registers;
+    Register_Allocator (Interpreter* interpreter)
+            : Phase("Register Allocator", CE_BYTECODE_ALLOCATE_REGISTERS) {
+        this->interpreter = interpreter;
+        // @TODO this value could change? maybe the interpreter should have
+        // "infinite" registers, and the assembly code generator should
+        // handle the actual phisical number of registers (spilling)
+        this->max_registers = 16;
+    }
+
+    void on_event (Event event) {
+        auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
+
+        Ast_Navigator::ast_handle(global_scope);
+
+        this->push(global_scope);
     }
 
     void allocate_function (Ast_Function* func) {
@@ -34,21 +58,19 @@ struct Register_Allocator {
             decl_regs.push_back(new Register_State(decl));
         }
 
-        if (func->scope) Pipe::handle(&func->scope);
+        if (func->scope) Ast_Navigator::ast_handle(func->scope);
 
         this->decl_regs = tmp;
     }
 
-    void handle (Ast_Statement** stm_ptr) {
+    void ast_handle (Ast_Statement* stm) {
         for (auto reg_state : this->decl_regs) {
             if (!reg_state->decl) reg_state->expired = true;
         }
-        Pipe::handle(stm_ptr);
+        Ast_Navigator::ast_handle(stm);
     }
 
-    void handle (Ast_Declaration** decl_ptr) {
-        auto decl = (*decl_ptr);
-
+    void ast_handle (Ast_Declaration* decl) {
         if (decl->is_constant) {
 			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 	            auto func = static_cast<Ast_Function*>(decl->expression);
@@ -57,7 +79,8 @@ struct Register_Allocator {
 	            }
 			}
 	    } else {
-            Pipe::handle(decl_ptr);
+            Ast_Navigator::ast_handle(decl);
+
             if (decl->expression) {
                 if (decl->expression->inferred_type->is_primitive) {
                     this->set_declaration(decl);
@@ -66,37 +89,33 @@ struct Register_Allocator {
 		}
     }
 
-	void handle (Ast_Expression** exp_ptr) {
+	void ast_handle (Ast_Expression* exp) {
 		if (this->is_left_value != false) {
 			auto tmp = this->is_left_value;
 			this->is_left_value = false;
-			Pipe::handle(exp_ptr);
+			Ast_Navigator::ast_handle(exp);
 			this->is_left_value = tmp;
-		} else Pipe::handle(exp_ptr);
+		} else Ast_Navigator::ast_handle(exp);
 	}
 
-	void handle_left (Ast_Expression** exp_ptr) {
+	void ast_handle_left (Ast_Expression* exp) {
 		if (this->is_left_value != true) {
 			auto tmp = this->is_left_value;
 			this->is_left_value = true;
-			Pipe::handle(exp_ptr);
+			Ast_Navigator::ast_handle(exp);
 			this->is_left_value = tmp;
-		} else Pipe::handle(exp_ptr);
+		} else Ast_Navigator::ast_handle(exp);
 	}
 
-    void handle (Ast_Function** func_ptr) {
-        auto func = (*func_ptr);
+    void ast_handle (Ast_Function* func) {
         func->reg = reserve_next_reg();
     }
 
-    void handle (Ast_Literal** lit_ptr) {
-        auto lit = (*lit_ptr);
+    void ast_handle (Ast_Literal* lit) {
         lit->reg = reserve_next_reg();
     }
 
-    void handle (Ast_Ident** ident_ptr) {
-        auto ident = (*ident_ptr);
-
+    void ast_handle (Ast_Ident* ident) {
         auto decl_index = get_decl_index(ident->declaration);
         if (decl_index < 0) {
             ident->reg = reserve_next_reg();
@@ -105,39 +124,37 @@ struct Register_Allocator {
         }
     }
 
-    void handle (Ast_Run** run_ptr) {
-        Pipe::handle(run_ptr);
+    void ast_handle (Ast_Run* run) {
+        Ast_Navigator::ast_handle(run);
 
-        (*run_ptr)->reg = (*run_ptr)->expression->reg;
+        run->reg = run->expression->reg;
     }
 
-    void handle (Ast_Binary** binop_ptr) {
-        auto binop = (*binop_ptr);
-
+    void ast_handle (Ast_Binary* binop) {
         switch (binop->binary_op) {
 			case AST_BINARY_ATTRIBUTE: {
-                this->handle_left(&binop->lhs);
-                Pipe::handle(&binop->rhs);
+                this->ast_handle_left(binop->lhs);
+                Ast_Navigator::ast_handle(binop->rhs);
 
                 binop->reg = reserve_reg(binop->lhs->reg, binop->rhs->reg);
 				break;
 			}
 			case AST_BINARY_SUBSCRIPT: {
-                this->handle_left(&binop->lhs);
-                Pipe::handle(&binop->rhs);
+                this->ast_handle_left(binop->lhs);
+                Ast_Navigator::ast_handle(binop->rhs);
 
                 binop->reg = reserve_next_reg();
 				break;
 			}
 			case AST_BINARY_ASSIGN: {
-                this->handle_left(&binop->lhs);
-                Pipe::handle(&binop->rhs);
+                this->ast_handle_left(binop->lhs);
+                Ast_Navigator::ast_handle(binop->rhs);
 
 				break;
 			}
 			default: {
-				Pipe::handle(&binop->lhs);
-				Pipe::handle(&binop->rhs);
+				Ast_Navigator::ast_handle(binop->lhs);
+				Ast_Navigator::ast_handle(binop->rhs);
 
                 binop->reg = reserve_reg(binop->lhs->reg, binop->rhs->reg);
 				break;
@@ -145,22 +162,20 @@ struct Register_Allocator {
 		}
     }
 
-    void handle (Ast_Unary** unop_ptr) {
-        auto unop = (*unop_ptr);
-
+    void ast_handle (Ast_Unary* unop) {
 		switch (unop->unary_op) {
 			case AST_UNARY_NOT: {
-				Pipe::handle(&unop->exp);
+				Ast_Navigator::ast_handle(unop->exp);
                 unop->reg = reserve_reg(unop->exp->reg);
 				break;
 			}
 			case AST_UNARY_NEGATE: {
-				Pipe::handle(&unop->exp);
+				Ast_Navigator::ast_handle(unop->exp);
                 unop->reg = reserve_reg(unop->exp->reg);
 				break;
 			}
 			case AST_UNARY_REFERENCE: {
-				this->handle_left(&unop->exp);
+				this->ast_handle_left(unop->exp);
                 unop->reg = unop->exp->reg;
 
                 if (unop->exp->exp_type == AST_EXPRESSION_IDENT) {
@@ -171,7 +186,7 @@ struct Register_Allocator {
 				break;
 			}
 	        case AST_UNARY_DEREFERENCE: {
-				this->handle(&unop->exp);
+				this->ast_handle(unop->exp);
                 if (!this->is_left_value) {
                     unop->reg = reserve_reg(unop->exp->reg);
                 } else unop->reg = unop->exp->reg;
@@ -181,24 +196,20 @@ struct Register_Allocator {
 		}
     }
 
-	void handle (Ast_Cast** cast_ptr) {
-		auto cast = (*cast_ptr);
-
-		Pipe::handle(&cast->value);
+	void ast_handle (Ast_Cast* cast) {
+		Ast_Navigator::ast_handle(cast->value);
 
         cast->reg = reserve_reg(cast->value->reg);
 	}
 
-    void handle (Ast_Function_Call** call_ptr) {
-        auto call = (*call_ptr);
-
+    void ast_handle (Ast_Function_Call* call) {
         call->reg = reserve_next_reg();
 
         if (call->func->exp_type != AST_EXPRESSION_FUNCTION) {
-            Pipe::handle(&call->func);
+            Ast_Navigator::ast_handle(call->func);
         }
 
-        Pipe::handle(&call->arguments);
+        Ast_Navigator::ast_handle(call->arguments);
     }
 
     int16_t get_decl_index (Ast_Declaration* decl) {
@@ -247,7 +258,6 @@ struct Register_Allocator {
     }
 
 	void print_pipe_metrics () {
-		PRINT_METRIC("Registers used:        %zd / %zd",
-            this->registers_used, this->max_registers);
+		print_extra_metric("Registers used:", "%zd", this->registers_used);
 	}
 };

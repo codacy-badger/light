@@ -14,8 +14,12 @@
 #include "util/logger.hpp"
 
 struct Run_Bytecode : Phase, Ast_Navigator {
+    Interpreter* interpreter;
 
-    Run_Bytecode () : Phase("Run Bytecode", CE_BYTECODE_RUN, true) { /* empty */ }
+    Run_Bytecode (Interpreter* interpreter)
+            : Phase("Run Bytecode", CE_BYTECODE_RUN, true) {
+        this->interpreter = interpreter;
+    }
 
     void on_event (Event event) {
         auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
@@ -25,7 +29,9 @@ struct Run_Bytecode : Phase, Ast_Navigator {
         this->push(global_scope);
     }
 
-    void ast_handle (Ast_Run*) {
-        //Logger::debug(run, "About to run bytecode (%zd)", run->bytecode.size());
+    void ast_handle (Ast_Run* run) {
+        Logger::debug(run, "Executing run directive (%zd instructions)", run->bytecode.size());
+        this->interpreter->run(&run->bytecode);
+        Logger::debug(run, "Run directive DONE");
     }
 };
