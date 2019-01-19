@@ -132,6 +132,7 @@ struct Interpreter {
 			case BYTECODE_STACK_OFFSET: {
 				auto stoff = static_cast<Inst_Stack_Offset*>(inst);
 				assert(stoff->offset >= 0);
+				assert(stoff->offset < this->stack_index);
 				uint8_t* value = this->stack + this->stack_base + stoff->offset;
 				MOVE(this->registers[stoff->reg], &value);
 				return;

@@ -54,6 +54,12 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 
 	void ast_handle (const char*) { /* Notes don't produce any bytecode by themselves */ }
 
+    void ast_handle (Ast_Scope* scope) {
+        auto tmp = this->data_offset;
+        Ast_Navigator::ast_handle(scope);
+        this->data_offset = tmp;
+    }
+
     void ast_handle (Ast_Statement* stm) {
 		this->is_left_value = false;
 		Ast_Navigator::ast_handle(stm);
@@ -76,7 +82,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		this->add_instruction(_if, inst);
 
 		auto index1 = this->bytecode->size();
-		Ast_Navigator::ast_handle(_if->then_scope);
+		this->ast_handle(_if->then_scope);
 		inst->offset = this->bytecode->size() - index1;
 		if (_if->else_scope) {
 			inst->offset += 1;
@@ -84,7 +90,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 			this->add_instruction(_if, inst2);
 
 			index1 = this->bytecode->size();
-			Ast_Navigator::ast_handle(_if->else_scope);
+			this->ast_handle(_if->else_scope);
 			inst2->offset = this->bytecode->size() - index1;
 		}
 	}
@@ -98,7 +104,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		this->add_instruction(_while, jmp1);
 		auto index2 = this->bytecode->size();
 
-		Ast_Navigator::ast_handle(_while->scope);
+		this->ast_handle(_while->scope);
 
 		auto jmp2 = new Inst_Jump();
 		this->add_instruction(_while, jmp2);
@@ -161,9 +167,9 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
 	            auto func = static_cast<Ast_Function*>(decl->expression);
 	            if (!func->foreign_module_name) {
-	    			auto _tmp = this->data_offset;
+                    auto tmp = this->data_offset;
 	    			this->fill(func);
-	                this->data_offset = _tmp;
+                    this->data_offset = tmp;
 	            }
 			}
 	    } else {
@@ -303,8 +309,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 			case AST_BINARY_SUBSCRIPT: {
 				if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
 		        	this->ast_handle_left(binop->lhs);
-
-					Ast_Navigator::ast_handle(binop->rhs);
+					this->ast_handle(binop->rhs);
 
 					auto array_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
 					auto array_base_type = static_cast<Ast_Type_Instance*>(array_type->base);

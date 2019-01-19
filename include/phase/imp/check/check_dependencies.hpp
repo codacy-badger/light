@@ -23,6 +23,7 @@ struct Check_Dependencies : Phase, Ast_Navigator {
     }
 
     void ast_handle (Ast_Declaration* decl) {
+        Ast_Navigator::ast_handle(decl);
         if (!decl->type) {
             Logger::internal(decl, "Type of declaration could not be inferred");
             this->errors_found = true;

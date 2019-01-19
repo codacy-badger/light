@@ -4,17 +4,15 @@ import "std/sys"
 #(main());
 
 main :: fn {
-	print_byte(61);
-	println("Hello Traveller");
-	//test_factorial();
-	//test_cast();
+	test_factorial();
+	test_cast();
 	//test_pointers();
 	//test_function_pointers();
-	//test_decimals();
-	//test_arrays();
-	//test_division();
+	test_decimals();
+	test_arrays();
+	test_division();
 	//test_struct();
-	//test_scopes();
+	test_scopes();
 	//test_big_struct();
 	//test_static_array();
 	//test_ptr_subscript();

@@ -21,36 +21,42 @@ println :: fn (str: string) {
 }
 
 ASCII_ZERO :: 0b00110000;
+BYTE_BUFFER_SIZE :: 8;
 
 print_u64 :: fn (number: u64) {
-	if (number == 0) print("0");
-	else {
-        buffer : [20] byte;
-		buffer_count := 0;
+	if (number == 0) {
+        print("0");
+	} else {
+        buffer : [BYTE_BUFFER_SIZE] byte;
+		buffer_count : u64 = 0;
+        buffer_index : u64 = 0;
 
-		tmp : u64;
+        tmp : u64 = 0;
+        while (tmp < BYTE_BUFFER_SIZE) {
+            buffer[tmp] = ASCII_ZERO;
+            tmp = tmp + 1;
+        }
+
 		while (number > 0) {
 			tmp = number % 10;
 			number = number / 10;
 
             number_digit := ASCII_ZERO + cast(u8) tmp;
             //print_byte(number_digit);
-			buffer[buffer_count] = number_digit;
+
+            // BYTECODE BUG: wrong value (the -1 is ignore?)
+            // buffer_index = BYTE_BUFFER_SIZE - 1 - cast(u8) buffer_count;
+
+            buffer_index = (BYTE_BUFFER_SIZE - 1) - cast(u8) buffer_count;
+            //print_byte(ASCII_ZERO + buffer_index);
+			buffer[buffer_index] = number_digit;
+            //print_byte(number_digit);
+
 			buffer_count = buffer_count + 1;
 		}
-		buffer[buffer_count] = 0;
 
-		/*_tmp : u8;
-		count : u32 = 0;
-		half_length := buffer_count / 2;
-		while (count < half_length) {
-			_tmp = buffer[count];
-			buffer[count] = buffer[buffer_count - (count + 1)];
-			buffer[buffer_count - (count + 1)] = _tmp;
-			count = count + 1;
-		}*/
-
-		print_ptr(buffer.data);
+        start_index : u64 = BYTE_BUFFER_SIZE - buffer_count;
+		print_ptr_len(*(buffer[start_index]), buffer_count);
 	}
 }
 
