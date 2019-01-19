@@ -65,10 +65,9 @@ struct Interpreter {
 		for (instruction_index = 0; instruction_index < instructions->size(); instruction_index++) {
 			auto inst = (*instructions)[instruction_index];
 
-			if (Logger::is_verbose())
-				this->print(inst);
+			if (Logger::is_verbose()) this->print(inst);
 			this->run(inst);
-			this->dump();
+			//this->dump();
 
 			if (inst->code == BYTECODE_RETURN) break;
 		}
@@ -113,7 +112,7 @@ struct Interpreter {
 			}
 			case BYTECODE_GLOBAL_OFFSET: {
 				auto gloff = static_cast<Inst_Global_Offset*>(inst);
-				auto ptr = this->globals->memory[gloff->offset];
+				auto ptr = this->globals->memory + gloff->offset;
 				MOVE(this->registers[gloff->reg], &ptr);
 				return;
 			}

@@ -106,8 +106,9 @@ struct Ast_Factory {
     }
 
     static Ast_Literal* literal_array_length (Location location, Ast_Array_Type* arr_type) {
-        assert(arr_type->length_uint > 0);
-        return Ast_Factory::literal(location, arr_type->length_uint);
+        assert(arr_type->length->exp_type == AST_EXPRESSION_LITERAL);
+        auto lit = static_cast<Ast_Literal*>(arr_type->length);
+        return Ast_Factory::literal(location, lit->uint_value);
     }
 
     static Ast_Literal* literal (Location location, const char* value) {

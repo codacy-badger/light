@@ -1,17 +1,113 @@
 #pragma once
 
-#include "ast/ast.hpp"
-#include "ast/types.hpp"
-#include "ast/ast_factory.hpp"
+struct Type_Conversion : Phase, Ast_Navigator {
 
-struct Type_Conversion {
-    static bool try_convert (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr,
-            Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
-        return Type_Conversion::try_implicid_cast(exp_ptr, type_from, type_to)
-            || Type_Conversion::try_coercion(to_prepend, exp_ptr, type_from, type_to);
+    Type_Conversion() : Phase("Type Conversion", CE_MODULE_TYPE_CONVERSION) { /* empty */ }
+
+    void on_event (Event event) {
+        auto global_scope = reinterpret_cast<Ast_Scope*>(event.data);
+
+        Ast_Navigator::ast_handle(global_scope);
+
+        this->push(global_scope);
     }
 
-    static bool try_implicid_cast (Ast_Expression** exp_ptr,
+    void match_types (Ast_Expression** exp_ptr, Ast_Type_Instance* given, Ast_Type_Instance* expected) {
+        std::vector<Ast_Statement*> to_prepend;
+        if (!this->check_type_match(&to_prepend, exp_ptr, given, expected)) {
+            Logger::error_and_stop(*exp_ptr, "Type mismatch: given '%s' but '%s' was expected",
+                given->name, expected->name);
+        } else this->prepend_statements(&to_prepend);
+    }
+
+    void match_types (Ast_Expression** exp_ptr1, Ast_Expression** exp_ptr2) {
+        std::vector<Ast_Statement*> to_prepend;
+        if (!this->check_type_match(&to_prepend, exp_ptr1, (*exp_ptr2)->inferred_type)
+                && !this->check_type_match(&to_prepend, exp_ptr2, (*exp_ptr1)->inferred_type)) {
+            Logger::error_and_stop(*exp_ptr1, "Type mismatch: '%s' and '%s' are not compatible",
+                (*exp_ptr1)->inferred_type->name, (*exp_ptr2)->inferred_type->name);
+        } else this->prepend_statements(&to_prepend);
+    }
+
+    void match_types (Ast_Expression** exp_ptr, Ast_Type_Instance* expected) {
+        this->match_types(exp_ptr, (*exp_ptr)->inferred_type, expected);
+    }
+
+    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type_Instance* expected) {
+        return this->check_type_match(to_prepend, exp_ptr, (*exp_ptr)->inferred_type, expected);
+    }
+
+    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type_Instance* given, Ast_Type_Instance* expected) {
+        return (given == expected) || this->try_convert(to_prepend, exp_ptr, given, expected);
+    }
+
+	void ast_handle (Ast_Declaration* decl) {
+		if (decl->expression && decl->type) {
+			auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
+            this->match_types(&decl->expression, decl_type_inst);
+		}
+        Ast_Navigator::ast_handle(decl);
+	}
+
+	void ast_handle (Ast_If* _if) {
+        Ast_Navigator::ast_handle(_if);
+        this->match_types(&_if->condition, Types::type_bool);
+	}
+
+	void ast_handle (Ast_While* _while) {
+        Ast_Navigator::ast_handle(_while);
+        this->match_types(&_while->condition, Types::type_bool);
+	}
+
+	void ast_handle (Ast_Return* ret) {
+		auto func = this->current_scope->get_parent_function();
+		auto ret_type_def = static_cast<Ast_Type_Instance*>(func->type->ret_type);
+		if (func && ret->expression) {
+			if (func->type->ret_type != Types::type_void) {
+        		Ast_Navigator::ast_handle(ret);
+				this->match_types(&ret->expression, ret_type_def);
+			}
+		}
+	}
+
+	void ast_handle (Ast_Function_Call* call) {
+	    if (call->func->inferred_type->typedef_type != AST_TYPEDEF_FUNCTION) {
+			Logger::error_and_stop(call, "Function calls can only be performed with functions types");
+		}
+
+		auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
+
+		for (int i = 0; i < call->arguments->unnamed.size(); i++) {
+			if (i >= func_type->arg_decls.size()) break;
+
+			Ast_Navigator::ast_handle(call->arguments->unnamed[i]);
+			auto param_exp = call->arguments->unnamed[i];
+			assert(param_exp->inferred_type);
+
+			auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
+            this->match_types(&call->arguments->unnamed[i], arg_type);
+		}
+	}
+
+	void ast_handle (Ast_Binary* binop) {
+	    Ast_Navigator::ast_handle(binop);
+
+        if (binop->binary_op == AST_BINARY_ATTRIBUTE) {
+            return;
+        } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
+            this->match_types(&binop->rhs, Types::type_u64);
+		} else if (binop->binary_op == AST_BINARY_ASSIGN) {
+            this->match_types(&binop->rhs, binop->lhs->inferred_type);
+		} else this->match_types(&binop->lhs, &binop->rhs);
+	}
+
+    bool try_convert (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr,
+            Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
+        return this->try_implicid_cast(exp_ptr, type_from, type_to)
+            || this->try_coercion(to_prepend, exp_ptr, type_from, type_to);
+    }
+
+    bool try_implicid_cast (Ast_Expression** exp_ptr,
             Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
         if (type_from->is_primitive && type_to->is_primitive) {
             if (type_to == Types::type_bool) {
@@ -41,26 +137,26 @@ struct Type_Conversion {
         return false;
     }
 
-    static bool try_implicid_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to) {
-        return Type_Conversion::try_implicid_cast(exp_ptr, (*exp_ptr)->inferred_type, type_to);
+    bool try_implicid_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to) {
+        return this->try_implicid_cast(exp_ptr, (*exp_ptr)->inferred_type, type_to);
     }
 
-    static bool try_coercion (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr,
+    bool try_coercion (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr,
             Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
             if (type_to == Types::type_any) {
-                Type_Conversion::coerce_to_any(to_prepend, exp_ptr);
+                this->coerce_to_any(to_prepend, exp_ptr);
                 return true;
             } else if (type_from->typedef_type == AST_TYPEDEF_ARRAY) {
                 auto type_from_array = static_cast<Ast_Array_Type*>(type_from);
                 if (type_from_array->base == Types::type_byte && type_to == Types::type_string) {
-                    Type_Conversion::coerce_char_array_to_string(to_prepend, exp_ptr);
+                    this->coerce_char_array_to_string(to_prepend, exp_ptr);
                     return true;
                 } else if (type_to->typedef_type == AST_TYPEDEF_STRUCT) {
                     auto type_to_struct = static_cast<Ast_Struct_Type*>(type_to);
                     if (type_to_struct->is_slice) {
                         auto type_to_slice = static_cast<Ast_Slice_Type*>(type_to);
                         if (type_to_slice->get_typed_base() == type_from_array->base) {
-                            Type_Conversion::coerce_array_to_slice(to_prepend, exp_ptr, type_to_slice);
+                            this->coerce_array_to_slice(to_prepend, exp_ptr, type_to_slice);
                             return true;
                         }
                     }
@@ -69,7 +165,7 @@ struct Type_Conversion {
         return false;
     }
 
-    static void coerce_char_array_to_string (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr) {
+    void coerce_char_array_to_string (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr) {
         auto str = (*exp_ptr);
 
         assert(str->inferred_type->typedef_type == AST_TYPEDEF_ARRAY);
@@ -85,6 +181,7 @@ struct Type_Conversion {
 
         // $tmp : string;
         auto string_declaration = Ast_Factory::declaration(str->location, tmp_name, Types::type_string, NULL, false);
+        string_declaration->scope = this->current_scope;
         to_prepend->push_back(string_declaration);
 
         // $tmp.length = array.length;
@@ -104,7 +201,7 @@ struct Type_Conversion {
         (*exp_ptr) = Ast_Factory::ident(str->location, tmp_name, string_declaration, Types::type_string);
     }
 
-    static void coerce_to_any (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr) {
+    void coerce_to_any (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr) {
         auto val = (*exp_ptr);
 
         char tmp_name[TMP_NAME_SIZE];
@@ -113,6 +210,7 @@ struct Type_Conversion {
 
         // $tmp : any;
         auto any_declaration = Ast_Factory::declaration(val->location, tmp_name, Types::type_any, NULL, false);
+        any_declaration->scope = this->current_scope;
         to_prepend->push_back(any_declaration);
 
         // $tmp.type = #;
@@ -133,7 +231,7 @@ struct Type_Conversion {
         (*exp_ptr) = Ast_Factory::ident(val->location, tmp_name, any_declaration, Types::type_any);
     }
 
-    static void coerce_array_to_slice (std::vector<Ast_Statement*>* to_prepend,
+    void coerce_array_to_slice (std::vector<Ast_Statement*>* to_prepend,
             Ast_Expression** exp_ptr, Ast_Slice_Type* target) {
         auto exp = (*exp_ptr);
 
@@ -146,6 +244,7 @@ struct Type_Conversion {
 
         // $tmp : slice;
         auto slice_declaration = Ast_Factory::declaration(exp->location, tmp_name, target, NULL, false);
+        slice_declaration->scope = this->current_scope;
         to_prepend->push_back(slice_declaration);
 
         // $tmp.length = array.length;

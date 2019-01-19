@@ -25,8 +25,8 @@ struct Module_Cache : Phase {
                         this->add_in_progress(absolute_path);
                         this->push(absolute_path);
                         Logger::verbose("Module cache MISS: '%s'", absolute_path);
-                    } else Logger::verbose("Module cache IN PROGRESS: '%s'", absolute_path);
-                } else Logger::verbose("Module cache HIT: '%s'", absolute_path);
+                    } else Logger::debug("Module cache HIT (progress): '%s'", absolute_path);
+                } else Logger::debug("Module cache HIT: '%s'", absolute_path);
                 break;
             }
             case CE_MODULE_READY: {

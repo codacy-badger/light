@@ -6,7 +6,6 @@
 #include "compiler_events.hpp"
 
 #include "ast/types.hpp"
-#include "ast/type_conversion.hpp"
 
 #include "util/logger.hpp"
 
@@ -32,33 +31,24 @@ struct Type_Checking : Phase, Ast_Navigator {
         this->push(global_scope);
     }
 
-    void match_types (Ast_Expression** exp_ptr, Ast_Type_Instance* given, Ast_Type_Instance* expected) {
-        std::vector<Ast_Statement*> to_prepend;
-        if (!this->check_type_match(&to_prepend, exp_ptr, given, expected)) {
-            Logger::error_and_stop(*exp_ptr, "Type mismatch: given '%s' but '%s' was expected",
-                given->name, expected->name);
-        } else this->prepend_statements(&to_prepend);
+    bool match_types (Ast_Type_Instance* given, Ast_Type_Instance* expected) {
+        return given == expected;
     }
 
-    void match_types (Ast_Expression** exp_ptr1, Ast_Expression** exp_ptr2) {
-        std::vector<Ast_Statement*> to_prepend;
-        if (!this->check_type_match(&to_prepend, exp_ptr1, (*exp_ptr2)->inferred_type)
-                && !this->check_type_match(&to_prepend, exp_ptr2, (*exp_ptr1)->inferred_type)) {
-            Logger::error_and_stop(*exp_ptr1, "Type mismatch: '%s' and '%s' are not compatible",
-                (*exp_ptr1)->inferred_type->name, (*exp_ptr2)->inferred_type->name);
-        } else this->prepend_statements(&to_prepend);
+    void match_types (Ast_Expression* exp, Ast_Type_Instance* expected) {
+        if (!this->match_types(exp->inferred_type, expected)) {
+            Logger::error(exp, "Types do not match: given '%s', expected '%s'",
+                exp->inferred_type->name, expected->name);
+        }
     }
 
-    void match_types (Ast_Expression** exp_ptr, Ast_Type_Instance* expected) {
-        this->match_types(exp_ptr, (*exp_ptr)->inferred_type, expected);
-    }
-
-    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type_Instance* expected) {
-        return this->check_type_match(to_prepend, exp_ptr, (*exp_ptr)->inferred_type, expected);
-    }
-
-    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type_Instance* given, Ast_Type_Instance* expected) {
-        return (given == expected) || Type_Conversion::try_convert(to_prepend, exp_ptr, given, expected);
+    void match_types (Ast_Expression* exp1, Ast_Expression* exp2) {
+        auto infr1 = exp1->inferred_type;
+        auto infr2 = exp2->inferred_type;
+        if (!(this->match_types(infr1, infr2) || this->match_types(infr2, infr1))) {
+            Logger::error(exp1, "No convesion between the 2 types: '%s' and '%s'",
+                infr1->name, infr2->name);
+        }
     }
 
 	void ast_handle (Ast_Declaration* decl) {
@@ -67,26 +57,21 @@ struct Type_Checking : Phase, Ast_Navigator {
 
 			if (decl->type) {
 				auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
-                this->match_types(&decl->expression, decl_type_inst);
+                this->match_types(decl->expression, decl_type_inst);
 			}
 		}
 
 		Ast_Navigator::ast_handle(decl->type);
-
-		assert(decl->type != NULL);
-		assert(decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
 	}
 
 	void ast_handle (Ast_If* _if) {
+        this->match_types(_if->condition, Types::type_bool);
 		Ast_Navigator::ast_handle(_if);
-
-        this->match_types(&_if->condition, Types::type_bool);
 	}
 
 	void ast_handle (Ast_While* _while) {
+        this->match_types(_while->condition, Types::type_bool);
 		Ast_Navigator::ast_handle(_while);
-
-        this->match_types(&_while->condition, Types::type_bool);
 	}
 
 	void ast_handle (Ast_Return* ret) {
@@ -101,7 +86,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 				Logger::error_and_stop(ret, "Return statment has expression, but function returns void");
 			}
 
-            this->match_types(&ret->expression, ret_type_def);
+            this->match_types(ret->expression, ret_type_def);
 		} else {
 			if (fn->type->ret_type != Types::type_void)
 				Logger::error_and_stop(ret, "Return statment has no expression, but function returns '%s'",
@@ -174,15 +159,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 			assert(param_exp->inferred_type);
 
 			auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
-            this->match_types(&call->arguments->unnamed[i], arg_type);
-		}
-
-		for (auto entry : call->arguments->named) {
-			this->ast_handle(entry.second);
-
-			auto decl = func_type->get_declaration(entry.first);
-			auto arg_type = static_cast<Ast_Type_Instance*>(decl->type);
-            this->match_types(&entry.second, arg_type);
+            this->match_types(call->arguments->unnamed[i], arg_type);
 		}
 	}
 
@@ -194,7 +171,7 @@ struct Type_Checking : Phase, Ast_Navigator {
                 Logger::error_and_stop(binop, "Attribute name must be an identifier");
             }
         } else if (binop->binary_op == AST_BINARY_SUBSCRIPT) {
-            this->match_types(&binop->rhs, Types::type_u64);
+            this->match_types(binop->rhs, Types::type_u64);
 
             auto left_type = binop->lhs->inferred_type->typedef_type;
             if (left_type != AST_TYPEDEF_ARRAY
@@ -203,11 +180,11 @@ struct Type_Checking : Phase, Ast_Navigator {
                 Logger::error_and_stop(binop, "Left of subscript operator is not array, slice or pointer type");
             }
 		} else if (binop->binary_op == AST_BINARY_ASSIGN) {
-            this->match_types(&binop->rhs, binop->lhs->inferred_type);
+            this->match_types(binop->rhs, binop->lhs->inferred_type);
 		} else {
             // @INFO Types don't match, but maybe we can add an implicid cast
             // to prevent dumb casts: u8 -> u32, s16 -> s64, etc...
-            this->match_types(&binop->lhs, &binop->rhs);
+            this->match_types(binop->lhs, binop->rhs);
 	    	binop->inferred_type = binop->get_result_type();
 	    }
 	}

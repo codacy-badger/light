@@ -9,7 +9,7 @@ Ast_Struct_Type* build_type_string () {
     length_decl->name = "length";
 
     auto data_decl = new Ast_Declaration();
-    data_decl->type = new Ast_Pointer_Type(Types::type_u8);
+    data_decl->type = new Ast_Pointer_Type(Types::type_byte);
     data_decl->name = "data";
 
     type_string->attributes.push_back(length_decl);

@@ -3,7 +3,7 @@ import "api/kernel32"
 // TODO: allow global variables to have default values, run at app startup
 std_handle_out : *void;
 
-print_ptr_len :: fn (str: *u8, length: u64) {
+print_ptr_len :: fn (str: *byte, length: u64) {
 	std_handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	if (std_handle_out != INVALID_HANDLE_VALUE) {

@@ -27,10 +27,14 @@ struct Array_Attributes : Phase, Ast_Ref_Navigator {
             if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
                 auto array_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
                 if (strcmp(attr_ident->name, "data") == 0) {
-                    auto pointer_type = Ast_Factory::pointer_type(array_type->base);
-                    (*binop_ptr) = (Ast_Binary*) Ast_Factory::ref(binop->lhs, pointer_type);
+                    auto output = binop->lhs;
+                    output->inferred_type = Ast_Factory::pointer_type(array_type->base);
+                    delete *binop_ptr;
+                    (*binop_ptr) = (Ast_Binary*) output;
                 } else if (strcmp(attr_ident->name, "length") == 0) {
-                    (*binop_ptr) = (Ast_Binary*) Ast_Factory::literal(binop->location, array_type->length_uint);
+                    auto output = Ast_Factory::literal(binop->location, array_type->length_uint);
+                    delete *binop_ptr;
+                    (*binop_ptr) = (Ast_Binary*) output;
                 }
             }
         } else Ast_Ref_Navigator::ast_handle(binop_ptr);

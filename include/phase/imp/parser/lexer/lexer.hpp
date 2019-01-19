@@ -39,6 +39,11 @@ struct Lexer {
 	void parse_next_token (Token* token) {
 		this->skip_ignored_and_comments();
 
+		if (!this->scanner.has_next()) {
+			token->type = TOKEN_EOF;
+			return;
+		}
+
 		token->line = this->scanner.current_line;
 		token->cursor_begin = this->scanner.current_col;
 
@@ -138,7 +143,10 @@ struct Lexer {
 					if (token->equal("while", 	5)) { token->type = TOKEN_WHILE; }
 				} else if (this->string(token) || this->number(token)) {
 					break;
-				} else token->type = TOKEN_EOF;
+				} else {
+					Logger::error("Token not recognized!");
+					token->type = TOKEN_EOF;
+				}
 			}
 		}
 
@@ -148,7 +156,7 @@ struct Lexer {
 	bool identifier (Token* token) {
 	    if (ALPHA(scanner.peek())) {
 			token->type = TOKEN_ID;
-			token->text = this->scanner.ref();
+			token->text = this->scanner.current_location_pointer();
 
 			size_t initial = scanner.index;
 			scanner.skip();
@@ -167,7 +175,7 @@ struct Lexer {
 	size_t string (Token* token) {
 	    if (scanner.peek() == '"') {
 			token->type = TOKEN_STRING;
-			token->text = this->scanner.ref();
+			token->text = this->scanner.current_location_pointer();
 
 			size_t initial = scanner.index;
 			scanner.skip();
@@ -187,7 +195,7 @@ struct Lexer {
 
 	size_t number (Token* token) {
 		token->type = TOKEN_NUMBER;
-		token->text = this->scanner.ref();
+		token->text = this->scanner.current_location_pointer();
 
 		size_t initial = scanner.index;
 

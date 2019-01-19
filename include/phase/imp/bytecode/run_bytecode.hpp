@@ -30,8 +30,7 @@ struct Run_Bytecode : Phase, Ast_Navigator {
     }
 
     void ast_handle (Ast_Run* run) {
-        Logger::debug(run, "Executing run directive (%zd instructions)", run->bytecode.size());
+        Logger::debug(run, "Executing run directive");
         this->interpreter->run(&run->bytecode);
-        Logger::debug(run, "Run directive DONE");
     }
 };

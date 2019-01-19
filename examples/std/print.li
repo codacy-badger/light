@@ -3,12 +3,16 @@
     import! "windows/print"
 }
 
-print_ptr :: fn (str: *u8) {
+print_ptr :: fn (str: *byte) {
 	print_ptr_len(str, string_length(str));
 }
 
+print_byte :: fn (c: byte) {
+    print_ptr_len(*c, 1);
+}
+
 print :: fn (str: string) {
-	print_ptr(str.data);
+	print_ptr_len(str.data, str.length);
 }
 
 println :: fn (str: string) {
@@ -17,11 +21,11 @@ println :: fn (str: string) {
 }
 
 ASCII_ZERO :: 0b00110000;
-_number_buffer : [20] u8;
 
 print_u64 :: fn (number: u64) {
 	if (number == 0) print("0");
 	else {
+        buffer : [20] byte;
 		buffer_count := 0;
 
 		tmp : u64;
@@ -29,22 +33,24 @@ print_u64 :: fn (number: u64) {
 			tmp = number % 10;
 			number = number / 10;
 
-			_number_buffer[buffer_count] = ASCII_ZERO + cast(u8) tmp;
+            number_digit := ASCII_ZERO + cast(u8) tmp;
+            //print_byte(number_digit);
+			buffer[buffer_count] = number_digit;
 			buffer_count = buffer_count + 1;
 		}
-		_number_buffer[buffer_count] = 0;
+		buffer[buffer_count] = 0;
 
-		_tmp : u8;
+		/*_tmp : u8;
 		count : u32 = 0;
 		half_length := buffer_count / 2;
 		while (count < half_length) {
-			_tmp = _number_buffer[count];
-			_number_buffer[count] = _number_buffer[buffer_count - (count + 1)];
-			_number_buffer[buffer_count - (count + 1)] = _tmp;
+			_tmp = buffer[count];
+			buffer[count] = buffer[buffer_count - (count + 1)];
+			buffer[buffer_count - (count + 1)] = _tmp;
 			count = count + 1;
-		}
+		}*/
 
-		print_ptr(*_number_buffer);
+		print_ptr(buffer.data);
 	}
 }
 
@@ -53,7 +59,7 @@ println_u64 :: fn (number: u64) {
 	print("\n");
 }
 
-string_length :: fn (str: *u8) -> u32 {
+string_length :: fn (str: *byte) -> u32 {
 	if !str return 0;
 
 	result : u32 = 0;

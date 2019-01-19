@@ -4,8 +4,8 @@ import "std/sys"
 #(main());
 
 main :: fn {
-	var := "Allo";
-	print_ptr_len(var.data, 3);
+	print_byte(61);
+	println("Hello Traveller");
 	//test_factorial();
 	//test_cast();
 	//test_pointers();
@@ -84,9 +84,9 @@ test_factorial :: fn {
 	assert(factorial(5) == 120);
 
 	factorial :: fn (number: u32) -> u32 {
-		if (number == 0) 1
+		if (number == 0) return 1;
 		else {
-			factorial(number - 1) * number
+			return factorial(number - 1) * number;
 		}
 	}
 }

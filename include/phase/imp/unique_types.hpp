@@ -39,24 +39,21 @@ struct Unique_Types : Phase, Ast_Ref_Navigator {
 
     void ast_handle (Ast_Expression** exp_ptr) {
         Ast_Ref_Navigator::ast_handle(exp_ptr);
-
-        auto type_ptr = &(*exp_ptr)->inferred_type;
-        this->unique(type_ptr);
+        this->ast_handle(&(*exp_ptr)->inferred_type);
     }
 
     void ast_handle (Ast_Type_Instance** type_ptr) {
         Ast_Ref_Navigator::ast_handle(type_ptr);
-
         this->unique(type_ptr);
     }
 
-    void ast_handle (Ast_Binary** binary_ptr) {
+    /*void ast_handle (Ast_Binary** binary_ptr) {
         // @Info rhs of attribute access can't have type,
         // so we can't unique them
         if ((*binary_ptr)->binary_op != AST_BINARY_ATTRIBUTE) {
             Ast_Ref_Navigator::ast_handle(binary_ptr);
         }
-    }
+    }*/
 
 	void print_extra_metrics() {
 		print_extra_metric("Uniqued types", "%zd", this->uniqued_types);

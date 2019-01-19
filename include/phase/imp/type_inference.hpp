@@ -171,6 +171,7 @@ struct Type_Inference : Phase, Ast_Navigator {
                         if (attribute) {
                             auto attr_type = static_cast<Ast_Type_Instance*>(attribute->type);
                             binop->inferred_type = attr_type;
+                            ident->inferred_type = attr_type;
                             ident->declaration = attribute;
                         } else Logger::error_and_stop(binop, "The type '%s' has no attribute named '%s'", _struct->name, ident->name);
                     } else if (type_def->typedef_type == AST_TYPEDEF_ARRAY) {

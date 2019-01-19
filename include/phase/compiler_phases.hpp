@@ -12,6 +12,7 @@
 #include "imp/deps/import_modules.hpp"
 #include "imp/deps/symbol_resolution.hpp"
 #include "imp/type_inference.hpp"
+#include "imp/type_conversion.hpp"
 #include "imp/unique_types.hpp"
 #include "imp/check/type_checking.hpp"
 #include "imp/check/check_dependencies.hpp"
@@ -41,16 +42,17 @@ struct Compiler_Phases {
         this->add_phase<Import_Modules>();
         this->add_phase<Symbol_Resolution>();
         this->add_phase<Type_Inference>();
+        this->add_phase<Array_Attributes>();
         this->add_phase<Static_If>();
 
         this->add_phase<Check_Dependencies>();
-        this->add_phase<Array_Attributes>();
         this->add_phase<Unique_Types>(this->type_table);
+        this->add_phase<Type_Conversion>();
         this->add_phase<Type_Checking>();
 
-        //this->add_phase<Register_Allocator>(this->interpreter);
-        //this->add_phase<Generate_Bytecode>(this->interpreter->constants, this->interpreter->globals);
-        //this->add_phase<Run_Bytecode>(this->interpreter);
+        this->add_phase<Register_Allocator>(this->interpreter);
+        this->add_phase<Generate_Bytecode>(this->interpreter->constants, this->interpreter->globals);
+        this->add_phase<Run_Bytecode>(this->interpreter);
     }
 
     template<typename T, typename... Args>

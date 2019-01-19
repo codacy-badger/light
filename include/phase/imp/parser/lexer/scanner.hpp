@@ -41,7 +41,7 @@ struct Scanner {
 		return 0;
 	}
 
-	const char* ref () {
+	const char* current_location_pointer () {
 		return this->data + this->index;
 	}
 
@@ -55,8 +55,15 @@ struct Scanner {
         return this->index < this->data_length;
     }
 
-	char peek (size_t offset = 0) {
-        return this->data[this->index + offset];
+	char peek () {
+		return this->data[this->index];
+    }
+
+	char peek (size_t offset) {
+		auto idx = this->index + offset;
+		if (idx > this->data_length) {
+			return EOF;
+		} else return this->data[idx];
     }
 
     bool is_next (char c) {
