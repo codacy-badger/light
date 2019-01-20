@@ -13,7 +13,7 @@ main :: fn {
 	test_division();
 	test_struct();
 	test_scopes();
-	//test_big_struct();
+	test_big_struct();
 	//test_static_array();
 	test_ptr_subscript();
 	test_slice();
@@ -24,10 +24,10 @@ main :: fn {
 }
 
 test_string :: fn {
-    text := "Hello string!";
-    print_ptr_len(text.data, 4);
-    print("\n");
-    println(text);
+    text := "Hello st";
+    //print_ptr_len(text.data, 4);
+    //print("\n");
+    print(text);
 }
 
 test_any :: fn {
@@ -133,7 +133,7 @@ test_cast :: fn {
 
 assert :: fn (condition: bool) {
 	if !condition {
-		print("ASSERT!");
+		//print("ASSERT!");
 		sys_exit(1);
 	}
 }

@@ -12,11 +12,11 @@ print_byte :: fn (c: byte) {
 }
 
 print :: fn (str: string) {
-	print_ptr_len(str.data, str.length);
+	//print_ptr_len(str.data, str.length);
 }
 
 println :: fn (str: string) {
-	print(str);
+	print_ptr_len(str.data, str.length);
 	print("\n");
 }
 

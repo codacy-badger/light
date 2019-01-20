@@ -171,7 +171,7 @@ struct Type_Conversion : Phase, Ast_Navigator {
         assert(str->inferred_type->typedef_type == AST_TYPEDEF_ARRAY);
         auto arr_type = static_cast<Ast_Array_Type*>(str->inferred_type);
 
-        char tmp_name[TMP_NAME_SIZE];
+        auto tmp_name = (char*) malloc(TMP_NAME_SIZE + 1);
         static size_t string_coercion_count = 0;
         sprintf_s(tmp_name, TMP_NAME_SIZE, "$str$%zd", string_coercion_count++);
 
@@ -204,7 +204,7 @@ struct Type_Conversion : Phase, Ast_Navigator {
     void coerce_to_any (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr) {
         auto val = (*exp_ptr);
 
-        char tmp_name[TMP_NAME_SIZE];
+        auto tmp_name = (char*) malloc(TMP_NAME_SIZE + 1);
         static size_t any_coercion_count = 0;
         sprintf_s(tmp_name, TMP_NAME_SIZE, "$any$%zd", any_coercion_count++);
 
@@ -238,7 +238,7 @@ struct Type_Conversion : Phase, Ast_Navigator {
         assert(exp->inferred_type->typedef_type == AST_TYPEDEF_ARRAY);
         auto arr_type = static_cast<Ast_Array_Type*>(exp->inferred_type);
 
-        char tmp_name[TMP_NAME_SIZE];
+        auto tmp_name = (char*) malloc(TMP_NAME_SIZE + 1);
         static size_t slice_coercion_count = 0;
         sprintf_s(tmp_name, TMP_NAME_SIZE, "$sli$%zd", slice_coercion_count++);
 
