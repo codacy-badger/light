@@ -378,7 +378,10 @@ struct Ast_Function_Type : Ast_Type_Instance {
 	std::vector<Ast_Declaration*> arg_decls;
 	Ast_Expression* ret_type = NULL;
 
-	Ast_Function_Type() { this->typedef_type = AST_TYPEDEF_FUNCTION; }
+	Ast_Function_Type() {
+		this->typedef_type = AST_TYPEDEF_FUNCTION;
+		this->is_primitive = true;
+	}
 
     Ast_Declaration* get_declaration (const char* decl_name) {
         for (auto decl : this->arg_decls) {

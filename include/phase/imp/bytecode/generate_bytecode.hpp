@@ -168,6 +168,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 	            auto func = static_cast<Ast_Function*>(decl->expression);
 	            if (!func->foreign_module_name) {
                     auto tmp = this->data_offset;
+                    this->data_offset = 0;
 	    			this->fill(func);
                     this->data_offset = tmp;
 	            }
@@ -242,14 +243,14 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 	void ast_handle (Ast_Unary* unop) {
 		switch (unop->unary_op) {
 			case AST_UNARY_NOT: {
-				Ast_Navigator::ast_handle(unop->exp);
+				this->ast_handle(unop->exp);
 				auto unop_type = get_bytecode_from_unop(unop->unary_op);
 				auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
 	            INST(unop, Unary, unop_type, unop->reg, unop->exp->reg, bytecode_type);
 				break;
 			}
 			case AST_UNARY_NEGATE: {
-				Ast_Navigator::ast_handle(unop->exp);
+				this->ast_handle(unop->exp);
 				auto unop_type = get_bytecode_from_unop(unop->unary_op);
 				auto bytecode_type = bytecode_get_type(unop->exp->inferred_type);
 				auto result_type = bytecode_unsigned_to_signed(bytecode_type);
@@ -264,7 +265,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 				break;
 			}
 	        case AST_UNARY_DEREFERENCE: {
-				Ast_Navigator::ast_handle(unop->exp);
+				this->ast_handle(unop->exp);
 				if (!this->is_left_value) {
 					INST(unop, Load, unop->reg, unop->exp->reg, unop->inferred_type->byte_size);
 				}
@@ -285,23 +286,22 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 
 	            // We follow the pointer until we hit a non-pointer type
 				if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
-					auto ptr_type = static_cast<Ast_Pointer_Type*>(binop->lhs->inferred_type);
-					auto base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
-					while (base_type->typedef_type == AST_TYPEDEF_POINTER) {
+                    auto struct_type = binop->lhs->inferred_type;
+                    while (struct_type->typedef_type == AST_TYPEDEF_POINTER) {
+                        auto ptr_type = static_cast<Ast_Pointer_Type*>(struct_type);
 						INST(binop, Load, binop->reg, binop->reg, ptr_type->byte_size);
-						ptr_type = static_cast<Ast_Pointer_Type*>(base_type);
-						base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+                        struct_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
 					}
 				}
 
 	            auto ident = static_cast<Ast_Ident*>(binop->rhs);
 	            auto decl = ident->declaration;
 				if (decl->attribute_byte_offset != 0) {
-					INST(binop, Add_Const, binop->lhs->reg, decl->attribute_byte_offset);
+					INST(binop, Add_Const, binop->reg, decl->attribute_byte_offset);
 				}
 
 	            if (!this->is_left_value && binop->inferred_type->byte_size <= INTERP_REGISTER_SIZE) {
-	                INST(binop, Load, binop->reg, binop->lhs->reg, binop->inferred_type->byte_size);
+	                INST(binop, Load, binop->reg, binop->reg, binop->inferred_type->byte_size);
 	            }
 
 				break;
@@ -476,7 +476,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 				INST(call, Call_Const, (uint64_t) func, call->reg, ret_type);
 			}
 		} else {
-			Ast_Navigator::ast_handle(call->func);
+			this->ast_handle(call->func);
 		    INST(call, Call, call->reg, call->func->reg, ret_type);
 		}
 	}

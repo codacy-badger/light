@@ -1,0 +1,23 @@
+import "std/sys"
+
+#main()
+
+FUNC :: fn (num: u64) -> u64;
+
+main :: fn {
+    num := repeat_3(sqrt, 3);
+    assert(num == 6561);
+
+    repeat_3 :: fn (func: FUNC, num: u64) -> u64 {
+        return func(func(func(num)));
+    }
+
+    sqrt :: fn (num: u64) -> u64 { num * num }
+}
+
+assert :: fn (condition: bool) {
+	if !condition {
+		//print("ASSERT!");
+		sys_exit(1);
+	}
+}

@@ -6,20 +6,20 @@ import "std/sys"
 main :: fn {
 	test_factorial();
 	test_cast();
-	//test_pointers();
-	//test_function_pointers();
+	test_pointers();
+	test_function_pointers();
 	test_decimals();
 	test_arrays();
 	test_division();
-	//test_struct();
+	test_struct();
 	test_scopes();
 	//test_big_struct();
 	//test_static_array();
-	//test_ptr_subscript();
-	//test_slice();
+	test_ptr_subscript();
+	test_slice();
 	//test_default_args();
 	//test_named_args();
-	//test_any();
+	test_any();
 	//test_string();
 }
 

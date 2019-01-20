@@ -117,22 +117,22 @@ struct Interpreter {
 				return;
 			}
 			case BYTECODE_STACK_ALLOCATE: {
-				auto alloca = static_cast<Inst_Stack_Allocate*>(inst);
-				assert((this->stack_index + alloca->size) < INTERP_STACK_SIZE);
+				auto alloc = static_cast<Inst_Stack_Allocate*>(inst);
+				assert((this->stack_index + alloc->size) < INTERP_STACK_SIZE);
 
-				auto over = this->stack_index % alloca->size;
+				auto over = this->stack_index % alloc->size;
 				if (over > 0) {
-					auto padding = alloca->size - over;
+					auto padding = alloc->size - over;
 					this->stack_index += padding;
 				}
 
-				this->stack_index += alloca->size;
+				this->stack_index += alloc->size;
 				return;
 			}
 			case BYTECODE_STACK_OFFSET: {
 				auto stoff = static_cast<Inst_Stack_Offset*>(inst);
 				assert(stoff->offset >= 0);
-				assert(stoff->offset < this->stack_index);
+				//assert(stoff->offset < this->stack_index);
 				uint8_t* value = this->stack + this->stack_base + stoff->offset;
 				MOVE(this->registers[stoff->reg], &value);
 				return;
