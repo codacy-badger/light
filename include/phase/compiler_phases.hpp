@@ -36,7 +36,6 @@ struct Compiler_Phases {
         this->settings = settings;
 
         this->add_phase<Module_Cache>();
-
         this->add_phase<Parser>();
 
         this->add_phase<Import_Modules>();

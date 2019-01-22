@@ -242,8 +242,7 @@ struct Type_Inference : Phase, Ast_Navigator {
 		            break;
 		        }
 		        case AST_LITERAL_STRING: {
-					lit->inferred_type = Ast_Factory::literal_string_type(lit->string_value);
-                    lit->inferred_type->location = lit->location;
+					lit->inferred_type = Types::type_string;
 		            break;
 		        }
 		        default: Logger::internal(lit, "Unknown literal type: %d", lit->literal_type);

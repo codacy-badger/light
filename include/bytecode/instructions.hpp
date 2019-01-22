@@ -6,7 +6,7 @@
 #include "util/logger.hpp"
 
 enum Inst_Bytecode : uint8_t {
-	BYTECODE_NOOP = 0,
+	BYTECODE_UNDEFINED = 0,
 
 	BYTECODE_COPY,
 	BYTECODE_COPY_MEMORY,
@@ -95,8 +95,8 @@ Inst_Unop get_bytecode_from_unop (Ast_Unary_Type unop);
 Inst_Binop get_bytecode_from_binop (Ast_Binary_Type binop);
 
 struct Instruction {
-	Inst_Bytecode code = BYTECODE_NOOP;
 	Location location;
+	Inst_Bytecode code = BYTECODE_UNDEFINED;
 };
 
 struct Inst_Copy : Instruction {
@@ -107,10 +107,6 @@ struct Inst_Copy : Instruction {
 		this->code = BYTECODE_COPY;
 		this->reg1 = reg1;
 		this->reg2 = reg2;
-
-		if (reg1 == reg2) {
-			Logger::warning("BYTECODE GENERATOR: Copying to the same register: %d", reg1);
-		}
 	}
 };
 
@@ -124,13 +120,6 @@ struct Inst_Copy_Memory : Instruction {
 		this->reg_to = reg_to;
 		this->reg_from = reg_from;
 		this->size = size;
-
-		if (reg_to == reg_from) {
-			Logger::warning("BYTECODE GENERATOR: Copying memory to the same register: %d", reg_to);
-		}
-		if (size == 0) {
-			Logger::warning("BYTECODE GENERATOR: Copying 0-sized memory");
-		}
 	}
 };
 
@@ -146,10 +135,6 @@ struct Inst_Cast : Instruction {
 		this->reg_from = reg_from;
 		this->type_from = type_from;
 		this->type_to = type_to;
-
-		if (type_from == type_to) {
-			Logger::warning("BYTECODE GENERATOR: casting value to the same type: %d", type_from);
-		}
 	}
 
 	Inst_Cast (uint8_t reg, Bytecode_Type type_from, Bytecode_Type type_to)
@@ -209,10 +194,6 @@ struct Inst_Stack_Allocate : Instruction {
 	Inst_Stack_Allocate (size_t size) {
 		this->code = BYTECODE_STACK_ALLOCATE;
 		this->size = size;
-
-		if (size == 0) {
-			Logger::warning("BYTECODE GENERATOR: allocation 0 bytes in stack");
-		}
 	}
 };
 
@@ -237,10 +218,6 @@ struct Inst_Load : Instruction {
 		this->dest = dest;
 		this->src = src;
 		this->size = size;
-
-		if (size == 0) {
-			Logger::warning("BYTECODE GENERATOR: loading 0-sized bytes");
-		}
 	}
 };
 
@@ -254,10 +231,6 @@ struct Inst_Store : Instruction {
 		this->dest = dest;
 		this->src = src;
 		this->size = size;
-
-		if (size == 0) {
-			Logger::warning("BYTECODE GENERATOR: storing 0-sized bytes");
-		}
 	}
 };
 
@@ -309,10 +282,6 @@ struct Inst_Add_Const : Instruction {
 		this->target = target;
 		this->reg = reg;
 		this->number = number;
-
-		if (number == 0) {
-			Logger::warning("BYTECODE GENERATOR: adding 0");
-		}
 	}
 
 	Inst_Add_Const (uint8_t reg, uint64_t number)
@@ -329,14 +298,6 @@ struct Inst_Mul_Const : Instruction {
 		this->target = target;
 		this->reg = reg;
 		this->number = number;
-
-		if (number == 0) {
-			Logger::warning("BYTECODE GENERATOR: multiplying by 0");
-		}
-
-		if (number == 1) {
-			Logger::warning("BYTECODE GENERATOR: multiplying by 1, duh");
-		}
 	}
 
 	Inst_Mul_Const (uint8_t reg, uint64_t number)

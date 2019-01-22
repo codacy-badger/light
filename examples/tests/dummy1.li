@@ -1,0 +1,19 @@
+/*if OS_WINDOWS {
+    import "std/print"
+}*/
+
+#main()
+
+main :: fn {
+    dummy := 1;
+
+    if dummy == 2 {
+        a := 1;
+    }
+
+    while (dummy > 10) do_stuff(dummy);
+}
+
+do_stuff :: fn (number: u8) -> u8 {
+    return number + 2;
+}

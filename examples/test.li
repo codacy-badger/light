@@ -16,17 +16,17 @@ main :: fn {
 	test_big_struct();
 	//test_static_array();
 	test_ptr_subscript();
-	test_slice();
+	//test_slice();
 	//test_default_args();
 	//test_named_args();
-	test_any();
+	//test_any();
 	//test_string();
 }
 
 test_string :: fn {
     text := "Hello st";
-    //print_ptr_len(text.data, 4);
-    //print("\n");
+    print_ptr_len(text.data, 4);
+    print("\n");
     print(text);
 }
 
@@ -133,7 +133,7 @@ test_cast :: fn {
 
 assert :: fn (condition: bool) {
 	if !condition {
-		//print("ASSERT!");
+		print("ASSERT!");
 		sys_exit(1);
 	}
 }

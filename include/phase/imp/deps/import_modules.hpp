@@ -49,7 +49,7 @@ struct Import_Modules : Phase, Ast_Navigator {
 
         if (this->current_scope->is_global()) {
             this->dependencies[this->current_scope].push_back(import);
-        } else Logger::error_and_stop(import, "Only global scopes can have import statements");
+        }
 
         Events::trigger(CE_IMPORT_MODULE, import->absolute_path);
     }

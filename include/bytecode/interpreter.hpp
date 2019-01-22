@@ -342,7 +342,6 @@ struct Interpreter {
 	void print (Instruction* inst) {
 		printf("  %s @ %zd ", inst->location.filename, inst->location.line);
 		switch (inst->code) {
-			case BYTECODE_NOOP: printf("NOOP"); break;
 			case BYTECODE_RETURN: {
 				auto ret = static_cast<Inst_Return*>(inst);
 				printf("RETURN %d, %d\n", ret->reg_index, ret->bytecode_type);
@@ -493,7 +492,10 @@ struct Interpreter {
 				printf("CALL_CONST %d, 0x%llX\n", call_const->reg_result, call_const->address);
 				break;
 			}
-			default: abort();
+			default: {
+				printf("UNDEFINED INSTRUCTION");
+				abort();
+			}
 		}
 		printf("\n");
 	}

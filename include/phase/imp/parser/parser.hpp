@@ -9,6 +9,8 @@
 #include "internal_scope.hpp"
 #include "util/logger.hpp"
 
+#include "ast/printer.hpp"
+
 #include <vector>
 
 #define DEFAULT_FILE_EXTENSION ".li"
@@ -39,7 +41,12 @@ struct Parser : Phase {
 
 		auto start = os_get_time();
 
-		this->push(this->build_ast());
+		auto global_scope = this->build_ast();
+
+		Logger::debug("AST for '%s':", absolute_path);
+		Ast_Printer::print(global_scope, 1);
+
+		this->push(global_scope);
 		this->run_count++;
 
 		Logger::debug("Parsed '%s' in %fs", absolute_path, os_time_stop(start));

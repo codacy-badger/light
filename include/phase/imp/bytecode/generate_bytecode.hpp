@@ -43,7 +43,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 
         Ast_Navigator::ast_handle(global_scope);
 
-        this->push(global_scope);
+        //this->push(global_scope);
     }
 
 	void add_instruction (Ast* node, Instruction* intruction) {
