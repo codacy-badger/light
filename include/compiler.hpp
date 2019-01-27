@@ -1,66 +1,33 @@
 #pragma once
 
-#include "compiler_settings.hpp"
-#include "phase/compiler_phases.hpp"
+#include "build_settings.hpp"
+#include "compiler_events.hpp"
+#include "workspace.hpp"
+
+#define COMPILER_NAME "Light Compiler"
+#define COMPILER_VERSION "0.0.0"
 
 struct Compiler {
-	Compiler_Settings settings;
-	Compiler_Phases* phases;
-
-	// @TODO @FIXME NO NO NO, bad programmer, don't be bad!
-	static Compiler* inst;
-
-	Event_Queue event_queue;
-
-	Compiler (int argc = 0, char** argv = NULL) {
-		this->settings.handle_arguments(argc, argv);
-
-		Logger::debug(COMPILER_NAME " v" COMPILER_VERSION);
-		this->phases = new Compiler_Phases(&this->settings);
-
-		if (Logger::is_debug()) {
-			size_t async_count = 0;
-			for (auto phase : this->phases->phases) {
-				if (phase->is_async) async_count++;
-			}
-			Logger::debug("Compiler phases setup: %zd (%zd async)",
-				this->phases->phases.size(), async_count);
-		}
-
-		Compiler::inst = this;
-
-		Events::bind(CE_COMPILER_ERROR, &this->event_queue);
+	static Workspace* create_workspace () {
+		return new Workspace();
 	}
 
-	void compile_input_files () {
-		auto start = os_get_time();
-
-		for (auto &absolute_path : this->settings.input_files) {
-			Events::trigger(CE_IMPORT_MODULE, absolute_path);
-		}
-
-		while (!this->phases->all_done()) {
-			this->handle_compiler_events();
-			this->phases->handle_sync_events();
-		}
-
-		this->phases->shutdown();
-		this->phases->print_metrics();
-	    printf("Done in %8.6fs\n", os_time_stop(start));
+	static void apply_settings (Workspace* w, Build_Settings* settings) {
+		w->settings = (*settings);
 	}
 
-	void handle_compiler_events () {
-		while (!this->event_queue.empty()) {
-			auto event = this->event_queue.pop();
+	static void begin_build (Workspace*) { /* empty */ }
 
-			switch (event.id) {
-				case CE_COMPILER_ERROR: {
-					this->phases->shutdown();
-					printf("\nErrors found during compilation...\n");
-					exit(1);
-					break;
-				}
-			}
-		}
+	static Compiler_Event* wait_for_message (Workspace*) {
+		auto event = new Compiler_Event();
+		event->kind = EVENT_COMPLETE;
+		return event;
+	}
+
+	static void wait_for_end (Workspace* w) {
+		while (true) {
+	        auto event = Compiler::wait_for_message(w);
+	        if (event->kind == EVENT_COMPLETE) break;
+	    }
 	}
 };

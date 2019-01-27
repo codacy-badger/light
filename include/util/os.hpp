@@ -19,7 +19,6 @@ struct OS {
         #elif defined(__APPLE__)
             return new OS ("Mac", OS_TYPE_MAC);
         #else
-            Logger::error("Unknown target OS");
             return NULL;
         #endif
     }

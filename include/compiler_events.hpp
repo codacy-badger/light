@@ -1,29 +1,35 @@
 #pragma once
 
-enum Compiler_Events : size_t {
-    CE_UNDEFINED = 0,
+#include <stdint.h>
+#include "ast/ast.hpp"
 
-    CE_IMPORT_MODULE,
+enum Event_Kind : uint8_t {
+    EVENT_UNDEFINED = 0,
 
-    CE_MODULE_RUN_PARSER,
+    EVENT_FILE,
+    EVENT_PHASE,
+    EVENT_COMPLETE,
+};
 
-    CE_MODULE_RESOLVE_IMPORTS,
-    CE_MODULE_RESOLVE_SYMBOLS,
-    CE_MODULE_PROPAGATE_CONSTANTS,
-    CE_MODULE_INFER_TYPES,
-    CE_MODULE_RESOLVE_IFS,
+struct Compiler_Event {
+    Event_Kind kind = EVENT_UNDEFINED;
+};
 
-    CE_MODULE_CHECK_TYPES,
-    CE_MODULE_UNIQUE_TYPES,
-    CE_MODULE_TYPE_CONVERSION,
-    CE_MODULE_CHECK_DEPENDENCIES,
-    CE_MODULE_REPLACE_ARRAY_ATTRIBUTES,
+struct Compiler_Event_File {
+    bool is_open;
+    const char* filename;
+    const char* absolute_path;
+};
 
-    CE_BYTECODE_ALLOCATE_REGISTERS,
-    CE_BYTECODE_GENERATE,
-    CE_BYTECODE_RUN,
+enum Phase_Kind : uint8_t {
+    PHASE_UNDEFINED = 0,
 
-    CE_MODULE_READY,
+    PHASE_TYPE_CHECK,
+    PHASE_TARGET_CODE,
+    PHASE_EXECUTABLE,
+};
 
-    CE_COMPILER_ERROR,
+struct Compiler_Event_Phase {
+    Phase_Kind phase_kind = PHASE_UNDEFINED;
+    Ast_Declaration* declaration;
 };

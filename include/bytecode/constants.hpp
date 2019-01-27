@@ -20,7 +20,7 @@ struct Bytecode_Constants {
             auto last_memory = this->memory;
             this->memory = (uint8_t*) realloc(this->memory, this->capacity);
             if (last_memory != NULL && this->memory != last_memory) {
-                Logger::debug("[Bytecode Constants] Realloc memory copy triggered: [ %zd / %zd bytes ]",
+                //Logger::debug("[Bytecode Constants] Realloc memory copy triggered: [ %zd / %zd bytes ]",
                     this->index, this->capacity);
             }
         }

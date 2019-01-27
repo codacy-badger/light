@@ -1,7 +1,6 @@
 #include "ast/ast.hpp"
 
 #include "ast/types.hpp"
-#include "util/logger.hpp"
 
 uint64_t Ast::node_count = 0;
 
@@ -116,12 +115,12 @@ void Ast_Foreign::add (Ast_Statement* stm) {
     if (stm->stm_type == AST_STATEMENT_DECLARATION) {
         auto decl = static_cast<Ast_Declaration*>(stm);
         this->add(decl);
-    } else Logger::error(stm, "Only declarations can go inside #foreign scopes");
+    } else printf("Only declarations can go inside #foreign scopes");
 }
 
 void Ast_Foreign::add (Ast_Declaration* decl) {
-    if (!decl->is_constant) Logger::error(decl, "Declarations inside #foreign scope must be function types");
-    if (!decl->expression) Logger::error(decl, "Declarations inside #foreign scope must have values");
+    if (!decl->is_constant) printf("Declarations inside #foreign scope must be function types");
+    if (!decl->expression) printf("Declarations inside #foreign scope must have values");
     if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
         auto type = static_cast<Ast_Type_Instance*>(decl->expression);
         if (type->typedef_type == AST_TYPEDEF_FUNCTION) {
@@ -135,8 +134,8 @@ void Ast_Foreign::add (Ast_Declaration* decl) {
             decl->expression = func;
 
             this->declarations.push_back(decl);
-        } else Logger::error(decl, "Only function types can go inside #foreign scope declarations");
-    } else Logger::error(decl, "Only types can go inside #foreign scope declarations");
+        } else printf("Only function types can go inside #foreign scope declarations");
+    } else printf("Only types can go inside #foreign scope declarations");
 }
 
 Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
@@ -158,7 +157,7 @@ Ast_Type_Instance* Ast_Pointer_Type::get_base_type_recursive() {
     }
 
     if (deref_count > WARN_MAX_DEREF_COUNT) {
-        Logger::warning(this, "Attribute access on deep pointer (%d)", deref_count);
+        printf("Attribute access on deep pointer (%d)", deref_count);
     }
 
     return base_type;

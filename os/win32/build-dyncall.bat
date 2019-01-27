@@ -6,7 +6,7 @@ call .\configure /target-x64
 
 pushd dyncall
 
-nmake /nologo /S /C /f Nmakefile >null
+nmake /nologo /S /C /f Nmakefile
 
 popd
 popd

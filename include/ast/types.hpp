@@ -4,7 +4,6 @@
 #include <map>
 
 #include "ast/ast.hpp"
-#include "util/logger.hpp"
 
 #define TMP_NAME_SIZE 35
 
@@ -70,7 +69,7 @@ struct Types {
                     return Types::function_types_equal(func_type1, func_type2);
                 }
                 default: {
-                    Logger::internal(type_inst1, "Unknown type definition");
+                    //Logger::internal(type_inst1, "Unknown type definition");
                     return false;
                 }
             }
@@ -103,7 +102,7 @@ struct Types {
     		auto type_inst = static_cast<Ast_Type_Instance*>(exp);
     		return Types::get_name(type_inst);
     	} else {
-            Logger::internal(exp, "Cannot compute type name");
+            //Logger::internal(exp, "Cannot compute type name");
             return NULL;
         }
     }
@@ -189,7 +188,7 @@ struct Types {
     	        }
     	    }
     	} else return type_inst->name;
-        Logger::internal(type_inst, "Could not compute the name of the type");
+        //Logger::internal(type_inst, "Could not compute the name of the type");
         return NULL;
     }
 

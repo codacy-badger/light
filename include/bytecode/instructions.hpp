@@ -3,7 +3,6 @@
 #include <stdint.h>
 
 #include "ast/ast.hpp"
-#include "util/logger.hpp"
 
 enum Inst_Bytecode : uint8_t {
 	BYTECODE_UNDEFINED = 0,

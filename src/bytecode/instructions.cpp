@@ -1,6 +1,6 @@
 #include "bytecode/instructions.hpp"
 
-#include "compiler.hpp"
+#include "ast/types.hpp"
 
 #include <assert.h>
 
@@ -50,7 +50,8 @@ size_t bytecode_get_size (Bytecode_Type bytecode_type) {
 		case BYTECODE_TYPE_U64:
 		case BYTECODE_TYPE_S64:
 		case BYTECODE_TYPE_F64: return 8;
-		case BYTECODE_TYPE_POINTER: return Compiler::inst->settings.target_arch->register_size;
+		// @TODO @FIXME this should depend on the target arch
+		case BYTECODE_TYPE_POINTER: return 8;
 		default: return 0;
 	}
 }
