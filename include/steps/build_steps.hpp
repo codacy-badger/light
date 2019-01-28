@@ -35,15 +35,15 @@ struct Build_Steps {
     }
 
     void do_some_work () {
-        bool has_done_something = false;
+        bool has_worked = false;
 
-        has_done_something |= this->read_step->do_some_work();
-        has_done_something |= this->parse_step->do_some_work();
+        has_worked |= this->read_step->do_some_work();
+        has_worked |= this->parse_step->do_some_work();
         for (auto step : this->general_steps) {
-            has_done_something |= step->do_some_work();
+            has_worked |= step->do_some_work();
         }
 
-        if (!has_done_something) {
+        if (!has_worked) {
             this->events->push(new Compiler_Event(EVENT_COMPLETE));
         }
     }

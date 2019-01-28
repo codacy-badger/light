@@ -75,15 +75,15 @@ struct Ast_Printer {
     }
 
 	void print(Ast_Declaration* decl) {
-        printf("%s ", decl->name);
+        printf("%s", decl->name);
 
         if (decl->type) {
-            printf(": ");
+            printf(" : ");
             print(decl->type);
-            printf(" ");
-        } else printf(":");
+        } else printf(" :");
 
         if (decl->expression) {
+            if (decl->type) printf(" ");
             if (decl->is_constant) {
                 printf(": ");
             } else printf("= ");
@@ -403,7 +403,7 @@ struct Ast_Printer {
     void print(Ast_Struct_Type* struct_type) {
         if (struct_type->name) printf(struct_type->name);
         else {
-            printf("{\n");
+            printf("struct {\n");
             this->current_tabs += 1;
             for (auto attr : struct_type->attributes) {
                 PRINT_TABS;

@@ -19,7 +19,7 @@ int main (int argc, char** argv) {
     Compiler::begin_build(workspace);
     Compiler::wait_for_end();
 
-    printf("\nAll workspaces done!");
+    printf("\nAll workspaces done!\n");
 }
 
 void apply_build_settings (Build_Settings* settings, int argc, char** argv) {

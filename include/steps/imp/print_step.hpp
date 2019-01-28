@@ -1,11 +1,10 @@
 #pragma once
 
 #include "steps/step.hpp"
-#include "utils/ast_navigator.hpp"
 
 #include "ast/printer.hpp"
 
-struct Print_Step : Step<>, Ast_Navigator {
+struct Print_Step : Step<> {
     Ast_Printer* printer = new Ast_Printer();
 
     Print_Step () : Step("Ast Printer") { /* empty */ }

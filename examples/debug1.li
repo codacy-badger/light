@@ -1,4 +1,7 @@
-import "std/sys"
+
+if OS_WINDOWS {
+    import "std/sys"
+}
 
 #main()
 
