@@ -12,7 +12,7 @@ struct Type_Conversion : Phase, Ast_Navigator {
         this->push(global_scope);
     }
 
-    void match_types (Ast_Expression** exp_ptr, Ast_Type_Instance* given, Ast_Type_Instance* expected) {
+    void match_types (Ast_Expression** exp_ptr, Ast_Type* given, Ast_Type* expected) {
         std::vector<Ast_Statement*> to_prepend;
         if (!this->check_type_match(&to_prepend, exp_ptr, given, expected)) {
             Logger::error_and_stop(*exp_ptr, "Type mismatch: given '%s' but '%s' was expected",
@@ -29,21 +29,21 @@ struct Type_Conversion : Phase, Ast_Navigator {
         } else this->prepend_statements(&to_prepend);
     }
 
-    void match_types (Ast_Expression** exp_ptr, Ast_Type_Instance* expected) {
+    void match_types (Ast_Expression** exp_ptr, Ast_Type* expected) {
         this->match_types(exp_ptr, (*exp_ptr)->inferred_type, expected);
     }
 
-    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type_Instance* expected) {
+    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type* expected) {
         return this->check_type_match(to_prepend, exp_ptr, (*exp_ptr)->inferred_type, expected);
     }
 
-    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type_Instance* given, Ast_Type_Instance* expected) {
+    bool check_type_match (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr, Ast_Type* given, Ast_Type* expected) {
         return (given == expected) || this->try_convert(to_prepend, exp_ptr, given, expected);
     }
 
 	void ast_handle (Ast_Declaration* decl) {
 		if (decl->expression && decl->type) {
-			auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
+			auto decl_type_inst = static_cast<Ast_Type*>(decl->type);
             this->match_types(&decl->expression, decl_type_inst);
 		}
         Ast_Navigator::ast_handle(decl);
@@ -61,7 +61,7 @@ struct Type_Conversion : Phase, Ast_Navigator {
 
 	void ast_handle (Ast_Return* ret) {
 		auto func = this->current_scope->get_parent_function();
-		auto ret_type_def = static_cast<Ast_Type_Instance*>(func->type->ret_type);
+		auto ret_type_def = static_cast<Ast_Type*>(func->type->ret_type);
 		if (func && ret->expression) {
 			if (func->type->ret_type != Types::type_void) {
         		Ast_Navigator::ast_handle(ret);
@@ -84,7 +84,7 @@ struct Type_Conversion : Phase, Ast_Navigator {
 			auto param_exp = call->arguments->unnamed[i];
 			assert(param_exp->inferred_type);
 
-			auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
+			auto arg_type = static_cast<Ast_Type*>(func_type->arg_decls[i]->type);
             this->match_types(&call->arguments->unnamed[i], arg_type);
 		}
 	}
@@ -102,13 +102,13 @@ struct Type_Conversion : Phase, Ast_Navigator {
 	}
 
     bool try_convert (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr,
-            Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
+            Ast_Type* type_from, Ast_Type* type_to) {
         return this->try_implicid_cast(exp_ptr, type_from, type_to)
             || this->try_coercion(to_prepend, exp_ptr, type_from, type_to);
     }
 
     bool try_implicid_cast (Ast_Expression** exp_ptr,
-            Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
+            Ast_Type* type_from, Ast_Type* type_to) {
         if (type_from->is_primitive && type_to->is_primitive) {
             if (type_to == Types::type_bool) {
                 auto cast = new Ast_Cast((*exp_ptr), type_to);
@@ -137,12 +137,12 @@ struct Type_Conversion : Phase, Ast_Navigator {
         return false;
     }
 
-    bool try_implicid_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to) {
+    bool try_implicid_cast (Ast_Expression** exp_ptr, Ast_Type* type_to) {
         return this->try_implicid_cast(exp_ptr, (*exp_ptr)->inferred_type, type_to);
     }
 
     bool try_coercion (std::vector<Ast_Statement*>* to_prepend, Ast_Expression** exp_ptr,
-            Ast_Type_Instance* type_from, Ast_Type_Instance* type_to) {
+            Ast_Type* type_from, Ast_Type* type_to) {
             if (type_to == Types::type_any) {
                 this->coerce_to_any(to_prepend, exp_ptr);
                 return true;
@@ -222,7 +222,7 @@ struct Type_Conversion : Phase, Ast_Navigator {
 
         // $tmp.value = ID;
         auto tmp_ident2 = Ast_Factory::ident(val->location, tmp_name, any_declaration, Types::type_any);
-        auto value_ref_type = static_cast<Ast_Type_Instance*>(Types::type_any->find_attribute("value")->type);
+        auto value_ref_type = static_cast<Ast_Type*>(Types::type_any->find_attribute("value")->type);
         auto tmp_value = Ast_Factory::attr(tmp_ident2, "value");
         auto val_value = Ast_Factory::ref(val, value_ref_type);
         auto assign_value = Ast_Factory::assign(tmp_value, val_value);

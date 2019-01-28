@@ -31,11 +31,11 @@ struct Type_Checking : Phase, Ast_Navigator {
         this->push(global_scope);
     }
 
-    bool match_types (Ast_Type_Instance* given, Ast_Type_Instance* expected) {
+    bool match_types (Ast_Type* given, Ast_Type* expected) {
         return given == expected;
     }
 
-    void match_types (Ast_Expression* exp, Ast_Type_Instance* expected) {
+    void match_types (Ast_Expression* exp, Ast_Type* expected) {
         if (!this->match_types(exp->inferred_type, expected)) {
             Logger::error(exp, "Types do not match: given '%s', expected '%s'",
                 exp->inferred_type->name, expected->name);
@@ -56,7 +56,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 			this->ast_handle(decl->expression);
 
 			if (decl->type) {
-				auto decl_type_inst = static_cast<Ast_Type_Instance*>(decl->type);
+				auto decl_type_inst = static_cast<Ast_Type*>(decl->type);
                 this->match_types(decl->expression, decl_type_inst);
 			}
 		}
@@ -78,7 +78,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 		auto fn = this->current_scope->get_parent_function();
 		if (!fn) Logger::error_and_stop(ret, "Return statement must be inside a function");
 
-		auto ret_type_def = static_cast<Ast_Type_Instance*>(fn->type->ret_type);
+		auto ret_type_def = static_cast<Ast_Type*>(fn->type->ret_type);
 		if (ret->expression) {
 			this->ast_handle(ret->expression);
 
@@ -106,7 +106,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 
 		if (_struct->byte_size == 0) {
 			for (auto attr : _struct->attributes) {
-				auto attr_type = static_cast<Ast_Type_Instance*>(attr->type);
+				auto attr_type = static_cast<Ast_Type*>(attr->type);
 
 				auto over = _struct->byte_size % attr_type->byte_size;
 				if (over > 0) {
@@ -142,7 +142,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 		} else Logger::error_and_stop(arr, "Arrays can only have constant size");
 
         if (arr->base->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-            auto base_type = static_cast<Ast_Type_Instance*>(arr->base);
+            auto base_type = static_cast<Ast_Type*>(arr->base);
     		arr->byte_size = arr->length_uint * base_type->byte_size;
         }
 	}
@@ -161,7 +161,7 @@ struct Type_Checking : Phase, Ast_Navigator {
 			auto param_exp = call->arguments->unnamed[i];
 			assert(param_exp->inferred_type);
 
-			auto arg_type = static_cast<Ast_Type_Instance*>(func_type->arg_decls[i]->type);
+			auto arg_type = static_cast<Ast_Type*>(func_type->arg_decls[i]->type);
             this->match_types(call->arguments->unnamed[i], arg_type);
 		}
 	}

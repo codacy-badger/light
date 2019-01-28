@@ -4,7 +4,7 @@
 
 #include <assert.h>
 
-Bytecode_Type bytecode_get_type (Ast_Type_Instance* decl_ty) {
+Bytecode_Type bytecode_get_type (Ast_Type* decl_ty) {
 	assert(decl_ty != NULL);
 	switch (decl_ty->typedef_type) {
 		case AST_TYPEDEF_ARRAY:
@@ -33,7 +33,7 @@ Bytecode_Type bytecode_get_type (Ast_Type_Instance* decl_ty) {
 
 Bytecode_Type bytecode_get_type (Ast_Expression* exp) {
 	if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-		return bytecode_get_type(static_cast<Ast_Type_Instance*>(exp));
+		return bytecode_get_type(static_cast<Ast_Type*>(exp));
 	} else return BYTECODE_TYPE_VOID;
 }
 

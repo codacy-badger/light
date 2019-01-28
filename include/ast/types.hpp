@@ -38,7 +38,7 @@ struct Types {
     static Ast_Struct_Type* type_any;
 
     // TODO: solve this: either we unique all types or we make deep comparisons
-    static bool equal (Ast_Type_Instance* type_inst1, Ast_Type_Instance* type_inst2) {
+    static bool equal (Ast_Type* type_inst1, Ast_Type* type_inst2) {
         //return type_inst1 == type_inst2;
         if (type_inst1 == type_inst2) return true;
         else {
@@ -49,8 +49,8 @@ struct Types {
                 case AST_TYPEDEF_POINTER: {
                     auto ptr_type1 = static_cast<Ast_Pointer_Type*>(type_inst1);
                     auto ptr_type2 = static_cast<Ast_Pointer_Type*>(type_inst2);
-                    auto base_type1 = static_cast<Ast_Type_Instance*>(ptr_type1->base);
-                    auto base_type2 = static_cast<Ast_Type_Instance*>(ptr_type2->base);
+                    auto base_type1 = static_cast<Ast_Type*>(ptr_type1->base);
+                    auto base_type2 = static_cast<Ast_Type*>(ptr_type2->base);
                     return Types::equal(base_type1, base_type2);
                 }
                 case AST_TYPEDEF_ARRAY: {
@@ -59,8 +59,8 @@ struct Types {
 
                     if (arr_type1->length_uint != arr_type2->length_uint) return false;
 
-                    auto base_type1 = static_cast<Ast_Type_Instance*>(arr_type1->base);
-                    auto base_type2 = static_cast<Ast_Type_Instance*>(arr_type2->base);
+                    auto base_type1 = static_cast<Ast_Type*>(arr_type1->base);
+                    auto base_type2 = static_cast<Ast_Type*>(arr_type2->base);
                     return Types::equal(base_type1, base_type2);
                 }
                 case AST_TYPEDEF_FUNCTION: {
@@ -80,17 +80,17 @@ struct Types {
         if (func_type1->arg_decls.size() != func_type2->arg_decls.size()) return false;
 
         for (size_t i = 0; i < func_type1->arg_decls.size(); i++) {
-            auto arg_type1 = static_cast<Ast_Type_Instance*>(func_type1->arg_decls[i]->type);
-            auto arg_type2 = static_cast<Ast_Type_Instance*>(func_type2->arg_decls[i]->type);
+            auto arg_type1 = static_cast<Ast_Type*>(func_type1->arg_decls[i]->type);
+            auto arg_type2 = static_cast<Ast_Type*>(func_type2->arg_decls[i]->type);
             if (!Types::equal(arg_type1, arg_type2)) return false;
         }
 
-        auto ret_type1 = static_cast<Ast_Type_Instance*>(func_type1->ret_type);
-        auto ret_type2 = static_cast<Ast_Type_Instance*>(func_type2->ret_type);
+        auto ret_type1 = static_cast<Ast_Type*>(func_type1->ret_type);
+        auto ret_type2 = static_cast<Ast_Type*>(func_type2->ret_type);
         return Types::equal(ret_type1, ret_type2);
     }
 
-    static void set_name (Ast_Type_Instance* type_inst) {
+    static void set_name (Ast_Type* type_inst) {
         if (!type_inst->name) type_inst->name = Types::get_name(type_inst);
     }
 
@@ -99,7 +99,7 @@ struct Types {
     		auto ident = static_cast<Ast_Ident*>(exp);
     		return ident->name;
     	} else if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-    		auto type_inst = static_cast<Ast_Type_Instance*>(exp);
+    		auto type_inst = static_cast<Ast_Type*>(exp);
     		return Types::get_name(type_inst);
     	} else {
             //Logger::internal(exp, "Cannot compute type name");
@@ -107,7 +107,7 @@ struct Types {
         }
     }
 
-    static const char* get_name (Ast_Type_Instance* type_inst) {
+    static const char* get_name (Ast_Type* type_inst) {
     	if (!type_inst->name) {
     		switch (type_inst->typedef_type) {
     	        case AST_TYPEDEF_STRUCT: {
@@ -192,7 +192,7 @@ struct Types {
         return NULL;
     }
 
-    static Internal_Type get_internal_type (Ast_Type_Instance* type) {
+    static Internal_Type get_internal_type (Ast_Type* type) {
     	if (type == Types::type_void) 	return INTERNAL_TYPE_VOID;
     	if (type == Types::type_bool) 	return INTERNAL_TYPE_BOOL;
     	if (type == Types::type_s8) 	return INTERNAL_TYPE_INTEGER;

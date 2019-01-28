@@ -44,7 +44,7 @@ struct Internal_Scope : Ast_Scope {
         DECLARE_TYPE_INT(ANY);
     }
 
-    void add_type (Ast_Type_Instance* type) {
+    void add_type (Ast_Type* type) {
         type->inferred_type = Types::type_type;
         this->add(Ast_Factory::declaration(internal_location, type->name, Types::type_type, type));
     }

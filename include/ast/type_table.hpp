@@ -6,9 +6,9 @@
 #include <vector>
 
 struct Type_Table {
-    std::vector<Ast_Type_Instance*> all_types;
+    std::vector<Ast_Type*> all_types;
 
-    bool is_unique (Ast_Type_Instance* type) {
+    bool is_unique (Ast_Type* type) {
         for (auto _type : this->all_types) {
             if (type == _type) {
                 return true;
@@ -17,7 +17,7 @@ struct Type_Table {
         return false;
     }
 
-    Ast_Type_Instance* find_unique (Ast_Type_Instance* type) {
+    Ast_Type* find_unique (Ast_Type* type) {
         if (type->typedef_type == AST_TYPEDEF_STRUCT) {
             this->all_types.push_back(type);
             return type;

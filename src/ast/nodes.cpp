@@ -122,7 +122,7 @@ void Ast_Foreign::add (Ast_Declaration* decl) {
     if (!decl->is_constant) printf("Declarations inside #foreign scope must be function types");
     if (!decl->expression) printf("Declarations inside #foreign scope must have values");
     if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-        auto type = static_cast<Ast_Type_Instance*>(decl->expression);
+        auto type = static_cast<Ast_Type*>(decl->expression);
         if (type->typedef_type == AST_TYPEDEF_FUNCTION) {
             auto func = new Ast_Function();
             func->location = type->location;
@@ -146,13 +146,13 @@ Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
 }
 
 // TODO: precompute depth for each pointer type (when uniqued?)
-Ast_Type_Instance* Ast_Pointer_Type::get_base_type_recursive() {
-    auto base_type = static_cast<Ast_Type_Instance*>(this->base);
+Ast_Type* Ast_Pointer_Type::get_base_type_recursive() {
+    auto base_type = static_cast<Ast_Type*>(this->base);
 
     uint8_t deref_count = 0;
     while (base_type->typedef_type == AST_TYPEDEF_POINTER) {
         auto ptr_type = static_cast<Ast_Pointer_Type*>(base_type);
-        base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+        base_type = static_cast<Ast_Type*>(ptr_type->base);
         deref_count += 1;
     }
 
@@ -207,7 +207,7 @@ Ast_Binary_Type token_to_binop (Token_Type tType) {
 	};
 }
 
-Ast_Type_Instance* Ast_Binary::get_result_type() {
+Ast_Type* Ast_Binary::get_result_type() {
     switch (this->binary_op) {
         case AST_BINARY_EQ:
         case AST_BINARY_NEQ:
@@ -270,13 +270,13 @@ const char* _get_type_name (Ast_Expression* exp) {
 		auto ident = static_cast<Ast_Ident*>(exp);
 		return ident->name;
 	} else if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-		auto type_inst = static_cast<Ast_Type_Instance*>(exp);
+		auto type_inst = static_cast<Ast_Type*>(exp);
 		ast_compute_type_name_if_needed(type_inst);
 		return type_inst->name;
 	} else abort();
 }
 
-void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
+void ast_compute_type_name_if_needed (Ast_Type* type_inst) {
 	if (!type_inst->name) {
 		switch (type_inst->typedef_type) {
 	        case AST_TYPEDEF_STRUCT: {
@@ -368,7 +368,7 @@ void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst) {
 	}
 }
 
-Ast_Type_Instance* ast_get_container_signed (Ast_Type_Instance* unsigned_type) {
+Ast_Type* ast_get_container_signed (Ast_Type* unsigned_type) {
     if (unsigned_type == Types::type_u8) {
         return Types::type_s16;
     } else if (unsigned_type == Types::type_u16) {

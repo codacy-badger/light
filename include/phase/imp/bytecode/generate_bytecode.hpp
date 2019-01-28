@@ -130,7 +130,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 	        for (uint8_t i = 0; i < func->type->arg_decls.size(); i++) {
 	            auto decl = func->type->arg_decls[i];
 				if (decl->is_spilled) {
-					auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
+					auto decl_type = static_cast<Ast_Type*>(decl->type);
 
 					INST(decl, Stack_Allocate, decl_type->byte_size);
 					decl->bytecode_stack_offset = this->data_offset;
@@ -174,7 +174,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 	            }
 			}
 	    } else {
-			auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
+			auto decl_type = static_cast<Ast_Type*>(decl->type);
 			if (this->current_scope->is_global()) {
 				decl->bytecode_global_offset = this->globals->allocate(decl_type->byte_size);
 			} else {
@@ -290,7 +290,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
                     while (struct_type->typedef_type == AST_TYPEDEF_POINTER) {
                         auto ptr_type = static_cast<Ast_Pointer_Type*>(struct_type);
 						INST(binop, Load, binop->reg, binop->reg, ptr_type->byte_size);
-                        struct_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+                        struct_type = static_cast<Ast_Type*>(ptr_type->base);
 					}
 				}
 
@@ -312,7 +312,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 					this->ast_handle(binop->rhs);
 
 					auto array_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
-					auto array_base_type = static_cast<Ast_Type_Instance*>(array_type->base);
+					auto array_base_type = static_cast<Ast_Type*>(array_type->base);
 		            auto element_size = array_base_type->byte_size;
 
 		            if (element_size > 1) INST(binop, Mul_Const, binop->rhs->reg, element_size);
@@ -329,7 +329,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 						auto data_decl = struct_type->find_attribute("data");
 						if (data_decl) {
 							auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
-							auto array_base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+							auto array_base_type = static_cast<Ast_Type*>(ptr_type->base);
 				            auto element_size = array_base_type->byte_size;
 
 				        	this->ast_handle_left(binop->lhs);
@@ -353,7 +353,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 					Ast_Navigator::ast_handle(binop->rhs);
 
 					auto ptr_type = static_cast<Ast_Pointer_Type*>(binop->lhs->inferred_type);
-					auto ptr_base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+					auto ptr_base_type = static_cast<Ast_Type*>(ptr_type->base);
 		            auto element_size = ptr_base_type->byte_size;
 
 		            if (element_size > 1) INST(binop, Mul_Const, binop->rhs->reg, element_size);

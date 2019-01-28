@@ -24,7 +24,7 @@ struct Unique_Types : Phase, Ast_Ref_Navigator {
         this->push(global_scope);
     }
 
-    void unique (Ast_Type_Instance** type_ptr) {
+    void unique (Ast_Type** type_ptr) {
         if (!this->type_table->is_unique(*type_ptr)) {
             auto old_ptr = (*type_ptr);
 
@@ -42,7 +42,7 @@ struct Unique_Types : Phase, Ast_Ref_Navigator {
         this->ast_handle(&(*exp_ptr)->inferred_type);
     }
 
-    void ast_handle (Ast_Type_Instance** type_ptr) {
+    void ast_handle (Ast_Type** type_ptr) {
         Ast_Ref_Navigator::ast_handle(type_ptr);
         this->unique(type_ptr);
     }

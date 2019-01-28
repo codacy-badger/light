@@ -170,7 +170,7 @@ struct Ast_Navigator {
 				break;
 			}
 			case AST_EXPRESSION_TYPE_INSTANCE: {
-				this->ast_handle(reinterpret_cast<Ast_Type_Instance*>(exp));
+				this->ast_handle(reinterpret_cast<Ast_Type*>(exp));
 				break;
 			}
 		}
@@ -210,7 +210,7 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_Literal*) { /* empty */ }
 
-	virtual void ast_handle (Ast_Type_Instance* type_def) {
+	virtual void ast_handle (Ast_Type* type_def) {
 		switch (type_def->typedef_type) {
 			case AST_TYPEDEF_STRUCT: {
 				this->ast_handle(reinterpret_cast<Ast_Struct_Type*>(type_def));

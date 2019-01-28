@@ -41,7 +41,7 @@ struct Type_Inference : Phase, Ast_Navigator {
                 auto fn = static_cast<Ast_Function*>(decl->expression);
                 fn->name = decl->name;
             } else if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-                auto defn_ty = static_cast<Ast_Type_Instance*>(decl->expression);
+                auto defn_ty = static_cast<Ast_Type*>(decl->expression);
                 if (defn_ty->typedef_type == AST_TYPEDEF_STRUCT) {
                     auto _struct = static_cast<Ast_Struct_Type*>(defn_ty);
                     _struct->name = decl->name;
@@ -50,7 +50,7 @@ struct Type_Inference : Phase, Ast_Navigator {
         }
 	}
 
-	void ast_handle (Ast_Type_Instance* type_inst) {
+	void ast_handle (Ast_Type* type_inst) {
         Ast_Navigator::ast_handle(type_inst);
 
         if (!type_inst->inferred_type) {
@@ -70,7 +70,7 @@ struct Type_Inference : Phase, Ast_Navigator {
         Ast_Navigator::ast_handle(cast);
 
         if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-            cast->inferred_type = static_cast<Ast_Type_Instance*>(cast->cast_to);
+            cast->inferred_type = static_cast<Ast_Type*>(cast->cast_to);
         } else Logger::error_and_stop(cast, "Cast target must be a type");
 	}
 
@@ -97,17 +97,17 @@ struct Type_Inference : Phase, Ast_Navigator {
             if (call->func->exp_type == AST_EXPRESSION_FUNCTION) {
                 auto func = static_cast<Ast_Function*>(call->func);
                 if (func->type->ret_type->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-                    call->inferred_type = static_cast<Ast_Type_Instance*>(func->type->ret_type);
+                    call->inferred_type = static_cast<Ast_Type*>(func->type->ret_type);
                 }
             } else if (call->func->exp_type == AST_EXPRESSION_IDENT) {
                 auto ident = static_cast<Ast_Ident*>(call->func);
                 auto decl = ident->declaration;
                 if (decl && decl->type && decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-                    auto decl_type = static_cast<Ast_Type_Instance*>(decl->type);
+                    auto decl_type = static_cast<Ast_Type*>(decl->type);
                     if (decl_type->typedef_type == AST_TYPEDEF_FUNCTION) {
                         auto func_type = static_cast<Ast_Function_Type*>(decl_type);
                         if (func_type->ret_type->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
-                            call->inferred_type = static_cast<Ast_Type_Instance*>(func_type->ret_type);
+                            call->inferred_type = static_cast<Ast_Type*>(func_type->ret_type);
                         }
                     }
                 }
@@ -132,7 +132,7 @@ struct Type_Inference : Phase, Ast_Navigator {
     	            auto inf_type = unop->exp->inferred_type;
     	            if (inf_type->typedef_type == AST_TYPEDEF_POINTER) {
     	                auto ptr_type = static_cast<Ast_Pointer_Type*>(inf_type);
-    	                auto base_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+    	                auto base_type = static_cast<Ast_Type*>(ptr_type->base);
     	                unop->inferred_type = base_type;
     	            }
     	            break;
@@ -169,7 +169,7 @@ struct Type_Inference : Phase, Ast_Navigator {
                         auto ident = static_cast<Ast_Ident*>(binop->rhs);
                         auto attribute = _struct->find_attribute(ident->name);
                         if (attribute) {
-                            auto attr_type = static_cast<Ast_Type_Instance*>(attribute->type);
+                            auto attr_type = static_cast<Ast_Type*>(attribute->type);
                             binop->inferred_type = attr_type;
                             ident->inferred_type = attr_type;
                             ident->declaration = attribute;
@@ -189,7 +189,7 @@ struct Type_Inference : Phase, Ast_Navigator {
                 case AST_BINARY_SUBSCRIPT: {
                     if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_ARRAY) {
                         auto arr_type = static_cast<Ast_Array_Type*>(binop->lhs->inferred_type);
-                        binop->inferred_type = static_cast<Ast_Type_Instance*>(arr_type->base);
+                        binop->inferred_type = static_cast<Ast_Type*>(arr_type->base);
                     } else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_STRUCT) {
                         // @TODO refactor this once we have subscript operator overloading
                         auto _struct = static_cast<Ast_Struct_Type*>(binop->lhs->inferred_type);
@@ -198,11 +198,11 @@ struct Type_Inference : Phase, Ast_Navigator {
 
                             auto data_decl = _struct->find_attribute("data");
                             auto ptr_type = static_cast<Ast_Pointer_Type*>(data_decl->type);
-                            binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+                            binop->inferred_type = static_cast<Ast_Type*>(ptr_type->base);
                         }
                     } else if (binop->lhs->inferred_type->typedef_type == AST_TYPEDEF_POINTER) {
                         auto ptr_type = static_cast<Ast_Pointer_Type*>(binop->lhs->inferred_type);
-                        binop->inferred_type = static_cast<Ast_Type_Instance*>(ptr_type->base);
+                        binop->inferred_type = static_cast<Ast_Type*>(ptr_type->base);
                     }
                     break;
                 }
@@ -222,7 +222,7 @@ struct Type_Inference : Phase, Ast_Navigator {
 
 	void ast_handle (Ast_Ident* ident) {
 		if (!ident->inferred_type && ident->declaration) {
-			ident->inferred_type = static_cast<Ast_Type_Instance*>(ident->declaration->type);
+			ident->inferred_type = static_cast<Ast_Type*>(ident->declaration->type);
 		}
 	}
 

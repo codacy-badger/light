@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdarg>
-
 #define PRINT_TABS for (size_t i = current_tabs; i > 0; i--) printf("    ");
 
 struct Ast_Printer {
@@ -10,15 +8,15 @@ struct Ast_Printer {
     Ast_Printer (size_t default_tab_level = 0) { this->current_tabs = default_tab_level; }
 
     void print (Ast_Arguments* args) {
-        print("(");
+        printf("(");
         if (args->unnamed.size() > 0) {
             print(args->unnamed[0]);
             for (int i = 1; i < args->unnamed.size(); i++) {
-                print(", ");
+                printf(", ");
                 print(args->unnamed[i]);
             }
         }
-        print(")");
+        printf(")");
     }
 
     void print(Ast_Statement* stm) {
@@ -73,70 +71,71 @@ struct Ast_Printer {
         }
         this->current_tabs -= 1;
         PRINT_TABS;
-        printf("}\n");
+        printf("}");
     }
 
 	void print(Ast_Declaration* decl) {
         printf("%s ", decl->name);
 
         if (decl->type) {
-            print(": ");
+            printf(": ");
             print(decl->type);
-        } else print(":");
+            printf(" ");
+        } else printf(":");
 
         if (decl->expression) {
             if (decl->is_constant) {
-                print(": ");
-            } else print("= ");
+                printf(": ");
+            } else printf("= ");
             print(decl->expression);
         }
 	}
 
 	void print(Ast_Return* ret) {
-        print("return");
+        printf("return");
         if (ret->expression) {
-            print(" ");
+            printf(" ");
             print(ret->expression);
         }
 	}
 
 	void print(Ast_If* _if) {
-        print("if (");
+        printf("if (");
         print(_if->condition);
-        print(") ");
+        printf(") ");
 		print(_if->then_scope);
         if (_if->else_scope) {
-            print(" else ");
+            printf(" else ");
             print(_if->else_scope);
         }
 	}
 
 	void print(Ast_While* _while) {
-        print("while (");
+        printf("while (");
         print(_while->condition);
-        print(") ");
+        printf(") ");
 		print(_while->scope);
 	}
 
 	void print(Ast_Import* import) {
-        print("import");
-        if (import->include) print("!");
-        print(" \"%s\"", import->path);
+        printf("import");
+        if (import->include) printf("!");
+        printf(" \"%s\"", import->path);
     }
 
 	void print(Ast_Foreign* foreign) {
-        print("foreign ");
-        if (foreign->module_name) print("%s ", foreign->module_name);
-        if (foreign->function_name) print("%s ", foreign->function_name);
-        print("{\n");
+        printf("foreign ");
+        if (foreign->module_name) printf("%s ", foreign->module_name);
+        if (foreign->function_name) printf("%s ", foreign->function_name);
+        printf("{\n");
         for (auto decl : foreign->declarations) {
             print(decl + 1);
         }
-        print("}");
+        printf("}");
     }
 
 	void print(Ast_Break*) {
-        print("break");
+        printf("break");
     }
 
 	void print(Ast_Expression* exp) {
@@ -174,21 +173,21 @@ struct Ast_Printer {
 				break;
 			}
 			case AST_EXPRESSION_TYPE_INSTANCE: {
-				print(reinterpret_cast<Ast_Type_Instance*>(exp));
+				print(reinterpret_cast<Ast_Type*>(exp));
 				break;
 			}
 		}
 	}
 
     void print(Ast_Run* run) {
-        print("#(");
+        printf("#(");
         print(run->expression);
-        print(")");
+        printf(")");
     }
 
     void print(Ast_Function* func) {
         print(func->type);
-        print(" ");
+        printf(" ");
         print(func->scope);
     }
 
@@ -223,108 +222,108 @@ struct Ast_Printer {
         print(binary->lhs);
         switch (binary->binary_op) {
             case AST_BINARY_ASSIGN: {
-                print(" = ");
+                printf(" = ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_ATTRIBUTE: {
-                print(".");
+                printf(".");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_SUBSCRIPT: {
-                print("[");
+                printf("[");
                 print(binary->rhs);
-                print("]");
+                printf("]");
                 break;
             }
         	case AST_BINARY_LOGICAL_AND: {
-                print(" && ");
+                printf(" && ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_LOGICAL_OR: {
-                print(" || ");
+                printf(" || ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_ADD: {
-                print(" + ");
+                printf(" + ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_SUB: {
-                print(" - ");
+                printf(" - ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_MUL: {
-                print(" * ");
+                printf(" * ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_DIV: {
-                print(" / ");
+                printf(" / ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_REM: {
-                print(" %% ");
+                printf(" %% ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_BITWISE_AND: {
-                print(" & ");
+                printf(" & ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_BITWISE_OR: {
-                print(" | ");
+                printf(" | ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_BITWISE_XOR: {
-                print(" ^ ");
+                printf(" ^ ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_BITWISE_RIGHT_SHIFT: {
-                print(" >> ");
+                printf(" >> ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_BITWISE_LEFT_SHIFT: {
-                print(" << ");
+                printf(" << ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_EQ: {
-                print(" == ");
+                printf(" == ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_NEQ: {
-                print(" != ");
+                printf(" != ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_LT: {
-                print(" < ");
+                printf(" < ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_LTE: {
-                print(" <= ");
+                printf(" <= ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_GT: {
-                print(" > ");
+                printf(" > ");
                 print(binary->rhs);
                 break;
             }
         	case AST_BINARY_GTE: {
-                print(" >= ");
+                printf(" >= ");
                 print(binary->rhs);
                 break;
             }
@@ -332,38 +331,38 @@ struct Ast_Printer {
     }
 
     void print(Ast_Cast* cast) {
-        print("cast(");
+        printf("cast(");
         print(cast->cast_to);
-        print(") ");
+        printf(") ");
         print(cast->value);
     }
 
     void print(Ast_Ident* ident) {
-        print(ident->name);
+        printf(ident->name);
     }
 
     void print(Ast_Literal* lit) {
         switch (lit->literal_type) {
             case AST_LITERAL_SIGNED_INT: {
-                print("%lld", lit->int_value);
+                printf("%lld", lit->int_value);
                 break;
             }
         	case AST_LITERAL_UNSIGNED_INT: {
-                print("%llu", lit->uint_value);
+                printf("%llu", lit->uint_value);
                 break;
             }
         	case AST_LITERAL_DECIMAL: {
-                print("%lf", lit->int_value);
+                printf("%lf", lit->decimal_value);
                 break;
             }
         	case AST_LITERAL_STRING: {
-                print(lit->string_value);
+                printf(lit->string_value);
                 break;
             }
         }
     }
 
-    void print(Ast_Type_Instance* type) {
+    void print(Ast_Type* type) {
         switch (type->typedef_type) {
         	case AST_TYPEDEF_FUNCTION : {
                 print(reinterpret_cast<Ast_Function_Type*>(type));
@@ -385,42 +384,47 @@ struct Ast_Printer {
     }
 
     void print(Ast_Function_Type* func_type) {
-        print("fn");
+        printf("fn");
         if (func_type->arg_decls.size() > 0) {
-            print(" (");
+            printf(" (");
             print(func_type->arg_decls[0]);
             for (int i = 1; i < func_type->arg_decls.size(); i++) {
-                print(", ");
+                printf(", ");
                 print(func_type->arg_decls[i]);
             }
-            print(")");
+            printf(")");
         }
         if (func_type->ret_type) {
-            print(" -> ");
+            printf(" -> ");
             print(func_type->ret_type);
         }
     }
 
     void print(Ast_Struct_Type* struct_type) {
-        print(struct_type->name);
+        if (struct_type->name) printf(struct_type->name);
+        else {
+            printf("{\n");
+            this->current_tabs += 1;
+            for (auto attr : struct_type->attributes) {
+                PRINT_TABS;
+                print(attr);
+                printf("\n");
+            }
+            this->current_tabs -= 1;
+            PRINT_TABS;
+            printf("}");
+        }
     }
 
     void print(Ast_Pointer_Type* ptr_type) {
-        print("*");
+        printf("*");
         print(ptr_type->base);
     }
 
     void print(Ast_Array_Type* array_type) {
-        print("[");
+        printf("[");
         print(array_type->length);
-        print("] ");
+        printf("] ");
         print(array_type->base);
-    }
-
-    void print(const char* format, ...) {
-        va_list argptr;
-        va_start(argptr, format);
-        vprintf(format, argptr);
-        va_end(argptr);
     }
 };

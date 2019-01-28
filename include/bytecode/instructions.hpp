@@ -85,7 +85,7 @@ enum Bytecode_Type : uint8_t {
 	BYTECODE_TYPE_POINTER,
 };
 
-Bytecode_Type bytecode_get_type (Ast_Type_Instance* decl_ty);
+Bytecode_Type bytecode_get_type (Ast_Type* decl_ty);
 Bytecode_Type bytecode_get_type (Ast_Expression* exp);
 size_t bytecode_get_size (Bytecode_Type bytecode_type);
 bool bytecode_has_sign (Bytecode_Type bytecode_type);

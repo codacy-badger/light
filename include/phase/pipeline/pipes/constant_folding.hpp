@@ -45,7 +45,7 @@ T unary_fold (Ast_Unary_Type unary_op, T a) {
 	}
 }
 
-Ast_Type_Instance* unary_type (Ast_Unary_Type unary_op, Ast_Expression* exp) {
+Ast_Type* unary_type (Ast_Unary_Type unary_op, Ast_Expression* exp) {
 	switch (unary_op) {
 		case AST_UNARY_NEGATE: {
 				 if (exp->inferred_type == Types::type_s8) 	return Types::type_u8;
@@ -77,7 +77,7 @@ struct Constant_Folding {
 			auto lit = static_cast<Ast_Literal*>(cast->value);
 
 			// @Incomplete decimal conversions won't work...
-			lit->inferred_type = static_cast<Ast_Type_Instance*>(cast->cast_to);
+			lit->inferred_type = static_cast<Ast_Type*>(cast->cast_to);
 
 			//delete *cast_ptr;
 			*cast_ptr = reinterpret_cast<Ast_Cast*>(lit);

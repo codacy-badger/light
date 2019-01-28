@@ -51,14 +51,14 @@ struct Ast_Factory {
         assert(attr_decl != NULL);
 
         assert(attr_decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
-        auto inferred_type = static_cast<Ast_Type_Instance*>(attr_decl->type);
+        auto inferred_type = static_cast<Ast_Type*>(attr_decl->type);
 
         return Ast_Factory::attr(exp, attr_name, inferred_type, attr_decl);
     }
 
-    static Ast_Binary* attr (Ast_Expression* exp, const char* attr_name, Ast_Type_Instance* inferred_type, Ast_Declaration* attr_decl) {
+    static Ast_Binary* attr (Ast_Expression* exp, const char* attr_name, Ast_Type* inferred_type, Ast_Declaration* attr_decl) {
         assert(attr_decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
-        auto attr_inferred_type = static_cast<Ast_Type_Instance*>(attr_decl->type);
+        auto attr_inferred_type = static_cast<Ast_Type*>(attr_decl->type);
 
         auto binop = new Ast_Binary(AST_BINARY_ATTRIBUTE);
         binop->inferred_type = inferred_type;
@@ -68,7 +68,7 @@ struct Ast_Factory {
     	return binop;
     }
 
-    static Ast_Binary* assign (Ast_Expression* exp1, Ast_Expression* exp2, Ast_Type_Instance* inferred_type = NULL) {
+    static Ast_Binary* assign (Ast_Expression* exp1, Ast_Expression* exp2, Ast_Type* inferred_type = NULL) {
     	auto binop = new Ast_Binary(AST_BINARY_ASSIGN);
         binop->inferred_type = inferred_type;
         binop->location = exp1->location;
@@ -77,7 +77,7 @@ struct Ast_Factory {
     	return binop;
     }
 
-    static Ast_Unary* ref (Ast_Expression* exp, Ast_Type_Instance* inferred_type = NULL) {
+    static Ast_Unary* ref (Ast_Expression* exp, Ast_Type* inferred_type = NULL) {
     	auto unop = new Ast_Unary(AST_UNARY_REFERENCE);
         unop->inferred_type = inferred_type;
         unop->location = exp->location;
@@ -86,7 +86,7 @@ struct Ast_Factory {
     }
 
     static Ast_Ident* ident (Location location, const char* name,
-            Ast_Declaration* decl = NULL, Ast_Type_Instance* inferred_type = NULL) {
+            Ast_Declaration* decl = NULL, Ast_Type* inferred_type = NULL) {
     	auto ident = new Ast_Ident();
         ident->inferred_type = inferred_type;
         ident->location = location;
@@ -99,7 +99,7 @@ struct Ast_Factory {
         return Ast_Factory::array_type(Types::type_byte, strlen(text));
     }
 
-    static Ast_Literal* literal_array_length (Location location, Ast_Type_Instance* type) {
+    static Ast_Literal* literal_array_length (Location location, Ast_Type* type) {
         assert(type->typedef_type == AST_TYPEDEF_ARRAY);
         auto arr_type = static_cast<Ast_Array_Type*>(type);
         return Ast_Factory::literal_array_length(location, arr_type);

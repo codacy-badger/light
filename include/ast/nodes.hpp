@@ -13,7 +13,7 @@ struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
 struct Ast_Struct_Type;
-struct Ast_Type_Instance;
+struct Ast_Type;
 
 struct Instruction;
 
@@ -228,7 +228,7 @@ enum Ast_Expression_Type {
 
 struct Ast_Expression : Ast_Statement {
 	Ast_Expression_Type exp_type = AST_EXPRESSION_UNDEFINED;
-	Ast_Type_Instance* inferred_type = NULL;
+	Ast_Type* inferred_type = NULL;
 
 	// for bytecode
 	int8_t reg = -1;
@@ -291,7 +291,7 @@ struct Ast_Literal : Ast_Expression {
 	bool as_boolean () 		{ return uint_value != 0; }
 };
 
-enum Ast_Type_Instance_Type {
+enum Ast_Type_Type {
 	AST_TYPEDEF_UNDEFINED = 0,
 	AST_TYPEDEF_FUNCTION,
 	AST_TYPEDEF_STRUCT,
@@ -299,8 +299,8 @@ enum Ast_Type_Instance_Type {
 	AST_TYPEDEF_ARRAY,
 };
 
-struct Ast_Type_Instance : Ast_Expression {
-	Ast_Type_Instance_Type typedef_type = AST_TYPEDEF_UNDEFINED;
+struct Ast_Type : Ast_Expression {
+	Ast_Type_Type typedef_type = AST_TYPEDEF_UNDEFINED;
 	const char* name = NULL;
 
 	bool is_primitive = false;
@@ -312,12 +312,12 @@ struct Ast_Type_Instance : Ast_Expression {
 
 	int64_t guid = -1;
 
-	Ast_Type_Instance() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
+	Ast_Type() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
 
 	bool can_be_in_register (uint8_t register_size) { return this->is_primitive && (this->byte_size <= register_size); }
 };
 
-struct Ast_Struct_Type : Ast_Type_Instance {
+struct Ast_Struct_Type : Ast_Type {
 	std::vector<Ast_Declaration*> attributes;
 	bool is_slice = false;
 
@@ -334,7 +334,7 @@ struct Ast_Struct_Type : Ast_Type_Instance {
 	Ast_Declaration* find_attribute (const char* name);
 };
 
-struct Ast_Pointer_Type : Ast_Type_Instance {
+struct Ast_Pointer_Type : Ast_Type {
 	Ast_Expression* base = NULL;
 
 	Ast_Pointer_Type(Ast_Expression* base = NULL) {
@@ -343,10 +343,10 @@ struct Ast_Pointer_Type : Ast_Type_Instance {
 		this->base = base;
 	}
 
-	Ast_Type_Instance* get_base_type_recursive();
+	Ast_Type* get_base_type_recursive();
 };
 
-struct Ast_Array_Type : Ast_Type_Instance {
+struct Ast_Array_Type : Ast_Type {
 	Ast_Expression* base;
 	Ast_Expression* length;
 
@@ -369,12 +369,12 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 		return ptr_type->base;
 	}
 
-	Ast_Type_Instance* get_typed_base() {
-		return static_cast<Ast_Type_Instance*>(this->get_base());
+	Ast_Type* get_typed_base() {
+		return static_cast<Ast_Type*>(this->get_base());
 	}
 };
 
-struct Ast_Function_Type : Ast_Type_Instance {
+struct Ast_Function_Type : Ast_Type {
 	std::vector<Ast_Declaration*> arg_decls;
 	Ast_Expression* ret_type = NULL;
 
@@ -467,7 +467,7 @@ struct Ast_Binary : Ast_Expression {
 		this->binary_op = token_to_binop(token_type);
 	}
 
-	Ast_Type_Instance* get_result_type();
+	Ast_Type* get_result_type();
 
 	static short get_precedence (Token_Type opToken);
 	static bool is_left_associative (Token_Type opToken);
@@ -508,12 +508,12 @@ struct Ast_Ident : Ast_Expression {
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };
 
-void ast_compute_type_name_if_needed (Ast_Type_Instance* type_inst);
+void ast_compute_type_name_if_needed (Ast_Type* type_inst);
 
-bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_from, Ast_Type_Instance* type_to);
-bool try_cast (Ast_Expression** exp_ptr, Ast_Type_Instance* type_to);
+bool try_cast (Ast_Expression** exp_ptr, Ast_Type* type_from, Ast_Type* type_to);
+bool try_cast (Ast_Expression** exp_ptr, Ast_Type* type_to);
 
-Ast_Type_Instance* ast_get_container_signed (Ast_Type_Instance* unsigned_type);
+Ast_Type* ast_get_container_signed (Ast_Type* unsigned_type);
 Ast_Struct_Type* ast_get_smallest_type (uint64_t value);
 Ast_Struct_Type* ast_get_smallest_type (int64_t value);
 
