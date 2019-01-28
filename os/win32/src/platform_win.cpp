@@ -43,10 +43,6 @@ double os_time_stop (uint64_t start) {
 	return double(os_get_time() - start) / g_clock_frequency;
 }
 
-void os_sleep_for (uint32_t milliseconds) {
-	Sleep(milliseconds);
-}
-
 void* os_get_module (const char* module_name) {
     return LoadLibrary(module_name);
 }

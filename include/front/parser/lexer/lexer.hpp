@@ -2,7 +2,6 @@
 
 #include "scanner.hpp"
 #include "token.hpp"
-#include "util/logger.hpp"
 
 #include <vector>
 #include <assert.h>
@@ -27,8 +26,17 @@ struct Lexer {
 		if (error_code != 0) {
 			char buffer[256];
 			strerror_s(buffer, sizeof buffer, error_code);
-			Logger::error("Cannot open file '%s': %s", absolute_path, buffer);
+			printf("Cannot open file '%s': %s", absolute_path, buffer);
 		}
+
+		this->token_index = 0;
+		for (size_t i = 0; i <= MAX_TOKEN_PEEK; i++) {
+			this->parse_next_token(&(this->token_buffer[i]));
+		}
+	}
+
+	void set_input_text (const char* source_code) {
+		this->scanner.set_input_text(source_code);
 
 		this->token_index = 0;
 		for (size_t i = 0; i <= MAX_TOKEN_PEEK; i++) {
@@ -144,7 +152,6 @@ struct Lexer {
 				} else if (this->string(token) || this->number(token)) {
 					break;
 				} else {
-					Logger::error("Token not recognized!");
 					token->type = TOKEN_EOF;
 				}
 			}

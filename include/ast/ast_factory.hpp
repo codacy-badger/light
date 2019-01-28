@@ -1,13 +1,13 @@
 #pragma once
 
-#include "ast/ast.hpp"
+#include "ast/nodes.hpp"
 #include "ast/types.hpp"
 
 struct Ast_Factory {
     template<typename T, typename ... Arguments>
     static T* create (Lexer* lexer, Arguments ... args) {
         auto node = new T(args...);
-        node->location.filename = lexer->scanner.absolute_path;
+        //node->location.filename = lexer->scanner.absolute_path;
         node->location.line = lexer->scanner.current_line;
         return node;
     }

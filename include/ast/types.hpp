@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 
-#include "ast/ast.hpp"
+#include "ast/nodes.hpp"
 
 #define TMP_NAME_SIZE 35
 

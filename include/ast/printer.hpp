@@ -1,19 +1,14 @@
 #pragma once
 
-struct Ast_Printer {
+#include <cstdarg>
 
+struct Ast_Printer {
     static void print(Ast_Scope* scope, uint8_t tabs = 0) {
-        if (scope->is_global()) {
-            for (auto stm : scope->statements) {
-                print(stm, tabs);
-            }
-        } else {
-            print(tabs, "{");
-            for (auto stm : scope->statements) {
-                print(stm, tabs + 1);
-            }
-            print(tabs, "}\n");
+        print(tabs, "{");
+        for (auto stm : scope->statements) {
+            print(stm, tabs + 1);
         }
+        print(tabs, "}\n");
     }
 
     static void print(Ast_Statement* stm, uint8_t tabs = 0) {

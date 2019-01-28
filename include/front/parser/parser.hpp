@@ -1,15 +1,10 @@
 #pragma once
 
-#include "phase/phase.hpp"
-
 #include "lexer/lexer.hpp"
-#include "ast/ast.hpp"
+#include "ast/nodes.hpp"
 #include "ast/types.hpp"
 #include "ast/ast_factory.hpp"
 #include "internal_scope.hpp"
-#include "util/logger.hpp"
-
-#include "ast/printer.hpp"
 
 #include <vector>
 
@@ -17,42 +12,19 @@
 
 #define AST_NEW(T, ...) Ast_Factory::create<T>(&this->lexer, __VA_ARGS__)
 
-struct Parser : Phase {
+struct Parser {
 	Lexer lexer;
 
 	Ast_Scope* internal_scope = NULL;
 	Ast_Scope* current_scope = NULL;
 
-	// for metrics
-	size_t run_count = 0;
-	size_t all_lines = 0;
-	double total_time = 0;
-
-	Parser () : Phase("Parser", CE_MODULE_RUN_PARSER, true) { /* empty */ }
-
-	void on_start (Compiler_Settings* settings) {
-		this->internal_scope = new Internal_Scope(settings->target_arch, settings->target_os);
+	Parser (Ast_Scope* internal_scope) {
+		this->internal_scope = internal_scope;
 	}
 
-    void on_event (Event event) {
-		auto absolute_path = reinterpret_cast<char*>(event.data);
+	Ast_Scope* build_ast (const char* source_code) {
+		this->lexer.set_input_text(source_code);
 
-		this->lexer.set_input_file(absolute_path);
-
-		auto start = os_get_time();
-
-		auto global_scope = this->build_ast();
-
-		Logger::debug("AST for '%s':", absolute_path);
-		Ast_Printer::print(global_scope, 1);
-
-		this->push(global_scope);
-		this->run_count++;
-
-		Logger::debug("Parsed '%s' in %fs", absolute_path, os_time_stop(start));
-    }
-
-	Ast_Scope* build_ast () {
 		auto global_scope = AST_NEW(Ast_Scope);
 		global_scope->imports.push_back(this->internal_scope);
 
@@ -286,7 +258,7 @@ struct Parser : Phase {
 						auto decl = static_cast<Ast_Declaration*>(stm);
 						_struct->attributes.push_back(decl);
 					} else {
-						Logger::error(stm, "Only declarations can go inside a struct");
+						//Logger::error(stm, "Only declarations can go inside a struct");
 					}
 				}
 				delete _scope;
@@ -434,7 +406,7 @@ struct Parser : Phase {
 
 			auto last_is_named = args->add(exp);
 			if (parsing_named && !last_is_named) {
-				Logger::error(exp, "All named parameters must be on the right part");
+				//Logger::error(exp, "All named parameters must be on the right part");
 			} else parsing_named = last_is_named;
 
 			this->lexer.try_skip(TOKEN_COMMA);
@@ -460,10 +432,5 @@ struct Parser : Phase {
 		auto output = this->lexer.peek()->copy_text();
 		this->lexer.skip();
 		return output;
-	}
-
-	void print_extra_metrics() {
-		print_extra_metric("Run count", "%zd", this->run_count);
-		print_extra_metric("AST Nodes", "%zd", Ast::node_count);
 	}
 };

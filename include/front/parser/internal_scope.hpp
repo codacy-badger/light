@@ -1,10 +1,10 @@
 #pragma once
 
-#include "ast/ast.hpp"
+#include "ast/nodes.hpp"
 #include "ast/types.hpp"
 #include "ast/ast_factory.hpp"
 
-#include "util/arch.hpp"
+#include "utils/arch.hpp"
 
 #define DECLARE_TYPE_INT(name) this->add_uint("TYPE_" #name, INTERNAL_TYPE_##name)
 

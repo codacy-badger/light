@@ -10,16 +10,16 @@
 void apply_build_settings (Build_Settings* settings, int argc, char** argv);
 
 int main (int argc, char** argv) {
-    auto workspace = Compiler::create_workspace();
+    auto workspace = Compiler::create_workspace("default");
 
     auto settings = new Build_Settings();
     apply_build_settings(settings, argc, argv);
     Compiler::apply_settings(workspace, settings);
 
     Compiler::begin_build(workspace);
-    Compiler::wait_for_end(workspace);
+    Compiler::wait_for_end();
 
-    printf("\nCompilation done!");
+    printf("\nAll workspaces done!");
 }
 
 void apply_build_settings (Build_Settings* settings, int argc, char** argv) {

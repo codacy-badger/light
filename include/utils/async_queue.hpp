@@ -1,25 +1,20 @@
 #pragma once
 
-#include "event.hpp"
-
 #include <queue>
 #include <mutex>
 
-struct Event_Queue {
-    std::queue<Event> wrapped;
+template<typename T>
+struct Async_Queue {
+    std::queue<T> wrapped;
     std::mutex mutex;
 
     std::condition_variable* condition;
 
-    Event_Queue (std::condition_variable* condition = NULL) {
+    Async_Queue (std::condition_variable* condition = NULL) {
         this->condition = condition;
     }
 
-    void push (size_t event_id, void* data = NULL) {
-        this->push(Event(event_id, data));
-    }
-
-    void push (Event event) {
+    void push (T event) {
         std::lock_guard<std::mutex> lock(this->mutex);
         this->wrapped.push(event);
         if (this->condition) {
@@ -27,7 +22,7 @@ struct Event_Queue {
         }
     }
 
-    Event pop () {
+    T pop () {
         std::lock_guard<std::mutex> lock(this->mutex);
         auto next_event = this->wrapped.front();
         this->wrapped.pop();

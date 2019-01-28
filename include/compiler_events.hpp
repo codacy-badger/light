@@ -1,7 +1,9 @@
 #pragma once
 
 #include <stdint.h>
-#include "ast/ast.hpp"
+
+struct Workspace;
+struct Ast_Statement;
 
 enum Event_Kind : uint8_t {
     EVENT_UNDEFINED = 0,
@@ -13,12 +15,26 @@ enum Event_Kind : uint8_t {
 
 struct Compiler_Event {
     Event_Kind kind = EVENT_UNDEFINED;
+    Workspace* workspace = NULL;
+
+    Compiler_Event (Event_Kind kind) { this->kind = kind; }
 };
 
-struct Compiler_Event_File {
-    bool is_open;
-    const char* filename;
-    const char* absolute_path;
+enum File_Event_Kind : uint8_t {
+    FILE_UNDEFINED = 0,
+
+    FILE_OPEN,
+    FILE_CLOSE,
+};
+
+struct Compiler_Event_File : Compiler_Event {
+    File_Event_Kind file_kind = FILE_UNDEFINED;
+    const char* absolute_path = NULL;
+    const char* name = NULL;
+
+    Compiler_Event_File (File_Event_Kind file_kind) : Compiler_Event(EVENT_FILE) {
+        this->file_kind = file_kind;
+    }
 };
 
 enum Phase_Kind : uint8_t {
@@ -29,7 +45,9 @@ enum Phase_Kind : uint8_t {
     PHASE_EXECUTABLE,
 };
 
-struct Compiler_Event_Phase {
+struct Compiler_Event_Phase : Compiler_Event {
     Phase_Kind phase_kind = PHASE_UNDEFINED;
-    Ast_Declaration* declaration;
+    Ast_Statement* stm = NULL;
+
+    Compiler_Event_Phase () : Compiler_Event(EVENT_PHASE) {}
 };

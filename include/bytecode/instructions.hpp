@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "ast/ast.hpp"
+#include "ast/nodes.hpp"
 
 enum Inst_Bytecode : uint8_t {
 	BYTECODE_UNDEFINED = 0,

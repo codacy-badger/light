@@ -1,12 +1,9 @@
 #pragma once
 
-#include "util/logger.hpp"
-
 #include <malloc.h>
 #include <string.h>
 
 struct Scanner {
-	const char* absolute_path;
 	size_t current_line;
 	size_t current_col;
 
@@ -14,14 +11,9 @@ struct Scanner {
     size_t data_length;
     size_t index = 0;
 
-	errno_t set_input_file (const char* _absolute_path) {
-		this->absolute_path = _absolute_path;
-		this->current_line = 1;
-		this->current_col = 1;
-		this->index = 0;
-
+	errno_t set_input_file (const char* absolute_path) {
         FILE* file = NULL;
-        auto err = fopen_s(&file, _absolute_path, "r");
+        auto err = fopen_s(&file, absolute_path, "r");
         if (err != 0) return err;
 
         fseek(file, 0L, SEEK_END);
@@ -39,6 +31,18 @@ struct Scanner {
 
 		fclose(file);
 		return 0;
+	}
+
+	void set_input_text (const char* source_code, size_t length = 0) {
+		this->current_line = 1;
+		this->current_col = 1;
+		this->index = 0;
+
+		if (length == 0) {
+			this->data_length = strlen(source_code);
+		} else this->data_length = length;
+
+		this->data = source_code;
 	}
 
 	const char* current_location_pointer () {

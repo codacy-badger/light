@@ -1,10 +1,10 @@
 #pragma once
 
 #include "platform.hpp"
-#include "util/location.hpp"
+#include "utils/location.hpp"
 #include "front/parser/lexer/token.hpp"
-#include "util/string_map.hpp"
-#include "util/string_vector.hpp"
+#include "utils/string_map.hpp"
+#include "utils/string_vector.hpp"
 
 #include <vector>
 
