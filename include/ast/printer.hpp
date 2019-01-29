@@ -4,6 +4,7 @@
 
 struct Ast_Printer {
     size_t current_tabs;
+    bool name_only = false;
 
     Ast_Printer (size_t default_tab_level = 0) { this->current_tabs = default_tab_level; }
 
@@ -20,6 +21,7 @@ struct Ast_Printer {
     }
 
     void print(Ast_Statement* stm) {
+        this->name_only = false;
         switch (stm->stm_type) {
 			case AST_STATEMENT_SCOPE: {
 				print(reinterpret_cast<Ast_Scope*>(stm));
@@ -139,13 +141,17 @@ struct Ast_Printer {
     }
 
 	void print(Ast_Expression* exp) {
+        if (exp->exp_type != AST_EXPRESSION_FUNCTION
+                && exp->exp_type != AST_EXPRESSION_TYPE) {
+            this->name_only = true;
+        }
 		switch (exp->exp_type) {
+            case AST_EXPRESSION_FUNCTION: {
+                print(reinterpret_cast<Ast_Function*>(exp));
+                break;
+            }
 			case AST_EXPRESSION_RUN: {
 				print(reinterpret_cast<Ast_Run*>(exp));
-				break;
-			}
-			case AST_EXPRESSION_FUNCTION: {
-				print(reinterpret_cast<Ast_Function*>(exp));
 				break;
 			}
 			case AST_EXPRESSION_CALL: {
@@ -172,7 +178,7 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Literal*>(exp));
 				break;
 			}
-			case AST_EXPRESSION_TYPE_INSTANCE: {
+			case AST_EXPRESSION_TYPE: {
 				print(reinterpret_cast<Ast_Type*>(exp));
 				break;
 			}
@@ -186,9 +192,13 @@ struct Ast_Printer {
     }
 
     void print(Ast_Function* func) {
-        print(func->type);
-        printf(" ");
-        print(func->scope);
+        if (this->name_only) {
+            printf(func->name);
+        } else {
+            print(func->type);
+            printf(" ");
+            print(func->scope);
+        }
     }
 
     void print(Ast_Function_Call* call) {
@@ -338,7 +348,10 @@ struct Ast_Printer {
     }
 
     void print(Ast_Ident* ident) {
+        printf("(");
         printf(ident->name);
+        if (!ident->declaration) printf("?");
+        printf(")");
     }
 
     void print(Ast_Literal* lit) {
@@ -401,19 +414,7 @@ struct Ast_Printer {
     }
 
     void print(Ast_Struct_Type* struct_type) {
-        if (struct_type->name) printf(struct_type->name);
-        else {
-            printf("struct {\n");
-            this->current_tabs += 1;
-            for (auto attr : struct_type->attributes) {
-                PRINT_TABS;
-                print(attr);
-                printf("\n");
-            }
-            this->current_tabs -= 1;
-            PRINT_TABS;
-            printf("}");
-        }
+        printf("{%s}", struct_type->name);
     }
 
     void print(Ast_Pointer_Type* ptr_type) {

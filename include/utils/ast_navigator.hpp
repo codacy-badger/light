@@ -169,7 +169,7 @@ struct Ast_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Literal*>(exp));
 				break;
 			}
-			case AST_EXPRESSION_TYPE_INSTANCE: {
+			case AST_EXPRESSION_TYPE: {
 				this->ast_handle(reinterpret_cast<Ast_Type*>(exp));
 				break;
 			}

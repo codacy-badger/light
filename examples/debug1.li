@@ -1,5 +1,5 @@
 
-if OS_WINDOWS {
+if OS_WINDOWS || OS_LINUX {
     import "std/sys"
 }
 
@@ -8,10 +8,10 @@ if OS_WINDOWS {
 FUNC :: fn (num: u64) -> u64;
 
 main :: fn {
-    num := repeat_3(sqrt, 3);
+    num := repeat_3(sqrt, 2 + 1);
     assert(num == 6561);
 
-    repeat_3 :: fn (func: FUNC, num: u64 = 1) -> u64 {
+    repeat_3 :: fn (func: FUNC, num: u64 = 1 * 3) -> u64 {
         return func(func(func(num)));
     }
 
@@ -19,8 +19,8 @@ main :: fn {
 }
 
 Vec2 :: struct {
-    x: f64;
-    y: f64;
+    x: f64 = 1;
+    y: f64 = 2;
 }
 
 assert :: fn (condition: bool) {
@@ -29,3 +29,12 @@ assert :: fn (condition: bool) {
 		sys_exit(1);
 	}
 }
+
+propagation_fold_example :: fn {
+    a := 1;
+    b := a + NUM * 1.5;
+    c := a + b * 3;
+
+}
+
+NUM :: 12;

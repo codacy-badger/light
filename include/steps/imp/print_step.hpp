@@ -13,5 +13,6 @@ struct Print_Step : Step<> {
         printf("\n");
         this->printer->print(stm);
         printf("\n");
+        this->push_out(stm);
     }
 };

@@ -7,8 +7,8 @@
 #include <thread>
 
 struct Workspace {
+    size_t guid;
     Build_Settings settings;
-    const char* name = NULL;
     Build_Steps* steps = NULL;
 
     Event_Queue workspace_events;
@@ -17,11 +17,11 @@ struct Workspace {
     std::thread* thread = NULL;
     bool keep_going = true;
 
-    Workspace (const char* name) { this->name = name; }
+    Workspace (size_t guid) { this->guid = guid; }
 
     void start_building (Event_Queue* event_queue) {
         this->events = event_queue;
-        
+
         this->steps = new Build_Steps(&this->workspace_events, &this->settings);
         this->steps->setup();
 

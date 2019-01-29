@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ast/ast.hpp"
+#include "ast/nodes.hpp"
 
 struct Ast_Ref_Navigator {
     Ast_Scope* current_scope = NULL;

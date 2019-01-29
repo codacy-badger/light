@@ -177,7 +177,7 @@ struct Type_Conversion : Phase, Ast_Navigator {
 
         auto string_data_attr_decl = Types::type_string->find_attribute("data");
         assert(string_data_attr_decl != NULL);
-        assert(string_data_attr_decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
+        assert(string_data_attr_decl->type->exp_type == AST_EXPRESSION_TYPE);
 
         // $tmp : string;
         auto string_declaration = Ast_Factory::declaration(str->location, tmp_name, Types::type_string, NULL, false);

@@ -50,14 +50,14 @@ struct Ast_Factory {
         auto attr_decl = type->find_attribute(attr_name);
         assert(attr_decl != NULL);
 
-        assert(attr_decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
+        assert(attr_decl->type->exp_type == AST_EXPRESSION_TYPE);
         auto inferred_type = static_cast<Ast_Type*>(attr_decl->type);
 
         return Ast_Factory::attr(exp, attr_name, inferred_type, attr_decl);
     }
 
     static Ast_Binary* attr (Ast_Expression* exp, const char* attr_name, Ast_Type* inferred_type, Ast_Declaration* attr_decl) {
-        assert(attr_decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE);
+        assert(attr_decl->type->exp_type == AST_EXPRESSION_TYPE);
         auto attr_inferred_type = static_cast<Ast_Type*>(attr_decl->type);
 
         auto binop = new Ast_Binary(AST_BINARY_ATTRIBUTE);
@@ -125,6 +125,24 @@ struct Ast_Factory {
         lit->inferred_type = ast_get_smallest_type(value);
     	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
     	lit->uint_value = value;
+    	return lit;
+    }
+
+    static Ast_Literal* literal (Location location, int64_t value) {
+    	auto lit = new Ast_Literal();
+        lit->location = location;
+        lit->inferred_type = ast_get_smallest_type(value);
+    	lit->literal_type = AST_LITERAL_SIGNED_INT;
+    	lit->uint_value = value;
+    	return lit;
+    }
+
+    static Ast_Literal* literal (Location location, double value) {
+    	auto lit = new Ast_Literal();
+        lit->location = location;
+        lit->inferred_type = Types::type_f64;
+    	lit->literal_type = AST_LITERAL_DECIMAL;
+    	lit->decimal_value = value;
     	return lit;
     }
 

@@ -3,7 +3,7 @@
 #include "lexer/lexer.hpp"
 #include "ast/nodes.hpp"
 #include "ast/types.hpp"
-#include "ast/ast_factory.hpp"
+#include "ast/factory.hpp"
 #include "internal_scope.hpp"
 
 #include <vector>
@@ -200,6 +200,16 @@ struct Parser {
 		decl->expression = this->expression();
 
 		this->lexer.try_skip(TOKEN_STM_END);
+
+		if (decl->is_constant && decl->expression) {
+			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
+				auto func = static_cast<Ast_Function*>(decl->expression);
+				func->name = decl->name;
+			} else if (decl->expression->exp_type == AST_EXPRESSION_TYPE) {
+				auto type = static_cast<Ast_Type*>(decl->expression);
+				type->name = decl->name;
+			}
+		}
 
 		return decl;
 	}
@@ -424,6 +434,7 @@ struct Parser {
 		// @Info this is the right time to do this, since on a non-constant
 		// reference the declaration should already be in the scope.
 		ident->declaration = this->current_scope->find_var_declaration(ident->name);
+		ident->scope = this->current_scope;
 
 		return ident;
 	}

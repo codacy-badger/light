@@ -215,7 +215,7 @@ struct Ast_Static_If : Ast_Statement {
 
 enum Ast_Expression_Type {
 	AST_EXPRESSION_UNDEFINED = 0,
-	AST_EXPRESSION_TYPE_INSTANCE,
+	AST_EXPRESSION_TYPE,
 	AST_EXPRESSION_RUN,
 	AST_EXPRESSION_FUNCTION,
 	AST_EXPRESSION_BINARY,
@@ -312,7 +312,7 @@ struct Ast_Type : Ast_Expression {
 
 	int64_t guid = -1;
 
-	Ast_Type() { this->exp_type = AST_EXPRESSION_TYPE_INSTANCE; }
+	Ast_Type() { this->exp_type = AST_EXPRESSION_TYPE; }
 
 	bool can_be_in_register (uint8_t register_size) { return this->is_primitive && (this->byte_size <= register_size); }
 };
@@ -504,6 +504,7 @@ struct Ast_Ident : Ast_Expression {
 
     // for symbol resolution
 	Ast_Declaration* declaration = NULL;
+	Ast_Scope* scope = NULL;
 
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };

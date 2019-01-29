@@ -2,7 +2,7 @@
 
 #include "ast/nodes.hpp"
 #include "ast/types.hpp"
-#include "ast/ast_factory.hpp"
+#include "ast/factory.hpp"
 
 #include "utils/arch.hpp"
 

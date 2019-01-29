@@ -31,7 +31,7 @@ struct Symbol_Resolution : Phase, Ast_Ref_Navigator {
                     auto value = decl->expression;
 
                     if (value->exp_type == AST_EXPRESSION_FUNCTION
-                            || value->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+                            || value->exp_type == AST_EXPRESSION_TYPE) {
                         (*ident_ptr) = reinterpret_cast<Ast_Ident*>(value);
                     } else {
                         auto cloned_value = Ast_Cloner::clone(value);

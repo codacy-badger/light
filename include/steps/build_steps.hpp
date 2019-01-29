@@ -6,7 +6,11 @@
 
 #include "imp/read_step.hpp"
 #include "imp/parse_step.hpp"
+
 #include "imp/print_step.hpp"
+
+#include "imp/symbol_resolution_step.hpp"
+#include "imp/constants/constant_solver_step.hpp"
 
 #include <queue>
 #include <vector>
@@ -51,6 +55,9 @@ struct Build_Steps {
     void create_build_steps () {
         this->read_step = new Read_Step();
         this->parse_step = new Parse_Step();
+        this->general_steps.push_back(new Symbol_Resolution_Step());
+        this->general_steps.push_back(new Constant_Solver_Step());
+
         this->general_steps.push_back(new Print_Step());
 
         this->read_step->events = this->events;

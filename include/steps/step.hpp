@@ -4,6 +4,7 @@
 #include "utils/ast_queue.hpp"
 
 #include <queue>
+#include <cstdarg>
 
 template<typename Tin = Ast_Statement*, typename Tout = Tin>
 struct Step {
@@ -21,19 +22,22 @@ struct Step {
 
     bool do_some_work () {
         auto has_worked = false;
-
         while (!this->input.empty()) {
             this->run(this->input.pop());
             has_worked = true;
         }
-
         return has_worked;
     }
 
     void push_out (Tout result) {
-        if (this->output) {
-            this->output->push(result);
-        }
+        if (this->output) this->output->push(result);
+    }
+
+    void error (const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
     }
 
     virtual void teardown () { /* empty */ }

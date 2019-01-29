@@ -121,7 +121,7 @@ void Ast_Foreign::add (Ast_Statement* stm) {
 void Ast_Foreign::add (Ast_Declaration* decl) {
     if (!decl->is_constant) printf("Declarations inside #foreign scope must be function types");
     if (!decl->expression) printf("Declarations inside #foreign scope must have values");
-    if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+    if (decl->expression->exp_type == AST_EXPRESSION_TYPE) {
         auto type = static_cast<Ast_Type*>(decl->expression);
         if (type->typedef_type == AST_TYPEDEF_FUNCTION) {
             auto func = new Ast_Function();
@@ -269,7 +269,7 @@ const char* _get_type_name (Ast_Expression* exp) {
 	if (exp->exp_type == AST_EXPRESSION_IDENT) {
 		auto ident = static_cast<Ast_Ident*>(exp);
 		return ident->name;
-	} else if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+	} else if (exp->exp_type == AST_EXPRESSION_TYPE) {
 		auto type_inst = static_cast<Ast_Type*>(exp);
 		ast_compute_type_name_if_needed(type_inst);
 		return type_inst->name;

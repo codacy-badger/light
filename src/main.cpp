@@ -10,7 +10,7 @@
 void apply_build_settings (Build_Settings* settings, int argc, char** argv);
 
 int main (int argc, char** argv) {
-    auto workspace = Compiler::create_workspace("default");
+    auto workspace = Compiler::create_workspace();
 
     auto settings = new Build_Settings();
     apply_build_settings(settings, argc, argv);

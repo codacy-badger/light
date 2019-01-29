@@ -32,7 +32,7 @@ Bytecode_Type bytecode_get_type (Ast_Type* decl_ty) {
 }
 
 Bytecode_Type bytecode_get_type (Ast_Expression* exp) {
-	if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+	if (exp->exp_type == AST_EXPRESSION_TYPE) {
 		return bytecode_get_type(static_cast<Ast_Type*>(exp));
 	} else return BYTECODE_TYPE_VOID;
 }

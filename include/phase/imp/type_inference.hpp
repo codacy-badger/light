@@ -40,7 +40,7 @@ struct Type_Inference : Phase, Ast_Navigator {
             if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
                 auto fn = static_cast<Ast_Function*>(decl->expression);
                 fn->name = decl->name;
-            } else if (decl->expression->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+            } else if (decl->expression->exp_type == AST_EXPRESSION_TYPE) {
                 auto defn_ty = static_cast<Ast_Type*>(decl->expression);
                 if (defn_ty->typedef_type == AST_TYPEDEF_STRUCT) {
                     auto _struct = static_cast<Ast_Struct_Type*>(defn_ty);
@@ -69,7 +69,7 @@ struct Type_Inference : Phase, Ast_Navigator {
 	void ast_handle (Ast_Cast* cast) {
         Ast_Navigator::ast_handle(cast);
 
-        if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+        if (cast->cast_to->exp_type == AST_EXPRESSION_TYPE) {
             cast->inferred_type = static_cast<Ast_Type*>(cast->cast_to);
         } else Logger::error_and_stop(cast, "Cast target must be a type");
 	}
@@ -96,17 +96,17 @@ struct Type_Inference : Phase, Ast_Navigator {
         if (!call->inferred_type) {
             if (call->func->exp_type == AST_EXPRESSION_FUNCTION) {
                 auto func = static_cast<Ast_Function*>(call->func);
-                if (func->type->ret_type->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+                if (func->type->ret_type->exp_type == AST_EXPRESSION_TYPE) {
                     call->inferred_type = static_cast<Ast_Type*>(func->type->ret_type);
                 }
             } else if (call->func->exp_type == AST_EXPRESSION_IDENT) {
                 auto ident = static_cast<Ast_Ident*>(call->func);
                 auto decl = ident->declaration;
-                if (decl && decl->type && decl->type->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+                if (decl && decl->type && decl->type->exp_type == AST_EXPRESSION_TYPE) {
                     auto decl_type = static_cast<Ast_Type*>(decl->type);
                     if (decl_type->typedef_type == AST_TYPEDEF_FUNCTION) {
                         auto func_type = static_cast<Ast_Function_Type*>(decl_type);
-                        if (func_type->ret_type->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+                        if (func_type->ret_type->exp_type == AST_EXPRESSION_TYPE) {
                             call->inferred_type = static_cast<Ast_Type*>(func_type->ret_type);
                         }
                     }

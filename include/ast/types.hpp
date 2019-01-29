@@ -98,7 +98,7 @@ struct Types {
     	if (exp->exp_type == AST_EXPRESSION_IDENT) {
     		auto ident = static_cast<Ast_Ident*>(exp);
     		return ident->name;
-    	} else if (exp->exp_type == AST_EXPRESSION_TYPE_INSTANCE) {
+    	} else if (exp->exp_type == AST_EXPRESSION_TYPE) {
     		auto type_inst = static_cast<Ast_Type*>(exp);
     		return Types::get_name(type_inst);
     	} else {

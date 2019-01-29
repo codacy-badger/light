@@ -27,7 +27,7 @@ struct Check_Dependencies : Phase, Ast_Navigator {
         if (!decl->type) {
             Logger::internal(decl, "Type of declaration could not be inferred");
             this->errors_found = true;
-        } else if (decl->type->exp_type != AST_EXPRESSION_TYPE_INSTANCE) {
+        } else if (decl->type->exp_type != AST_EXPRESSION_TYPE) {
             Logger::error(decl, "Type of declaration is not a type instance");
             this->errors_found = true;
         }
