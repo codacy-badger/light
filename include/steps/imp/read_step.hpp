@@ -1,12 +1,14 @@
 #pragma once
 
-#include "steps/step.hpp"
+#include "steps/sync_pipe.hpp"
 
-struct Read_Step : Step<const char*> {
+struct Read_Step : Sync_Pipe {
 
-    Read_Step() : Step("Read Source") {}
+    Read_Step() : Sync_Pipe("Read Source") {}
 
-    void run (const char* absolute_path) {
+    void handle (void* in) {
+        auto absolute_path = static_cast<const char*>(in);
+
         FILE* file = NULL;
 
         this->trigger_file_open(absolute_path);
@@ -34,18 +36,18 @@ struct Read_Step : Step<const char*> {
 		fclose(file);
         this->trigger_file_close(absolute_path);
 
-        this->push_out(source_code);
+        this->pipe_out((void*) source_code);
     }
 
     void trigger_file_open (const char* absolute_path) {
         auto file_event = new Compiler_Event_File(FILE_OPEN);
         file_event->absolute_path = absolute_path;
-        this->events->push(file_event);
+        //this->events->push(file_event);
     }
 
     void trigger_file_close (const char* absolute_path) {
         auto file_event = new Compiler_Event_File(FILE_CLOSE);
         file_event->absolute_path = absolute_path;
-        this->events->push(file_event);
+        //this->events->push(file_event);
     }
 };

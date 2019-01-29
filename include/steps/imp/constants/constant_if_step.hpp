@@ -1,17 +1,17 @@
 #pragma once
 
-#include "steps/step.hpp"
+#include "steps/sync_pipe.hpp"
 
 #include "utils/ast_navigator.hpp"
 
-struct Constant_If_Step : Step<>, Ast_Navigator {
-    bool* has_worked;
+struct Constant_If_Step : Sync_Pipe, Ast_Navigator {
 
-    Constant_Propagation_Step(bool* has_worked) : Step("Constant If") {
-        this->has_worked = has_worked;
-    }
+    Constant_Propagation_Step() : Sync_Pipe("Constant If") { /* empty */ }
 
-    void run (Ast_Statement* stm) {
+    void handle (void* in) {
+        auto stm = static_cast<Ast_Statement*>(in);
+
         Ast_Navigator::ast_handle(stm);
+        this->pipe_out(in);
     }
 };

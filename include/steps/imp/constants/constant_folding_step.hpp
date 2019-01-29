@@ -1,19 +1,19 @@
 #pragma once
 
-#include "steps/step.hpp"
+#include "steps/sync_pipe.hpp"
 
 #include "utils/ast_ref_navigator.hpp"
 #include "ast/factory.hpp"
 
-struct Constant_Folding_Step : Step<>, Ast_Ref_Navigator {
-    bool* has_worked;
+struct Constant_Folding_Step : Sync_Pipe, Ast_Ref_Navigator {
 
-    Constant_Folding_Step(bool* has_worked) : Step("Constant Folder") {
-        this->has_worked = has_worked;
-    }
+    Constant_Folding_Step() : Sync_Pipe("Constant Folder") { /* empty */ }
 
-    void run (Ast_Statement* stm) {
+    void handle (void* in) {
+        auto stm = static_cast<Ast_Statement*>(in);
+
         Ast_Ref_Navigator::ast_handle(&stm);
+        this->pipe_out(in);
     }
 
     void ast_handle (Ast_Binary** binary_ptr) {
@@ -33,21 +33,18 @@ struct Constant_Folding_Step : Step<>, Ast_Ref_Navigator {
                     auto folded_value = this->fold(binary->binary_op, lit_lhs->int_value, lit_rhs->int_value);
                     auto new_lit = Ast_Factory::literal(binary->location, folded_value);
                     (*binary_ptr) = (Ast_Binary*) new_lit;
-                    (*has_worked) = true;
                     break;
                 }
                 case AST_LITERAL_UNSIGNED_INT: {
                     auto folded_value = this->fold(binary->binary_op, lit_lhs->int_value, lit_rhs->int_value);
                     auto new_lit = Ast_Factory::literal(binary->location, folded_value);
                     (*binary_ptr) = (Ast_Binary*) new_lit;
-                    (*has_worked) = true;
                     break;
                 }
                 case AST_LITERAL_DECIMAL: {
                     auto folded_value = this->fold(binary->binary_op, lit_lhs->int_value, lit_rhs->int_value);
                     auto new_lit = Ast_Factory::literal(binary->location, folded_value);
                     (*binary_ptr) = (Ast_Binary*) new_lit;
-                    (*has_worked) = true;
                     break;
                 }
                 case AST_LITERAL_STRING: {

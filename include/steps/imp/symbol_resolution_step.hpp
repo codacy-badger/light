@@ -1,16 +1,18 @@
 #pragma once
 
-#include "steps/step.hpp"
+#include "steps/async_pipe.hpp"
 
 #include "utils/ast_ref_navigator.hpp"
 #include "ast/cloner.hpp"
 
-struct Symbol_Resolution_Step : Step<>, Ast_Ref_Navigator {
-    Symbol_Resolution_Step() : Step("Resolve Symbols") { /* empty */ }
+struct Symbol_Resolution_Step : Async_Pipe, Ast_Ref_Navigator {
+    Symbol_Resolution_Step() : Async_Pipe("Resolve Symbols") { /* empty */ }
 
-    void run (Ast_Statement* stm) {
-        Ast_Ref_Navigator::ast_handle(&stm);
-        this->push_out(stm);
+    void handle (void* in) {
+        auto global_scope = static_cast<Ast_Scope*>(in);
+
+        Ast_Ref_Navigator::ast_handle(&global_scope);
+        this->pipe_out(in);
     }
 
     void ast_handle (Ast_Ident** ident_ptr) {

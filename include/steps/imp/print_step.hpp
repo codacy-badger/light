@@ -1,18 +1,20 @@
 #pragma once
 
-#include "steps/step.hpp"
+#include "steps/sync_pipe.hpp"
 
 #include "ast/printer.hpp"
 
-struct Print_Step : Step<> {
+struct Print_Step : Sync_Pipe {
     Ast_Printer* printer = new Ast_Printer();
 
-    Print_Step () : Step("Ast Printer") { /* empty */ }
+    Print_Step () : Sync_Pipe("Ast Printer") { /* empty */ }
 
-    void run (Ast_Statement* stm) {
+    void handle (void* in) {
+        auto stm = static_cast<Ast_Statement*>(in);
+
         printf("\n");
         this->printer->print(stm);
         printf("\n");
-        this->push_out(stm);
+        this->pipe_out((void*) stm);
     }
 };

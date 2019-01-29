@@ -22,17 +22,22 @@ struct Workspace {
     void start_building (Event_Queue* event_queue) {
         this->events = event_queue;
 
-        this->steps = new Build_Steps(&this->workspace_events, &this->settings);
-        this->steps->setup();
+        this->steps = new Build_Steps();
+        this->steps->setup(&this->settings);
+        this->steps->set_next(NULL);
 
         this->thread = new std::thread(&Workspace::run_async, this);
     }
 
     void run_async () {
-        while (this->keep_going) {
-            this->steps->do_some_work();
-            this->send_events_to_compiler();
+        for (auto input_file : this->settings.input_files) {
+            this->steps->pipe_in((void*) input_file);
         }
+        bool has_progress = true;
+        while (this->keep_going && has_progress) {
+            has_progress &= this->steps->pump();
+        }
+        this->trigger(new Compiler_Event(EVENT_COMPLETE));
     }
 
     void send_events_to_compiler () {
@@ -49,6 +54,6 @@ struct Workspace {
     void stop () {
         this->keep_going = false;
         this->thread->join();
-        this->steps->teardown();
+        this->steps->shutdown();
     }
 };

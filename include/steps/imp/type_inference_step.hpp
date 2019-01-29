@@ -1,12 +1,14 @@
 #pragma once
 
-#include "steps/step.hpp"
+#include "steps/sync_pipe.hpp"
 #include "phase/ast_navigator.hpp"
 
-struct Type_Inference_Step : Step<>, Ast_Navigator {
-    Type_Inference_Step() : Phase("Infer Types") { /* empty */ }
+struct Type_Inference_Step : Sync_Pipe, Ast_Navigator {
+    Type_Inference_Step() : Sync_Pipe("Infer Types") { /* empty */ }
 
-    void run (Ast_Statement* stm) {
+    void handle (void* in) {
+        auto stm = static_cast<Ast_Statement*>(in);
+
         Ast_Navigator::ast_handle(stm);
     }
 
