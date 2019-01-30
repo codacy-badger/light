@@ -1,11 +1,10 @@
 #pragma once
 
 #include "steps/sync_pipe.hpp"
-#include "utils/ast_navigator.hpp"
 
 #include "steps/imp/path_solver.hpp"
 
-struct External_Dependencies : Sync_Pipe, Ast_Navigator {
+struct External_Dependencies : Sync_Pipe {
     Pipe* starting_pipe = NULL;
 
     External_Dependencies(Pipe* starting_pipe) : Sync_Pipe("External Dependencies") {
@@ -15,15 +14,17 @@ struct External_Dependencies : Sync_Pipe, Ast_Navigator {
     void handle (void* in) {
         auto stm = reinterpret_cast<Ast_Statement*>(in);
 
-        Ast_Navigator::ast_handle(stm);
+        if (stm->stm_type == AST_STATEMENT_IMPORT) {
+            auto import = static_cast<Ast_Import*>(stm);
+
+            auto source = new Code_Source(import->path, import->location.filename);
+            this->starting_pipe->pipe_in((void*) source);
+            return;
+        }
+
+        // TODO: handle foreign function declarations
+
         this->pipe_out(in);
-    }
-
-    void ast_handle (Ast_Import* import) {
-        this->remove_current_statement = true;
-
-        auto source = new Code_Source(import->path, import->location.filename);
-        this->starting_pipe->pipe_in((void*) source);
     }
 
     /*void ast_handle (Ast_Foreign* foreign) {
