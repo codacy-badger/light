@@ -1,6 +1,7 @@
 #pragma once
 
 #include "steps/sync_pipe.hpp"
+#include "ast/nodes.hpp"
 
 struct Code_Source {
     const char* path = NULL;
@@ -10,6 +11,8 @@ struct Code_Source {
 
     const char* text = NULL;
     size_t length = 0;
+
+    Ast_Scope* import_into = NULL;
 
     Code_Source (const char* path, const char* from = NULL) {
         this->path = path;
@@ -39,10 +42,12 @@ struct Path_Solver : Sync_Pipe {
         if (source->from) {
             os_get_absolute_path_relative_to_file(source->path, source->from, buffer);
             if (os_check_file_exists(buffer)) return true;
+            printf("\t - %s\n", buffer);
         }
 
         os_get_absolute_path_relative_to(source->path, this->initial_dir, buffer);
         if (os_check_file_exists(buffer)) return true;
+        printf("\t - %s\n", buffer);
 
         return false;
     }

@@ -23,16 +23,18 @@ struct Parser {
 		this->internal_scope = internal_scope;
 	}
 
-	Ast_Scope* build_ast (const char* source_code, size_t length, const char* file) {
-		this->lexer.set_input(source_code, length);
-		this->filename = file;
+	Ast_Scope* build_ast (Code_Source* source) {
+		this->lexer.set_input(source->text, source->length);
+		this->filename = source->absolute_path;
 
-		auto global_scope = AST_NEW(Ast_Scope);
-		global_scope->imports.push_back(this->internal_scope);
+		if (!source->import_into) {
+			source->import_into = AST_NEW(Ast_Scope);
+			source->import_into->imports.push_back(this->internal_scope);
+		}
 
-		this->scope(global_scope);
+		this->scope(source->import_into);
 
-		return global_scope;
+		return source->import_into;
 	}
 
 	Ast_Scope* scope (Ast_Scope* scope = NULL) {

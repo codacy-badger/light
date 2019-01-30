@@ -4,7 +4,6 @@
 
 struct Ast_Printer {
     size_t current_tabs;
-    bool name_only = false;
 
     Ast_Printer (size_t default_tab_level = 0) { this->current_tabs = default_tab_level; }
 
@@ -21,7 +20,6 @@ struct Ast_Printer {
     }
 
     void print(Ast_Statement* stm) {
-        this->name_only = false;
         switch (stm->stm_type) {
 			case AST_STATEMENT_SCOPE: {
 				print(reinterpret_cast<Ast_Scope*>(stm));
@@ -89,7 +87,7 @@ struct Ast_Printer {
             if (decl->is_constant) {
                 printf(": ");
             } else printf("= ");
-            print(decl->expression);
+            print(decl->expression, false);
         }
 	}
 
@@ -138,16 +136,16 @@ struct Ast_Printer {
         printf("break");
     }
 
-	void print(Ast_Expression* exp) {
-        if (exp->exp_type != AST_EXPRESSION_FUNCTION
-                && exp->exp_type != AST_EXPRESSION_TYPE) {
-            this->name_only = true;
-        }
+	void print(Ast_Expression* exp, bool short_version = true) {
 		switch (exp->exp_type) {
             case AST_EXPRESSION_FUNCTION: {
-                print(reinterpret_cast<Ast_Function*>(exp));
+                print(reinterpret_cast<Ast_Function*>(exp), short_version);
                 break;
             }
+			case AST_EXPRESSION_TYPE: {
+				print(reinterpret_cast<Ast_Type*>(exp), short_version);
+				break;
+			}
 			case AST_EXPRESSION_RUN: {
 				print(reinterpret_cast<Ast_Run*>(exp));
 				break;
@@ -176,10 +174,6 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Literal*>(exp));
 				break;
 			}
-			case AST_EXPRESSION_TYPE: {
-				print(reinterpret_cast<Ast_Type*>(exp));
-				break;
-			}
 		}
 	}
 
@@ -189,8 +183,8 @@ struct Ast_Printer {
         printf(")");
     }
 
-    void print(Ast_Function* func) {
-        if (this->name_only) {
+    void print(Ast_Function* func, bool short_version = true) {
+        if (short_version) {
             printf(func->name);
         } else {
             print(func->type);
@@ -373,14 +367,14 @@ struct Ast_Printer {
         }
     }
 
-    void print(Ast_Type* type) {
+    void print(Ast_Type* type, bool short_version = true) {
         switch (type->typedef_type) {
         	case AST_TYPEDEF_FUNCTION : {
                 print(reinterpret_cast<Ast_Function_Type*>(type));
                 break;
             }
         	case AST_TYPEDEF_STRUCT : {
-                print(reinterpret_cast<Ast_Struct_Type*>(type));
+                print(reinterpret_cast<Ast_Struct_Type*>(type), short_version);
                 break;
             }
         	case AST_TYPEDEF_POINTER : {
@@ -411,8 +405,21 @@ struct Ast_Printer {
         }
     }
 
-    void print(Ast_Struct_Type* struct_type) {
-        printf("{%s}", struct_type->name);
+    void print(Ast_Struct_Type* struct_type, bool short_version = true) {
+        if (short_version) {
+            printf("{%s}", struct_type->name);
+        } else {
+            printf("struct %s {\n", struct_type->name);
+            this->current_tabs += 1;
+            for (auto decl : struct_type->attributes) {
+                PRINT_TABS;
+                print(decl);
+                printf("\n");
+            }
+            this->current_tabs -= 1;
+            PRINT_TABS;
+            printf("}\n");
+        }
     }
 
     void print(Ast_Pointer_Type* ptr_type) {

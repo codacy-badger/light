@@ -18,7 +18,7 @@ struct Parse_Step : Sync_Pipe {
     void handle (void* in) {
         auto source = reinterpret_cast<Code_Source*>(in);
 
-        auto global_scope = this->parser->build_ast(source->text, source->length, source->absolute_path);
+        auto global_scope = this->parser->build_ast(source);
         for (auto stm : global_scope->statements) {
             this->pipe_out((void*) stm);
         }
