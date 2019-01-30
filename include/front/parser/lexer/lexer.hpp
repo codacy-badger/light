@@ -21,22 +21,8 @@ struct Lexer {
 	Token token_buffer[MAX_TOKEN_PEEK + 1];
 	size_t token_index = 0;
 
-	void set_input_file (const char* absolute_path) {
-		auto error_code = this->scanner.set_input_file(absolute_path);
-		if (error_code != 0) {
-			char buffer[256];
-			strerror_s(buffer, sizeof buffer, error_code);
-			printf("Cannot open file '%s': %s", absolute_path, buffer);
-		}
-
-		this->token_index = 0;
-		for (size_t i = 0; i <= MAX_TOKEN_PEEK; i++) {
-			this->parse_next_token(&(this->token_buffer[i]));
-		}
-	}
-
-	void set_input_text (const char* source_code) {
-		this->scanner.set_input_text(source_code);
+	void set_input (const char* source_code, size_t length) {
+		this->scanner.set_input_text(source_code, length);
 
 		this->token_index = 0;
 		for (size_t i = 0; i <= MAX_TOKEN_PEEK; i++) {

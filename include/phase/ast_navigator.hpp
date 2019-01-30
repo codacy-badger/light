@@ -114,9 +114,9 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_If* _if) {
 		this->ast_handle(_if->condition);
-		this->ast_handle(_if->then_scope);
-		if (_if->else_scope) {
-			this->ast_handle(_if->else_scope);
+		this->ast_handle(_if->then_body);
+		if (_if->else_body) {
+			this->ast_handle(_if->else_body);
 		}
 	}
 
@@ -182,7 +182,7 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_Function* func) {
 		this->ast_handle(func->type);
-		if (func->scope) this->ast_handle(func->scope);
+		if (func->body) this->ast_handle(func->body);
 	}
 
 	virtual void ast_handle (Ast_Function_Call* func_call) {

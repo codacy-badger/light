@@ -1,4 +1,14 @@
-#include "compiler.hpp"
+#include "workspace.hpp"
+#include "platform.hpp"
+
+#define COMPILER_NAME "Light"
+#define COMPILER_V_MAJOR 0
+#define COMPILER_V_MINOR 0
+#define COMPILER_V_PATCH 0
+
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+#define COMPILER_VERSION  STR(COMPILER_V_MAJOR) "." STR(COMPILER_V_MINOR) "." STR(COMPILER_V_PATCH)
 
 #define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\""
 
@@ -10,16 +20,17 @@
 void apply_build_settings (Build_Settings* settings, int argc, char** argv);
 
 int main (int argc, char** argv) {
-    auto workspace = Compiler::create_workspace();
+    printf(COMPILER_NAME " v" COMPILER_VERSION "\n\n");
+    auto start = os_get_time();
 
-    auto settings = new Build_Settings();
-    apply_build_settings(settings, argc, argv);
-    Compiler::apply_settings(workspace, settings);
+    auto workspace = Workspace::create("default");
+    apply_build_settings(&workspace->settings, argc, argv);
 
-    Compiler::begin_build(workspace);
-    Compiler::wait_for_end();
+    workspace->start_building();
+    workspace->wait_for_end();
+    workspace->stop_building();
 
-    printf("\nAll workspaces done!\n");
+    printf("\nAll workspaces done in %8.6f\n", os_time_stop(start));
 }
 
 void apply_build_settings (Build_Settings* settings, int argc, char** argv) {
@@ -36,9 +47,7 @@ void apply_build_settings (Build_Settings* settings, int argc, char** argv) {
                 settings->is_multithread = true;
             } else WARN(UKNOWN_ARG_FORMAT);
         } else {
-            auto absolute_path = (char*) malloc(MAX_PATH_LENGTH);
-            os_get_absolute_path(argv[i], absolute_path);
-            settings->input_files.push_back(absolute_path);
+            settings->input_files.push_back(argv[i]);
         }
     }
 }

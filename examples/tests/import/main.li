@@ -1,0 +1,5 @@
+import "a"
+
+main :: fn {
+    value := VALUE_A;
+}

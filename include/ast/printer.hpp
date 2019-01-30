@@ -105,10 +105,10 @@ struct Ast_Printer {
         printf("if (");
         print(_if->condition);
         printf(") ");
-		print(_if->then_scope);
-        if (_if->else_scope) {
+		print(_if->then_body);
+        if (_if->else_body) {
             printf(" else ");
-            print(_if->else_scope);
+            print(_if->else_body);
         }
 	}
 
@@ -116,13 +116,11 @@ struct Ast_Printer {
         printf("while (");
         print(_while->condition);
         printf(") ");
-		print(_while->scope);
+		print(_while->body);
 	}
 
 	void print(Ast_Import* import) {
-        printf("import");
-        if (import->include) printf("!");
-        printf(" \"%s\"", import->path);
+        printf("import \"%s\"", import->path);
     }
 
 	void print(Ast_Foreign* foreign) {
@@ -197,7 +195,7 @@ struct Ast_Printer {
         } else {
             print(func->type);
             printf(" ");
-            print(func->scope);
+            print(func->body);
         }
     }
 

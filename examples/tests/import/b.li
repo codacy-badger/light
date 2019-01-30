@@ -1,0 +1,3 @@
+import "c"
+
+VALUE_B :: 2;

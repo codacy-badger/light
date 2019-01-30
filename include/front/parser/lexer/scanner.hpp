@@ -11,28 +11,6 @@ struct Scanner {
     size_t data_length;
     size_t index = 0;
 
-	errno_t set_input_file (const char* absolute_path) {
-        FILE* file = NULL;
-        auto err = fopen_s(&file, absolute_path, "r");
-        if (err != 0) return err;
-
-        fseek(file, 0L, SEEK_END);
-        this->data_length = ftell(file);
-        rewind(file);
-
-        // @TODO @Incomplete check if the calloc call suceeded
-        this->data = (char*) calloc(this->data_length, 1);
-
-        // @TODO @Incomplete check if we need to make the buffer bigger
-        auto size = fread((void*) this->data, 1, this->data_length, file);
-        while (!feof(file)) {
-            size += fread((void*) (this->data + size), 1, this->data_length, file);
-        }
-
-		fclose(file);
-		return 0;
-	}
-
 	void set_input_text (const char* source_code, size_t length = 0) {
 		this->current_line = 1;
 		this->current_col = 1;

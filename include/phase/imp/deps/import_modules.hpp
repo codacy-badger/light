@@ -77,9 +77,7 @@ struct Import_Modules : Phase, Ast_Navigator {
                 auto import = (*imports)[i];
                 auto scope_absolute_path = global_scope->get_absolute_path();
                 if (strcmp(scope_absolute_path, import->absolute_path) == 0) {
-                    if (import->include) {
-                        dep_global_scope->includes.push_back(global_scope);
-                    } else dep_global_scope->imports.push_back(global_scope);
+                    dep_global_scope->imports.push_back(global_scope);
 
                     imports->erase(imports->begin() + i);
                     break;

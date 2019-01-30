@@ -82,15 +82,15 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 		this->add_instruction(_if, inst);
 
 		auto index1 = this->bytecode->size();
-		this->ast_handle(_if->then_scope);
+		this->ast_handle(_if->then_body);
 		inst->offset = this->bytecode->size() - index1;
-		if (_if->else_scope) {
+		if (_if->else_body) {
 			inst->offset += 1;
 			auto inst2 = new Inst_Jump();
 			this->add_instruction(_if, inst2);
 
 			index1 = this->bytecode->size();
-			this->ast_handle(_if->else_scope);
+			this->ast_handle(_if->else_body);
 			inst2->offset = this->bytecode->size() - index1;
 		}
 	}
@@ -122,7 +122,7 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 	}
 
     void fill (Ast_Function* func) {
-		if (func->scope && func->bytecode.size() == 0) {
+		if (func->body && func->bytecode.size() == 0) {
 	        auto _tmp = this->bytecode;
 	        this->bytecode = &func->bytecode;
 
@@ -145,15 +145,15 @@ struct Generate_Bytecode : Phase, Ast_Navigator {
 				}
 	        }
 
-			this->ast_handle(func->scope);
+			this->ast_handle(func->body);
 
 			if (func->type->ret_type == Types::type_void) {
 				if (this->bytecode->size() == 0) {
-					this->add_instruction(func->scope, new Inst_Return());
+					this->add_instruction(func->body, new Inst_Return());
 				} else {
 					auto last_inst = this->bytecode->back();
 					if (last_inst->code != BYTECODE_RETURN) {
-						this->add_instruction(func->scope, new Inst_Return());
+						this->add_instruction(func->body, new Inst_Return());
 					}
 				}
 			}

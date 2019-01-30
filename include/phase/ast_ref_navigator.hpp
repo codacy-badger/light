@@ -95,9 +95,9 @@ struct Ast_Ref_Navigator {
 
 	virtual void ast_handle (Ast_If** _if) {
 		this->ast_handle(&(*_if)->condition);
-		this->ast_handle(&(*_if)->then_scope);
-		if ((*_if)->else_scope) {
-			this->ast_handle(&(*_if)->else_scope);
+		this->ast_handle(&(*_if)->then_body);
+		if ((*_if)->else_body) {
+			this->ast_handle(&(*_if)->else_body);
 		}
 	}
 

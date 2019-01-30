@@ -9,9 +9,9 @@ struct Symbol_Resolution_Step : Async_Pipe, Ast_Ref_Navigator {
     Symbol_Resolution_Step() : Async_Pipe("Resolve Symbols") { /* empty */ }
 
     void handle (void* in) {
-        auto global_scope = static_cast<Ast_Scope*>(in);
+        auto stm = static_cast<Ast_Statement*>(in);
 
-        Ast_Ref_Navigator::ast_handle(&global_scope);
+        Ast_Ref_Navigator::ast_handle(&stm);
         this->pipe_out(in);
     }
 
@@ -19,7 +19,7 @@ struct Symbol_Resolution_Step : Async_Pipe, Ast_Ref_Navigator {
         auto ident = (*ident_ptr);
 
         if (!ident->declaration) {
-            ident->declaration = ident->scope->find_declaration(ident->name, true, true, true);
+            ident->declaration = this->current_scope()->find_declaration(ident->name, true, true, true);
         }
     }
 

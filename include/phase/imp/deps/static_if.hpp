@@ -28,9 +28,9 @@ struct Static_If : Phase, Ast_Navigator {
         if (if_dir->stm_if->condition->exp_type == AST_EXPRESSION_LITERAL) {
             auto literal = static_cast<Ast_Literal*>(if_dir->stm_if->condition);
             if (literal->uint_value != 0) {
-                this->add_stms_after(if_dir, if_dir->stm_if->then_scope);
-            } else if (if_dir->stm_if->else_scope != NULL) {
-                this->add_stms_after(if_dir, if_dir->stm_if->else_scope);
+                this->add_stms_after(if_dir, if_dir->stm_if->then_body);
+            } else if (if_dir->stm_if->else_body != NULL) {
+                this->add_stms_after(if_dir, if_dir->stm_if->else_body);
             }
         } else {
             printf("Static if condition can only be constant literals!\n");

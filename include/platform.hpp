@@ -33,6 +33,7 @@ void* os_get_external_function (const char* module_name, const char* function_na
 void os_get_current_directory (char* buffer);
 void os_get_absolute_path (const char* relative_path, char* buffer);
 void os_get_absolute_path_relative_to (const char* relative_path, const char* relative_to, char* buffer);
+void os_get_absolute_path_relative_to_file (const char* relative_path, const char* relative_to, char* buffer);
 bool os_set_current_directory (const char* new_path);
 bool os_set_current_directory_path (const char* new_file_path);
 char* os_get_file_part (const char* path);

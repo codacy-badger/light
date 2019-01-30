@@ -10,9 +10,10 @@
 
 #define DEFAULT_FILE_EXTENSION ".li"
 
-#define AST_NEW(T, ...) Ast_Factory::create<T>(&this->lexer, __VA_ARGS__)
+#define AST_NEW(T, ...) this->setup<T>(new T(__VA_ARGS__))
 
 struct Parser {
+	const char* filename = NULL;
 	Lexer lexer;
 
 	Ast_Scope* internal_scope = NULL;
@@ -22,8 +23,9 @@ struct Parser {
 		this->internal_scope = internal_scope;
 	}
 
-	Ast_Scope* build_ast (const char* source_code) {
-		this->lexer.set_input_text(source_code);
+	Ast_Scope* build_ast (const char* source_code, size_t length, const char* file) {
+		this->lexer.set_input(source_code, length);
+		this->filename = file;
 
 		auto global_scope = AST_NEW(Ast_Scope);
 		global_scope->imports.push_back(this->internal_scope);
@@ -76,7 +78,7 @@ struct Parser {
 				this->lexer.skip();
 				auto stm_while = AST_NEW(Ast_While);
 				stm_while->condition = this->expression();
-				stm_while->scope = this->scoped_statement();
+				stm_while->body = this->scoped_statement();
 				return stm_while;
 			}
 			case TOKEN_BREAK: {
@@ -93,8 +95,6 @@ struct Parser {
 			case TOKEN_IMPORT: {
 				this->lexer.skip();
 				auto import = AST_NEW(Ast_Import);
-
-				import->include = this->lexer.try_skip(TOKEN_EXCLAMATION);
 
 				auto literal = this->string_literal();
 				auto new_length = strlen(literal->string_value) + 4;
@@ -162,9 +162,9 @@ struct Parser {
 
 			auto stm_if = AST_NEW(Ast_If);
 			stm_if->condition = this->expression();
-			stm_if->then_scope = this->scoped_statement();
+			stm_if->then_body = this->scoped_statement();
 			if (this->lexer.try_skip(TOKEN_ELSE)) {
-				stm_if->else_scope = this->scoped_statement();
+				stm_if->else_body = this->scoped_statement();
 			}
 
 			return stm_if;
@@ -188,7 +188,6 @@ struct Parser {
 
 		auto decl = AST_NEW(Ast_Declaration);
 		decl->name = this->copy_token_text_and_skip();
-		decl->scope = this->current_scope;
 
 		this->lexer.expect(TOKEN_COLON);
 		decl->type = this->type_instance();
@@ -288,10 +287,10 @@ struct Parser {
 			if (this->lexer.try_skip(TOKEN_BRAC_OPEN)) {
 				auto func = AST_NEW(Ast_Function);
 				sub_scope->scope_of = func;
-				func->scope = sub_scope;
+				func->body = sub_scope;
 				func->type = func_type;
 
-				this->scope(func->scope);
+				this->scope(func->body);
 				this->lexer.expect(TOKEN_BRAC_CLOSE);
 
 				return func;
@@ -434,7 +433,6 @@ struct Parser {
 		// @Info this is the right time to do this, since on a non-constant
 		// reference the declaration should already be in the scope.
 		ident->declaration = this->current_scope->find_var_declaration(ident->name);
-		ident->scope = this->current_scope;
 
 		return ident;
 	}
@@ -443,5 +441,13 @@ struct Parser {
 		auto output = this->lexer.peek()->copy_text();
 		this->lexer.skip();
 		return output;
+	}
+
+	template<typename T>
+	T* setup (T* ast_node) {
+		ast_node->location.filename = this->filename;
+		ast_node->location.line = this->lexer.scanner.current_line;
+		//ast_node->location.col = this->lexer.scanner.current_col;
+		return ast_node;
 	}
 };

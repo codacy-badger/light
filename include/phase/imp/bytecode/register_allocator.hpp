@@ -58,7 +58,7 @@ struct Register_Allocator : Phase, Ast_Navigator {
             decl_regs.push_back(new Register_State(decl));
         }
 
-        if (func->scope) Ast_Navigator::ast_handle(func->scope);
+        if (func->body) Ast_Navigator::ast_handle(func->body);
 
         this->decl_regs = tmp;
     }

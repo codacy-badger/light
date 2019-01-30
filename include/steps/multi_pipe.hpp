@@ -1,11 +1,13 @@
 #pragma once
 
+#include "pipe.hpp"
+
 struct Multi_Pipe : Pipe {
     std::vector<Pipe*> sub_pipes;
 
     Multi_Pipe () : Pipe(NULL) { /* empty */ }
 
-    virtual void build_sub_pipes() = 0;
+    virtual void build_sub_pipes(Build_Settings*) = 0;
 
     void pipe_in(void* in) {
         if (!this->sub_pipes.empty()) {
@@ -18,7 +20,7 @@ struct Multi_Pipe : Pipe {
     void handle (void*) { /* empty */ }
 
     void setup (Build_Settings* settings) {
-        this->build_sub_pipes();
+        this->build_sub_pipes(settings);
         for (auto pipe : this->sub_pipes) {
             pipe->setup(settings);
         }
@@ -32,8 +34,9 @@ struct Multi_Pipe : Pipe {
         return has_progress;
     }
 
-    void add (Pipe* pipe) {
+    Pipe* add (Pipe* pipe) {
         this->sub_pipes.push_back(pipe);
+        return pipe;
     }
 
     void set_next(Pipe* next) {

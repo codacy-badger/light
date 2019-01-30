@@ -5,12 +5,17 @@
 #include <vector>
 
 struct Ast_Navigator {
-    Ast_Scope* current_scope = NULL;
     Ast_Statement* current_statement = NULL;
+
+    bool remove_current_statement = false;
+
+    Ast_Scope* current_scope () {
+        return this->current_statement->parent;
+    }
 
     void prepend_statements (std::vector<Ast_Statement*>* stms) {
         if (!stms->empty()) {
-            auto scope_stms = &this->current_scope->statements;
+            auto scope_stms = &this->current_scope()->statements;
 
             auto it = this->get_current_stm_location();
             scope_stms->insert(it, stms->begin(), stms->end());
@@ -18,7 +23,7 @@ struct Ast_Navigator {
     }
 
     std::vector<Ast_Statement*>::iterator get_current_stm_location () {
-        auto stms = &this->current_scope->statements;
+        auto stms = &this->current_scope()->statements;
         return std::find(stms->begin(), stms->end(), this->current_statement);
     }
 
@@ -73,6 +78,14 @@ struct Ast_Navigator {
 			default: break;
 		}
 
+        if (this->remove_current_statement) {
+            this->remove_current_statement = false;
+            auto stms = &this->current_statement->parent->statements;
+
+            auto it = std::find(stms->begin(), stms->end(), stm);
+            stms->erase(it);
+        }
+
         this->current_statement = tmp;
 	}
 
@@ -88,19 +101,15 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Scope* scope) {
-        auto tmp = this->current_scope;
-        this->current_scope = scope;
-
 		for (uint64_t i = 0; i < scope->statements.size();) {
             auto stm = scope->statements[i];
 			this->ast_handle(stm);
 
-            if (stm->remove_from_scope) {
+            if (this->remove_current_statement) {
+                this->remove_current_statement = false;
                 scope->statements.erase(scope->statements.begin() + i);
             } else i++;
 		}
-
-        this->current_scope = tmp;
 	}
 
 	virtual void ast_handle (Ast_Declaration* decl) {
@@ -114,15 +123,15 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_If* _if) {
 		this->ast_handle(_if->condition);
-		this->ast_handle(_if->then_scope);
-		if (_if->else_scope) {
-			this->ast_handle(_if->else_scope);
+		this->ast_handle(_if->then_body);
+		if (_if->else_body) {
+			this->ast_handle(_if->else_body);
 		}
 	}
 
 	virtual void ast_handle (Ast_While* _while) {
 		this->ast_handle(_while->condition);
-		this->ast_handle(_while->scope);
+		this->ast_handle(_while->body);
 	}
 
 	virtual void ast_handle (Ast_Import*) { /* empty */ }
@@ -182,7 +191,7 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_Function* func) {
 		this->ast_handle(func->type);
-		if (func->scope) this->ast_handle(func->scope);
+		if (func->body) this->ast_handle(func->body);
 	}
 
 	virtual void ast_handle (Ast_Function_Call* func_call) {

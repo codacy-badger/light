@@ -3,9 +3,16 @@
 #include "ast/nodes.hpp"
 
 struct Ast_Ref_Navigator {
-    Ast_Scope* current_scope = NULL;
+    Ast_Statement* current_statement = NULL;
+
+    Ast_Scope* current_scope () {
+        return this->current_statement->parent;
+    }
 
     virtual void ast_handle (Ast_Statement** stm) {
+        auto tmp = this->current_statement;
+        this->current_statement = (*stm);
+
 		for (auto &note : (*stm)->notes) {
 			this->ast_handle(&note);
 		}
@@ -52,6 +59,8 @@ struct Ast_Ref_Navigator {
 			}
 			default: break;
 		}
+
+        this->current_statement = tmp;
 	}
 
 	virtual void ast_handle (const char**) { /* empty */ }
@@ -66,9 +75,6 @@ struct Ast_Ref_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Scope** scope) {
-        auto tmp = this->current_scope;
-        this->current_scope = (*scope);
-
 		size_t initial_size = (*scope)->statements.size();
 		for (uint64_t i = 0; i < (*scope)->statements.size(); i++) {
 			this->ast_handle(&((*scope)->statements[i]));
@@ -80,8 +86,6 @@ struct Ast_Ref_Navigator {
 				i -= 1;
 			}
 		}
-
-        this->current_scope = tmp;
 	}
 
 	virtual void ast_handle (Ast_Declaration** decl) {
@@ -95,15 +99,15 @@ struct Ast_Ref_Navigator {
 
 	virtual void ast_handle (Ast_If** _if) {
 		this->ast_handle(&(*_if)->condition);
-		this->ast_handle(&(*_if)->then_scope);
-		if ((*_if)->else_scope) {
-			this->ast_handle(&(*_if)->else_scope);
+		this->ast_handle(&(*_if)->then_body);
+		if ((*_if)->else_body) {
+			this->ast_handle(&(*_if)->else_body);
 		}
 	}
 
 	virtual void ast_handle (Ast_While** _while) {
 		this->ast_handle(&(*_while)->condition);
-		this->ast_handle(&(*_while)->scope);
+		this->ast_handle(&(*_while)->body);
 	}
 
 	virtual void ast_handle (Ast_Static_If** _if) {
@@ -163,7 +167,7 @@ struct Ast_Ref_Navigator {
 
 	virtual void ast_handle (Ast_Function** func) {
 		this->ast_handle(&(*func)->type);
-		if ((*func)->scope) this->ast_handle(&(*func)->scope);
+		if ((*func)->body) this->ast_handle(&(*func)->body);
 	}
 
 	virtual void ast_handle (Ast_Function_Call** func_call) {

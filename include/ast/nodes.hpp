@@ -13,6 +13,7 @@ struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
 struct Ast_Struct_Type;
+struct Ast_Scope;
 struct Ast_Type;
 
 struct Instruction;
@@ -30,6 +31,10 @@ struct Ast {
 
     ~Ast () {
 		node_count--;
+	}
+
+	const char* get_absolute_path () {
+		return this->location.filename;
 	}
 };
 
@@ -73,9 +78,7 @@ struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 
 	String_Vector notes;
-
-	// @TODO remove this, it should be part of the Ast_Navigator struct
-    bool remove_from_scope = false;
+	Ast_Scope* parent = NULL;
 };
 
 struct Ast_Scope : Ast_Statement {
@@ -94,12 +97,28 @@ struct Ast_Scope : Ast_Statement {
 
     bool is_global () { return this->parent == NULL; }
 
-	const char* get_absolute_path () {
-		return this->location.filename;
+	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Statement* stm) {
+		stm->parent = this;
+		return this->statements.insert(it + 1, stm);
 	}
 
-	void add (Ast_Statement* stm) {
-		this->statements.push_back(stm);
+	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Scope* scope) {
+		return this->add(it, scope->statements);
+	}
+
+	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, std::vector<Ast_Statement*> others) {
+		for (auto stm : others) {
+			it = this->add(it, stm);
+		}
+		return it;
+	}
+
+	std::vector<Ast_Statement*>::iterator add (Ast_Statement* stm) {
+		return this->add(this->statements.end() - 1, stm);
+	}
+
+	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*> others) {
+		return this->add(this->statements.end() - 1, others);
 	}
 
 	Ast_Scope* get_global_scope () {
@@ -122,15 +141,15 @@ struct Ast_Scope : Ast_Statement {
 
 struct Ast_If : Ast_Statement {
 	Ast_Expression* condition = NULL;
-	Ast_Scope* then_scope = NULL;
-	Ast_Scope* else_scope = NULL;
+	Ast_Scope* then_body = NULL;
+	Ast_Scope* else_body = NULL;
 
 	Ast_If () { this->stm_type = AST_STATEMENT_IF; }
 };
 
 struct Ast_While : Ast_Statement {
 	Ast_Expression* condition = NULL;
-	Ast_Scope* scope = NULL;
+	Ast_Scope* body = NULL;
 
 	Ast_While () { this->stm_type = AST_STATEMENT_WHILE; }
 };
@@ -145,7 +164,6 @@ struct Ast_Declaration : Ast_Statement {
 	Ast_Expression* expression = NULL;
 
     bool is_constant = false;
-	Ast_Scope* scope = NULL;
 
 	// for struct property
 	size_t attribute_byte_offset = 0;
@@ -155,7 +173,7 @@ struct Ast_Declaration : Ast_Statement {
 	int64_t bytecode_stack_offset = -1;
 	bool is_spilled = true;
 
-	bool is_global () { return this->scope->is_global(); }
+	bool is_global () { return this->parent->is_global(); }
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 };
@@ -170,13 +188,12 @@ struct Ast_Return : Ast_Statement {
 };
 
 struct Ast_Import : Ast_Statement {
-	const char* path = NULL;
+	const char* path;
 
-	bool include = false;
-
-	char absolute_path[MAX_PATH_LENGTH];
-
-	Ast_Import () { this->stm_type = AST_STATEMENT_IMPORT; }
+	Ast_Import (const char* path = NULL) {
+		this->stm_type = AST_STATEMENT_IMPORT;
+		this->path = path;
+	}
 };
 
 struct Ast_Foreign : Ast_Statement {
@@ -406,7 +423,7 @@ struct Ast_Function_Type : Ast_Type {
 struct Ast_Function : Ast_Expression {
 	const char* name = NULL;
 	Ast_Function_Type* type = NULL;
-	Ast_Scope* scope = NULL;
+	Ast_Scope* body = NULL;
 
 	// for foreign functions
 	const char* foreign_module_name = NULL;
@@ -504,7 +521,6 @@ struct Ast_Ident : Ast_Expression {
 
     // for symbol resolution
 	Ast_Declaration* declaration = NULL;
-	Ast_Scope* scope = NULL;
 
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };

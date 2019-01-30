@@ -2,22 +2,28 @@
 
 #include "steps/sync_pipe.hpp"
 
+#include "steps/imp/path_solver.hpp"
+
 struct Read_Step : Sync_Pipe {
 
     Read_Step() : Sync_Pipe("Read Source") {}
 
     void handle (void* in) {
-        auto absolute_path = static_cast<const char*>(in);
+        auto source = reinterpret_cast<Code_Source*>(in);
 
+        this->read_full_source(source);
+        this->pipe_out(in);
+    }
+
+    void read_full_source (Code_Source* source) {
         FILE* file = NULL;
 
-        this->trigger_file_open(absolute_path);
-        auto error_code = fopen_s(&file, absolute_path, "r");
+        this->trigger_file_open(source->absolute_path);
+        auto error_code = fopen_s(&file, source->absolute_path, "r");
         if (error_code != 0) {
 			char buffer[256];
 			strerror_s(buffer, sizeof buffer, error_code);
-			printf("Cannot open file '%s': %s", absolute_path, buffer);
-            return;
+			printf("Cannot open file '%s': %s", source->absolute_path, buffer);
 		}
 
         fseek(file, 0L, SEEK_END);
@@ -25,18 +31,16 @@ struct Read_Step : Sync_Pipe {
         rewind(file);
 
         // @TODO @Incomplete check if the calloc call suceeded
-        auto source_code = (char*) calloc(length, 1);
+        source->text = (char*) calloc(length, 1);
 
         // @TODO @Incomplete check if we need to make the buffer bigger
-        auto size = fread((void*) source_code, 1, length, file);
+        source->length = fread((void*) source->text, 1, length, file);
         while (!feof(file)) {
-            size += fread((void*) (source_code + size), 1, length, file);
+            source->length += fread((void*) (source->text + source->length), 1, length, file);
         }
 
 		fclose(file);
-        this->trigger_file_close(absolute_path);
-
-        this->pipe_out((void*) source_code);
+        this->trigger_file_close(source->absolute_path);
     }
 
     void trigger_file_open (const char* absolute_path) {

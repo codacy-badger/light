@@ -3,6 +3,8 @@
 #include "steps/sync_pipe.hpp"
 #include "front/parser/parser.hpp"
 
+#include "steps/imp/path_solver.hpp"
+
 struct Parse_Step : Sync_Pipe {
     Parser* parser = NULL;
 
@@ -14,9 +16,13 @@ struct Parse_Step : Sync_Pipe {
     }
 
     void handle (void* in) {
-        auto source_code = static_cast<const char*>(in);
+        auto source = reinterpret_cast<Code_Source*>(in);
 
-        auto global_scope = this->parser->build_ast(source_code);
-        this->pipe_out((void*) global_scope);
+        auto global_scope = this->parser->build_ast(source->text, source->length, source->absolute_path);
+        for (auto stm : global_scope->statements) {
+            this->pipe_out((void*) stm);
+        }
+
+        delete source;
     }
 };
