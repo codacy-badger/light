@@ -1,17 +1,17 @@
 #pragma once
 
-#include "steps/sync_pipe.hpp"
+#include "steps/simple_pipe.hpp"
 
 #include "utils/string_map.hpp"
 #include "ast/nodes.hpp"
 
-#include "steps/imp/path_solver.hpp"
+#include "code_source.hpp"
 
-struct File_Cache : Sync_Pipe {
+struct File_Cache : Simple_Pipe {
     String_Map<Ast_Scope*> cache;
     std::vector<const char*> in_progress;
 
-    File_Cache() : Sync_Pipe("File Cache") { /* empty */ }
+    File_Cache() : Simple_Pipe("File Cache") { /* empty */ }
 
     void handle (void* in) {
         auto source = reinterpret_cast<Code_Source*>(in);

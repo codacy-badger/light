@@ -72,8 +72,8 @@ enum Token_Type : uint8_t {
 
 struct Token {
 	size_t line;
-	size_t cursor_begin;
-	size_t cursor_end;
+	size_t col_begin;
+	size_t col_end;
 
     Token_Type type;
     const char* text;

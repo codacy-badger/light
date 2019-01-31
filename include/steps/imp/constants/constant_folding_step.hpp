@@ -1,13 +1,13 @@
 #pragma once
 
-#include "steps/sync_pipe.hpp"
+#include "steps/simple_pipe.hpp"
 
 #include "utils/ast_ref_navigator.hpp"
 #include "ast/factory.hpp"
 
-struct Constant_Folding_Step : Sync_Pipe, Ast_Ref_Navigator {
+struct Constant_Folding_Step : Simple_Pipe, Ast_Ref_Navigator {
 
-    Constant_Folding_Step() : Sync_Pipe("Constant Folder") { /* empty */ }
+    Constant_Folding_Step() : Simple_Pipe("Constant Folder") { /* empty */ }
 
     void handle (void* in) {
         auto stm = static_cast<Ast_Statement*>(in);

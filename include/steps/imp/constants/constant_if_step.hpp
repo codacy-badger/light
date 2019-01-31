@@ -1,12 +1,12 @@
 #pragma once
 
-#include "steps/sync_pipe.hpp"
+#include "steps/simple_pipe.hpp"
 
 #include "utils/ast_navigator.hpp"
 
-struct Constant_If_Step : Sync_Pipe, Ast_Navigator {
+struct Constant_If_Step : Simple_Pipe, Ast_Navigator {
 
-    Constant_If_Step() : Sync_Pipe("Constant If") { /* empty */ }
+    Constant_If_Step() : Simple_Pipe("Constant If") { /* empty */ }
 
     void handle (void* in) {
         auto stm = static_cast<Ast_Statement*>(in);

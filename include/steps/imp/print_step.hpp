@@ -1,13 +1,13 @@
 #pragma once
 
-#include "steps/sync_pipe.hpp"
+#include "steps/simple_pipe.hpp"
 
 #include "ast/printer.hpp"
 
-struct Print_Step : Sync_Pipe {
+struct Print_Step : Simple_Pipe {
     Ast_Printer* printer = new Ast_Printer();
 
-    Print_Step () : Sync_Pipe("Ast Printer") { /* empty */ }
+    Print_Step () : Simple_Pipe("Ast Printer") { /* empty */ }
 
     void handle (void* in) {
         auto stm = static_cast<Ast_Statement*>(in);

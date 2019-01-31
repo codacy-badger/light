@@ -10,35 +10,31 @@
 struct Async_Pipe : Pipe {
     Pipe* next = NULL;
 
-    Async_Queue<void*>* input_queue = NULL;
-    std::thread* thread = NULL;
-    bool keep_working = true;
-    bool is_working = false;
-
     std::condition_variable condition;
     std::mutex mutex;
 
-    Async_Pipe (const char* name) : Pipe(name) {
-        this->input_queue = new Async_Queue<void*>(&this->condition);
-        this->thread = new std::thread(&Async_Pipe::async_handle, this);
-    }
+    Async_Queue<void*> input_queue;
+    std::thread thread;
+    bool keep_working = true;
+    bool is_working = false;
 
-    ~Async_Pipe () {
-        delete this->input_queue;
-        delete this->thread;
-    }
+    Async_Pipe (const char* name) :
+            Pipe(name),
+            input_queue(&this->condition),
+            thread(&Async_Pipe::async_handle, this)
+    { /* empty */ }
 
     void pipe_in(void* in) {
-        this->input_queue->push(in);
+        this->input_queue.push(in);
     }
 
     void async_handle () {
         std::unique_lock<std::mutex> lock(mutex);
         while (this->keep_working) {
-            if (!this->input_queue->empty()) {
+            if (!this->input_queue.empty()) {
                 this->is_working = true;
-                while (!this->input_queue->empty()) {
-                    this->handle(this->input_queue->pop());
+                while (!this->input_queue.empty()) {
+                    this->handle(this->input_queue.pop());
                 }
                 this->is_working = false;
             } else condition.wait(lock);
@@ -46,13 +42,13 @@ struct Async_Pipe : Pipe {
     }
 
     bool pump () {
-        return this->is_working || !this->input_queue->empty();
+        return this->is_working || !this->input_queue.empty();
     }
 
     void shutdown() {
         this->keep_working = false;
         this->condition.notify_one();
-        this->thread->join();
+        this->thread.join();
     }
 
     void pipe_out(void* in) {

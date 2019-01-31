@@ -15,7 +15,6 @@ enum Event_Kind : uint8_t {
 
 struct Compiler_Event {
     Event_Kind kind = EVENT_UNDEFINED;
-    Workspace* workspace = NULL;
 
     Compiler_Event (Event_Kind kind) { this->kind = kind; }
 };

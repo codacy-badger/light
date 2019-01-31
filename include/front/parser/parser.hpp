@@ -13,7 +13,6 @@
 #define AST_NEW(T, ...) this->setup<T>(new T(__VA_ARGS__))
 
 struct Parser {
-	const char* filename = NULL;
 	Lexer lexer;
 
 	Ast_Scope* internal_scope = NULL;
@@ -24,8 +23,7 @@ struct Parser {
 	}
 
 	Ast_Scope* build_ast (Code_Source* source) {
-		this->lexer.set_input(source->text, source->length);
-		this->filename = source->absolute_path;
+		this->lexer.set_source(source);
 
 		if (!source->import_into) {
 			source->import_into = AST_NEW(Ast_Scope);
@@ -150,10 +148,9 @@ struct Parser {
 			default: {
 				auto exp = this->expression();
 				if (exp) {
-					if (!this->lexer.try_skip(TOKEN_STM_END)) {
-						return AST_NEW(Ast_Return, exp);
-					} else return exp;
-				} else return NULL;
+					this->lexer.expect(TOKEN_STM_END);
+				}
+				return exp;
 			}
 		}
 	}
@@ -201,16 +198,6 @@ struct Parser {
 		decl->expression = this->expression();
 
 		this->lexer.try_skip(TOKEN_STM_END);
-
-		if (decl->is_constant && decl->expression) {
-			if (decl->expression->exp_type == AST_EXPRESSION_FUNCTION) {
-				auto func = static_cast<Ast_Function*>(decl->expression);
-				func->name = decl->name;
-			} else if (decl->expression->exp_type == AST_EXPRESSION_TYPE) {
-				auto type = static_cast<Ast_Type*>(decl->expression);
-				type->name = decl->name;
-			}
-		}
 
 		return decl;
 	}
@@ -447,7 +434,7 @@ struct Parser {
 
 	template<typename T>
 	T* setup (T* ast_node) {
-		ast_node->location.filename = this->filename;
+		ast_node->location.filename = this->lexer.scanner.absolute_path;
 		ast_node->location.line = this->lexer.scanner.current_line;
 		//ast_node->location.col = this->lexer.scanner.current_col;
 		return ast_node;

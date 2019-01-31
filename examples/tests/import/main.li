@@ -6,8 +6,9 @@ main :: fn {
     value3 := VALUE_C;
 
     guy: Dummy1;
-    other := guy.friend.friend_to;
-    guid := guy.friend.guid;
+    other := guy.friend;
+    other_guid := guy.friend.guid;
+    num := guy.friend.friend_to.number;
 }
 
 VALUE_B :: 2;

@@ -21,8 +21,8 @@ struct Lexer {
 	Token token_buffer[MAX_TOKEN_PEEK + 1];
 	size_t token_index = 0;
 
-	void set_input (const char* source_code, size_t length) {
-		this->scanner.set_input_text(source_code, length);
+	void set_source (Code_Source* source) {
+		this->scanner.set_source(source);
 
 		this->token_index = 0;
 		for (size_t i = 0; i <= MAX_TOKEN_PEEK; i++) {
@@ -39,7 +39,7 @@ struct Lexer {
 		}
 
 		token->line = this->scanner.current_line;
-		token->cursor_begin = this->scanner.current_col;
+		token->col_begin = this->scanner.current_col;
 
 		switch (scanner.peek()) {
 			case ';': { scanner.skip(); token->type = TOKEN_STM_END; break; }
@@ -143,7 +143,7 @@ struct Lexer {
 			}
 		}
 
-		token->cursor_end = this->scanner.current_col;
+		token->col_end = this->scanner.current_col;
 	}
 
 	bool identifier (Token* token) {
@@ -307,9 +307,10 @@ struct Lexer {
 		}
 	}
 
-	void report_expected (const char*) {
-		// @TODO allow to print an isolated Ast location
-		/*Logger::error(&this->peek()->location, "Expected '%s' but got %s",
-			expected_name, Token::to_string(this->peek()->type));*/
+	void report_expected (const char* c) {
+		auto token = this->peek();
+		printf("[ERROR] Expected character '%s'\n", c);
+		printf("\t at '%s':(%zd,%zd)\n", this->scanner.absolute_path,
+			token->line, token->col_begin);
 	}
 };

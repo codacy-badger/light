@@ -1,29 +1,12 @@
 #pragma once
 
-#include "steps/sync_pipe.hpp"
-#include "ast/nodes.hpp"
+#include "steps/simple_pipe.hpp"
+#include "code_source.hpp"
 
-struct Code_Source {
-    const char* path = NULL;
-    const char* from = NULL;
-
-    char* absolute_path = NULL;
-
-    const char* text = NULL;
-    size_t length = 0;
-
-    Ast_Scope* import_into = NULL;
-
-    Code_Source (const char* path, const char* from = NULL) {
-        this->path = path;
-        this->from = from;
-    }
-};
-
-struct Path_Solver : Sync_Pipe {
+struct Path_Solver : Simple_Pipe {
     const char* initial_dir;
 
-    Path_Solver() : Sync_Pipe("Path Solver") { /* empty */ }
+    Path_Solver() : Simple_Pipe("Path Solver") { /* empty */ }
 
     void setup (Build_Settings* settings) {
         this->initial_dir = settings->initial_path;

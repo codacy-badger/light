@@ -1,14 +1,14 @@
 #pragma once
 
-#include "steps/sync_pipe.hpp"
+#include "steps/async_pipe.hpp"
 #include "front/parser/parser.hpp"
 
 #include "steps/imp/path_solver.hpp"
 
-struct Parse_Step : Sync_Pipe {
+struct Parse_Step : Async_Pipe {
     Parser* parser = NULL;
 
-    Parse_Step () : Sync_Pipe("Parser") { /* empty */ }
+    Parse_Step () : Async_Pipe("Parser") { /* empty */ }
 
     void setup (Build_Settings* s) {
         auto internal_scope = new Internal_Scope(s->target_arch, s->target_os);

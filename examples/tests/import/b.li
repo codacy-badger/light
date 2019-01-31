@@ -1,1 +1,1 @@
-import "c" as SubNamespace
+import "c"

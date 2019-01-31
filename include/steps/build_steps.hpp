@@ -23,7 +23,7 @@ struct Build_Steps : Multi_Pipe {
 
         this->add(new External_Dependencies(this));
         this->add(new Symbol_Resolution_Step());
-        this->add(new Constant_Solver_Step());
+        //this->add(new Constant_Solver_Step());
 
         this->add(new Print_Step());
     }
