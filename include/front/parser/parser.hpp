@@ -187,6 +187,7 @@ struct Parser {
 
 		auto decl = AST_NEW(Ast_Declaration);
 		decl->name = this->copy_token_text_and_skip();
+		decl->scope = this->current_scope;
 
 		this->lexer.expect(TOKEN_COLON);
 		decl->type = this->type_instance();
@@ -422,6 +423,7 @@ struct Parser {
 		// @Info this is the right time to do this, since on a non-constant
 		// reference the declaration should already be in the scope.
 		ident->declaration = this->current_scope->find_var_declaration(ident->name);
+		ident->scope = this->current_scope;
 
 		return ident;
 	}
@@ -436,7 +438,6 @@ struct Parser {
 	T* setup (T* ast_node) {
 		ast_node->location.filename = this->lexer.scanner.absolute_path;
 		ast_node->location.line = this->lexer.scanner.current_line;
-		//ast_node->location.col = this->lexer.scanner.current_col;
 		return ast_node;
 	}
 };

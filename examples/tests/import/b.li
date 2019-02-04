@@ -1,1 +1,8 @@
-import "c"
+import "a"
+
+VALUE_D :: 12;
+
+Dummy2 :: struct {
+    friend_to: *Dummy1;
+    guid: u64;
+}

@@ -4,8 +4,6 @@
 #include "ast/types.hpp"
 #include "ast/factory.hpp"
 
-#include "build_settings.hpp"
-
 #define DECLARE_TYPE_INT(name) this->add_uint("TYPE_" #name, INTERNAL_TYPE_##name)
 
 struct Internal_Scope : Ast_Scope {

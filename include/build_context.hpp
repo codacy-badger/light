@@ -1,6 +1,8 @@
 #pragma once
 
 #include "platform.hpp"
+#include "compiler_events.hpp"
+#include "utils/async_queue.hpp"
 
 #include <vector>
 
@@ -49,7 +51,7 @@ struct Arch {
     }
 };
 
-struct Build_Settings {
+struct Build_Context {
 	const char* output = NULL;
 	std::vector<const char*> input_files;
 
@@ -61,7 +63,11 @@ struct Build_Settings {
 	OS* target_os = OS::get_current_os();
 	Arch* target_arch = Arch::get_current_arch();
 
-	Build_Settings () {
-		os_get_current_directory(this->initial_path);
-	}
+    Async_Queue<Compiler_Event> events;
+
+	Build_Context () { os_get_current_directory(this->initial_path); }
+
+    void trigger (Compiler_Event event) {
+        this->events.push(event);
+    }
 };

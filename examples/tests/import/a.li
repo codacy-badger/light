@@ -1,6 +1,6 @@
 import "b"
 
-VALUE_A :: 1;
+VALUE_C :: 1;
 
 Dummy1 :: struct {
     number: u32;

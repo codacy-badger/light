@@ -1,8 +1,7 @@
 #pragma once
 
 #include "code_source.hpp"
-#include "build_settings.hpp"
-#include "utils/event_queue.hpp"
+#include "build_context.hpp"
 #include "steps/build_steps.hpp"
 
 #include <thread>
@@ -11,8 +10,7 @@ struct Workspace {
     size_t guid;
     const char* name = NULL;
 
-    Build_Settings settings;
-    Event_Queue workspace_events;
+    Build_Context context;
     Build_Steps steps;
 
     std::thread* thread = NULL;
@@ -27,14 +25,15 @@ struct Workspace {
     void start_building () {
         printf("Starting workspace #%zd (%s)\n", this->guid, this->name);
 
-        this->steps.setup(&this->settings);
+        this->steps.set_context(&this->context);
+        this->steps.setup();
         this->steps.set_next(NULL);
 
         this->thread = new std::thread(&Workspace::run_async, this);
     }
 
     void run_async () {
-        for (auto input_file : this->settings.input_files) {
+        for (auto input_file : this->context.input_files) {
             this->add_source_file(input_file);
         }
 
@@ -43,32 +42,21 @@ struct Workspace {
             has_progress &= this->steps.pump();
         }
 
-        this->workspace_events.push(new Compiler_Event(EVENT_COMPLETE));
+        this->context.events.push(Compiler_Event(EVENT_COMPLETE));
     }
 
-    Compiler_Event* get_next_event () {
-		if (!this->workspace_events.empty()) {
-			return this->workspace_events.pop();
-		} else return NULL;
+    Compiler_Event get_next_event () {
+		if (!this->context.events.empty()) {
+			return this->context.events.pop();
+		} else return Compiler_Event();
 	}
 
     void wait_for_end () {
 		while (true) {
 	        auto event = this->get_next_event();
-			if (!event) continue;
+            if (event.kind == EVENT_UNDEFINED) continue;
 
-            switch (event->kind) {
-                case EVENT_COMPLETE: return;
-                case EVENT_FILE: {
-                    auto file_event = static_cast<Compiler_Event_File*>(event);
-    				switch (file_event->file_kind) {
-    					case FILE_OPEN:  { printf(" >> OPEN  "); break; }
-    					case FILE_CLOSE: { printf(" << CLOSE "); break; }
-    				}
-    				printf(file_event->absolute_path);
-    				printf("\n");
-                }
-            }
+            if (event.kind == EVENT_COMPLETE) break;
 	    }
 	}
 
@@ -79,6 +67,11 @@ struct Workspace {
 
     void add_source_text (const char* text) {
         auto source = new Code_Source(text, strlen(text));
+        this->steps.pipe_in((void*) source);
+    }
+
+    void add_source_text (const char* text, size_t length) {
+        auto source = new Code_Source(text, length);
         this->steps.pipe_in((void*) source);
     }
 

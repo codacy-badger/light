@@ -4,10 +4,10 @@
 
 #include "steps/imp/path_solver.hpp"
 
-struct External_Dependencies : Sync_Pipe {
+struct External_Dependencies : Simple_Pipe {
     Pipe* starting_pipe = NULL;
 
-    External_Dependencies(Pipe* starting_pipe) : Sync_Pipe("External Dependencies") {
+    External_Dependencies(Pipe* starting_pipe) : Simple_Pipe("External Dependencies") {
         this->starting_pipe = starting_pipe;
     }
 

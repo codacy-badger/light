@@ -76,9 +76,6 @@ enum Ast_Statement_Type {
 
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
-
-	String_Vector notes;
-	Ast_Scope* parent = NULL;
 };
 
 struct Ast_Scope : Ast_Statement {
@@ -98,7 +95,6 @@ struct Ast_Scope : Ast_Statement {
     bool is_global () { return this->parent == NULL; }
 
 	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Statement* stm) {
-		stm->parent = this;
 		return this->statements.insert(it + 1, stm);
 	}
 
@@ -164,6 +160,7 @@ struct Ast_Declaration : Ast_Statement {
 	Ast_Expression* expression = NULL;
 
     bool is_constant = false;
+	Ast_Scope* scope = NULL;
 
 	// for struct property
 	size_t attribute_byte_offset = 0;
@@ -173,7 +170,7 @@ struct Ast_Declaration : Ast_Statement {
 	int64_t bytecode_stack_offset = -1;
 	bool is_spilled = true;
 
-	bool is_global () { return this->parent->is_global(); }
+	bool is_global () { return this->scope->is_global(); }
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 };
@@ -521,6 +518,7 @@ struct Ast_Ident : Ast_Expression {
 
     // for symbol resolution
 	Ast_Declaration* declaration = NULL;
+	Ast_Scope* scope = NULL;
 
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };

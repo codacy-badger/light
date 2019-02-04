@@ -19,7 +19,7 @@ struct Symbol_Resolution_Step : Async_Pipe, Ast_Ref_Navigator {
         auto ident = (*ident_ptr);
 
         if (!ident->declaration) {
-            ident->declaration = this->current_scope()->find_declaration(ident->name, true, true, true);
+            ident->declaration = ident->scope->find_declaration(ident->name, true, true, true);
         }
     }
 

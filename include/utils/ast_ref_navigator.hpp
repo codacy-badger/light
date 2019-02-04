@@ -3,19 +3,7 @@
 #include "ast/nodes.hpp"
 
 struct Ast_Ref_Navigator {
-    Ast_Statement* current_statement = NULL;
-
-    Ast_Scope* current_scope () {
-        return this->current_statement->parent;
-    }
-
     virtual void ast_handle (Ast_Statement** stm) {
-        auto tmp = this->current_statement;
-        this->current_statement = (*stm);
-
-		for (auto &note : (*stm)->notes) {
-			this->ast_handle(&note);
-		}
 		switch ((*stm)->stm_type) {
 			case AST_STATEMENT_SCOPE: {
 				this->ast_handle(reinterpret_cast<Ast_Scope**>(stm));
@@ -59,8 +47,6 @@ struct Ast_Ref_Navigator {
 			}
 			default: break;
 		}
-
-        this->current_statement = tmp;
 	}
 
 	virtual void ast_handle (const char**) { /* empty */ }

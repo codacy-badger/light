@@ -10,12 +10,14 @@ enum Event_Kind : uint8_t {
 
     EVENT_FILE,
     EVENT_PHASE,
+
     EVENT_COMPLETE,
 };
 
 struct Compiler_Event {
     Event_Kind kind = EVENT_UNDEFINED;
 
+    Compiler_Event () { /* empty */ }
     Compiler_Event (Event_Kind kind) { this->kind = kind; }
 };
 
@@ -39,6 +41,8 @@ struct Compiler_Event_File : Compiler_Event {
 enum Phase_Kind : uint8_t {
     PHASE_UNDEFINED = 0,
 
+    PHASE_PARSED,
+    PHASE_TYPE_INFERRED,
     PHASE_TYPE_CHECK,
     PHASE_TARGET_CODE,
     PHASE_EXECUTABLE,
@@ -46,7 +50,11 @@ enum Phase_Kind : uint8_t {
 
 struct Compiler_Event_Phase : Compiler_Event {
     Phase_Kind phase_kind = PHASE_UNDEFINED;
-    Ast_Statement* stm = NULL;
+    Ast_Statement* statement = NULL;
 
     Compiler_Event_Phase () : Compiler_Event(EVENT_PHASE) {}
+    Compiler_Event_Phase (Ast_Statement* stm, Phase_Kind pk) : Compiler_Event(EVENT_PHASE) {
+        this->statement = stm;
+        this->phase_kind = pk;
+    }
 };

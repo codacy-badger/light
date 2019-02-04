@@ -7,7 +7,7 @@ struct Multi_Pipe : Pipe {
 
     Multi_Pipe () : Pipe(NULL) { /* empty */ }
 
-    virtual void build_sub_pipes(Build_Settings*) = 0;
+    virtual void build_sub_pipes() = 0;
 
     void pipe_in(void* in) {
         if (!this->sub_pipes.empty()) {
@@ -19,10 +19,11 @@ struct Multi_Pipe : Pipe {
 
     void handle (void*) { /* empty */ }
 
-    void setup (Build_Settings* settings) {
-        this->build_sub_pipes(settings);
+    void setup () {
+        this->build_sub_pipes();
         for (auto pipe : this->sub_pipes) {
-            pipe->setup(settings);
+            pipe->set_context(this->context);
+            pipe->setup();
         }
     }
 

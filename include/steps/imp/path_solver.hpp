@@ -8,8 +8,8 @@ struct Path_Solver : Simple_Pipe {
 
     Path_Solver() : Simple_Pipe("Path Solver") { /* empty */ }
 
-    void setup (Build_Settings* settings) {
-        this->initial_dir = settings->initial_path;
+    void setup () {
+        this->initial_dir = this->context->initial_path;
     }
 
     void handle (void* in) {

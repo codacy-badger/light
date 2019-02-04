@@ -5,35 +5,7 @@
 #include <vector>
 
 struct Ast_Navigator {
-    Ast_Statement* current_statement = NULL;
-
-    bool remove_current_statement = false;
-
-    Ast_Scope* current_scope () {
-        return this->current_statement->parent;
-    }
-
-    void prepend_statements (std::vector<Ast_Statement*>* stms) {
-        if (!stms->empty()) {
-            auto scope_stms = &this->current_scope()->statements;
-
-            auto it = this->get_current_stm_location();
-            scope_stms->insert(it, stms->begin(), stms->end());
-        }
-    }
-
-    std::vector<Ast_Statement*>::iterator get_current_stm_location () {
-        auto stms = &this->current_scope()->statements;
-        return std::find(stms->begin(), stms->end(), this->current_statement);
-    }
-
     virtual void ast_handle (Ast_Statement* stm) {
-        auto tmp = this->current_statement;
-        this->current_statement = stm;
-
-		for (auto note : stm->notes) {
-			this->ast_handle(note);
-		}
 		switch (stm->stm_type) {
 			case AST_STATEMENT_SCOPE: {
 				this->ast_handle(reinterpret_cast<Ast_Scope*>(stm));
@@ -77,16 +49,6 @@ struct Ast_Navigator {
 			}
 			default: break;
 		}
-
-        if (this->remove_current_statement) {
-            this->remove_current_statement = false;
-            auto stms = &this->current_statement->parent->statements;
-
-            auto it = std::find(stms->begin(), stms->end(), stm);
-            stms->erase(it);
-        }
-
-        this->current_statement = tmp;
 	}
 
 	virtual void ast_handle (const char*) { /* empty */ }
@@ -101,14 +63,9 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Scope* scope) {
-		for (uint64_t i = 0; i < scope->statements.size();) {
+		for (uint64_t i = 0; i < scope->statements.size(); i++) {
             auto stm = scope->statements[i];
 			this->ast_handle(stm);
-
-            if (this->remove_current_statement) {
-                this->remove_current_statement = false;
-                scope->statements.erase(scope->statements.begin() + i);
-            } else i++;
 		}
 	}
 

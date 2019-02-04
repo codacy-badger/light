@@ -10,8 +10,9 @@ struct Parse_Step : Async_Pipe {
 
     Parse_Step () : Async_Pipe("Parser") { /* empty */ }
 
-    void setup (Build_Settings* s) {
-        auto internal_scope = new Internal_Scope(s->target_arch, s->target_os);
+    void setup () {
+        auto c = this->context;
+        auto internal_scope = new Internal_Scope(c->target_arch, c->target_os);
         this->parser = new Parser(internal_scope);
     }
 
@@ -19,6 +20,7 @@ struct Parse_Step : Async_Pipe {
         auto source = reinterpret_cast<Code_Source*>(in);
 
         auto global_scope = this->parser->build_ast(source);
+
         for (auto stm : global_scope->statements) {
             this->pipe_out((void*) stm);
         }
