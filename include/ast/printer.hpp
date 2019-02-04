@@ -185,7 +185,8 @@ struct Ast_Printer {
 
     void print(Ast_Function* func, bool short_version = true) {
         if (short_version) {
-            printf(func->name);
+            if (func->name) printf(func->name);
+            else printf("<anon_func>");
         } else {
             print(func->type);
             printf(" ");

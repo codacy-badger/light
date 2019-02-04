@@ -15,7 +15,7 @@ main :: fn {
         return func(func(func(num)));
     }
 
-    sqrt :: fn (num: u64) -> u64 { num * num }
+    sqrt :: fn (num: u64) -> u64 { num * num; }
 }
 
 Vec2 :: struct {
