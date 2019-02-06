@@ -69,6 +69,7 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
 	AST_STATEMENT_IMPORT,
+	AST_STATEMENT_INCLUDE,
 	AST_STATEMENT_STATIC_IF,
 	AST_STATEMENT_FOREIGN,
 	AST_STATEMENT_EXPRESSION,
@@ -189,6 +190,15 @@ struct Ast_Import : Ast_Statement {
 
 	Ast_Import (const char* path = NULL) {
 		this->stm_type = AST_STATEMENT_IMPORT;
+		this->path = path;
+	}
+};
+
+struct Ast_Include : Ast_Statement {
+	const char* path;
+
+	Ast_Include (const char* path = NULL) {
+		this->stm_type = AST_STATEMENT_INCLUDE;
 		this->path = path;
 	}
 };

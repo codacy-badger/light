@@ -30,18 +30,19 @@ enum Token_Type : uint8_t {
 	TOKEN_ELSE,
 	TOKEN_WHILE,
 	TOKEN_BREAK,
-	TOKEN_CAST,				// 20
+	TOKEN_CAST,
 	TOKEN_STRUCT,
 	TOKEN_FUNCTION,
 	TOKEN_RETURN,
 	TOKEN_IMPORT,
+	TOKEN_INCLUDE,
 	TOKEN_FOREIGN,
 	TOKEN_RUN,
 	TOKEN_FALSE,
 	TOKEN_TRUE,
 	TOKEN_NULL,
 
-	TOKEN_EXCLAMATION,		// 30
+	TOKEN_EXCLAMATION,
 	TOKEN_DOLLAR,
 
 	TOKEN_AMP,
@@ -52,7 +53,7 @@ enum Token_Type : uint8_t {
 	TOKEN_SUB,
 	TOKEN_DIV,
 	TOKEN_MUL,
-	TOKEN_PERCENT,			// 40
+	TOKEN_PERCENT,
 	TOKEN_GREATER,
 	TOKEN_LESSER,
 
@@ -64,7 +65,7 @@ enum Token_Type : uint8_t {
 	TOKEN_PAR_CLOSE,
 	TOKEN_BRAC_OPEN,
 	TOKEN_BRAC_CLOSE,
-	TOKEN_SQ_BRAC_OPEN,		// 50
+	TOKEN_SQ_BRAC_OPEN,
 	TOKEN_SQ_BRAC_CLOSE,
 	TOKEN_COLON,
 	TOKEN_COMMA,
@@ -128,6 +129,7 @@ struct Token {
 			case TOKEN_FUNCTION:		return "fn";
 			case TOKEN_RETURN:			return "return";
 			case TOKEN_IMPORT:			return "import";
+			case TOKEN_INCLUDE:			return "include";
 			case TOKEN_FOREIGN:			return "foreign";
 			case TOKEN_RUN:				return "run";
 			case TOKEN_FALSE:			return "false";

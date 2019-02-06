@@ -1,4 +1,4 @@
-import "a"
+include "a"
 
 VALUE_A :: 16;
 

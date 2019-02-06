@@ -95,13 +95,20 @@ struct Parser {
 				auto import = AST_NEW(Ast_Import);
 
 				auto literal = this->string_literal();
-				auto new_length = strlen(literal->string_value) + 4;
-
-				auto tmp = (char*) malloc(new_length);
-				sprintf_s(tmp, new_length, "%s" DEFAULT_FILE_EXTENSION, literal->string_value);
-				import->path = tmp;
+				import->path = literal->string_value;
+				delete literal;
 
 				return import;
+			}
+			case TOKEN_INCLUDE: {
+				this->lexer.skip();
+				auto include = AST_NEW(Ast_Include);
+
+				auto literal = this->string_literal();
+				include->path = literal->string_value;
+				delete literal;
+
+				return include;
 			}
 			case TOKEN_FOREIGN: {
 				this->lexer.skip();

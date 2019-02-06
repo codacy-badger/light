@@ -49,6 +49,10 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Import*>(stm));
 				break;
 			}
+			case AST_STATEMENT_INCLUDE: {
+				print(reinterpret_cast<Ast_Include*>(stm));
+				break;
+			}
 			case AST_STATEMENT_FOREIGN: {
 				print(reinterpret_cast<Ast_Foreign*>(stm));
 				break;
@@ -119,6 +123,10 @@ struct Ast_Printer {
 
 	void print(Ast_Import* import) {
         printf("import \"%s\"", import->path);
+    }
+
+	void print(Ast_Include* include) {
+        printf("include \"%s\"", include->path);
     }
 
 	void print(Ast_Foreign* foreign) {

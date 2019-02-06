@@ -133,6 +133,7 @@ struct Lexer {
 					if (token->equal("foreign", 7)) { token->type = TOKEN_FOREIGN; }
 					if (token->equal("if", 		2)) { token->type = TOKEN_IF; }
 					if (token->equal("import", 	6)) { token->type = TOKEN_IMPORT; }
+					if (token->equal("include", 7)) { token->type = TOKEN_INCLUDE; }
 					if (token->equal("null", 	4)) { token->type = TOKEN_NULL; }
 					if (token->equal("run", 	3)) { token->type = TOKEN_RUN; }
 					if (token->equal("return", 	6)) { token->type = TOKEN_RETURN; }
