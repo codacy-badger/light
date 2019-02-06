@@ -1,55 +1,14 @@
 #pragma once
 
 #include "platform.hpp"
+#include "os.hpp"
+#include "arch.hpp"
 #include "compiler_events.hpp"
 #include "utils/async_queue.hpp"
 
 #include <vector>
 
-struct OS {
-    OS_Type type;
-    const char* name;
-
-    OS (const char* name, OS_Type type) {
-        this->name = name;
-        this->type = type;
-    }
-
-    static OS* get_current_os () {
-        #if defined(_WIN32)
-            return new OS ("Windows", OS_TYPE_WINDOWS);
-        #elif defined(__linux__)
-            return new OS ("Linux", OS_TYPE_LINUX);
-        #elif defined(__APPLE__)
-            return new OS ("Mac", OS_TYPE_MAC);
-        #else
-            return NULL;
-        #endif
-    }
-};
-
-struct Arch {
-    Arch_Type type;
-    const char* name;
-
-    uint8_t register_count;
-    uint8_t register_size;
-
-    Arch (const char* name, Arch_Type type, uint8_t reg_count, uint8_t reg_size) {
-        this->name = name;
-        this->type = type;
-        this->register_count = reg_count;
-        this->register_size = reg_size;
-    }
-
-    static Arch* get_current_arch () {
-        auto current_arch = os_get_arch();
-        switch (current_arch) {
-            case ARCH_TYPE_X64:     return new Arch ("x64", ARCH_TYPE_X64, 16, 8);
-            default:                return NULL;
-        }
-    }
-};
+struct Workspace;
 
 struct Build_Context {
 	const char* output = NULL;
@@ -65,9 +24,17 @@ struct Build_Context {
 
     Async_Queue<Compiler_Event> events;
 
+    Workspace* workspace = NULL;
+
 	Build_Context () { os_get_current_directory(this->initial_path); }
 
     void trigger (Compiler_Event event) {
         this->events.push(event);
+    }
+
+    const char* find_absolute_path (const char* relative_path) {
+		auto buffer = new char[MAX_PATH_LENGTH];
+        os_get_absolute_path(relative_path, buffer);
+		return buffer;
     }
 };

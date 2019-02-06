@@ -1,5 +1,7 @@
 #pragma once
 
+#include "token_location.hpp"
+
 #include <stdint.h>
 #include <string.h>
 #include <malloc.h>
@@ -71,9 +73,7 @@ enum Token_Type : uint8_t {
 };
 
 struct Token {
-	size_t line;
-	size_t col_begin;
-	size_t col_end;
+	Token_Location location;
 
     Token_Type type;
     const char* text;

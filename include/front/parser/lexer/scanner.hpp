@@ -4,7 +4,6 @@
 #include <string.h>
 
 struct Scanner {
-	const char* absolute_path;
 	size_t current_line;
 	size_t current_col;
 
@@ -12,14 +11,13 @@ struct Scanner {
     size_t data_length;
     size_t index = 0;
 
-	void set_source (Code_Source* source) {
+	void set_source (const char* text, size_t length) {
 		this->current_line = 1;
 		this->current_col = 1;
 		this->index = 0;
 
-		this->data = source->text;
-		this->data_length = source->length;
-		this->absolute_path = source->absolute_path;
+		this->data = text;
+		this->data_length = length;
 	}
 
 	const char* current_location_pointer () {

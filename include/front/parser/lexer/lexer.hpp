@@ -14,15 +14,18 @@
 #define SIGN(c) (c == '+' || c == '-')
 
 #define MAX_TOKEN_PEEK 1
+#define DEFAULT_ABSOLUTE_PATH "(from text)"
 
 struct Lexer {
+	const char* source_path = NULL;
 	Scanner scanner;
 
 	Token token_buffer[MAX_TOKEN_PEEK + 1];
 	size_t token_index = 0;
 
-	void set_source (Code_Source* source) {
-		this->scanner.set_source(source);
+	void set_source (const char* text, size_t length, const char* path) {
+		this->source_path = path ? path : DEFAULT_ABSOLUTE_PATH;
+		this->scanner.set_source(text, length);
 
 		this->token_index = 0;
 		for (size_t i = 0; i <= MAX_TOKEN_PEEK; i++) {
@@ -38,8 +41,9 @@ struct Lexer {
 			return;
 		}
 
-		token->line = this->scanner.current_line;
-		token->col_begin = this->scanner.current_col;
+		token->location.absolute_path = this->source_path;
+		token->location.line = this->scanner.current_line;
+		token->location.col_begin = this->scanner.current_col;
 
 		switch (scanner.peek()) {
 			case ';': { scanner.skip(); token->type = TOKEN_STM_END; break; }
@@ -143,7 +147,7 @@ struct Lexer {
 			}
 		}
 
-		token->col_end = this->scanner.current_col;
+		token->location.col_end = this->scanner.current_col;
 	}
 
 	bool identifier (Token* token) {
@@ -310,7 +314,7 @@ struct Lexer {
 	void report_expected (const char* c) {
 		auto token = this->peek();
 		printf("[ERROR] Expected character '%s'\n", c);
-		printf("\t at '%s':(%zd,%zd)\n", this->scanner.absolute_path,
-			token->line, token->col_begin);
+		printf("\t at '%s':(%zd,%zd)\n", this->source_path,
+			token->location.line, token->location.col_begin);
 	}
 };

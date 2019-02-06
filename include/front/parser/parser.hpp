@@ -10,7 +10,7 @@
 
 #define DEFAULT_FILE_EXTENSION ".li"
 
-#define AST_NEW(T, ...) this->setup<T>(new T(__VA_ARGS__))
+#define AST_NEW(T, ...) this->set_ast_location_info<T>(new T(__VA_ARGS__))
 
 struct Parser {
 	Lexer lexer;
@@ -22,17 +22,15 @@ struct Parser {
 		this->internal_scope = internal_scope;
 	}
 
-	Ast_Scope* build_ast (Code_Source* source) {
-		this->lexer.set_source(source);
+	Ast_Scope* build_ast (const char* text, size_t length, const char* path) {
+		this->lexer.set_source(text, length, path);
 
-		if (!source->import_into) {
-			source->import_into = AST_NEW(Ast_Scope);
-			source->import_into->imports.push_back(this->internal_scope);
-		}
+		auto file_scope = AST_NEW(Ast_Scope);
+		file_scope->imports.push_back(this->internal_scope);
 
-		this->scope(source->import_into);
+		this->scope(file_scope);
 
-		return source->import_into;
+		return file_scope;
 	}
 
 	Ast_Scope* scope (Ast_Scope* scope = NULL) {
@@ -435,8 +433,8 @@ struct Parser {
 	}
 
 	template<typename T>
-	T* setup (T* ast_node) {
-		ast_node->location.filename = this->lexer.scanner.absolute_path;
+	T* set_ast_location_info (T* ast_node) {
+		ast_node->location.filename = this->lexer.source_path;
 		ast_node->location.line = this->lexer.scanner.current_line;
 		return ast_node;
 	}

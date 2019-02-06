@@ -11,6 +11,7 @@ enum Event_Kind : uint8_t {
     EVENT_FILE,
     EVENT_PHASE,
 
+    EVENT_ERROR,
     EVENT_COMPLETE,
 };
 
