@@ -47,7 +47,7 @@ struct Async_Pipe : Pipe {
     void shutdown() {
         this->keep_working = false;
         this->condition.notify_one();
-        this->thread->join();
+        //this->thread->join();
     }
 
     void pipe_out(void* in) {

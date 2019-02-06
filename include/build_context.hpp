@@ -5,6 +5,7 @@
 #include "arch.hpp"
 #include "compiler_events.hpp"
 #include "utils/async_queue.hpp"
+#include "utils/string_map.hpp"
 
 #include <vector>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "steps/simple_pipe.hpp"
+#include "pipeline/simple_pipe.hpp"
 
 #include "ast/printer.hpp"
 

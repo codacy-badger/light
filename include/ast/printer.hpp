@@ -349,10 +349,11 @@ struct Ast_Printer {
     }
 
     void print(Ast_Ident* ident) {
-        printf("(");
-        printf(ident->name);
-        if (!ident->declaration) printf("?");
-        printf(")");
+        if (ident->declaration) {
+            printf("%s", ident->name);
+        } else {
+            printf("(%s)", ident->name);
+        }
     }
 
     void print(Ast_Literal* lit) {

@@ -2,9 +2,9 @@
 
 #include "multi_pipe.hpp"
 
-#include "imp/parse_step.hpp"
-#include "imp/symbol_resolution_step.hpp"
+#include "imp/parser/parse_step.hpp"
 #include "imp/print_step.hpp"
+#include "utils/string_map.hpp"
 
 /*
 
@@ -43,11 +43,8 @@ to the file completed. The processing of each file is the following:
 */
 
 struct Build_Pipeline : Multi_Pipe {
-
     void build_sub_pipes () {
         this->add(new Parse_Step());
-
-        this->add(new Symbol_Resolution_Step());
 
         this->add(new Print_Step());
     }

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "steps/async_pipe.hpp"
+#include "pipeline/async_pipe.hpp"
 #include "front/parser/parser.hpp"
+#include "front/parser/internal_scope.hpp"
 
 struct Parse_Step : Async_Pipe {
     Parser* parser = NULL;
@@ -19,11 +20,9 @@ struct Parse_Step : Async_Pipe {
 
         size_t length = 0;
         auto text = read_full_source(absolute_path, &length);
-        auto global_scope = this->parser->build_ast(text, length, absolute_path);
+        auto file_scope = this->parser->build_ast(text, length, absolute_path);
 
-        for (auto stm : global_scope->statements) {
-            this->pipe_out((void*) stm);
-        }
+        this->pipe_out((void*) file_scope);
 
         delete text;
     }

@@ -18,7 +18,7 @@ int main (int argc, char** argv) {
     auto workspace = create_workspace();
     apply_build_settings(&workspace->context, argc, argv);
 
-    workspace->do_full_build();
+    workspace->wait_for_full_build();
 
     if (workspace->has_error) {
         printf("\nErrors found, stopping compilation...\n");

@@ -4,11 +4,6 @@
 #include "ast/nodes.hpp"
 #include "ast/types.hpp"
 #include "ast/factory.hpp"
-#include "internal_scope.hpp"
-
-#include <vector>
-
-#define DEFAULT_FILE_EXTENSION ".li"
 
 #define AST_NEW(T, ...) this->set_ast_location_info<T>(new T(__VA_ARGS__))
 
@@ -22,13 +17,23 @@ struct Parser {
 		this->internal_scope = internal_scope;
 	}
 
-	Ast_Scope* build_ast (const char* text, size_t length, const char* path) {
-		this->lexer.set_source(text, length, path);
+	Ast_Scope* build_ast (const char* text, size_t length, const char* absolute_path) {
+		this->lexer.set_source(text, length, absolute_path);
+
+		char tmp_path[MAX_PATH_LENGTH];
+		if (absolute_path) {
+			os_get_current_directory(tmp_path);
+			os_set_current_directory_path(absolute_path);
+		}
 
 		auto file_scope = AST_NEW(Ast_Scope);
 		file_scope->imports.push_back(this->internal_scope);
 
 		this->scope(file_scope);
+
+		if (absolute_path) {
+			os_set_current_directory(tmp_path);
+		}
 
 		return file_scope;
 	}
@@ -93,20 +98,27 @@ struct Parser {
 			case TOKEN_IMPORT: {
 				this->lexer.skip();
 				auto import = AST_NEW(Ast_Import);
+				import->scope = this->current_scope;
 
 				auto literal = this->string_literal();
 				import->path = literal->string_value;
 				delete literal;
+
+				os_get_absolute_path(import->path, import->absolute_to_current_file);
 
 				return import;
 			}
 			case TOKEN_INCLUDE: {
 				this->lexer.skip();
 				auto include = AST_NEW(Ast_Include);
+				include->scope = this->current_scope;
 
 				auto literal = this->string_literal();
 				include->path = literal->string_value;
 				delete literal;
+
+				os_get_absolute_path(include->path, include->absolute_to_current_file);
+				printf("Absolute found: %s\n", include->absolute_to_current_file);
 
 				return include;
 			}

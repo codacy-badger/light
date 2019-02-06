@@ -18,18 +18,9 @@ void Workspace::start_building () {
     this->thread = new std::thread(&Workspace::run_async, this);
 }
 
-void Workspace::do_full_build () {
+void Workspace::wait_for_full_build () {
     this->start_building();
-    while (true) {
-        auto event = this->get_next_event();
-        if (event.kind == EVENT_UNDEFINED) continue;
-
-        if (event.kind == EVENT_COMPLETE) break;
-        if (event.kind == EVENT_ERROR) {
-            this->has_error = true;
-            break;
-        }
-    }
+    while (!this->is_build_complete) {}
     this->stop_building();
 }
 
@@ -39,16 +30,21 @@ void Workspace::stop_building () {
     this->thread->join();
     delete this->thread;
 
+    this->is_build_complete = true;
+
     printf("Workspace #%zd (%s) complete\n", this->guid, this->name);
 }
 
 void Workspace::stop_with_errors () {
-    this->context.events.push(Compiler_Event(EVENT_ERROR));
+    this->has_error = true;
+    this->keep_going = false;
 }
 
 void Workspace::run_async () {
-    for (auto input_file : this->context.input_files) {
-        this->add_source_file(input_file);
+    for (auto relative_path : this->context.input_files) {
+        auto absolute_path = new char[MAX_PATH_LENGTH];
+        os_get_absolute_path(relative_path, absolute_path);
+        this->add_source_file(absolute_path);
     }
 
     bool has_progress = true;
@@ -56,7 +52,7 @@ void Workspace::run_async () {
         has_progress &= this->pipeline.pump();
     }
 
-    this->context.events.push(Compiler_Event(EVENT_COMPLETE));
+    this->is_build_complete = true;
 }
 
 Compiler_Event Workspace::get_next_event () {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "build_context.hpp"
-#include "steps/build_pipeline.hpp"
+#include "pipeline/build_pipeline.hpp"
 
 #include <thread>
 
@@ -17,13 +17,14 @@ struct Workspace {
     std::thread* thread = NULL;
     bool keep_going = true;
     bool has_error = false;
+    bool is_build_complete = false;
 
     Workspace (const char* name);
 
     void start_building ();
     Compiler_Event get_next_event ();
     void stop_building ();
-    void do_full_build ();
+    void wait_for_full_build ();
     void stop_with_errors ();
 
     void run_async ();
