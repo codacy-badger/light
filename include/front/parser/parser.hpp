@@ -98,28 +98,13 @@ struct Parser {
 			case TOKEN_IMPORT: {
 				this->lexer.skip();
 				auto import = AST_NEW(Ast_Import);
-				import->scope = this->current_scope;
-
-				auto literal = this->string_literal();
-				import->path = literal->string_value;
-				delete literal;
-
-				os_get_absolute_path(import->path, import->absolute_to_current_file);
-
+				this->string_literal_value(import->path);
 				return import;
 			}
 			case TOKEN_INCLUDE: {
 				this->lexer.skip();
 				auto include = AST_NEW(Ast_Include);
-				include->scope = this->current_scope;
-
-				auto literal = this->string_literal();
-				include->path = literal->string_value;
-				delete literal;
-
-				os_get_absolute_path(include->path, include->absolute_to_current_file);
-				printf("Absolute found: %s\n", include->absolute_to_current_file);
-
+				this->string_literal_value(include->path);
 				return include;
 			}
 			case TOKEN_FOREIGN: {
@@ -411,6 +396,12 @@ struct Parser {
 			output->literal_type = AST_LITERAL_STRING;
 			return output;
 		} else return NULL;
+	}
+
+	void string_literal_value (char* buffer) {
+		auto literal = this->string_literal();
+		memcpy(buffer, literal->string_value, strlen(literal->string_value));
+		delete literal;
 	}
 
 	Ast_Arguments* arguments () {

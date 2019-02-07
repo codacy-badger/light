@@ -15,7 +15,7 @@ struct Build_Context {
 	const char* output = NULL;
 	std::vector<const char*> input_files;
 
-	char initial_path[MAX_PATH_LENGTH];
+	char base_path[MAX_PATH_LENGTH];
 
 	bool is_multithread = false;
 	bool is_debug = false;
@@ -27,15 +27,9 @@ struct Build_Context {
 
     Workspace* workspace = NULL;
 
-	Build_Context () { os_get_current_directory(this->initial_path); }
+	Build_Context () { os_get_current_directory(this->base_path); }
 
     void trigger (Compiler_Event event) {
         this->events.push(event);
-    }
-
-    const char* find_absolute_path (const char* relative_path) {
-		auto buffer = new char[MAX_PATH_LENGTH];
-        os_get_absolute_path(relative_path, buffer);
-		return buffer;
     }
 };

@@ -1,30 +1,25 @@
 #pragma once
 
-#include "pipeline/async_pipe.hpp"
-#include "front/parser/parser.hpp"
-#include "front/parser/internal_scope.hpp"
+#include "pipeline/compiler_pipe.hpp"
 
-struct Parse_Step : Async_Pipe {
-    Parser* parser = NULL;
+#include "parse_step.hpp"
 
-    Parse_Step () : Async_Pipe("Parser") { /* empty */ }
+struct Source_File {
+    const char* absolute_path;
 
-    void setup () {
-        auto c = this->context;
-        auto internal_scope = new Internal_Scope(c->target_arch, c->target_os);
-        this->parser = new Parser(internal_scope);
+    Source_File (const char* absolute_path) {
+        this->absolute_path = absolute_path;
     }
+};
 
-    void handle (void* in) {
-        auto absolute_path = reinterpret_cast<const char*>(in);
+struct Read_File_Step : Compiler_Pipe<Source_File, Parse_Command> {
 
+    Read_File_Step () : Compiler_Pipe("Read File") {}
+
+    void handle (Source_File source_file) {
         size_t length = 0;
-        auto text = read_full_source(absolute_path, &length);
-        auto file_scope = this->parser->build_ast(text, length, absolute_path);
-
-        this->pipe_out((void*) file_scope);
-
-        delete text;
+        auto text = this->read_full_source(source_file.absolute_path, &length);
+        this->push_out(Parse_Command(text, length, source_file.absolute_path));
     }
 
     const char* read_full_source (const char* absolute_path, size_t* length_ptr) {

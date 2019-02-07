@@ -186,25 +186,11 @@ struct Ast_Return : Ast_Statement {
 };
 
 struct Ast_Import : Ast_Statement {
-	const char* path;
-	char absolute_to_current_file[MAX_PATH_LENGTH];
-	Ast_Scope* scope = NULL;
-
-	Ast_Import (const char* path = NULL) {
-		this->stm_type = AST_STATEMENT_IMPORT;
-		this->path = path;
-	}
+	char path[MAX_PATH_LENGTH];
 };
 
 struct Ast_Include : Ast_Statement {
-	const char* path;
-	char absolute_to_current_file[MAX_PATH_LENGTH];
-	Ast_Scope* scope = NULL;
-
-	Ast_Include (const char* path = NULL) {
-		this->stm_type = AST_STATEMENT_INCLUDE;
-		this->path = path;
-	}
+	char path[MAX_PATH_LENGTH];
 };
 
 struct Ast_Foreign : Ast_Statement {

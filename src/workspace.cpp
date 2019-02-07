@@ -1,7 +1,5 @@
 #include "workspace.hpp"
 
-#include <stdarg.h>
-
 Workspace::Workspace (const char* name) {
     static size_t next_workspace_guid = 1;
     this->guid = next_workspace_guid++;
@@ -11,9 +9,7 @@ Workspace::Workspace (const char* name) {
 void Workspace::start_building () {
     printf("Starting workspace #%zd (%s)\n", this->guid, this->name);
 
-    this->pipeline.set_context(&this->context);
-    this->pipeline.setup();
-    this->pipeline.set_next(NULL);
+    this->pipeline.init(&this->context);
 
     this->thread = new std::thread(&Workspace::run_async, this);
 }
@@ -44,7 +40,7 @@ void Workspace::run_async () {
     for (auto relative_path : this->context.input_files) {
         auto absolute_path = new char[MAX_PATH_LENGTH];
         os_get_absolute_path(relative_path, absolute_path);
-        this->add_source_file(absolute_path);
+        this->pipeline.add_source_file_raw(absolute_path);
     }
 
     bool has_progress = true;
@@ -62,22 +58,17 @@ Compiler_Event Workspace::get_next_event () {
 }
 
 void Workspace::add_source_file (const char* absolute_path) {
-    this->pipeline.pipe_in((void*) absolute_path);
+    this->pipeline.add_source_file(absolute_path);
 }
 
-void Workspace::vlog_error (const char* format, va_list args) {
-    printf("[ERROR] ");
-    vprintf(format, args);
-    printf("\n");
+void Workspace::add_source_text (const char* text) {
+    this->add_source_text(text, strlen(text));
 }
 
-void Workspace::log_error (const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    vlog_error(format, args);
-    va_end(args);
+void Workspace::add_source_text (const char* text, size_t length) {
+    this->pipeline.add_source_text(text, length);
 }
 
-Workspace* create_workspace (const char* name) {
+Workspace* Workspace::create_workspace (const char* name) {
     return new Workspace(name);
 }

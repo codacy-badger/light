@@ -30,9 +30,8 @@ struct Workspace {
     void run_async ();
 
     void add_source_file (const char* absolute_path);
+    void add_source_text (const char* text);
+    void add_source_text (const char* text, size_t length);
 
-    void vlog_error (const char* format, va_list args);
-    void log_error (const char* format, ...);
+    static Workspace* create_workspace (const char* name = DEFAULT_WORKSPACE_NAME);
 };
-
-Workspace* create_workspace (const char* name = DEFAULT_WORKSPACE_NAME);
