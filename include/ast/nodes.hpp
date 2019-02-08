@@ -69,7 +69,6 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
 	AST_STATEMENT_IMPORT,
-	AST_STATEMENT_INCLUDE,
 	AST_STATEMENT_STATIC_IF,
 	AST_STATEMENT_FOREIGN,
 	AST_STATEMENT_EXPRESSION,
@@ -187,10 +186,12 @@ struct Ast_Return : Ast_Statement {
 
 struct Ast_Import : Ast_Statement {
 	char path[MAX_PATH_LENGTH];
-};
+	char current_folder[MAX_PATH_LENGTH];
+	bool is_include = false;
 
-struct Ast_Include : Ast_Statement {
-	char path[MAX_PATH_LENGTH];
+	char resolved_source_file[MAX_PATH_LENGTH];
+
+	Ast_Import() { this->stm_type = AST_STATEMENT_IMPORT; }
 };
 
 struct Ast_Foreign : Ast_Statement {

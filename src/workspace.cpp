@@ -1,6 +1,12 @@
 #include "workspace.hpp"
 
+#include "build_context.hpp"
+#include "pipeline/build_pipeline.hpp"
+
 Workspace::Workspace (const char* name) {
+    this->context = new Build_Context(this);
+    this->pipeline = new Build_Pipeline();
+
     static size_t next_workspace_guid = 1;
     this->guid = next_workspace_guid++;
     this->name = name;
@@ -9,7 +15,7 @@ Workspace::Workspace (const char* name) {
 void Workspace::start_building () {
     printf("Starting workspace #%zd (%s)\n", this->guid, this->name);
 
-    this->pipeline.init(&this->context);
+    this->pipeline->init(this->context);
 
     this->thread = new std::thread(&Workspace::run_async, this);
 }
@@ -22,7 +28,7 @@ void Workspace::wait_for_full_build () {
 
 void Workspace::stop_building () {
     this->keep_going = false;
-    this->pipeline.shutdown();
+    this->pipeline->shutdown();
     this->thread->join();
     delete this->thread;
 
@@ -37,28 +43,28 @@ void Workspace::stop_with_errors () {
 }
 
 void Workspace::run_async () {
-    for (auto relative_path : this->context.input_files) {
+    for (auto relative_path : this->context->input_files) {
         auto absolute_path = new char[MAX_PATH_LENGTH];
         os_get_absolute_path(relative_path, absolute_path);
-        this->pipeline.add_source_file_raw(absolute_path);
+        this->pipeline->add_source_file(absolute_path);
     }
 
     bool has_progress = true;
     while (this->keep_going && has_progress) {
-        has_progress &= this->pipeline.pump();
+        has_progress &= this->pipeline->pump();
     }
 
     this->is_build_complete = true;
 }
 
 Compiler_Event Workspace::get_next_event () {
-	if (!this->context.events.empty()) {
-		return this->context.events.pop();
+	if (!this->context->events.empty()) {
+		return this->context->events.pop();
 	} else return Compiler_Event();
 }
 
 void Workspace::add_source_file (const char* absolute_path) {
-    this->pipeline.add_source_file(absolute_path);
+    this->pipeline->add_source_file(absolute_path);
 }
 
 void Workspace::add_source_text (const char* text) {
@@ -66,7 +72,7 @@ void Workspace::add_source_text (const char* text) {
 }
 
 void Workspace::add_source_text (const char* text, size_t length) {
-    this->pipeline.add_source_text(text, length);
+    this->pipeline->add_source_text(text, length);
 }
 
 Workspace* Workspace::create_workspace (const char* name) {

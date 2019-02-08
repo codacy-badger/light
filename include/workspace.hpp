@@ -1,18 +1,20 @@
 #pragma once
 
-#include "build_context.hpp"
-#include "pipeline/build_pipeline.hpp"
+#include "compiler_events.hpp"
 
 #include <thread>
 
 #define DEFAULT_WORKSPACE_NAME "default"
 
+struct Build_Context;
+struct Build_Pipeline;
+
 struct Workspace {
-    size_t guid;
+    size_t guid = 0;
     const char* name = NULL;
 
-    Build_Context context;
-    Build_Pipeline pipeline;
+    Build_Context* context = NULL;
+    Build_Pipeline* pipeline = NULL;
 
     std::thread* thread = NULL;
     bool keep_going = true;

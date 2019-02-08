@@ -1,4 +1,5 @@
 #include "workspace.hpp"
+#include "build_context.hpp"
 #include "platform.hpp"
 
 #define UKNOWN_ARG_FORMAT "Unkown compiler argument at %d: \"%s\""
@@ -16,7 +17,7 @@ int main (int argc, char** argv) {
     auto start = os_get_time();
 
     auto workspace = Workspace::create_workspace();
-    apply_build_settings(&workspace->context, argc, argv);
+    apply_build_settings(workspace->context, argc, argv);
 
     workspace->wait_for_full_build();
 

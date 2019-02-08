@@ -27,7 +27,10 @@ struct Build_Context {
 
     Workspace* workspace = NULL;
 
-	Build_Context () { os_get_current_directory(this->base_path); }
+	Build_Context (Workspace* workspace) {
+		os_get_current_directory(this->base_path);
+		this->workspace = workspace;
+	}
 
     void trigger (Compiler_Event event) {
         this->events.push(event);

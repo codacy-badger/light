@@ -6,6 +6,7 @@
 #include "pipe.hpp"
 #include "imp/read_file_step.hpp"
 #include "imp/parse_step.hpp"
+#include "imp/module_dependencies.hpp"
 
 /*
 The build pipeline should handle the data from the "here's a file" command
@@ -49,6 +50,7 @@ struct Build_Pipeline {
 
     Read_File_Step* read_file_step = new Read_File_Step();
     Parse_Step* parse_step = new Parse_Step();
+    Module_Dependencies* module_dependencies = new Module_Dependencies();
 
     std::vector<Pipe*> pipes;
 
@@ -57,19 +59,18 @@ struct Build_Pipeline {
 
         pipes.push_back(this->read_file_step);
         pipes.push_back(this->parse_step);
+        pipes.push_back(this->module_dependencies);
 
         BIND_PIPES(this->read_file_step, this->parse_step);
+        BIND_PIPES(this->parse_step, this->module_dependencies);
 
-        for (auto pipe : this->pipes) pipe->init(context);
+        for (auto pipe : this->pipes) {
+            pipe->context = context;
+            pipe->init();
+        }
     }
 
-    void add_source_file (const char* relative_path) {
-        auto absolute_path = new char[MAX_PATH_LENGTH];
-        this->file_finder->find_file(absolute_path, relative_path);
-        this->add_source_file_raw(absolute_path);
-    }
-
-    void add_source_file_raw (const char* absolute_path) {
+    void add_source_file (const char* absolute_path) {
         this->read_file_step->push_in(Source_File(absolute_path));
     }
 

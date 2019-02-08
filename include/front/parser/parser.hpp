@@ -99,13 +99,16 @@ struct Parser {
 				this->lexer.skip();
 				auto import = AST_NEW(Ast_Import);
 				this->string_literal_value(import->path);
+				os_get_current_directory(import->current_folder);
 				return import;
 			}
 			case TOKEN_INCLUDE: {
 				this->lexer.skip();
-				auto include = AST_NEW(Ast_Include);
-				this->string_literal_value(include->path);
-				return include;
+				auto import = AST_NEW(Ast_Import);
+				import->is_include = true;
+				this->string_literal_value(import->path);
+				os_get_current_directory(import->current_folder);
+				return import;
 			}
 			case TOKEN_FOREIGN: {
 				this->lexer.skip();
@@ -400,7 +403,7 @@ struct Parser {
 
 	void string_literal_value (char* buffer) {
 		auto literal = this->string_literal();
-		memcpy(buffer, literal->string_value, strlen(literal->string_value));
+		memcpy(buffer, literal->string_value, strlen(literal->string_value) + 1);
 		delete literal;
 	}
 

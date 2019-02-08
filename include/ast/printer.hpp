@@ -49,10 +49,6 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Import*>(stm));
 				break;
 			}
-			case AST_STATEMENT_INCLUDE: {
-				print(reinterpret_cast<Ast_Include*>(stm));
-				break;
-			}
 			case AST_STATEMENT_FOREIGN: {
 				print(reinterpret_cast<Ast_Foreign*>(stm));
 				break;
@@ -61,8 +57,12 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Expression*>(stm));
 				break;
 			}
-			default: break;
+			default: {
+                printf("--UNDEFINED--");
+                break;
+            }
 		}
+        printf("\n");
     }
 
     void print(Ast_Scope* scope) {
@@ -71,11 +71,10 @@ struct Ast_Printer {
         for (auto stm : scope->statements) {
             PRINT_TABS;
             print(stm);
-            printf("\n");
         }
         this->current_tabs -= 1;
         PRINT_TABS;
-        printf("}");
+        printf("}\n");
     }
 
 	void print(Ast_Declaration* decl) {
@@ -122,11 +121,11 @@ struct Ast_Printer {
 	}
 
 	void print(Ast_Import* import) {
-        printf("import \"%s\"", import->path);
-    }
-
-	void print(Ast_Include* include) {
-        printf("include \"%s\"", include->path);
+        if (import->is_include) {
+            printf("include \"%s\"", import->path);
+        } else {
+            printf("import \"%s\"", import->path);
+        }
     }
 
 	void print(Ast_Foreign* foreign) {

@@ -18,15 +18,14 @@ struct Parse_Command {
     }
 };
 
-struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Statement*> {
+struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Scope*> {
     Ast_Printer* printer = new Ast_Printer();
     Parser* parser = NULL;
 
     Parse_Step () : Compiler_Pipe("Parse") {}
 
-    void init (Build_Context* context) {
-        auto c = context;
-        auto internal_scope = new Internal_Scope(c->target_arch, c->target_os);
+    void init () {
+        auto internal_scope = new Internal_Scope(context->target_arch, context->target_os);
         this->parser = new Parser(internal_scope);
     }
 
@@ -36,8 +35,6 @@ struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Statement*> {
 
         this->printer->print(file_scope);
 
-        for (auto stm : file_scope->statements) {
-            this->push_out(stm);
-        }
+        this->push_out(file_scope);
     }
 };
