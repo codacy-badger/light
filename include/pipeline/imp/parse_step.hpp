@@ -5,8 +5,6 @@
 #include "front/parser/internal_scope.hpp"
 #include "platform.hpp"
 
-#include "ast/printer.hpp"
-
 struct Parse_Command {
     const char* absolute_path;
     const char* source;
@@ -20,8 +18,6 @@ struct Parse_Command {
 };
 
 struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Scope*> {
-    Ast_Printer* printer = new Ast_Printer();
-
     Parse_Step () : Compiler_Pipe("Parse") {}
 
     void handle (Parse_Command parse_command) {
@@ -30,8 +26,6 @@ struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Scope*> {
         }
         auto file_scope = this->context->parser->build_ast(parse_command.source,
             parse_command.length, parse_command.absolute_path);
-
-        this->printer->print(file_scope);
 
         this->push_out(file_scope);
     }

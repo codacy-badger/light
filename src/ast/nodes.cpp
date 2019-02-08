@@ -19,7 +19,7 @@ bool Ast_Arguments::add (Ast_Expression* exp) {
     return false;
 }
 
-Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_includes, bool use_imports, bool recurse) {
+Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_imports, bool recurse) {
     Ast_Declaration* decl = NULL;
 
     for (auto stm : this->statements) {
@@ -38,26 +38,19 @@ Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_includ
 		}
         decl = this->parent->find_const_declaration(_name);
         if (!decl) {
-            return this->get_global_scope()->find_declaration(_name, true, true, false);
+            return this->get_global_scope()->find_declaration(_name, true, false);
         } else return decl;
 	}
 
-    if (use_includes) {
-        for (auto scope : this->includes) {
-            decl = scope->find_declaration(_name, true, false, false);
-            if (decl) return decl;
-        }
-    }
-
     if (use_imports) {
         for (auto scope : this->imports) {
-            decl = scope->find_declaration(_name, true, false, false);
+            decl = scope->find_declaration(_name, false, false);
             if (decl) return decl;
         }
     }
 
     if (recurse && this->parent) {
-        return this->parent->find_declaration(_name, use_includes, use_imports, recurse);
+        return this->parent->find_declaration(_name, use_imports, recurse);
     } else return NULL;
 }
 

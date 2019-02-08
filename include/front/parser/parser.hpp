@@ -284,7 +284,6 @@ struct Parser {
 						//Logger::error(stm, "Only declarations can go inside a struct");
 					}
 				}
-				delete _scope;
 				this->lexer.expect(TOKEN_BRAC_CLOSE);
 			}
 
@@ -448,12 +447,12 @@ struct Parser {
 		if (!this->lexer.is_next(TOKEN_ID)) return NULL;
 
 		auto ident = AST_NEW(Ast_Ident);
+		ident->scope = this->current_scope;
 		ident->name = this->copy_token_text_and_skip();
 
 		// @Info this is the right time to do this, since on a non-constant
 		// reference the declaration should already be in the scope.
 		ident->declaration = this->current_scope->find_var_declaration(ident->name);
-		ident->scope = this->current_scope;
 
 		return ident;
 	}

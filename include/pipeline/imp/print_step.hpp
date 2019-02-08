@@ -1,20 +1,14 @@
 #pragma once
 
-#include "pipeline/simple_pipe.hpp"
+#include "pipeline/compiler_pipe.hpp"
 
 #include "ast/printer.hpp"
 
-struct Print_Step : Simple_Pipe {
-    Ast_Printer* printer = new Ast_Printer();
+struct Print_Step : Compiler_Pipe<Ast_Statement*> {
+    Print_Step () : Compiler_Pipe("Ast Printer") { /* empty */ }
 
-    Print_Step () : Simple_Pipe("Ast Printer") { /* empty */ }
-
-    void handle (void* in) {
-        auto stm = static_cast<Ast_Statement*>(in);
-
-        printf("\n");
-        this->printer->print(stm);
-        printf("\n");
-        this->pipe_out((void*) stm);
+    void handle (Ast_Statement* global_statement) {
+        this->context->printer->print(global_statement);
+        this->push_out(global_statement);
     }
 };

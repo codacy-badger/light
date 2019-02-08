@@ -63,9 +63,14 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Scope* scope) {
-		for (uint64_t i = 0; i < scope->statements.size(); i++) {
+        auto initial_size = scope->statements.size();
+		for (uint64_t i = 0; i < scope->statements.size();) {
             auto stm = scope->statements[i];
 			this->ast_handle(stm);
+
+            if (initial_size != scope->statements.size()) {
+                initial_size = scope->statements.size();
+            } else i++;
 		}
 	}
 

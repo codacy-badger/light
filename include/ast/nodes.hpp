@@ -81,9 +81,7 @@ struct Ast_Statement : Ast {
 
 struct Ast_Scope : Ast_Statement {
 	std::vector<Ast_Statement*> statements;
-
 	std::vector<Ast_Scope*> imports;
-	std::vector<Ast_Scope*> includes;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
@@ -133,7 +131,7 @@ struct Ast_Scope : Ast_Statement {
 
 	// @TODO this methods could be simplified, since most of the calls use
 	// constants for the boolean flags. We have to be sure they works properly
-	Ast_Declaration* find_declaration (const char* _name, bool use_includes, bool use_imports, bool recurse);
+	Ast_Declaration* find_declaration (const char* _name, bool use_imports, bool recurse);
 	Ast_Declaration* find_const_declaration (const char* _name);
 	Ast_Declaration* find_var_declaration (const char* _name);
 

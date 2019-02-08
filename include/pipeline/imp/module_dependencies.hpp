@@ -5,8 +5,9 @@
 #include "utils/string_map.hpp"
 
 #include <map>
+#include <vector>
 
-struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
+struct Module_Dependencies : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator {
     Modules* modules = NULL;
 
     Module_Dependencies (Modules* modules) : Compiler_Pipe("Module Dependencies") {
@@ -15,7 +16,9 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
 
     void handle (Ast_Scope* file_scope) {
         Ast_Navigator::ast_handle(file_scope);
-        this->push_out(file_scope);
+        for (auto stm : file_scope->statements) {
+            this->push_out(stm);
+        }
     }
 
     void ast_handle (Ast_Import* import) {
@@ -25,9 +28,10 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
             auto file_scope = this->context->parser->build_ast(import->resolved_source_file);
             auto import_location = import->scope->remove(import);
             import->scope->add(import_location, file_scope->statements);
-            delete file_scope;
-            delete import;
+            //delete file_scope;
+            //delete import;
         } else {
+            import->scope->remove(import);
             this->modules->add_import(import);
         }
     }

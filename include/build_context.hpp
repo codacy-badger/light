@@ -10,6 +10,9 @@
 #include "front/parser/parser.hpp"
 #include "front/parser/internal_scope.hpp"
 
+// DEBUG INCLUDE
+#include "ast/printer.hpp"
+
 #include <vector>
 
 struct Workspace;
@@ -33,6 +36,8 @@ struct Build_Context {
     Workspace* workspace = NULL;
 	Ast_Scope* internal_scope = NULL;
 	Parser* parser = NULL;
+
+	Ast_Printer* printer = new Ast_Printer();
 
 	void init (Workspace* w) {
         this->internal_scope = new Internal_Scope(this->target_arch, this->target_os);
