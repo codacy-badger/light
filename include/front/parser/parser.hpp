@@ -4,6 +4,7 @@
 #include "ast/nodes.hpp"
 #include "ast/types.hpp"
 #include "ast/factory.hpp"
+#include "platform.hpp"
 
 #define AST_NEW(T, ...) this->set_ast_location_info<T>(new T(__VA_ARGS__))
 
@@ -17,7 +18,28 @@ struct Parser {
 		this->internal_scope = internal_scope;
 	}
 
+	Ast_Scope* build_ast (const char* absolute_path) {
+		size_t length;
+		auto source = os_read_full(absolute_path, &length);
+		return this->build_ast(source, length, absolute_path);
+	}
+
 	Ast_Scope* build_ast (const char* text, size_t length, const char* absolute_path) {
+		auto file_scope = AST_NEW(Ast_Scope);
+		file_scope->imports.push_back(this->internal_scope);
+
+		this->parse_into(file_scope, text, length, absolute_path);
+
+		return file_scope;
+	}
+
+	void parse_into (Ast_Scope* scope, const char* absolute_path) {
+		size_t length;
+		auto source = os_read_full(absolute_path, &length);
+		this->parse_into(scope, source, length, absolute_path);
+	}
+
+	void parse_into (Ast_Scope* scope, const char* text, size_t length, const char* absolute_path) {
 		this->lexer.set_source(text, length, absolute_path);
 
 		char tmp_path[MAX_PATH_LENGTH];
@@ -26,16 +48,11 @@ struct Parser {
 			os_set_current_directory_path(absolute_path);
 		}
 
-		auto file_scope = AST_NEW(Ast_Scope);
-		file_scope->imports.push_back(this->internal_scope);
-
-		this->scope(file_scope);
+		this->scope(scope);
 
 		if (absolute_path) {
 			os_set_current_directory(tmp_path);
 		}
-
-		return file_scope;
 	}
 
 	Ast_Scope* scope (Ast_Scope* scope = NULL) {
@@ -98,6 +115,7 @@ struct Parser {
 			case TOKEN_IMPORT: {
 				this->lexer.skip();
 				auto import = AST_NEW(Ast_Import);
+				import->scope = this->current_scope;
 				this->string_literal_value(import->path);
 				os_get_current_directory(import->current_folder);
 				return import;
@@ -105,6 +123,7 @@ struct Parser {
 			case TOKEN_INCLUDE: {
 				this->lexer.skip();
 				auto import = AST_NEW(Ast_Import);
+				import->scope = this->current_scope;
 				import->is_include = true;
 				this->string_literal_value(import->path);
 				os_get_current_directory(import->current_folder);

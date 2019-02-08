@@ -7,6 +7,7 @@
 #include "utils/string_vector.hpp"
 
 #include <vector>
+#include <algorithm>
 
 struct Ast_Ident;
 struct Ast_Function;
@@ -117,6 +118,11 @@ struct Ast_Scope : Ast_Statement {
 		return this->add(this->statements.end() - 1, others);
 	}
 
+	std::vector<Ast_Statement*>::iterator remove (Ast_Statement* stm) {
+		auto it = std::find(this->statements.begin(), this->statements.end(), stm);
+		return this->statements.erase(it) - 1;
+	}
+
 	Ast_Scope* get_global_scope () {
 		auto global_scope = this;
         while (global_scope->parent != NULL) {
@@ -188,6 +194,7 @@ struct Ast_Import : Ast_Statement {
 	char path[MAX_PATH_LENGTH];
 	char current_folder[MAX_PATH_LENGTH];
 	bool is_include = false;
+	Ast_Scope* scope = NULL;
 
 	char resolved_source_file[MAX_PATH_LENGTH];
 

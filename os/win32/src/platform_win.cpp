@@ -112,3 +112,31 @@ bool os_check_file_exists (const char* path) {
 		return true;
 	} else return false;
 }
+
+const char* os_read_full (const char* absolute_path, size_t* length_ptr) {
+	FILE* file = NULL;
+
+	auto error_code = fopen_s(&file, absolute_path, "r");
+	if (error_code != 0) {
+		char buffer[256];
+		strerror_s(buffer, sizeof buffer, error_code);
+		printf("Cannot open file '%s': %s", absolute_path, buffer);
+	}
+
+	fseek(file, 0L, SEEK_END);
+	auto length = ftell(file);
+	rewind(file);
+
+	// @TODO @Incomplete check if the calloc call suceeded
+	auto text = (char*) malloc(length);
+	memset(text, 0, length);
+
+	// @TODO @Incomplete check if we need to make the buffer bigger
+	(*length_ptr) = fread((void*) text, 1, length, file);
+	while (!feof(file)) {
+		(*length_ptr) += fread((void*) (text + (*length_ptr)), 1, length, file);
+	}
+
+	fclose(file);
+	return text;
+}

@@ -10,6 +10,7 @@ struct String_Vector : std::vector<const char*> {
                 return true;
             }
         }
+        return false;
     }
 
     bool remove (const char* to_remove) {

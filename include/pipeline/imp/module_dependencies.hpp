@@ -2,10 +2,16 @@
 
 #include "pipeline/compiler_pipe.hpp"
 #include "utils/ast_navigator.hpp"
+#include "utils/string_map.hpp"
+
+#include <map>
 
 struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
+    Modules* modules = NULL;
 
-    Module_Dependencies () : Compiler_Pipe("Module Dependencies") {}
+    Module_Dependencies (Modules* modules) : Compiler_Pipe("Module Dependencies") {
+        this->modules = modules;
+    }
 
     void handle (Ast_Scope* file_scope) {
         Ast_Navigator::ast_handle(file_scope);
@@ -15,16 +21,21 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
     void ast_handle (Ast_Import* import) {
         this->find_file_or_stop(import);
 
-        this->context->workspace->add_source_file(import->resolved_source_file);
+        if (import->is_include) {
+            auto file_scope = this->context->parser->build_ast(import->resolved_source_file);
+            auto import_location = import->scope->remove(import);
+            import->scope->add(import_location, file_scope->statements);
+            delete file_scope;
+            delete import;
+        } else {
+            this->modules->add_import(import);
+        }
     }
 
     void find_file_or_stop (Ast_Import* import) {
         if (import->is_include) {
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\%s.li",
                 import->current_folder, import->path);
-            printf("INCLUDE: %s\n", import->resolved_source_file);
-            printf("INCLUDE: %s\n", import->resolved_source_file);
-
             if (!os_check_file_exists(import->resolved_source_file)) {
                 this->print_error("File not found: %s\n", import->resolved_source_file);
             }

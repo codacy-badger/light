@@ -38,3 +38,4 @@ bool os_set_current_directory (const char* new_path);
 bool os_set_current_directory_path (const char* new_file_path);
 char* os_get_file_part (const char* path);
 bool os_check_file_exists (const char* path);
+const char* os_read_full (const char* path, size_t* length_ptr);

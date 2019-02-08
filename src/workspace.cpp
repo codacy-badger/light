@@ -4,7 +4,7 @@
 #include "pipeline/build_pipeline.hpp"
 
 Workspace::Workspace (const char* name) {
-    this->context = new Build_Context(this);
+    this->context = new Build_Context();
     this->pipeline = new Build_Pipeline();
 
     static size_t next_workspace_guid = 1;
@@ -15,6 +15,7 @@ Workspace::Workspace (const char* name) {
 void Workspace::start_building () {
     printf("Starting workspace #%zd (%s)\n", this->guid, this->name);
 
+    this->context->init(this);
     this->pipeline->init(this->context);
 
     this->thread = new std::thread(&Workspace::run_async, this);

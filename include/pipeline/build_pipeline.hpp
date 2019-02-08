@@ -1,10 +1,9 @@
 #pragma once
 
 #include "imp/file_finder.hpp"
-#include "imp/scope_cache.hpp"
+#include "imp/modules.hpp"
 
 #include "pipe.hpp"
-#include "imp/read_file_step.hpp"
 #include "imp/parse_step.hpp"
 #include "imp/module_dependencies.hpp"
 
@@ -46,22 +45,20 @@ to the file completed. The processing of each file is the following:
 
 struct Build_Pipeline {
     File_Finder* file_finder = new File_Finder();
-    Scope_Cache* scope_cache = new Scope_Cache();
+    Modules* modules = new Modules();
 
-    Read_File_Step* read_file_step = new Read_File_Step();
     Parse_Step* parse_step = new Parse_Step();
-    Module_Dependencies* module_dependencies = new Module_Dependencies();
+    Module_Dependencies* module_dependencies = new Module_Dependencies(modules);
 
     std::vector<Pipe*> pipes;
 
     void init (Build_Context* context) {
         this->file_finder->init(context);
+        this->modules->init(context);
 
-        pipes.push_back(this->read_file_step);
         pipes.push_back(this->parse_step);
         pipes.push_back(this->module_dependencies);
 
-        BIND_PIPES(this->read_file_step, this->parse_step);
         BIND_PIPES(this->parse_step, this->module_dependencies);
 
         for (auto pipe : this->pipes) {
@@ -71,10 +68,12 @@ struct Build_Pipeline {
     }
 
     void add_source_file (const char* absolute_path) {
-        this->read_file_step->push_in(Source_File(absolute_path));
+        this->parse_step->push_in(Parse_Command(absolute_path));
     }
 
-    void add_source_text (const char*, size_t) { }
+    void add_source_text (const char* text, size_t length) {
+        this->parse_step->push_in(Parse_Command("(from text)", text, length));
+    }
 
     bool pump () {
         bool has_work = false;
