@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 
-struct Module_Dependencies : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator {
+struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
     Modules* modules = NULL;
 
     Module_Dependencies (Modules* modules) : Compiler_Pipe("Module Dependencies") {
@@ -16,27 +16,27 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navi
 
     void handle (Ast_Scope* file_scope) {
         Ast_Navigator::ast_handle(file_scope);
-        for (auto stm : file_scope->statements) {
-            this->push_out(stm);
-        }
+        this->push_out(file_scope);
     }
 
     void ast_handle (Ast_Import* import) {
-        this->find_file_or_stop(import);
+        this->find_file_or_error(import);
 
         if (import->is_include) {
-            auto file_scope = this->context->parser->build_ast(import->resolved_source_file);
+            auto tmp_scope = new Ast_Scope();
+            this->context->parser->parse_into(tmp_scope, import->resolved_source_file);
             auto import_location = import->scope->remove(import);
-            import->scope->add(import_location, file_scope->statements);
-            //delete file_scope;
-            //delete import;
+            import->scope->add(import_location, tmp_scope->statements);
+            delete tmp_scope;
+            delete import;
         } else {
             import->scope->remove(import);
-            this->modules->add_import(import);
+            auto file_scope = this->modules->add_import(import);
+            import->scope->imports.push_back(file_scope);
         }
     }
 
-    void find_file_or_stop (Ast_Import* import) {
+    void find_file_or_error (Ast_Import* import) {
         if (import->is_include) {
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\%s.li",
                 import->current_folder, import->path);

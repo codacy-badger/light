@@ -50,7 +50,7 @@ struct Build_Pipeline {
     File_Finder* file_finder = new File_Finder();
     Modules* modules = new Modules();
 
-    Parse_Step* parse_step = new Parse_Step();
+    Parse_Step* parse_step = new Parse_Step(modules);
     Module_Dependencies* module_dependencies = new Module_Dependencies(modules);
     Resolve_Idents* resolve_idents = new Resolve_Idents();
     Print_Step* printer = new Print_Step();

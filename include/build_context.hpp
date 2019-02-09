@@ -8,7 +8,6 @@
 #include "utils/string_map.hpp"
 #include "ast/nodes.hpp"
 #include "front/parser/parser.hpp"
-#include "front/parser/internal_scope.hpp"
 
 // DEBUG INCLUDE
 #include "ast/printer.hpp"
@@ -34,14 +33,12 @@ struct Build_Context {
     Async_Queue<Compiler_Event> events;
 
     Workspace* workspace = NULL;
-	Ast_Scope* internal_scope = NULL;
 	Parser* parser = NULL;
 
 	Ast_Printer* printer = new Ast_Printer();
 
 	void init (Workspace* w) {
-        this->internal_scope = new Internal_Scope(this->target_arch, this->target_os);
-        this->parser = new Parser(this->internal_scope);
+        this->parser = new Parser();
 		os_get_current_directory(this->base_path);
 		this->workspace = w;
 	}

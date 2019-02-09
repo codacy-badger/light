@@ -11,27 +11,7 @@
 struct Parser {
 	Lexer lexer;
 
-	Ast_Scope* internal_scope = NULL;
 	Ast_Scope* current_scope = NULL;
-
-	Parser (Ast_Scope* internal_scope) {
-		this->internal_scope = internal_scope;
-	}
-
-	Ast_Scope* build_ast (const char* absolute_path) {
-		size_t length;
-		auto source = os_read_full(absolute_path, &length);
-		return this->build_ast(source, length, absolute_path);
-	}
-
-	Ast_Scope* build_ast (const char* text, size_t length, const char* absolute_path) {
-		auto file_scope = AST_NEW(Ast_Scope);
-		file_scope->imports.push_back(this->internal_scope);
-
-		this->parse_into(file_scope, text, length, absolute_path);
-
-		return file_scope;
-	}
 
 	void parse_into (Ast_Scope* scope, const char* absolute_path) {
 		size_t length;

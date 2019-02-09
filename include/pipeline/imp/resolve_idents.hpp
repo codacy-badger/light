@@ -7,27 +7,32 @@
 #include <map>
 #include <vector>
 
-struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
+struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator {
 
     std::map<Ast_Statement*, std::vector<Ast_Ident*>> unresolved_idents;
     String_Map<Ast_Declaration*> unresolved_decls;
-    Ast_Statement* current_statement = NULL;
+
+    Ast_Scope* current_scope = NULL;
+    Ast_Statement* current_global_statement = NULL;
 
     Resolve_Idents () : Compiler_Pipe("Resolved Idents") { /* empty */ }
 
-    void handle (Ast_Statement* global_statement) {
-        this->current_statement = global_statement;
-        Ast_Navigator::ast_handle(global_statement);
+    void handle (Ast_Scope* file_scope) {
+        this->current_scope = file_scope;
+        for (auto stm : file_scope->statements) {
+            this->current_global_statement = stm;
+            Ast_Navigator::ast_handle(stm);
 
-        auto it = this->unresolved_idents.find(global_statement);
-        if (it == this->unresolved_idents.end()) {
-            this->on_resolved(global_statement);
+            auto it = this->unresolved_idents.find(stm);
+            if (it == this->unresolved_idents.end()) {
+                this->on_resolved(stm);
+            }
         }
     }
 
     void on_resolved (Ast_Statement* stm) {
         this->push_out(stm);
-        if (this->current_statement->stm_type == AST_STATEMENT_DECLARATION) {
+        if (this->current_global_statement->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
             this->try_resolve(decl);
         }
@@ -65,7 +70,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     Ast_Declaration* find_declaration (Ast_Ident* ident) {
-        auto decl = ident->scope->find_declaration(ident->name, true, true);
+        auto decl = this->current_scope->find_declaration(ident->name, true, true);
         if (!decl) {
             if (this->unresolved_decls.contains(ident->name)) {
                 return this->unresolved_decls[ident->name];
@@ -74,9 +79,9 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void add_unresolved (Ast_Ident* ident) {
-        this->unresolved_idents[this->current_statement].push_back(ident);
-        if (this->current_statement->stm_type == AST_STATEMENT_DECLARATION) {
-            auto decl = static_cast<Ast_Declaration*>(this->current_statement);
+        this->unresolved_idents[this->current_global_statement].push_back(ident);
+        if (this->current_global_statement->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(this->current_global_statement);
             this->unresolved_decls[decl->name] = decl;
         }
     }
@@ -89,6 +94,13 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         }
     }
 
+    void ast_handle (Ast_Scope* scope) {
+        auto tmp = this->current_scope;
+        this->current_scope = scope;
+        Ast_Navigator::ast_handle(scope);
+        this->current_scope = tmp;
+    }
+
     void ast_handle (Ast_Binary* binop) {
         if (binop->binary_op != AST_BINARY_ATTRIBUTE) {
             Ast_Navigator::ast_handle(binop);
@@ -96,8 +108,14 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void shutdown() {
-        if (!this->unresolved_idents.empty()) {
-            printf("PRINT ERRORS!\n");
+        for (auto entry : this->unresolved_idents) {
+            if (entry.first->stm_type == AST_STATEMENT_DECLARATION) {
+                auto decl = static_cast<Ast_Declaration*>(entry.first);
+                this->print_error("Unresolved identifiers in global declaration of '%s'", decl->name);
+            } else this->print_error("Unresolved identifiers in global statement");
+            for (auto ident : entry.second) {
+                this->print_error("\tUnresolved identifier: '%s' @", ident->name);
+            }
         }
     }
 };
