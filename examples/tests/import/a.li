@@ -6,3 +6,5 @@ Dummy1 :: struct {
     number: u32;
     friend: Dummy2;
 }
+
+include "c"

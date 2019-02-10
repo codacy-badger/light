@@ -5,6 +5,8 @@
 #include <vector>
 
 struct Ast_Navigator {
+    Ast_Scope* current_scope = NULL;
+
     virtual void ast_handle (Ast_Statement* stm) {
 		switch (stm->stm_type) {
 			case AST_STATEMENT_SCOPE: {
@@ -63,6 +65,9 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Scope* scope) {
+        auto tmp = this->current_scope;
+        this->current_scope = scope;
+
         auto initial_size = scope->statements.size();
 		for (uint64_t i = 0; i < scope->statements.size();) {
             auto stm = scope->statements[i];
@@ -72,6 +77,8 @@ struct Ast_Navigator {
                 initial_size = scope->statements.size();
             } else i++;
 		}
+
+        this->current_scope = tmp;
 	}
 
 	virtual void ast_handle (Ast_Declaration* decl) {

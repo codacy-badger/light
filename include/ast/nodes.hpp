@@ -129,6 +129,13 @@ struct Ast_Scope : Ast_Statement {
 		return global_scope;
 	}
 
+	bool has_import (Ast_Scope* other) {
+		for (auto imported_scope : this->imports) {
+			if (imported_scope == other) return true;
+		}
+		return false;
+	}
+
 	// @TODO this methods could be simplified, since most of the calls use
 	// constants for the boolean flags. We have to be sure they works properly
 	Ast_Declaration* find_declaration (const char* _name, bool use_imports, bool recurse);
