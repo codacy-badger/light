@@ -30,7 +30,7 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
             delete tmp_scope;
             delete import;
         } else {
-            import->scope->remove(import);
+            //import->scope->remove(import);
             auto file_scope = this->modules->add_import(this->current_scope, import);
             import->scope->imports.push_back(file_scope);
         }

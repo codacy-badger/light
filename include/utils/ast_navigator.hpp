@@ -33,10 +33,6 @@ struct Ast_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Break*>(stm));
 				break;
 			}
-			case AST_STATEMENT_IMPORT: {
-				this->ast_handle(reinterpret_cast<Ast_Import*>(stm));
-				break;
-			}
 			case AST_STATEMENT_FOREIGN: {
 				this->ast_handle(reinterpret_cast<Ast_Foreign*>(stm));
 				break;
@@ -117,6 +113,10 @@ struct Ast_Navigator {
 		switch (exp->exp_type) {
 			case AST_EXPRESSION_RUN: {
 				this->ast_handle(reinterpret_cast<Ast_Run*>(exp));
+				break;
+			}
+			case AST_EXPRESSION_IMPORT: {
+				this->ast_handle(reinterpret_cast<Ast_Import*>(exp));
 				break;
 			}
 			case AST_EXPRESSION_FUNCTION: {

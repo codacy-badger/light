@@ -1,4 +1,4 @@
-import "b"
+import "b";
 
 VALUE_C :: 1;
 
@@ -7,4 +7,4 @@ Dummy1 :: struct {
     friend: Dummy2;
 }
 
-include "c"
+include "c";

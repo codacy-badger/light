@@ -45,10 +45,6 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Break*>(stm));
 				break;
 			}
-			case AST_STATEMENT_IMPORT: {
-				print(reinterpret_cast<Ast_Import*>(stm));
-				break;
-			}
 			case AST_STATEMENT_FOREIGN: {
 				print(reinterpret_cast<Ast_Foreign*>(stm));
 				break;
@@ -149,6 +145,10 @@ struct Ast_Printer {
                 print(reinterpret_cast<Ast_Function*>(exp), short_version);
                 break;
             }
+			case AST_EXPRESSION_IMPORT: {
+				print(reinterpret_cast<Ast_Import*>(exp));
+				break;
+			}
 			case AST_EXPRESSION_TYPE: {
 				print(reinterpret_cast<Ast_Type*>(exp), short_version);
 				break;

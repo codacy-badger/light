@@ -92,14 +92,6 @@ struct Parser {
 				this->lexer.try_skip(TOKEN_STM_END);
 				return output;
 			}
-			case TOKEN_IMPORT: {
-				this->lexer.skip();
-				auto import = AST_NEW(Ast_Import);
-				import->scope = this->current_scope;
-				this->string_literal_value(import->path);
-				os_get_current_directory(import->current_folder);
-				return import;
-			}
 			case TOKEN_INCLUDE: {
 				this->lexer.skip();
 				auto import = AST_NEW(Ast_Import);
@@ -194,7 +186,7 @@ struct Parser {
 		decl->scope = this->current_scope;
 
 		this->lexer.expect(TOKEN_COLON);
-		decl->type = this->type_instance();
+		decl->type = this->expression();
 
 		if (this->lexer.try_skip(TOKEN_COLON)) {
 			decl->is_constant = true;
@@ -288,6 +280,12 @@ struct Parser {
 
 				return func;
 			} else return func_type;
+		} else if (this->lexer.try_skip(TOKEN_IMPORT)) {
+			auto import = AST_NEW(Ast_Import);
+			import->scope = this->current_scope;
+			this->string_literal_value(import->path);
+			os_get_current_directory(import->current_folder);
+			return import;
 		} else if (this->lexer.try_skip(TOKEN_CAST)) {
 			auto cast = AST_NEW(Ast_Cast);
 			this->lexer.expect(TOKEN_PAR_OPEN);

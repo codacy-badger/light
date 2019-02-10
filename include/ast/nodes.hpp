@@ -69,7 +69,6 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_BREAK,
 	AST_STATEMENT_DECLARATION,
 	AST_STATEMENT_RETURN,
-	AST_STATEMENT_IMPORT,
 	AST_STATEMENT_STATIC_IF,
 	AST_STATEMENT_FOREIGN,
 	AST_STATEMENT_EXPRESSION,
@@ -195,17 +194,6 @@ struct Ast_Return : Ast_Statement {
     }
 };
 
-struct Ast_Import : Ast_Statement {
-	char path[MAX_PATH_LENGTH];
-	char current_folder[MAX_PATH_LENGTH];
-	bool is_include = false;
-	Ast_Scope* scope = NULL;
-
-	char resolved_source_file[MAX_PATH_LENGTH];
-
-	Ast_Import() { this->stm_type = AST_STATEMENT_IMPORT; }
-};
-
 struct Ast_Foreign : Ast_Statement {
     const char* module_name = NULL;
     const char* function_name = NULL;
@@ -251,6 +239,7 @@ enum Ast_Expression_Type {
 	AST_EXPRESSION_IDENT,
 	AST_EXPRESSION_LITERAL,
 	AST_EXPRESSION_CAST,
+	AST_EXPRESSION_IMPORT,
 };
 
 struct Ast_Expression : Ast_Statement {
@@ -261,6 +250,17 @@ struct Ast_Expression : Ast_Statement {
 	int8_t reg = -1;
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
+};
+
+struct Ast_Import : Ast_Expression {
+	char path[MAX_PATH_LENGTH];
+	char current_folder[MAX_PATH_LENGTH];
+	bool is_include = false;
+	Ast_Scope* scope = NULL;
+
+	char resolved_source_file[MAX_PATH_LENGTH];
+
+	Ast_Import() { this->exp_type = AST_EXPRESSION_IMPORT; }
 };
 
 struct Ast_Run : Ast_Expression {

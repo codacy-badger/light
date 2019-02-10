@@ -41,7 +41,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator
 
     void on_resolved (Ast_Scope* scope, Ast_Statement* stm) {
         this->push_out(stm);
-        if (this->current_global_statement->stm_type == AST_STATEMENT_DECLARATION) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
             this->try_resolve(scope, decl);
         }
