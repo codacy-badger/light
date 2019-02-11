@@ -58,25 +58,15 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_EXPRESSION,
 };
 
-const uint16_t STM_FLAG_UNDEFINED 			= 0x0000;
-const uint16_t STM_FLAG_SYMBOLS_RESOLVED 	= 0x0002;
-const uint16_t STM_FLAG_TYPES_INFERRED 		= 0x0004;
-const uint16_t STM_FLAG_TYPES_CHECKED 		= 0x0008;
-
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
-	uint16_t stm_flags = STM_FLAG_UNDEFINED;
 };
 
-const uint16_t SCOPE_FLAG_UNDEFINED 		= 0x0000;
 const uint16_t SCOPE_FLAG_FULLY_PARSED 		= 0x0001;
-const uint16_t SCOPE_FLAG_INCLUDES_RESOLVED	= 0x0002;
-const uint16_t SCOPE_FLAG_SYMBOLS_RESOLVED 	= 0x0004;
-const uint16_t SCOPE_FLAG_TYPES_INFERRED 	= 0x0008;
-const uint16_t SCOPE_FLAG_TYPES_CHECKED 	= 0x0010;
+const uint16_t SCOPE_FLAG_IMPORTS_RESOLVED	= 0x0002;
 
 struct Ast_Scope : Ast_Statement {
-	uint16_t scope_flags = SCOPE_FLAG_UNDEFINED;
+	uint16_t scope_flags = 0;
 
 	std::vector<Ast_Statement*> statements;
 	String_Map<Ast_Scope*> named_imports;
@@ -146,7 +136,7 @@ struct Ast_Scope : Ast_Statement {
 	}
 
 	bool are_all_imports_resolved () {
-		return this->all_dependencies_flagged(SCOPE_FLAG_FULLY_PARSED | SCOPE_FLAG_INCLUDES_RESOLVED);
+		return this->all_dependencies_flagged(SCOPE_FLAG_FULLY_PARSED | SCOPE_FLAG_IMPORTS_RESOLVED);
 	}
 
 	// @TODO this methods could be simplified, since most of the calls use
