@@ -2,8 +2,6 @@
 
 #include "ast/types.hpp"
 
-uint64_t Ast::node_count = 0;
-
 bool Ast_Arguments::add (Ast_Expression* exp) {
     if (exp->exp_type == AST_EXPRESSION_BINARY) {
         auto binary = static_cast<Ast_Binary*>(exp);
@@ -147,10 +145,6 @@ Ast_Type* Ast_Pointer_Type::get_base_type_recursive() {
         auto ptr_type = static_cast<Ast_Pointer_Type*>(base_type);
         base_type = static_cast<Ast_Type*>(ptr_type->base);
         deref_count += 1;
-    }
-
-    if (deref_count > WARN_MAX_DEREF_COUNT) {
-        printf("Attribute access on deep pointer (%d)", deref_count);
     }
 
     return base_type;

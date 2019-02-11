@@ -1,6 +1,8 @@
-import "a";
+
 
 Dummy2 :: struct {
-    friend_to: *Dummy1;
+    friend_to: *a.Dummy1;
     guid: u64;
 }
+
+a :: import "a";

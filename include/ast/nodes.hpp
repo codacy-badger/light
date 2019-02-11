@@ -19,24 +19,8 @@ struct Ast_Type;
 
 struct Instruction;
 
-#define WARN_MAX_DEREF_COUNT 3
-
 struct Ast {
 	Location location;
-
-    static uint64_t node_count;
-
-    Ast () {
-		node_count++;
-	}
-
-    ~Ast () {
-		node_count--;
-	}
-
-	const char* get_absolute_path () {
-		return this->location.filename;
-	}
 };
 
 struct Ast_Arguments : Ast {
@@ -80,6 +64,7 @@ struct Ast_Statement : Ast {
 
 struct Ast_Scope : Ast_Statement {
 	std::vector<Ast_Statement*> statements;
+	String_Map<Ast_Scope*> named_imports;
 	std::vector<Ast_Scope*> imports;
 
 	Ast_Scope* parent = NULL;

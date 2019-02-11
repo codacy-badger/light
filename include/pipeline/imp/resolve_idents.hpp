@@ -117,14 +117,14 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator
     void ast_handle (Ast_Binary* binop) {
         if (binop->binary_op != AST_BINARY_ATTRIBUTE) {
             Ast_Navigator::ast_handle(binop);
-        }
+        } else Ast_Navigator::ast_handle(binop->lhs);
     }
 
     void shutdown() {
         for (auto entry1 : this->unresolved_idents) {
             assert(entry1.second.size() > 0);
 
-            this->print_error("Unresolved identifiers in module '%s'...",entry1.first->get_absolute_path());
+            this->print_error("Unresolved identifiers in module '%s'...", entry1.first->location.filename);
             for (auto entry2 : entry1.second) {
                 if (entry2.first->stm_type == AST_STATEMENT_DECLARATION) {
                     auto decl = static_cast<Ast_Declaration*>(entry2.first);
