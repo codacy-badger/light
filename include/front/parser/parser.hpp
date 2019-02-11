@@ -305,13 +305,13 @@ struct Parser {
 		} else if (this->lexer.try_skip(TOKEN_TRUE)) {
 			return ast_make_literal(true);
 		} else if (this->lexer.try_skip(TOKEN_MUL)) {
-			return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->atom());
+			return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->expression());
 		} else if (this->lexer.try_skip(TOKEN_EXCLAMATION)) {
-			return AST_NEW(Ast_Unary, AST_UNARY_NOT, this->atom());
+			return AST_NEW(Ast_Unary, AST_UNARY_NOT, this->expression());
 		} else if (this->lexer.try_skip(TOKEN_SUB)) {
-			return AST_NEW(Ast_Unary, AST_UNARY_NEGATE, this->atom());
+			return AST_NEW(Ast_Unary, AST_UNARY_NEGATE, this->expression());
 		} else if (this->lexer.try_skip(TOKEN_AMP)) {
-			return AST_NEW(Ast_Unary, AST_UNARY_DEREFERENCE, this->atom());
+			return AST_NEW(Ast_Unary, AST_UNARY_DEREFERENCE, this->expression());
 		} else if (this->lexer.try_skip(TOKEN_ADD)) {
 			return this->expression();
 		} else return this->literal();
