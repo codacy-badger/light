@@ -10,7 +10,6 @@
 struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator {
 
     std::map<Ast_Scope*, std::map<Ast_Statement*, std::vector<Ast_Ident*>>> unresolved_idents;
-    std::map<Ast_Scope*, String_Map<Ast_Declaration*>> unresolved_decls;
 
     Ast_Scope* current_file_scope = NULL;
     Ast_Statement* current_global_statement = NULL;
@@ -79,25 +78,22 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator
     void ast_handle (Ast_Ident* ident) {
         if (!ident->declaration) {
             ident->declaration = this->find_declaration(this->current_file_scope, ident);
-            if (!ident->declaration) this->add_unresolved(this->current_file_scope, ident);
+            if (!ident->declaration) {
+                this->add_unresolved(this->current_file_scope, ident);
+            }
         }
     }
 
     Ast_Declaration* find_declaration (Ast_Scope* scope, Ast_Ident* ident) {
         auto decl = scope->find_declaration(ident->name, true, true);
         if (!decl) {
-            if (this->unresolved_decls[scope].contains(ident->name)) {
-                return this->unresolved_decls[scope][ident->name];
-            } else return NULL;
-        } else return decl;
+            decl = this->get_unresolved_decl(scope, ident->name);
+        }
+        return decl;
     }
 
     void add_unresolved (Ast_Scope* scope, Ast_Ident* ident) {
         this->unresolved_idents[scope][this->current_global_statement].push_back(ident);
-        if (this->current_global_statement->stm_type == AST_STATEMENT_DECLARATION) {
-            auto decl = static_cast<Ast_Declaration*>(this->current_global_statement);
-            this->unresolved_decls[scope][decl->name] = decl;
-        }
     }
 
     void remove_unresolved (Ast_Scope* scope, Ast_Statement* stm) {
@@ -105,13 +101,18 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator
         if (this->unresolved_idents[scope].size() == 0) {
             this->unresolved_idents.erase(scope);
         }
-        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-            auto decl = static_cast<Ast_Declaration*>(stm);
-            this->unresolved_decls[scope].erase(decl->name);
-            if (this->unresolved_decls[scope].size() == 0) {
-                this->unresolved_decls.erase(scope);
+    }
+
+    Ast_Declaration* get_unresolved_decl (Ast_Scope* scope, const char* _name) {
+        for (auto entry : this->unresolved_idents[scope]) {
+            if (entry.first->stm_type == AST_STATEMENT_DECLARATION) {
+                auto decl = static_cast<Ast_Declaration*>(entry.first);
+                if (strcmp(decl->name, _name) == 0) {
+                    return decl;
+                }
             }
         }
+        return NULL;
     }
 
     void ast_handle (Ast_Binary* binop) {
