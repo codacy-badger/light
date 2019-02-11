@@ -19,6 +19,7 @@ enum Internal_Type : uint8_t {
 };
 
 struct Types {
+    static Ast_Struct_Type* type_namespace;
 	static Ast_Struct_Type* type_type;
 	static Ast_Struct_Type* type_void;
 	static Ast_Struct_Type* type_bool;

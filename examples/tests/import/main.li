@@ -1,6 +1,6 @@
 asd :: import "a";
 
-VALUE_A :: 16;
+VALUE_A : u32 : 16;
 
 main :: fn {
     value1 := VALUE_A;

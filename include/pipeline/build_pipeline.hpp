@@ -7,6 +7,7 @@
 #include "imp/parse_step.hpp"
 #include "imp/module_dependencies.hpp"
 #include "imp/resolve_idents.hpp"
+#include "imp/type_check.hpp"
 
 #include "imp/print_step.hpp"
 
@@ -53,6 +54,7 @@ struct Build_Pipeline {
     Parse_Step* parse_step = new Parse_Step(modules);
     Module_Dependencies* module_dependencies = new Module_Dependencies(modules);
     Resolve_Idents* resolve_idents = new Resolve_Idents();
+    Type_Check* type_check = new Type_Check();
     Print_Step* printer = new Print_Step();
 
     std::vector<Pipe*> pipes;
@@ -64,11 +66,13 @@ struct Build_Pipeline {
         pipes.push_back(this->parse_step);
         pipes.push_back(this->module_dependencies);
         pipes.push_back(this->resolve_idents);
+        pipes.push_back(this->type_check);
         pipes.push_back(this->printer);
 
         BIND_PIPES(this->parse_step, this->module_dependencies);
         BIND_PIPES(this->module_dependencies, this->resolve_idents);
-        BIND_PIPES(this->resolve_idents, this->printer);
+        BIND_PIPES(this->resolve_idents, this->type_check);
+        BIND_PIPES(this->type_check, this->printer);
 
         for (auto pipe : this->pipes) {
             pipe->context = context;
