@@ -16,7 +16,10 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
 
     void handle (Ast_Scope* file_scope) {
         Ast_Navigator::ast_handle(file_scope);
-        this->push_out(file_scope);
+
+        if (file_scope->are_all_imports_parsed()) {
+            this->push_out(file_scope);
+        } else this->input_queue.push(file_scope);
     }
 
     void ast_handle (Ast_Declaration* decl) {
@@ -25,8 +28,9 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
                 auto import = static_cast<Ast_Import*>(decl->expression);
                 this->find_file_or_error(import);
 
-                auto file_scope = this->modules->add_import(this->current_scope, import);
+                auto file_scope = this->modules->add_import(import);
                 decl->scope->named_imports[decl->name] = file_scope;
+                import->file_scope = file_scope;
 
                 return;
             }
@@ -46,7 +50,7 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
             delete import;
         } else {
             import->scope->remove(import);
-            auto file_scope = this->modules->add_import(this->current_scope, import);
+            auto file_scope = this->modules->add_import(import);
             import->scope->imports.push_back(file_scope);
         }
     }

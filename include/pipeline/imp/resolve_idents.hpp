@@ -50,7 +50,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator
         std::map<Ast_Scope*, std::vector<Ast_Statement*>> resolved;
 
         for (auto& entry1 : this->unresolved_idents) {
-            if (entry1.first->has_import(scope)) {
+            if (entry1.first->has_unnamed_import(scope)) {
                 for (auto& entry2 : entry1.second) {
                     for (size_t i = 0; i < entry2.second.size();) {
                         auto ident_to_resolve = entry2.second[i];
@@ -118,7 +118,19 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator
     void ast_handle (Ast_Binary* binop) {
         if (binop->binary_op != AST_BINARY_ATTRIBUTE) {
             Ast_Navigator::ast_handle(binop);
-        } else Ast_Navigator::ast_handle(binop->lhs);
+        } else {
+            Ast_Navigator::ast_handle(binop->lhs);
+            if (binop->lhs->exp_type == AST_EXPRESSION_IDENT) {
+                auto ident = static_cast<Ast_Ident*>(binop->lhs);
+                if (ident->declaration && ident->declaration->expression) {
+                    if (ident->declaration->expression->exp_type == AST_EXPRESSION_IMPORT) {
+                        auto import = static_cast<Ast_Import*>(ident->declaration->expression);
+                        auto attr = static_cast<Ast_Ident*>(binop->rhs);
+                        attr->declaration = import->file_scope->find_declaration(attr->name, false, false);
+                    }
+                }
+            }
+        }
     }
 
     void shutdown() {

@@ -16,9 +16,7 @@ struct Compiler_Pipe : Pipe {
 
     bool pump () {
         if (!this->input_queue.empty()) {
-            while (!this->input_queue.empty()) {
-                this->handle(this->input_queue.pop());
-            }
+            this->handle(this->input_queue.pop());
             return true;
         } else return false;
     }

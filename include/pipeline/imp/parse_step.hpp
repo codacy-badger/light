@@ -31,6 +31,7 @@ struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Scope*> {
 
         auto file_scope = this->modules->get_file_scope(parse_command.absolute_path);
         this->context->parser->parse_into(file_scope, parse_command.absolute_path);
+        file_scope->scope_flags |= SCOPE_FLAG_FULLY_PARSED;
 
         this->push_out(file_scope);
     }

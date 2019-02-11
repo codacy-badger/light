@@ -10,6 +10,9 @@ struct Internal_Scope : Ast_Scope {
     Location internal_location = Location("INTERNAL");
 
     Internal_Scope (Arch* target_arch, OS* target_os) {
+        this->scope_flags |= SCOPE_FLAG_FULLY_PARSED;
+        this->scope_flags |= SCOPE_FLAG_SYMBOLS_RESOLVED;
+
         Types::type_usize->byte_size = target_arch->register_size;
 
 	    this->add_type(Types::type_type);
