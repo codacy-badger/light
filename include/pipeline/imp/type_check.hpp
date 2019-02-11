@@ -18,18 +18,21 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     void ast_handle (Ast_Declaration* decl) {
         Ast_Navigator::ast_handle(decl);
 
+        if (!decl->type && !decl->expression) {
+            this->print_error(decl, "Declarations must either have a value or a type");
+            return;
+        }
+
         if (!decl->type) {
-            if (decl->expression) {
-                this->inferrer->infer(decl->expression);
-                decl->type = decl->expression->inferred_type;
-            } else {
-                //this->print_error(decl, "Declarations must either have a value or a type");
-            }
-        } else {
+            this->inferrer->infer(decl->expression);
+            decl->type = decl->expression->inferred_type;
+        } else if (!decl->expression) {
             this->inferrer->infer(decl->type);
             if (decl->type->inferred_type != Types::type_type) {
                 //this->print_error(decl->type, "Type of declaration must be a type instance");
             }
+        } else {
+            decl->expression->inferred_type = static_cast<Ast_Type*>(decl->type);
         }
     }
 

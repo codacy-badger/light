@@ -52,40 +52,7 @@ struct Type_Inferrer {
 
     void infer (Ast_Type* type) {
         type->inferred_type = Types::type_type;
-        switch (type->typedef_type) {
-			case AST_TYPEDEF_STRUCT: {
-				this->infer(reinterpret_cast<Ast_Struct_Type*>(type));
-				break;
-			}
-			case AST_TYPEDEF_POINTER: {
-				this->infer(reinterpret_cast<Ast_Pointer_Type*>(type));
-				break;
-			}
-			case AST_TYPEDEF_FUNCTION: {
-				this->infer(reinterpret_cast<Ast_Function_Type*>(type));
-				break;
-			}
-			case AST_TYPEDEF_ARRAY: {
-				this->infer(reinterpret_cast<Ast_Array_Type*>(type));
-				break;
-			}
-		}
     }
-
-	void infer (Ast_Struct_Type*) {}
-
-	void infer (Ast_Pointer_Type* _ptr) {
-		this->infer(_ptr->base);
-	}
-
-	void infer (Ast_Function_Type* func_type) {
-		this->infer(func_type->ret_type);
-	}
-
-	void infer (Ast_Array_Type* arr) {
-		this->infer(arr->base);
-		this->infer(arr->length);
-	}
 
     void infer (Ast_Binary* binary) {
         switch (binary->binary_op) {
