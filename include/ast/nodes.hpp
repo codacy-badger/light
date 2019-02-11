@@ -70,9 +70,10 @@ struct Ast_Statement : Ast {
 
 const uint16_t SCOPE_FLAG_UNDEFINED 		= 0x0000;
 const uint16_t SCOPE_FLAG_FULLY_PARSED 		= 0x0001;
-const uint16_t SCOPE_FLAG_SYMBOLS_RESOLVED 	= 0x0002;
-const uint16_t SCOPE_FLAG_TYPES_INFERRED 	= 0x0004;
-const uint16_t SCOPE_FLAG_TYPES_CHECKED 	= 0x0008;
+const uint16_t SCOPE_FLAG_INCLUDES_RESOLVED	= 0x0002;
+const uint16_t SCOPE_FLAG_SYMBOLS_RESOLVED 	= 0x0004;
+const uint16_t SCOPE_FLAG_TYPES_INFERRED 	= 0x0008;
+const uint16_t SCOPE_FLAG_TYPES_CHECKED 	= 0x0010;
 
 struct Ast_Scope : Ast_Statement {
 	uint16_t scope_flags = SCOPE_FLAG_UNDEFINED;
@@ -134,14 +135,18 @@ struct Ast_Scope : Ast_Statement {
 		return false;
 	}
 
-	bool are_all_imports_parsed () {
+	bool all_dependencies_flagged (uint16_t flag) {
 		for (auto imported_scope : this->imports) {
-			if (!(imported_scope->scope_flags & SCOPE_FLAG_FULLY_PARSED)) return false;
+			if ((imported_scope->scope_flags & flag) != flag) return false;
 		}
 		for (auto entry : this->named_imports) {
-			if (!(entry.second->scope_flags & SCOPE_FLAG_FULLY_PARSED)) return false;
+			if ((entry.second->scope_flags & flag) != flag) return false;
 		}
 		return true;
+	}
+
+	bool are_all_imports_resolved () {
+		return this->all_dependencies_flagged(SCOPE_FLAG_FULLY_PARSED | SCOPE_FLAG_INCLUDES_RESOLVED);
 	}
 
 	// @TODO this methods could be simplified, since most of the calls use

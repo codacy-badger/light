@@ -16,8 +16,9 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
 
     void handle (Ast_Scope* file_scope) {
         Ast_Navigator::ast_handle(file_scope);
+        file_scope->scope_flags |= SCOPE_FLAG_INCLUDES_RESOLVED;
 
-        if (file_scope->are_all_imports_parsed()) {
+        if (file_scope->are_all_imports_resolved()) {
             this->push_out(file_scope);
         } else this->input_queue.push(file_scope);
     }

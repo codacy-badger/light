@@ -141,10 +141,10 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Navigator
             for (auto entry2 : entry1.second) {
                 if (entry2.first->stm_type == AST_STATEMENT_DECLARATION) {
                     auto decl = static_cast<Ast_Declaration*>(entry2.first);
-                    this->print_error("\t...for global declaration of '%s'...", decl->name);
-                } else this->print_error("\t...for global statement...");
+                    this->print_error("for global declaration of '%s':", decl->name);
+                } else this->print_error("for global statement:");
                 for (auto ident : entry2.second) {
-                    this->print_error("\t\tUnresolved identifier: '%s' @", ident->name);
+                    this->print_error(ident, "    Unresolved identifier: '%s'", ident->name);
                 }
             }
         }

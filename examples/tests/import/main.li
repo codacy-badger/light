@@ -1,14 +1,14 @@
-import "a";
+asd :: import "a";
 
 VALUE_A :: 16;
 
 main :: fn {
     value1 := VALUE_A;
     value2 := VALUE_B;
-    value3 := VALUE_C;
-    value4 := VALUE_D;
+    value3 := asd.VALUE_C;
+    value4 := asd.VALUE_D;
 
-    guy: Dummy1;
+    guy: asd.Dummy1;
     other := guy.friend;
     other_guid := guy.friend.guid;
     num := guy.friend.friend_to.number;

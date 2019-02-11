@@ -36,6 +36,26 @@ struct Compiler_Pipe : Pipe {
         va_end(args);
     }
 
+    void print_error (Ast* node, const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        this->print_error_v(format, args);
+        this->print_location(&node->location);
+        va_end(args);
+    }
+
+    void print_error (Location* location, const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        this->print_error_v(format, args);
+        this->print_location(location);
+        va_end(args);
+    }
+
+    void print_location (Location* location) {
+        printf("\t@ %s, line %zd\n", location->filename, location->line);
+    }
+
     void print_error_v (const char* format, va_list args) {
         printf("[ERROR] ");
         vprintf(format, args);
