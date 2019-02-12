@@ -15,7 +15,7 @@ struct Parser {
 
 	void parse_into (Ast_Scope* scope, const char* absolute_path) {
 		size_t length;
-		auto source = os_read_full(absolute_path, &length);
+		auto source = os_read_entire_file(absolute_path, &length);
 		this->parse_into(scope, source, length, absolute_path);
 	}
 

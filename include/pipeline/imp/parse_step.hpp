@@ -26,7 +26,7 @@ struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Scope*> {
 
     void handle (Parse_Command parse_command) {
         if (parse_command.source == NULL) {
-            parse_command.source = os_read_full(parse_command.absolute_path, &parse_command.length);
+            parse_command.source = os_read_entire_file(parse_command.absolute_path, &parse_command.length);
         }
 
         auto file_scope = this->modules->get_file_scope(parse_command.absolute_path);
