@@ -7,6 +7,14 @@
 
 struct Type_Inferrer {
 
+    void infer (Ast_Declaration* decl) {
+        if (!decl->type) {
+            assert(decl->expression);
+            this->infer(decl->expression);
+            decl->type = decl->expression->inferred_type;
+        }
+    }
+
     void infer (Ast_Expression* exp) {
         switch (exp->exp_type) {
             case AST_EXPRESSION_IMPORT: {
@@ -19,6 +27,10 @@ struct Type_Inferrer {
             }
             case AST_EXPRESSION_TYPE: {
                 this->infer(static_cast<Ast_Type*>(exp));
+                break;
+            }
+            case AST_EXPRESSION_CALL: {
+                this->infer(static_cast<Ast_Function_Call*>(exp));
                 break;
             }
             case AST_EXPRESSION_BINARY: {
@@ -37,7 +49,7 @@ struct Type_Inferrer {
                 this->infer(static_cast<Ast_Literal*>(exp));
                 break;
             }
-            default: abort();
+            default: assert(false);
         }
         //assert(exp->inferred_type);
     }
@@ -47,7 +59,21 @@ struct Type_Inferrer {
     }
 
     void infer (Ast_Function* func) {
+        assert(func->type);
+
         func->inferred_type = func->type;
+    }
+
+    void infer (Ast_Function_Call* call) {
+        this->infer(call->func);
+        this->infer(call->arguments);
+
+        assert(call->func->inferred_type);
+        assert(call->func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
+        auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
+
+        //assert(func_type->ret_type->exp_type == AST_EXPRESSION_TYPE);
+        call->inferred_type = static_cast<Ast_Type*>(func_type->ret_type);
     }
 
     void infer (Ast_Type* type) {
@@ -80,7 +106,7 @@ struct Type_Inferrer {
             case AST_BINARY_BITWISE_XOR:
             case AST_BINARY_BITWISE_RIGHT_SHIFT:
             case AST_BINARY_BITWISE_LEFT_SHIFT: {
-                assert(binary->lhs->inferred_type == binary->rhs->inferred_type);
+                //assert(binary->lhs->inferred_type == binary->rhs->inferred_type);
                 break;
             }
         	case AST_BINARY_EQ:
@@ -97,16 +123,21 @@ struct Type_Inferrer {
 
     void infer (Ast_Unary*) { /* TODO */ }
 
+    void infer (Ast_Arguments* args) {
+		for (auto exp : args->unnamed) {
+			this->infer(exp);
+		}
+		for (auto exp : args->named) {
+			this->infer(exp.second);
+		}
+	}
+
     void infer (Ast_Ident* ident) {
-        if (!ident->inferred_type) {
-            auto decl = ident->declaration;
+        if (ident->inferred_type) return;
 
-            if (decl && !decl->type && decl->expression) {
-                this->infer(decl->expression);
-                decl->type = decl->expression->inferred_type;
-
-                ident->inferred_type = static_cast<Ast_Type*>(decl->type);
-            }
+        if (ident->declaration) {
+            this->infer(ident->declaration);
+            ident->inferred_type = static_cast<Ast_Type*>(ident->declaration->type);
         }
     }
 

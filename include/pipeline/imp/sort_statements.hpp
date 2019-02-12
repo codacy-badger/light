@@ -1,20 +1,15 @@
 #pragma once
 
 #include "pipeline/compiler_pipe.hpp"
-#include "utils/ast_ref_navigator.hpp"
-#include "utils/string_map.hpp"
+#include "utils/ast_navigator.hpp"
 
-#include <map>
-#include <vector>
+struct Sort_Statements : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
-struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Ref_Navigator {
-
-    Ast_Scope* current_file_scope = NULL;
-
-    Resolve_Idents () : Compiler_Pipe("Resolved Idents") { /* empty */ }
+    Sort_Statements () : Compiler_Pipe("Sort Statements") { /* empty */ }
 
     void handle (Ast_Scope* file_scope) {
         this->current_file_scope = file_scope;
+
         for (auto& stm : file_scope->statements) {
             Ast_Ref_Navigator::ast_handle(&stm);
             stm->stm_flags |= STM_FLAG_IDENTS_RESOLVED;
@@ -25,7 +20,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Ref_Navig
         }
     }
 
-    void ast_handle (Ast_Ident** ident_ptr) {
+    void ast_handle (Ast_Ident* ident) {
         auto ident = (*ident_ptr);
 
         if (!ident->declaration) {

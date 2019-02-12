@@ -58,8 +58,11 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_EXPRESSION,
 };
 
+const uint16_t STM_FLAG_IDENTS_RESOLVED 	= 0x0001;
+
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
+	uint16_t stm_flags = 0;
 };
 
 const uint16_t SCOPE_FLAG_FULLY_PARSED 		= 0x0001;
@@ -501,7 +504,7 @@ struct Ast_Binary : Ast_Expression {
 
 	Ast_Type* get_result_type();
 
-	static short get_precedence (Token_Type opToken);
+	static uint8_t get_precedence (Token_Type opToken);
 	static bool is_left_associative (Token_Type opToken);
 };
 

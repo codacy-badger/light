@@ -199,30 +199,42 @@ struct Parser {
 		return decl;
 	}
 
-	Ast_Declaration* declaration_or_type ();
-
 	Ast_Expression* expression (short min_precedence = 1) {
 		auto output = this->atom();
 	    if (output != NULL) {
 	        auto tt = this->lexer.peek()->type;
-			auto precedence = Ast_Binary::get_precedence(tt);
+			auto precedence = get_operator_precedence(tt);
 			while (precedence >= min_precedence) {
 				this->lexer.skip();
 
-				auto next_min_precedence = precedence;
-				if (Ast_Binary::is_left_associative(tt)) {
-					next_min_precedence += 1;
+				if (tt == TOKEN_PAR_OPEN) {
+					auto call = AST_NEW(Ast_Function_Call);
+					call->func = output;
+					call->arguments = this->comma_separated_values();
+					output = call;
+
+					this->lexer.expect(TOKEN_PAR_CLOSE);
+				} else if (tt == TOKEN_SQ_BRAC_OPEN) {
+					Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
+					_tmp->rhs = this->expression(precedence);
+					_tmp->lhs = output;
+					output = _tmp;
+
+					this->lexer.expect(TOKEN_SQ_BRAC_CLOSE);
+				} else {
+					auto next_min_precedence = precedence;
+					if (tt == TOKEN_EQUAL) {
+						next_min_precedence += 1;
+					}
+
+					Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
+					_tmp->rhs = this->expression(next_min_precedence);
+					_tmp->lhs = output;
+					output = _tmp;
 				}
 
-				Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
-				_tmp->rhs = this->expression(next_min_precedence);
-				_tmp->lhs = output;
-				output = _tmp;
-
-				if (tt == TOKEN_SQ_BRAC_OPEN) this->lexer.expect(TOKEN_SQ_BRAC_CLOSE);
-
 				tt = this->lexer.peek()->type;
-				precedence = Ast_Binary::get_precedence(tt);
+				precedence = get_operator_precedence(tt);
 			}
 	    }
 		return output;
@@ -230,14 +242,7 @@ struct Parser {
 
 	Ast_Expression* atom () {
 		if (this->lexer.is_next(TOKEN_ID)) {
-			auto output = this->ident();
-			if (this->lexer.try_skip(TOKEN_PAR_OPEN)) {
-				auto call = AST_NEW(Ast_Function_Call);
-				call->func = output;
-				call->arguments = this->arguments();
-				this->lexer.expect(TOKEN_PAR_CLOSE);
-				return call;
-			} else return output;
+			return this->ident();
 		} else if (this->lexer.try_skip(TOKEN_STRUCT)) {
 			auto _struct = AST_NEW(Ast_Struct_Type);
 
@@ -403,19 +408,20 @@ struct Parser {
 		delete literal;
 	}
 
-	Ast_Arguments* arguments () {
+	Ast_Arguments* comma_separated_values () {
 		auto args = AST_NEW(Ast_Arguments);
 
 		bool parsing_named = false;
-		while (!this->lexer.is_next(TOKEN_PAR_CLOSE)) {
-			auto exp = this->expression();
-
+		auto exp = this->expression();
+		while (exp != NULL) {
 			auto last_is_named = args->add(exp);
 			if (parsing_named && !last_is_named) {
-				//Logger::error(exp, "All named parameters must be on the right part");
+				printf("All named parameters must be on the right part");
 			} else parsing_named = last_is_named;
 
-			this->lexer.try_skip(TOKEN_COMMA);
+			if (this->lexer.try_skip(TOKEN_COMMA)) {
+				exp = this->expression();
+			} else break;
 		}
 
 		return args;
@@ -433,6 +439,47 @@ struct Parser {
 		ident->declaration = this->current_scope->find_var_declaration(ident->name);
 
 		return ident;
+	}
+
+	uint8_t get_operator_precedence (Token_Type token_type) {
+		switch (token_type) {
+			default: 		  			return 0;
+
+	        case TOKEN_PAR_OPEN:        return 1;
+
+			case TOKEN_EQUAL: 			return 1;
+			case TOKEN_SQ_BRAC_OPEN:    return 2;
+			case TOKEN_DOUBLE_PIPE:		return 3;
+			case TOKEN_DOUBLE_AMP:		return 4;
+			case TOKEN_PIPE:			return 5;
+			case TOKEN_TILDE:			return 6;
+			case TOKEN_AMP:				return 7;
+
+			case TOKEN_DOUBLE_EQUAL:
+			case TOKEN_NOT_EQUAL:		return 8;
+
+			case TOKEN_GREATER_EQUAL:
+			case TOKEN_LESSER_EQUAL:
+			case TOKEN_GREATER:
+			case TOKEN_LESSER:			return 9;
+
+			case TOKEN_RIGHT_SHIFT:
+			case TOKEN_LEFT_SHIFT:		return 10;
+
+			case TOKEN_ADD:
+			case TOKEN_SUB:   			return 11;
+
+			case TOKEN_MUL:
+			case TOKEN_DIV:
+			case TOKEN_PERCENT:			return 12;
+
+			case TOKEN_CARET:
+			case TOKEN_EXCLAMATION:		return 13;
+
+			case TOKEN_DOUBLE_ADD:
+			case TOKEN_DOUBLE_SUB:
+			case TOKEN_DOT:   			return 14;
+		}
 	}
 
 	const char* copy_token_text_and_skip () {

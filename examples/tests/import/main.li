@@ -12,6 +12,8 @@ main :: fn {
     other := guy.friend;
     other_guid := guy.friend.guid;
     num := guy.friend.friend_to.number;
+
+    other_num := asd.factorial(10);
 }
 
 VALUE_B :: 2;

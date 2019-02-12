@@ -206,11 +206,12 @@ Ast_Type* Ast_Binary::get_result_type() {
     }
 }
 
-short Ast_Binary::get_precedence (Token_Type opToken) {
+uint8_t Ast_Binary::get_precedence (Token_Type opToken) {
 	switch (opToken) {
 		default: 		  			return 0;
+
 		case TOKEN_EQUAL: 			return 1;
-		case TOKEN_SQ_BRAC_OPEN:	return 2;
+		case TOKEN_SQ_BRAC_OPEN:    return 2;
 		case TOKEN_DOUBLE_PIPE:		return 3;
 		case TOKEN_DOUBLE_AMP:		return 4;
 		case TOKEN_PIPE:			return 5;
@@ -241,6 +242,8 @@ short Ast_Binary::get_precedence (Token_Type opToken) {
 		case TOKEN_DOUBLE_ADD:
 		case TOKEN_DOUBLE_SUB:
 		case TOKEN_DOT:   			return 14;
+
+        case TOKEN_PAR_OPEN:        return 15;
 
 	}
 }
