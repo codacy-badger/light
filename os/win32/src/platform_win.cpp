@@ -113,7 +113,7 @@ bool os_check_file_exists (const char* path) {
 	} else return false;
 }
 
-const char* os_read_full (const char* absolute_path, size_t* length_ptr) {
+const char* os_read_entire_file (const char* absolute_path, size_t* length_ptr) {
 	FILE* file = NULL;
 
 	auto error_code = fopen_s(&file, absolute_path, "r");
