@@ -8,6 +8,7 @@
 #include "imp/resolve_idents.hpp"
 #include "imp/statement_sort.hpp"
 #include "imp/type_check.hpp"
+#include "imp/static_if.hpp"
 
 #include "imp/print_step.hpp"
 
@@ -55,6 +56,7 @@ struct Build_Pipeline {
     Resolve_Idents* resolve_idents = new Resolve_Idents();
     Statement_Sort* statement_sort = new Statement_Sort();
     Type_Check* type_check = new Type_Check();
+    Static_If* static_if = new Static_If(&resolve_idents->input_queue);
     Print_Step* printer = new Print_Step();
 
     std::vector<Pipe*> pipes;
@@ -67,13 +69,15 @@ struct Build_Pipeline {
         pipes.push_back(this->resolve_idents);
         pipes.push_back(this->statement_sort);
         pipes.push_back(this->type_check);
+        pipes.push_back(this->static_if);
         pipes.push_back(this->printer);
 
         BIND_PIPES(this->parse_step, this->imports_block);
         BIND_PIPES(this->imports_block, this->resolve_idents);
         BIND_PIPES(this->resolve_idents, this->statement_sort);
         BIND_PIPES(this->statement_sort, this->type_check);
-        BIND_PIPES(this->type_check, this->printer);
+        BIND_PIPES(this->type_check, this->static_if);
+        BIND_PIPES(this->static_if, this->printer);
 
         for (auto pipe : this->pipes) {
             pipe->context = context;

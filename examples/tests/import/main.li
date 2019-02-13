@@ -1,6 +1,10 @@
-asd :: import "a";
 
+asd :: import "a";
 VALUE_A : u32 : 16;
+
+#if OS_WINDOWS {
+    VALUE_WIN :: VALUE_B + VALUE_A;
+}
 
 main :: fn {
     value1 := VALUE_A;

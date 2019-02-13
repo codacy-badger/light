@@ -29,6 +29,10 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_If*>(stm));
 				break;
 			}
+			case AST_STATEMENT_STATIC_IF: {
+				print(reinterpret_cast<Ast_Static_If*>(stm));
+				break;
+			}
 			case AST_STATEMENT_WHILE: {
 				print(reinterpret_cast<Ast_While*>(stm));
 				break;
@@ -96,6 +100,11 @@ struct Ast_Printer {
             printf(" ");
             print(ret->expression);
         }
+	}
+
+	void print(Ast_Static_If* static_if) {
+        printf("#");
+        this->print(static_if->stm_if);
 	}
 
 	void print(Ast_If* _if) {
@@ -228,6 +237,7 @@ struct Ast_Printer {
     }
 
     void print(Ast_Binary* binary) {
+        printf("(");
         print(binary->lhs);
         switch (binary->binary_op) {
             case AST_BINARY_ASSIGN: {
@@ -337,6 +347,7 @@ struct Ast_Printer {
                 break;
             }
         }
+        printf(")");
     }
 
     void print(Ast_Cast* cast) {

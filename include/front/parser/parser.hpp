@@ -222,6 +222,15 @@ struct Parser {
 					output = _tmp;
 
 					this->lexer.expect(TOKEN_SQ_BRAC_CLOSE);
+				} else if (tt == TOKEN_DOT) {
+					if (!this->lexer.is_next(TOKEN_ID)) {
+						this->lexer.report_expected("identifier");
+					}
+
+					Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
+					_tmp->rhs = this->ident();
+					_tmp->lhs = output;
+					output = _tmp;
 				} else {
 					auto next_min_precedence = precedence;
 					if (tt == TOKEN_EQUAL) {
@@ -485,7 +494,7 @@ struct Parser {
 
 	void bind (const char* name, Ast_Expression* exp) {
 		if (!exp) return;
-		
+
 		if (exp->exp_type == AST_EXPRESSION_FUNCTION) {
 			auto func = static_cast<Ast_Function*>(exp);
 			func->name = name;
