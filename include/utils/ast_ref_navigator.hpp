@@ -214,7 +214,7 @@ struct Ast_Ref_Navigator {
 
 	virtual void ast_handle (Ast_Function_Type** func_type) {
 		for (auto &arg_type : (*func_type)->arg_decls) {
-			this->ast_handle(&arg_type);
+			this->ast_handle((Ast_Statement**) &arg_type);
 		}
 		this->ast_handle(&(*func_type)->ret_type);
 	}

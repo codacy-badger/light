@@ -29,6 +29,10 @@ struct Compiler_Pipe : Pipe {
         this->input_queue.push(input);
     }
 
+    void requeue (Tin input) {
+        this->push_in(input);
+    }
+
     void print_error (const char* format, ...) {
         va_list args;
         va_start(args, format);

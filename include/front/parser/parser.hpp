@@ -193,6 +193,7 @@ struct Parser {
 		} else this->lexer.try_skip(TOKEN_EQUAL);
 
 		decl->expression = this->expression();
+		this->bind(decl->name, decl->expression);
 
 		this->lexer.try_skip(TOKEN_STM_END);
 
@@ -479,6 +480,18 @@ struct Parser {
 			case TOKEN_DOUBLE_ADD:
 			case TOKEN_DOUBLE_SUB:
 			case TOKEN_DOT:   			return 14;
+		}
+	}
+
+	void bind (const char* name, Ast_Expression* exp) {
+		if (!exp) return;
+		
+		if (exp->exp_type == AST_EXPRESSION_FUNCTION) {
+			auto func = static_cast<Ast_Function*>(exp);
+			func->name = name;
+		} else if (exp->exp_type == AST_EXPRESSION_TYPE) {
+			auto type = static_cast<Ast_Type*>(exp);
+			type->name = name;
 		}
 	}
 

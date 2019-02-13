@@ -3,7 +3,7 @@ b :: import "b";
 VALUE_C :: 1;
 
 Dummy1 :: struct {
-    number := 16;
+    number : u64 = 16;
     friend: b.Dummy2;
 }
 

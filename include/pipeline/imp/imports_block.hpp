@@ -7,10 +7,10 @@
 #include <map>
 #include <vector>
 
-struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
+struct Imports_Block : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
     Modules* modules = NULL;
 
-    Module_Dependencies (Modules* modules) : Compiler_Pipe("Module Dependencies") {
+    Imports_Block (Modules* modules) : Compiler_Pipe("Module Dependencies") {
         this->modules = modules;
     }
 
@@ -22,7 +22,7 @@ struct Module_Dependencies : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
 
         if (file_scope->are_all_imports_resolved()) {
             this->push_out(file_scope);
-        } else this->input_queue.push(file_scope);
+        } else this->requeue(file_scope);
     }
 
     void ast_handle (Ast_Declaration* decl) {

@@ -70,7 +70,7 @@ struct Ast_Printer {
         }
         this->current_tabs -= 1;
         PRINT_TABS;
-        printf("}\n");
+        printf("}");
     }
 
 	void print(Ast_Declaration* decl) {
@@ -192,8 +192,7 @@ struct Ast_Printer {
 
     void print(Ast_Function* func, bool short_version = true) {
         if (short_version) {
-            if (func->name) printf(func->name);
-            else printf("<anon_func>");
+            printf("<%s>", func->name);
         } else {
             print(func->type);
             printf(" ");
@@ -427,7 +426,7 @@ struct Ast_Printer {
             }
             this->current_tabs -= 1;
             PRINT_TABS;
-            printf("}\n");
+            printf("}");
         }
     }
 

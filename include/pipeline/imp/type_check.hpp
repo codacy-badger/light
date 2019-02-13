@@ -45,4 +45,10 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         Ast_Navigator::ast_handle(binary);
         this->inferrer->infer(binary);
     }
+
+    void ast_handle (Ast_Unary* unary) {
+        if (unary->unary_op != AST_UNARY_REFERENCE) {
+            Ast_Navigator::ast_handle(unary);
+        }
+    }
 };
