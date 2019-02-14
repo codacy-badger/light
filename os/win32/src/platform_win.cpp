@@ -116,7 +116,7 @@ bool os_check_file_exists (const char* path) {
 const char* os_read_entire_file (const char* absolute_path, size_t* length_ptr) {
 	FILE* file = NULL;
 
-	auto error_code = fopen_s(&file, absolute_path, "r");
+	auto error_code = fopen_s(&file, absolute_path, "rb");
 	if (error_code != 0) {
 		char buffer[256];
 		strerror_s(buffer, sizeof buffer, error_code);

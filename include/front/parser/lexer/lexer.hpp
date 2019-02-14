@@ -6,7 +6,7 @@
 #include <vector>
 #include <assert.h>
 
-#define LEXER_IGNORED " \n\t"
+#define LEXER_IGNORED " \r\n\t"
 
 #define ALPHA(c) ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
 #define DIGIT(c) (c >= '0' && c <= '9')

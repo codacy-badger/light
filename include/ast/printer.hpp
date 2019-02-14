@@ -397,7 +397,7 @@ struct Ast_Printer {
                 break;
             }
         	case AST_LITERAL_STRING: {
-                printf(lit->string_value);
+                printf("\"%s\"", lit->string_value);
                 break;
             }
         	case AST_LITERAL_BOOL: {

@@ -6,4 +6,7 @@ main :: fn {
     value := foo.a2.b2.c3;
 
     result := foozle(123, number = 12, baboozle = true);
+
+    phrase1 := "You break my 心...";
+    phrase2 := "ο Δικαιοπολις εν αγρω εστιν\n";
 }
