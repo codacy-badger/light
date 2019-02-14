@@ -363,7 +363,7 @@ struct Ast_Type : Ast_Expression {
 	bool can_be_in_register (uint8_t register_size) { return this->is_primitive && (this->byte_size <= register_size); }
 };
 
-const uint16_t STRUCT_FLAG_BEING_CHECKING 	= 0x0001;
+const uint16_t STRUCT_FLAG_BEING_CHECKED 	= 0x0001;
 const uint16_t STRUCT_FLAG_IDENTS_RESOLVED 	= 0x0002;
 
 struct Ast_Struct_Type : Ast_Type {
@@ -456,7 +456,11 @@ struct Ast_Function_Type : Ast_Type {
 	}
 };
 
+const uint16_t FUNCTION_FLAG_BEING_CHECKED 	= 0x0001;
+
 struct Ast_Function : Ast_Expression {
+	uint16_t func_flags = 0;
+
 	const char* name = NULL;
 	union {
 		Ast_Expression* type = NULL;

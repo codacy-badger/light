@@ -159,8 +159,14 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Function* func) {
+        if (func->func_flags & FUNCTION_FLAG_BEING_CHECKED) return;
+
+        func->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
 		this->ast_handle(func->type);
-		if (func->body) this->ast_handle(func->body);
+		if (func->body) {
+            this->ast_handle(func->body);
+        }
+        func->func_flags &= ~FUNCTION_FLAG_BEING_CHECKED;
 	}
 
 	virtual void ast_handle (Ast_Function_Call* func_call) {
@@ -210,11 +216,11 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Struct_Type* _struct) {
-        if (_struct->struct_flags & STRUCT_FLAG_BEING_CHECKING) return;
+        if (_struct->struct_flags & STRUCT_FLAG_BEING_CHECKED) return;
 
-        _struct->struct_flags |= STRUCT_FLAG_BEING_CHECKING;
+        _struct->struct_flags |= STRUCT_FLAG_BEING_CHECKED;
         this->ast_handle(&_struct->scope);
-        _struct->struct_flags &= ~STRUCT_FLAG_BEING_CHECKING;
+        _struct->struct_flags &= ~STRUCT_FLAG_BEING_CHECKED;
 	}
 
 	virtual void ast_handle (Ast_Pointer_Type* _ptr) {
