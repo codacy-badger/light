@@ -2,21 +2,6 @@
 
 #include "ast/types.hpp"
 
-bool Ast_Arguments::add (Ast_Expression* exp) {
-    if (exp->exp_type == AST_EXPRESSION_BINARY) {
-        auto binary = static_cast<Ast_Binary*>(exp);
-        if (binary->binary_op == AST_BINARY_ASSIGN) {
-            if (binary->lhs->exp_type == AST_EXPRESSION_IDENT) {
-                auto ident = static_cast<Ast_Ident*>(binary->lhs);
-                this->named[ident->name] = binary->rhs;
-                return true;
-            }
-        }
-    }
-    this->unnamed.push_back(exp);
-    return false;
-}
-
 Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_imports, bool recurse) {
     Ast_Declaration* decl = NULL;
 
@@ -165,7 +150,6 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type, const char* name) {
 
 Ast_Binary_Type token_to_binop (Token_Type tType) {
 	switch (tType) {
-		case TOKEN_EQUAL: 			return AST_BINARY_ASSIGN;
 		case TOKEN_DOT: 			return AST_BINARY_ATTRIBUTE;
 		case TOKEN_SQ_BRAC_OPEN: 	return AST_BINARY_SUBSCRIPT;
 
@@ -190,6 +174,7 @@ Ast_Binary_Type token_to_binop (Token_Type tType) {
 		case TOKEN_LESSER_EQUAL:	return AST_BINARY_LTE;
 		case TOKEN_GREATER:			return AST_BINARY_GT;
 		case TOKEN_LESSER:			return AST_BINARY_LT;
+
 		default: 					return AST_BINARY_UNINITIALIZED;
 	};
 }
@@ -407,8 +392,8 @@ Ast_Literal* ast_make_literal (unsigned long long value) {
 Ast_Literal* ast_make_literal (bool value) {
 	auto lit = new Ast_Literal();
     lit->inferred_type = Types::type_bool;
-	lit->literal_type = AST_LITERAL_UNSIGNED_INT;
-	lit->uint_value = value;
+	lit->literal_type = AST_LITERAL_BOOL;
+	lit->bool_value = value;
 	return lit;
 }
 

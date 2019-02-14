@@ -2,7 +2,8 @@
 
 #include "pipeline/compiler_pipe.hpp"
 #include "utils/ast_navigator.hpp"
-#include "utils/string_map.hpp"
+
+#include "pipeline/service/modules.hpp"
 
 #include <map>
 #include <vector>

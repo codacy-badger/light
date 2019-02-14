@@ -11,9 +11,21 @@ struct Ast_Printer {
         printf("(");
         if (args->unnamed.size() > 0) {
             print(args->unnamed[0]);
-            for (int i = 1; i < args->unnamed.size(); i++) {
+            for (size_t i = 1; i < args->unnamed.size(); i++) {
                 printf(", ");
                 print(args->unnamed[i]);
+            }
+        }
+        if (args->named.size() > 0) {
+            if (args->unnamed.size()) printf(", ");
+
+            auto it = args->named.begin();
+            printf("%s = ", it->first);
+            print(it->second);
+            for (size_t i = 1; i < args->named.size(); i++) {
+                it++;
+                printf(", %s = ", it->first);
+                print(it->second);
             }
         }
         printf(")");
@@ -23,6 +35,10 @@ struct Ast_Printer {
         switch (stm->stm_type) {
 			case AST_STATEMENT_SCOPE: {
 				print(reinterpret_cast<Ast_Scope*>(stm));
+				break;
+			}
+			case AST_STATEMENT_ASSIGN: {
+				print(reinterpret_cast<Ast_Assign*>(stm));
 				break;
 			}
 			case AST_STATEMENT_IF: {
@@ -75,6 +91,12 @@ struct Ast_Printer {
         this->current_tabs -= 1;
         PRINT_TABS;
         printf("}");
+    }
+
+    void print(Ast_Assign* assign) {
+        print(assign->variable);
+        printf(" = ");
+        print(assign->value);
     }
 
 	void print(Ast_Declaration* decl) {
@@ -240,11 +262,6 @@ struct Ast_Printer {
         printf("(");
         print(binary->lhs);
         switch (binary->binary_op) {
-            case AST_BINARY_ASSIGN: {
-                printf(" = ");
-                print(binary->rhs);
-                break;
-            }
         	case AST_BINARY_ATTRIBUTE: {
                 printf(".");
                 print(binary->rhs);
@@ -381,6 +398,12 @@ struct Ast_Printer {
             }
         	case AST_LITERAL_STRING: {
                 printf(lit->string_value);
+                break;
+            }
+        	case AST_LITERAL_BOOL: {
+                if (lit->bool_value) {
+                    printf("true");
+                } else printf("false");
                 break;
             }
         }

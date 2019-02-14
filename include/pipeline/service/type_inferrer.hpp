@@ -82,10 +82,6 @@ struct Type_Inferrer {
 
     void infer (Ast_Binary* binary) {
         switch (binary->binary_op) {
-            case AST_BINARY_ASSIGN: {
-                binary->inferred_type = Types::type_void;
-                break;
-            }
         	case AST_BINARY_ATTRIBUTE: {
                 binary->inferred_type = binary->rhs->inferred_type;
                 break;

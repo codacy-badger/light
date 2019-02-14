@@ -27,8 +27,6 @@ struct Ast_Arguments : Ast {
 	std::vector<Ast_Expression*> unnamed;
 	String_Map<Ast_Expression*> named;
 
-	bool add (Ast_Expression* exp);
-
     Ast_Expression* get_named_value (const char* param_name) {
 	    for (auto entry : this->named) {
 	        if (strcmp(entry.first, param_name) == 0) {
@@ -48,6 +46,7 @@ struct Ast_Arguments : Ast {
 enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
 	AST_STATEMENT_SCOPE,
+	AST_STATEMENT_ASSIGN,
 	AST_STATEMENT_IF,
 	AST_STATEMENT_WHILE,
 	AST_STATEMENT_BREAK,
@@ -155,6 +154,13 @@ struct Ast_Scope : Ast_Statement {
 
 	bool is_ancestor (Ast_Scope* other);
 	Ast_Function* get_parent_function ();
+};
+
+struct Ast_Assign : Ast_Statement {
+	Ast_Expression* variable = NULL;
+	Ast_Expression* value = NULL;
+
+	Ast_Assign () { this->stm_type = AST_STATEMENT_ASSIGN; }
 };
 
 struct Ast_If : Ast_Statement {
@@ -308,12 +314,14 @@ enum Ast_Literal_Type {
 	AST_LITERAL_UNSIGNED_INT,
 	AST_LITERAL_DECIMAL,
 	AST_LITERAL_STRING,
+	AST_LITERAL_BOOL,
 };
 
 struct Ast_Literal : Ast_Expression {
 	Ast_Literal_Type literal_type = AST_LITERAL_UNINITIALIZED;
 
 	union {
+		bool 		bool_value;
 		int64_t  	int_value;
 		uint64_t  	uint_value;
 		double 		decimal_value;
@@ -463,7 +471,6 @@ struct Ast_Function : Ast_Expression {
 
 enum Ast_Binary_Type {
 	AST_BINARY_UNINITIALIZED = 0,
-	AST_BINARY_ASSIGN,
 	AST_BINARY_ATTRIBUTE,
 	AST_BINARY_SUBSCRIPT,
 

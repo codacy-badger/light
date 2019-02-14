@@ -144,9 +144,17 @@ struct Parser {
 			default: {
 				auto exp = this->expression();
 				if (exp) {
-					this->lexer.expect(TOKEN_STM_END);
+					if (this->lexer.try_skip(TOKEN_EQUAL)) {
+						auto assign = AST_NEW(Ast_Assign);
+						assign->variable = exp;
+						assign->value = this->expression();
+						return assign;
+					} else {
+						this->lexer.expect(TOKEN_STM_END);
+						return exp;
+					}
 				}
-				return exp;
+				return NULL;
 			}
 		}
 	}
@@ -304,7 +312,7 @@ struct Parser {
 		} else if (this->lexer.try_skip(TOKEN_CAST)) {
 			auto cast = AST_NEW(Ast_Cast);
 			this->lexer.expect(TOKEN_PAR_OPEN);
-			cast->cast_to = this->type_instance();
+			cast->cast_to = this->expression();
 			this->lexer.expect(TOKEN_PAR_CLOSE);
 			cast->value = this->expression();
 			return cast;
@@ -332,28 +340,6 @@ struct Parser {
 		} else return this->literal();
 	}
 
-	Ast_Expression* type_instance () {
-		if (this->lexer.try_skip(TOKEN_FUNCTION)) {
-			return this->function_type();
-		} else if (this->lexer.try_skip(TOKEN_MUL)) {
-			return AST_NEW(Ast_Pointer_Type, this->type_instance());
-		} else if (this->lexer.try_skip(TOKEN_SQ_BRAC_OPEN)) {
-			if (this->lexer.try_skip(TOKEN_SQ_BRAC_CLOSE)) {
-				return AST_NEW(Ast_Slice_Type, this->type_instance());
-			} else {
-				auto length = this->expression();
-				this->lexer.expect(TOKEN_SQ_BRAC_CLOSE);
-
-				auto _array = AST_NEW(Ast_Array_Type);
-				_array->base = this->type_instance();
-				_array->length = length;
-				return _array;
-			}
-		} else {
-			return this->ident();
-		}
-	}
-
 	Ast_Function_Type* function_type () {
 		auto fn_type = AST_NEW(Ast_Function_Type);
 
@@ -367,7 +353,7 @@ struct Parser {
 		}
 
 		if (this->lexer.try_skip(TOKEN_ARROW)) {
-			fn_type->ret_type = this->type_instance();
+			fn_type->ret_type = this->expression();
 		} else fn_type->ret_type = Types::type_void;
 
 		return fn_type;
@@ -421,20 +407,25 @@ struct Parser {
 	Ast_Arguments* comma_separated_values () {
 		auto args = AST_NEW(Ast_Arguments);
 
-		bool parsing_named = false;
-		auto exp = this->expression();
-		while (exp != NULL) {
-			auto last_is_named = args->add(exp);
-			if (parsing_named && !last_is_named) {
-				printf("All named parameters must be on the right part");
-			} else parsing_named = last_is_named;
-
-			if (this->lexer.try_skip(TOKEN_COMMA)) {
-				exp = this->expression();
-			} else break;
+		auto is_parsing = this->parse_next_expression_or_assignment(args);
+		while (is_parsing && this->lexer.try_skip(TOKEN_COMMA)) {
+			is_parsing = this->parse_next_expression_or_assignment(args);
 		}
 
 		return args;
+	}
+
+	bool parse_next_expression_or_assignment (Ast_Arguments* args) {
+		auto exp = this->expression();
+		if (exp) {
+			if (this->lexer.try_skip(TOKEN_EQUAL)) {
+				assert(exp->exp_type == AST_EXPRESSION_IDENT);
+				auto ident = static_cast<Ast_Ident*>(exp);
+				args->named[ident->name] = this->expression();
+				delete ident;
+			} else args->unnamed.push_back(exp);
+			return true;
+		} else return false;
 	}
 
 	Ast_Ident* ident () {
@@ -457,7 +448,6 @@ struct Parser {
 
 	        case TOKEN_PAR_OPEN:        return 1;
 
-			case TOKEN_EQUAL: 			return 1;
 			case TOKEN_SQ_BRAC_OPEN:    return 2;
 			case TOKEN_DOUBLE_PIPE:		return 3;
 			case TOKEN_DOUBLE_AMP:		return 4;

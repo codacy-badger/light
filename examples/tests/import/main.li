@@ -5,5 +5,5 @@ main :: fn {
     foo: Foo;
     value := foo.a2.b2.c3;
 
-    result := foozle(12);
+    result := foozle(123, number = 12, baboozle = true);
 }

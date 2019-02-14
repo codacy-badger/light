@@ -7,7 +7,10 @@ Foo :: struct {
 import "bar";
 
 foozle :: fn (number: u64) -> u64 {
-    return bazz.factorial(number * 2) + 5;
+    result := bazz.factorial(number * 2);
+    result = result + 5;
+
+    return result;
 }
 
 bazz :: import "bazz"

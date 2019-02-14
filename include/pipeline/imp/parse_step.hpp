@@ -5,6 +5,8 @@
 #include "front/parser/internal_scope.hpp"
 #include "platform.hpp"
 
+#include "pipeline/service/modules.hpp"
+
 struct Parse_Command {
     const char* absolute_path;
     const char* source;

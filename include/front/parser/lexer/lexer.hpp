@@ -13,7 +13,7 @@
 #define ALPHANUM(c) (ALPHA(c) || DIGIT(c))
 #define SIGN(c) (c == '+' || c == '-')
 
-#define MAX_TOKEN_PEEK 1
+#define MAX_TOKEN_PEEK 2
 #define DEFAULT_ABSOLUTE_PATH "(from text)"
 
 struct Lexer {

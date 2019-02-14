@@ -3,7 +3,7 @@
 #include "pipeline/compiler_pipe.hpp"
 #include "utils/ast_navigator.hpp"
 
-#include "type_inferrer.hpp"
+#include "pipeline/service/type_inferrer.hpp"
 
 struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     Type_Inferrer* inferrer = new Type_Inferrer();

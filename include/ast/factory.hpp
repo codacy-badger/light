@@ -68,13 +68,12 @@ struct Ast_Factory {
     	return binop;
     }
 
-    static Ast_Binary* assign (Ast_Expression* exp1, Ast_Expression* exp2, Ast_Type* inferred_type = NULL) {
-    	auto binop = new Ast_Binary(AST_BINARY_ASSIGN);
-        binop->inferred_type = inferred_type;
-        binop->location = exp1->location;
-        binop->lhs = exp1;
-        binop->rhs = exp2;
-    	return binop;
+    static Ast_Assign* assign (Ast_Expression* exp1, Ast_Expression* exp2) {
+    	auto assign = new Ast_Assign();
+        assign->location = exp1->location;
+        assign->variable = exp1;
+        assign->value = exp2;
+    	return assign;
     }
 
     static Ast_Unary* ref (Ast_Expression* exp, Ast_Type* inferred_type = NULL) {
