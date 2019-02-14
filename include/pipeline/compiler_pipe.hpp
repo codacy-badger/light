@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pipe.hpp"
+#include "utils/queue.hpp"
 #include "utils/async_queue.hpp"
 
 #include <stdarg.h>
@@ -8,7 +9,7 @@
 template<typename Tin, typename Tout = Tin>
 struct Compiler_Pipe : Pipe {
     Async_Queue<Tin> input_queue;
-    std::queue<Tin> to_requeue;
+    Queue<Tin> to_requeue;
 
     Async_Queue<Tout>* output_queue = NULL;
 
@@ -25,9 +26,7 @@ struct Compiler_Pipe : Pipe {
                 this->handle(this->input_queue.pop());
             }
             while (!this->to_requeue.empty()) {
-                auto item = this->to_requeue.front();
-                this->to_requeue.pop();
-                this->push_in(item);
+                this->push_in(this->to_requeue.pop());
             }
             return this->has_pushed_work;
         } else return false;

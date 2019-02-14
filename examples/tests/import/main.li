@@ -9,4 +9,19 @@ main :: fn {
 
     phrase1 := "You break my 心...";
     phrase2 := "ο Δικαιοπολις εν αγρω εστιν\n";
+
+    bruh: Bruh;
+
+    Bruh :: struct {
+        foo: Foo;
+        num := 123;
+        is_valid := false;
+
+        //next: *Bruh;
+    }
+
+    nested :: fn {
+        some_stuff := "This is very hard work!";
+        value: Bruh;
+    }
 }

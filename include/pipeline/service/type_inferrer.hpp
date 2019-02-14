@@ -61,7 +61,7 @@ struct Type_Inferrer {
     void infer (Ast_Function* func) {
         assert(func->type);
 
-        func->inferred_type = func->type;
+        func->inferred_type = func->func_type;
     }
 
     void infer (Ast_Function_Call* call) {

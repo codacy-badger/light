@@ -44,10 +44,6 @@ struct Internal_Scope : Ast_Scope {
         DECLARE_TYPE_INT(DECIMAL);
         DECLARE_TYPE_INT(STRING);
         DECLARE_TYPE_INT(ANY);
-
-        for (auto stm : this->statements) {
-            stm->stm_flags |= STM_FLAG_IDENTS_RESOLVED;
-        }
     }
 
     void add_type (Ast_Type* type) {

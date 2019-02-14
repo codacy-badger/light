@@ -1,11 +1,13 @@
 #pragma once
 
-#include <queue>
+#include "queue.hpp"
+
 #include <mutex>
+#include <condition_variable>
 
 template<typename T>
 struct Async_Queue {
-    std::queue<T> wrapped;
+    Queue<T> wrapped;
     std::mutex mutex;
 
     std::condition_variable* condition;
@@ -24,9 +26,7 @@ struct Async_Queue {
 
     T pop () {
         std::lock_guard<std::mutex> lock(this->mutex);
-        auto next_event = this->wrapped.front();
-        this->wrapped.pop();
-        return next_event;
+        return this->wrapped.pop();
     }
 
     bool empty () {

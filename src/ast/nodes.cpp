@@ -14,7 +14,7 @@ Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_import
         }
     }
     if (this->scope_of) {
-		for (auto arg_decl : this->scope_of->type->arg_decls) {
+		for (auto arg_decl : this->scope_of->func_type->arg_decls) {
 			if (strcmp(arg_decl->name, _name) == 0) {
 				return arg_decl;
 			}
@@ -47,7 +47,7 @@ Ast_Declaration* Ast_Scope::find_var_declaration (const char* _name) {
         }
     }
     if (this->scope_of) {
-		for (auto arg_decl : this->scope_of->type->arg_decls) {
+		for (auto arg_decl : this->scope_of->func_type->arg_decls) {
 			if (strcmp(arg_decl->name, _name) == 0) {
 				return arg_decl;
 			}

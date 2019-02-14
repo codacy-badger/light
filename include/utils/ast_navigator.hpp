@@ -78,11 +78,7 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Declaration* decl) {
-		if (decl->type) {
-            if (decl->type->exp_type != AST_EXPRESSION_TYPE) {
-                this->ast_handle(decl->type);
-            }
-        }
+		if (decl->type) this->ast_handle(decl->type);
 		if (decl->expression) this->ast_handle(decl->expression);
 	}
 
@@ -214,9 +210,13 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Struct_Type* _struct) {
+        if (_struct->struct_flags & STRUCT_FLAG_BEING_CHECKING) return;
+
+        _struct->struct_flags |= STRUCT_FLAG_BEING_CHECKING;
 		for (auto attr : _struct->attributes) {
-			this->ast_handle(attr);
+			this->ast_handle((Ast_Statement*) attr);
 		}
+        _struct->struct_flags &= ~STRUCT_FLAG_BEING_CHECKING;
 	}
 
 	virtual void ast_handle (Ast_Pointer_Type* _ptr) {

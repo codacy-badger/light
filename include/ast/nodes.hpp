@@ -57,8 +57,6 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_EXPRESSION,
 };
 
-const uint16_t STM_FLAG_IDENTS_RESOLVED 	= 0x0001;
-
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 	uint16_t stm_flags = 0;
@@ -365,7 +363,12 @@ struct Ast_Type : Ast_Expression {
 	bool can_be_in_register (uint8_t register_size) { return this->is_primitive && (this->byte_size <= register_size); }
 };
 
+const uint16_t STRUCT_FLAG_BEING_CHECKING 	= 0x0001;
+const uint16_t STRUCT_FLAG_IDENTS_RESOLVED 	= 0x0002;
+
 struct Ast_Struct_Type : Ast_Type {
+	uint16_t struct_flags = 0;
+
 	std::vector<Ast_Declaration*> attributes;
 	bool is_slice = false;
 
@@ -453,7 +456,10 @@ struct Ast_Function_Type : Ast_Type {
 
 struct Ast_Function : Ast_Expression {
 	const char* name = NULL;
-	Ast_Function_Type* type = NULL;
+	union {
+		Ast_Expression* type = NULL;
+		Ast_Function_Type* func_type;
+	};
 	Ast_Scope* body = NULL;
 
 	// for foreign functions

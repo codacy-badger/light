@@ -16,13 +16,11 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         this->current_scope = global_statement->parent_scope;
 
         this->has_unresolved_idents = false;
-        this->ast_handle(&global_statement);
+        Ast_Ref_Navigator::ast_handle(&global_statement);
 
         if (!this->has_unresolved_idents) {
             this->push_out(global_statement);
-        } else {
-            this->requeue(global_statement);
-        }
+        } else this->requeue(global_statement);
     }
 
     bool resolve_ident (Ast_Expression** exp_ptr, Ast_Ident* ident, Ast_Declaration* decl) {
@@ -64,22 +62,18 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                         auto attr = static_cast<Ast_Ident*>(binop->rhs);
 
                         auto import = static_cast<Ast_Import*>(ident->declaration->expression);
-                        if (import->file_scope) {
-                            auto decl = import->file_scope->find_declaration(attr->name, false, false);
-                            if (decl) {
-                                // INFO: if the resolved identifier cannot be replaced by the declaration's
-                                // value, we make sure that the namespace access expression gets replaced
-                                // by the ident, so we remove the namespace access completely.
-                                auto is_replaced = this->resolve_ident((Ast_Expression**) binop_ptr, attr, decl);
-                                if (!is_replaced) (*binop_ptr) = (Ast_Binary*) attr;
-                            } else {
-                                this->has_unresolved_idents = true;
-                            }
-                        } else {
-                            this->has_unresolved_idents = true;
-                        }
+                        assert(import->file_scope);
+
+                        auto decl = import->file_scope->find_declaration(attr->name, false, false);
+                        if (decl) {
+                            // INFO: if the resolved identifier cannot be replaced by the declaration's
+                            // value, we make sure that the namespace access expression gets replaced
+                            // by the ident, so we remove the namespace access completely.
+                            auto is_replaced = this->resolve_ident((Ast_Expression**) binop_ptr, attr, decl);
+                            if (!is_replaced) (*binop_ptr) = (Ast_Binary*) attr;
+                        } else this->has_unresolved_idents = true;
                     }
-                }
+                } //else this->has_unresolved_idents = true;
             }
         }
     }
@@ -93,14 +87,12 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         this->current_scope = tmp;
     }
 
-    void ast_handle (Ast_Statement** stm_ptr) {
-        Ast_Ref_Navigator::ast_handle(stm_ptr);
-        (*stm_ptr)->stm_flags |= STM_FLAG_IDENTS_RESOLVED;
-    }
-
     void shutdown () {
         if (!this->input_queue.empty()) {
-            this->print_error("We have unresolved idents!");
+            while (!this->input_queue.empty()) {
+                auto stm = this->input_queue.pop();
+                this->print_error(stm, "Statement could not be resolved");
+            }
         }
     }
 };
