@@ -1,13 +1,10 @@
 
 #if OS_WINDOWS {
-    // TODO: naming this foo makes it resolve using main function's scope
-    // since the identifier resolutor propagates to other types's scopes
-    // Maybe types should have the scope associated with them
-    foo123 :: import "foo";
+    foo :: import "foo";
 }
 
 Bar :: struct {
-    b1: *foo123.Foo;
+    b1: *foo.Foo;
     b2: [7]Bazz;
     b3 : s64 = 12 * 3;
 }

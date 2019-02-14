@@ -369,7 +369,7 @@ const uint16_t STRUCT_FLAG_IDENTS_RESOLVED 	= 0x0002;
 struct Ast_Struct_Type : Ast_Type {
 	uint16_t struct_flags = 0;
 
-	std::vector<Ast_Declaration*> attributes;
+	Ast_Scope scope;
 	bool is_slice = false;
 
 	Ast_Struct_Type(char* name = NULL, size_t byte_size = 0, bool is_primitive = false,
@@ -382,7 +382,9 @@ struct Ast_Struct_Type : Ast_Type {
 		this->name = name;
 	}
 
-	Ast_Declaration* find_attribute (const char* name);
+	Ast_Declaration* find_attribute (const char* attribute_name) {
+		return this->scope.find_declaration(attribute_name, true, false);
+	}
 };
 
 struct Ast_Pointer_Type : Ast_Type {

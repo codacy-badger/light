@@ -206,9 +206,8 @@ struct Ast_Ref_Navigator {
         if ((*_struct)->struct_flags & STRUCT_FLAG_BEING_CHECKING) return;
 
         (*_struct)->struct_flags |= STRUCT_FLAG_BEING_CHECKING;
-		for (auto &attr : (*_struct)->attributes) {
-			this->ast_handle((Ast_Statement**) &attr);
-		}
+        auto tmp = &((*_struct)->scope);
+		this->ast_handle(&tmp);
         (*_struct)->struct_flags &= ~STRUCT_FLAG_BEING_CHECKING;
 	}
 

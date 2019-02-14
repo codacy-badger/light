@@ -269,16 +269,8 @@ struct Parser {
 
 			if (this->lexer.is_next(TOKEN_BRAC_OPEN)) {
 				this->lexer.skip();
-
-				auto _scope = this->scope();
-				for (auto stm : _scope->statements) {
-					if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-						auto decl = static_cast<Ast_Declaration*>(stm);
-						_struct->attributes.push_back(decl);
-					} else {
-						//Logger::error(stm, "Only declarations can go inside a struct");
-					}
-				}
+				_struct->scope.parent = this->current_scope;
+				this->scope(&_struct->scope);
 				this->lexer.expect(TOKEN_BRAC_CLOSE);
 			}
 

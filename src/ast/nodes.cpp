@@ -114,13 +114,6 @@ void Ast_Foreign::add (Ast_Declaration* decl) {
     } else printf("Only types can go inside #foreign scope declarations");
 }
 
-Ast_Declaration* Ast_Struct_Type::find_attribute (const char* _name) {
-	for (auto decl : this->attributes) {
-		if (strcmp(decl->name, _name) == 0) return decl;
-	}
-	return NULL;
-}
-
 // TODO: precompute depth for each pointer type (when uniqued?)
 Ast_Type* Ast_Pointer_Type::get_base_type_recursive() {
     auto base_type = static_cast<Ast_Type*>(this->base);
@@ -144,8 +137,8 @@ Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type, const char* name) {
     auto length_decl = ast_make_declaration_with_type("length", Types::type_u64);
     auto data_decl = ast_make_declaration_with_type("data", ptr_type);
 
-    this->attributes.push_back(length_decl);
-    this->attributes.push_back(data_decl);
+    this->scope.add(length_decl);
+    this->scope.add(data_decl);
 }
 
 Ast_Binary_Type token_to_binop (Token_Type tType) {

@@ -73,7 +73,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                             if (!is_replaced) (*binop_ptr) = (Ast_Binary*) attr;
                         } else this->has_unresolved_idents = true;
                     }
-                } //else this->has_unresolved_idents = true;
+                }// else this->has_unresolved_idents = true;
             }
         }
     }
