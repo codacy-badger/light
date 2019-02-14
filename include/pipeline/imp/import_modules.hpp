@@ -7,22 +7,16 @@
 #include <map>
 #include <vector>
 
-struct Imports_Block : Compiler_Pipe<Ast_Scope*>, Ast_Navigator {
+struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     Modules* modules = NULL;
 
-    Imports_Block (Modules* modules) : Compiler_Pipe("Module Dependencies") {
+    Import_Modules (Modules* modules) : Compiler_Pipe("Import Modules") {
         this->modules = modules;
     }
 
-    void handle (Ast_Scope* file_scope) {
-        if (!(file_scope->scope_flags & SCOPE_FLAG_IMPORTS_RESOLVED)) {
-            Ast_Navigator::ast_handle(file_scope);
-            file_scope->scope_flags |= SCOPE_FLAG_IMPORTS_RESOLVED;
-        }
-
-        if (file_scope->are_all_imports_resolved()) {
-            this->push_out(file_scope);
-        } else this->requeue(file_scope);
+    void handle (Ast_Statement* global_statement) {
+        Ast_Navigator::ast_handle(global_statement);
+        this->push_out(global_statement);
     }
 
     void ast_handle (Ast_Declaration* decl) {

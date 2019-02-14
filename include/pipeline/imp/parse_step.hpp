@@ -17,7 +17,7 @@ struct Parse_Command {
     }
 };
 
-struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Scope*> {
+struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Statement*> {
     Modules* modules = NULL;
 
     Parse_Step (Modules* modules) : Compiler_Pipe("Parse") {
@@ -33,6 +33,8 @@ struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Scope*> {
         this->context->parser->parse_into(file_scope, parse_command.absolute_path);
         file_scope->scope_flags |= SCOPE_FLAG_FULLY_PARSED;
 
-        this->push_out(file_scope);
+        for (auto stm : file_scope->statements) {
+            this->push_out(stm);
+        }
     }
 };

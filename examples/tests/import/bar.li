@@ -1,0 +1,12 @@
+
+#if OS_WINDOWS {
+    foo :: import "foo";
+}
+
+Bar :: struct {
+    b1: *foo.Foo;
+    b2: Bazz;
+    b3 : s64 = 12;
+}
+
+import "bazz";

@@ -36,6 +36,7 @@ struct Internal_Scope : Ast_Scope {
 	    this->add_boolean("OS_WINDOWS", target_os->type == OS_TYPE_WINDOWS);
         this->add_boolean("OS_LINUX",   target_os->type == OS_TYPE_LINUX);
         this->add_boolean("OS_MAC",     target_os->type == OS_TYPE_MAC);
+        this->add_boolean("DEBUG",      false);
 
         DECLARE_TYPE_INT(VOID);
         DECLARE_TYPE_INT(BOOL);

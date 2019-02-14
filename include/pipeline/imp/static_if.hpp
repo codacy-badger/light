@@ -4,13 +4,15 @@
 #include "utils/ast_navigator.hpp"
 
 struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
-    Async_Queue<Ast_Scope*>* flowback_queue = NULL;
+    Ast_Scope* current_scope = NULL;
+    Async_Queue<Ast_Statement*>* flow_back = NULL;
 
-    Static_If(Async_Queue<Ast_Scope*>* flowback_queue) : Compiler_Pipe("Static If") {
-        this->flowback_queue = flowback_queue;
+    Static_If(Async_Queue<Ast_Statement*>* flow_back) : Compiler_Pipe("Static If") {
+        this->flow_back = flow_back;
     }
 
     void handle (Ast_Statement* global_statement) {
+        this->current_scope = global_statement->parent_scope;
         Ast_Navigator::ast_handle(global_statement);
         this->push_out(global_statement);
     }
@@ -20,10 +22,24 @@ struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         auto condition_value = this->get_value_as_bool(_if->condition);
         if (condition_value) {
-            this->flowback_queue->push(_if->then_body);
+            this->resolve_static_if(static_if, _if->then_body);
         } else if (_if->else_body) {
-            this->flowback_queue->push(_if->else_body);
+            this->resolve_static_if(static_if, _if->else_body);
         }
+    }
+
+    void resolve_static_if (Ast_Static_If* static_if, Ast_Scope* scope_to_merge) {
+        static_if->parent_scope->add(static_if->parent_scope->find(static_if), scope_to_merge);
+        for (auto stm : scope_to_merge->statements) {
+            flow_back->push(stm);
+        }
+    }
+
+    void ast_handle (Ast_Scope* scope) {
+        auto tmp = this->current_scope;
+        this->current_scope = scope;
+        Ast_Navigator::ast_handle(scope);
+        this->current_scope = tmp;
     }
 
     bool get_value_as_bool (Ast_Expression* exp) {
@@ -36,7 +52,7 @@ struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             assert(ident->declaration->is_constant);
             return this->get_value_as_bool(ident->declaration->expression);
         } else {
-            this->print_error(exp, "Static IF condition can only be literal or constant");
+            this->print_error(exp, "Static IF condition can only be literal or pre-declared constant");
             return false;
         }
     }

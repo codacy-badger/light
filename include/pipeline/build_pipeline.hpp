@@ -4,9 +4,8 @@
 
 #include "pipe.hpp"
 #include "imp/parse_step.hpp"
-#include "imp/imports_block.hpp"
+#include "imp/import_modules.hpp"
 #include "imp/resolve_idents.hpp"
-#include "imp/statement_sort.hpp"
 #include "imp/type_check.hpp"
 #include "imp/static_if.hpp"
 
@@ -52,11 +51,10 @@ struct Build_Pipeline {
     Modules* modules = new Modules();
 
     Parse_Step* parse_step = new Parse_Step(modules);
-    Imports_Block* imports_block = new Imports_Block(modules);
+    Import_Modules* import_modules = new Import_Modules(modules);
     Resolve_Idents* resolve_idents = new Resolve_Idents();
-    Statement_Sort* statement_sort = new Statement_Sort();
+    Static_If* static_if = new Static_If(&import_modules->input_queue);
     Type_Check* type_check = new Type_Check();
-    Static_If* static_if = new Static_If(&resolve_idents->input_queue);
     Print_Step* printer = new Print_Step();
 
     std::vector<Pipe*> pipes;
@@ -65,19 +63,17 @@ struct Build_Pipeline {
         this->modules->init(context);
 
         pipes.push_back(this->parse_step);
-        pipes.push_back(this->imports_block);
+        pipes.push_back(this->import_modules);
         pipes.push_back(this->resolve_idents);
-        pipes.push_back(this->statement_sort);
-        pipes.push_back(this->type_check);
         pipes.push_back(this->static_if);
+        pipes.push_back(this->type_check);
         pipes.push_back(this->printer);
 
-        BIND_PIPES(this->parse_step, this->imports_block);
-        BIND_PIPES(this->imports_block, this->resolve_idents);
-        BIND_PIPES(this->resolve_idents, this->statement_sort);
-        BIND_PIPES(this->statement_sort, this->type_check);
-        BIND_PIPES(this->type_check, this->static_if);
-        BIND_PIPES(this->static_if, this->printer);
+        BIND_PIPES(this->parse_step, this->import_modules);
+        BIND_PIPES(this->import_modules, this->resolve_idents);
+        BIND_PIPES(this->resolve_idents, this->static_if);
+        BIND_PIPES(this->static_if, this->type_check);
+        BIND_PIPES(this->type_check, this->printer);
 
         for (auto pipe : this->pipes) {
             pipe->context = context;

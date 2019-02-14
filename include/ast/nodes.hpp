@@ -63,6 +63,7 @@ const uint16_t STM_FLAG_IDENTS_RESOLVED 	= 0x0001;
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
 	uint16_t stm_flags = 0;
+	Ast_Scope* parent_scope = NULL;
 };
 
 const uint16_t SCOPE_FLAG_FULLY_PARSED 		= 0x0001;
@@ -85,7 +86,12 @@ struct Ast_Scope : Ast_Statement {
 
     bool is_global () { return this->parent == NULL; }
 
+	std::vector<Ast_Statement*>::iterator find (Ast_Statement* stm) {
+		return std::find(this->statements.begin(), this->statements.end(), stm);
+	}
+
 	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Statement* stm) {
+		stm->parent_scope = this;
 		return this->statements.insert(it + 1, stm);
 	}
 
@@ -109,8 +115,7 @@ struct Ast_Scope : Ast_Statement {
 	}
 
 	std::vector<Ast_Statement*>::iterator remove (Ast_Statement* stm) {
-		auto it = std::find(this->statements.begin(), this->statements.end(), stm);
-		return this->statements.erase(it) - 1;
+		return this->statements.erase(this->find(stm)) - 1;
 	}
 
 	Ast_Scope* get_global_scope () {

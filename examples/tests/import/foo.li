@@ -1,0 +1,13 @@
+
+Foo :: struct {
+    a1 := 550;
+    a2: Bar;
+}
+
+import "bar";
+
+foozle :: fn (number: u64) -> u64 {
+    return bazz.factorial(number * 2) + 5;
+}
+
+bazz :: import "bazz"

@@ -1,23 +1,9 @@
 
-asd :: import "a";
-VALUE_A : u32 : 16;
-
-#if OS_WINDOWS {
-    VALUE_WIN :: VALUE_B + VALUE_A;
-}
+import "foo";
 
 main :: fn {
-    value1 := VALUE_A;
-    value2 := VALUE_B;
-    value3 := asd.VALUE_C;
-    value4 := asd.VALUE_D;
+    foo: Foo;
+    value := foo.a2.b2.c3;
 
-    guy: asd.Dummy1;
-    other := guy.friend;
-    other_guid := guy.friend.guid;
-    num := guy.friend.friend_to.number;
-
-    other_num := asd.factorial(10);
+    result := foozle(12);
 }
-
-VALUE_B :: 2;

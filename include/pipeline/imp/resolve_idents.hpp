@@ -5,44 +5,34 @@
 
 #include <map>
 
-struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Ref_Navigator {
+struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
+    Ast_Scope* current_scope = NULL;
 
-    std::map<Ast_Scope*, std::map<Ast_Statement*, std::vector<Ast_Ident*>>> unresolved_idents;
-    Ast_Statement* current_global_statement = NULL;
-    Ast_Scope* current_file_scope = NULL;
+    bool has_unresolved_idents = false;
 
     Resolve_Idents () : Compiler_Pipe("Resolved Idents") { /* empty */ }
 
-    void handle (Ast_Scope* file_scope) {
-        this->current_file_scope = file_scope;
-        for (auto& stm : file_scope->statements) {
-            this->current_global_statement = stm;
-            this->ast_handle(&stm);
-        }
+    void handle (Ast_Statement* global_statement) {
+        this->current_scope = global_statement->parent_scope;
 
-        auto it = this->unresolved_idents.find(file_scope);
-        if (it == this->unresolved_idents.end()) {
-            for (auto stm : file_scope->statements) {
-                this->push_out(stm);
-            }
+        this->has_unresolved_idents = false;
+        this->ast_handle(&global_statement);
+
+        if (!this->has_unresolved_idents) {
+            this->push_out(global_statement);
         } else {
-            for (auto stm : file_scope->statements) {
-                auto it2 = this->unresolved_idents[file_scope].find(stm);
-                if (it2 == this->unresolved_idents[file_scope].end()) {
-                    this->push_out(stm);
-                }
-            }
+            this->requeue(global_statement);
         }
     }
 
-    bool resolve_ident (Ast_Expression**, Ast_Ident* ident, Ast_Declaration* decl) {
-        /*if (decl->is_constant && decl->expression) {
+    bool resolve_ident (Ast_Expression** exp_ptr, Ast_Ident* ident, Ast_Declaration* decl) {
+        if (decl->is_constant && decl->expression) {
             auto exp_type = decl->expression->exp_type;
             if (exp_type == AST_EXPRESSION_FUNCTION || exp_type == AST_EXPRESSION_TYPE) {
                 (*exp_ptr) = decl->expression;
                 return true;
             }
-        }*/
+        }
         ident->declaration = decl;
         return false;
     }
@@ -51,11 +41,11 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Ref_Navig
         auto ident = (*ident_ptr);
 
         if (!ident->declaration) {
-            auto decl = this->current_file_scope->find_declaration(ident->name, true, true);
+            auto decl = this->current_scope->find_declaration(ident->name, true, true);
             if (decl) {
                 this->resolve_ident((Ast_Expression**) ident_ptr, ident, decl);
             } else {
-                this->unresolved_idents[this->current_file_scope][this->current_global_statement].push_back(ident);
+                this->has_unresolved_idents = true;
             }
         }
     }
@@ -71,19 +61,36 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Ref_Navig
                 auto ident = static_cast<Ast_Ident*>(binop->lhs);
                 if (ident->declaration && ident->declaration->expression) {
                     if (ident->declaration->expression->exp_type == AST_EXPRESSION_IMPORT) {
-                        auto import = static_cast<Ast_Import*>(ident->declaration->expression);
                         auto attr = static_cast<Ast_Ident*>(binop->rhs);
-                        auto decl = import->file_scope->find_declaration(attr->name, false, false);
 
-                        // INFO: if the resolved identifier cannot be replaced by the declaration's
-                        // value, we make sure that the namespace access expression gets replaced
-                        // by the ident, so we remove the namespace access completely.
-                        auto is_replaced = this->resolve_ident((Ast_Expression**) binop_ptr, attr, decl);
-                        if (!is_replaced) (*binop_ptr) = (Ast_Binary*) attr;
+                        auto import = static_cast<Ast_Import*>(ident->declaration->expression);
+                        if (import->file_scope) {
+                            auto decl = import->file_scope->find_declaration(attr->name, false, false);
+                            if (decl) {
+                                // INFO: if the resolved identifier cannot be replaced by the declaration's
+                                // value, we make sure that the namespace access expression gets replaced
+                                // by the ident, so we remove the namespace access completely.
+                                auto is_replaced = this->resolve_ident((Ast_Expression**) binop_ptr, attr, decl);
+                                if (!is_replaced) (*binop_ptr) = (Ast_Binary*) attr;
+                            } else {
+                                this->has_unresolved_idents = true;
+                            }
+                        } else {
+                            this->has_unresolved_idents = true;
+                        }
                     }
                 }
             }
         }
+    }
+
+    void ast_handle (Ast_Scope** scope_ptr) {
+        auto tmp = this->current_scope;
+        this->current_scope = (*scope_ptr);
+
+        Ast_Ref_Navigator::ast_handle(scope_ptr);
+
+        this->current_scope = tmp;
     }
 
     void ast_handle (Ast_Statement** stm_ptr) {
@@ -92,15 +99,8 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Scope*, Ast_Statement*>, Ast_Ref_Navig
     }
 
     void shutdown () {
-        if (!this->unresolved_idents.empty()) {
-            for (auto entry1 : this->unresolved_idents) {
-                this->print_error("Error found in '%s'...", entry1.first->location.filename);
-                for (auto entry2 : entry1.second) {
-                    for (auto ident : entry2.second) {
-                        this->print_error(ident, "  ...Identifier not found: '%s'", ident->name);
-                    }
-                }
-            }
+        if (!this->input_queue.empty()) {
+            this->print_error("We have unresolved idents!");
         }
     }
 };

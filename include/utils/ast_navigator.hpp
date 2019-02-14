@@ -78,7 +78,11 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Declaration* decl) {
-		if (decl->type) this->ast_handle(decl->type);
+		if (decl->type) {
+            if (decl->type->exp_type != AST_EXPRESSION_TYPE) {
+                this->ast_handle(decl->type);
+            }
+        }
 		if (decl->expression) this->ast_handle(decl->expression);
 	}
 
