@@ -388,7 +388,10 @@ struct Ast_Struct_Type : Ast_Type {
 };
 
 struct Ast_Pointer_Type : Ast_Type {
-	Ast_Expression* base = NULL;
+	union {
+		Ast_Expression* base = NULL;
+		Ast_Type* typed_base;
+	};
 
 	Ast_Pointer_Type(Ast_Expression* base = NULL) {
 		this->typedef_type = AST_TYPEDEF_POINTER;

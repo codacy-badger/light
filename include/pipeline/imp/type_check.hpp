@@ -23,15 +23,10 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             return;
         }
 
-        if (!decl->type) {
-            this->inferrer->infer(decl->expression);
+        if (!decl->type && decl->expression) {
             decl->type = decl->expression->inferred_type;
-        } else if (!decl->expression) {
-            this->inferrer->infer(decl->type);
-            if (decl->type->inferred_type != Types::type_type) {
-                //this->error(decl->type, "Type of declaration must be a type instance");
-            }
-        } else {
+        } else if (decl->type && decl->expression) {
+            // @TODO match both inferred types & insert implicid cast if needed
             decl->expression->inferred_type = static_cast<Ast_Type*>(decl->type);
         }
     }
@@ -42,13 +37,61 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void ast_handle (Ast_Binary* binary) {
-        Ast_Navigator::ast_handle(binary);
-        this->inferrer->infer(binary);
+        if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
+            this->ast_handle(binary->lhs);
+
+            assert(binary->lhs->inferred_type);
+            assert(binary->rhs->exp_type == AST_EXPRESSION_IDENT);
+            auto ident = static_cast<Ast_Ident*>(binary->rhs);
+
+            this->bind_attribute_or_error(binary->lhs->inferred_type, ident, &binary->lhs);
+            assert(ident->declaration);
+
+            this->ast_handle(binary->rhs);
+        } else Ast_Navigator::ast_handle(binary);
     }
 
     void ast_handle (Ast_Unary* unary) {
         if (unary->unary_op != AST_UNARY_REFERENCE) {
             Ast_Navigator::ast_handle(unary);
+        }
+    }
+
+    void bind_attribute_or_error (Ast_Type* type, Ast_Ident* ident, Ast_Expression** exp_ptr) {
+        switch (type->typedef_type) {
+            case AST_TYPEDEF_STRUCT: {
+                auto struct_type = static_cast<Ast_Struct_Type*>(type);
+                auto attr_decl = struct_type->find_attribute(ident->name);
+                if (attr_decl) {
+                    ident->declaration = attr_decl;
+                } else {
+                    this->error(ident, "Struct '%s' has no attribute named '%s'", type->name, ident->name);
+                }
+                break;
+            }
+            case AST_TYPEDEF_POINTER: {
+                while (type->typedef_type == AST_TYPEDEF_POINTER) {
+                    auto tmp = static_cast<Ast_Pointer_Type*>(type);
+                    assert(tmp->base->exp_type == AST_EXPRESSION_TYPE);
+                    type = tmp->typed_base;
+
+                    auto tmp2 = (Ast_Ident*) new Ast_Unary(AST_UNARY_DEREFERENCE, *exp_ptr);
+                    tmp2->location = (*exp_ptr)->location;
+                    (*exp_ptr) = tmp2;
+                }
+
+                this->bind_attribute_or_error(type, ident, exp_ptr);
+
+                break;
+            }
+            case AST_TYPEDEF_FUNCTION: {
+                this->error(ident, "Attribute access cannot be performed on function types");
+                break;
+            }
+            case AST_TYPEDEF_ARRAY: {
+                this->error(ident, "TODO");
+                break;
+            }
         }
     }
 };

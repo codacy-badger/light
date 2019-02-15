@@ -7,15 +7,9 @@
 
 struct Type_Inferrer {
 
-    void infer (Ast_Declaration* decl) {
-        if (!decl->type) {
-            assert(decl->expression);
-            this->infer(decl->expression);
-            decl->type = decl->expression->inferred_type;
-        }
-    }
-
     void infer (Ast_Expression* exp) {
+        if (exp->inferred_type) return;
+
         switch (exp->exp_type) {
             case AST_EXPRESSION_IMPORT: {
                 this->infer(static_cast<Ast_Import*>(exp));
@@ -51,7 +45,7 @@ struct Type_Inferrer {
             }
             default: assert(false);
         }
-        //assert(exp->inferred_type);
+        assert(exp->inferred_type);
     }
 
     void infer (Ast_Import* import) {
@@ -87,24 +81,34 @@ struct Type_Inferrer {
                 break;
             }
         	case AST_BINARY_SUBSCRIPT: {
-                abort();
+                assert(false);
                 break;
             }
-        	case AST_BINARY_LOGICAL_AND:
-            case AST_BINARY_LOGICAL_OR:
-            case AST_BINARY_ADD:
-            case AST_BINARY_SUB:
-            case AST_BINARY_MUL:
-            case AST_BINARY_DIV:
-            case AST_BINARY_REM:
             case AST_BINARY_BITWISE_AND:
             case AST_BINARY_BITWISE_OR:
             case AST_BINARY_BITWISE_XOR:
             case AST_BINARY_BITWISE_RIGHT_SHIFT:
-            case AST_BINARY_BITWISE_LEFT_SHIFT: {
-                //assert(binary->lhs->inferred_type == binary->rhs->inferred_type);
+            case AST_BINARY_BITWISE_LEFT_SHIFT:
+            case AST_BINARY_ADD:
+            case AST_BINARY_SUB:
+            case AST_BINARY_MUL:
+            case AST_BINARY_DIV:
+            case AST_BINARY_REM: {
+                auto lhs_type = binary->lhs->inferred_type;
+                auto rhs_type = binary->rhs->inferred_type;
+
+                if (lhs_type != rhs_type) {
+                    printf("[ERROR!] types don't match: '%s' and '%s'\n",
+                        lhs_type->name, rhs_type->name);
+                    binary->inferred_type = lhs_type;
+                } else {
+                    binary->inferred_type = lhs_type;
+                }
+
                 break;
             }
+        	case AST_BINARY_LOGICAL_AND:
+            case AST_BINARY_LOGICAL_OR:
         	case AST_BINARY_EQ:
             case AST_BINARY_NEQ:
             case AST_BINARY_LT:
@@ -118,6 +122,7 @@ struct Type_Inferrer {
     }
 
     void infer (Ast_Unary* unary) {
+        // @Fixme this is a redundant call, since we also call this from type checked
         this->infer(unary->exp);
         assert(unary->exp->inferred_type);
         switch (unary->unary_op) {
@@ -162,7 +167,9 @@ struct Type_Inferrer {
         if (ident->inferred_type) return;
 
         if (ident->declaration) {
-            this->infer(ident->declaration);
+            assert(ident->declaration);
+            assert(ident->declaration->type);
+            assert(ident->declaration->type->exp_type == AST_EXPRESSION_TYPE);
             ident->inferred_type = static_cast<Ast_Type*>(ident->declaration->type);
         }
     }

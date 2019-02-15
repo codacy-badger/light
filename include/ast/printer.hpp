@@ -239,27 +239,33 @@ struct Ast_Printer {
     void print(Ast_Unary* unary) {
         switch (unary->unary_op) {
             case AST_UNARY_DEREFERENCE: {
-                printf("&");
+                printf("&(");
+                print(unary->exp);
+                printf(")");
                 break;
             }
         	case AST_UNARY_REFERENCE: {
-                printf("*");
+                printf("*(");
+                print(unary->exp);
+                printf(")");
                 break;
             }
         	case AST_UNARY_NOT: {
-                printf("!");
+                printf("!(");
+                print(unary->exp);
+                printf(")");
                 break;
             }
         	case AST_UNARY_NEGATE: {
-                printf("-");
+                printf("-(");
+                print(unary->exp);
+                printf(")");
                 break;
             }
         }
-        print(unary->exp);
     }
 
     void print(Ast_Binary* binary) {
-        printf("(");
         print(binary->lhs);
         switch (binary->binary_op) {
         	case AST_BINARY_ATTRIBUTE: {
@@ -364,7 +370,6 @@ struct Ast_Printer {
                 break;
             }
         }
-        printf(")");
     }
 
     void print(Ast_Cast* cast) {
@@ -457,8 +462,9 @@ struct Ast_Printer {
     }
 
     void print(Ast_Pointer_Type* ptr_type) {
-        printf("*");
+        printf("*(");
         print(ptr_type->base);
+        printf(")");
     }
 
     void print(Ast_Array_Type* array_type) {
