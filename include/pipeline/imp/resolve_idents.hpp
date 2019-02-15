@@ -24,17 +24,21 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             this->push_out(global_statement);
             if (global_statement->stm_type == AST_STATEMENT_DECLARATION) {
                 auto decl = static_cast<Ast_Declaration*>(global_statement);
-                if (this->depending_statements.contains(decl->name)) {
-                    auto deps = &(this->depending_statements[decl->name]);
-                    for (auto stm : *deps) {
-                        this->requeue(stm);
-                    }
-                    deps->clear();
-                }
+                this->try_requeue_depending_statements(decl);
             }
         } else {
             auto ident_name = (*(this->unresolved_idents[0]))->name;
             this->depending_statements[ident_name].push_back(global_statement);
+        }
+    }
+
+    void try_requeue_depending_statements (Ast_Declaration* decl) {
+        if (this->depending_statements.contains(decl->name)) {
+            auto deps = &(this->depending_statements[decl->name]);
+            for (auto stm : *deps) {
+                this->requeue(stm);
+            }
+            deps->clear();
         }
     }
 

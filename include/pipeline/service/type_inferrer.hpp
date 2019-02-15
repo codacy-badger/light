@@ -117,7 +117,37 @@ struct Type_Inferrer {
         }
     }
 
-    void infer (Ast_Unary*) { /* TODO */ }
+    void infer (Ast_Unary* unary) {
+        this->infer(unary->exp);
+        assert(unary->exp->inferred_type);
+        switch (unary->unary_op) {
+            case AST_UNARY_DEREFERENCE: {
+                auto type = unary->exp->inferred_type;
+                if (type->typedef_type == AST_TYPEDEF_POINTER) {
+                    auto ptr_type = static_cast<Ast_Pointer_Type*>(type);
+
+                    assert(ptr_type->base->exp_type == AST_EXPRESSION_TYPE);
+                    auto base_type = static_cast<Ast_Type*>(ptr_type->base);
+                    unary->inferred_type = base_type;
+                }
+                break;
+            }
+        	case AST_UNARY_REFERENCE: {
+                auto type = unary->exp->inferred_type;
+                unary->inferred_type = new Ast_Pointer_Type(type);
+                unary->inferred_type->location = unary->location;
+                break;
+            }
+        	case AST_UNARY_NOT: {
+                unary->inferred_type = Types::type_bool;
+                break;
+            }
+        	case AST_UNARY_NEGATE: {
+                assert(false);
+                break;
+            }
+        }
+    }
 
     void infer (Ast_Arguments* args) {
 		for (auto exp : args->unnamed) {
