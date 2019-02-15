@@ -182,7 +182,10 @@ struct Ast_Break : Ast_Statement {
 
 struct Ast_Declaration : Ast_Statement {
 	const char* name = NULL;
-	Ast_Expression* type = NULL;
+	union {
+		Ast_Expression* type = NULL;
+		Ast_Type* typed_type;
+	};
 	Ast_Expression* expression = NULL;
 
     bool is_constant = false;
@@ -403,7 +406,10 @@ struct Ast_Pointer_Type : Ast_Type {
 };
 
 struct Ast_Array_Type : Ast_Type {
-	Ast_Expression* base;
+	union {
+		Ast_Expression* base = NULL;
+		Ast_Type* typed_base;
+	};
 	Ast_Expression* length;
 
 	uint64_t length_uint = 0;
@@ -432,7 +438,10 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 
 struct Ast_Function_Type : Ast_Type {
 	std::vector<Ast_Declaration*> arg_decls;
-	Ast_Expression* ret_type = NULL;
+	union {
+		Ast_Expression* ret_type = NULL;
+		Ast_Type* typed_ret_type;
+	};
 
 	Ast_Function_Type() {
 		this->typedef_type = AST_TYPEDEF_FUNCTION;
