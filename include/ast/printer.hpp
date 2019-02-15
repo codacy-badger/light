@@ -451,16 +451,8 @@ struct Ast_Printer {
         if (short_version) {
             printf("{%s}", struct_type->name);
         } else {
-            printf("struct {\n");
-            this->current_tabs += 1;
-            for (auto decl : struct_type->attributes) {
-                PRINT_TABS;
-                print(decl);
-                printf("\n");
-            }
-            this->current_tabs -= 1;
-            PRINT_TABS;
-            printf("}");
+            printf("struct ");
+            this->print(&struct_type->scope);
         }
     }
 

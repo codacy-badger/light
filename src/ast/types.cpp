@@ -12,8 +12,8 @@ Ast_Struct_Type* build_type_string () {
     data_decl->type = new Ast_Pointer_Type(Types::type_byte);
     data_decl->name = "data";
 
-    type_string->attributes.push_back(length_decl);
-    type_string->attributes.push_back(data_decl);
+    type_string->scope.add(length_decl);
+    type_string->scope.add(data_decl);
 
     return type_string;
 }
@@ -30,8 +30,8 @@ Ast_Struct_Type* build_type_any () {
     value_decl->type = new Ast_Pointer_Type(Types::type_void);
     value_decl->name = "value";
 
-    type_any->attributes.push_back(type_decl);
-    type_any->attributes.push_back(value_decl);
+    type_any->scope.add(type_decl);
+    type_any->scope.add(value_decl);
 
     return type_any;
 }

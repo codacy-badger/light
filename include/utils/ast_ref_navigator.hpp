@@ -152,14 +152,18 @@ struct Ast_Ref_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Function** func) {
+        if ((*func)->func_flags & FUNCTION_FLAG_BEING_CHECKED) return;
+
+        (*func)->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
 		this->ast_handle(&(*func)->type);
-		if ((*func)->body) this->ast_handle(&(*func)->body);
+		if ((*func)->body) {
+            this->ast_handle(&(*func)->body);
+        }
+        (*func)->func_flags &= ~FUNCTION_FLAG_BEING_CHECKED;
 	}
 
 	virtual void ast_handle (Ast_Function_Call** func_call) {
-		if ((*func_call)->func->exp_type != AST_EXPRESSION_FUNCTION) {
-			this->ast_handle(&(*func_call)->func);
-		}
+		this->ast_handle(&(*func_call)->func);
 		this->ast_handle(&(*func_call)->arguments);
 	}
 
@@ -203,13 +207,12 @@ struct Ast_Ref_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Struct_Type** _struct) {
-        if ((*_struct)->struct_flags & STRUCT_FLAG_BEING_CHECKING) return;
+        if ((*_struct)->struct_flags & STRUCT_FLAG_BEING_CHECKED) return;
 
-        (*_struct)->struct_flags |= STRUCT_FLAG_BEING_CHECKING;
-		for (auto &attr : (*_struct)->attributes) {
-			this->ast_handle((Ast_Statement**) &attr);
-		}
-        (*_struct)->struct_flags &= ~STRUCT_FLAG_BEING_CHECKING;
+        (*_struct)->struct_flags |= STRUCT_FLAG_BEING_CHECKED;
+        auto tmp = &((*_struct)->scope);
+		this->ast_handle(&tmp);
+        (*_struct)->struct_flags &= ~STRUCT_FLAG_BEING_CHECKED;
 	}
 
 	virtual void ast_handle (Ast_Pointer_Type** _ptr) {
