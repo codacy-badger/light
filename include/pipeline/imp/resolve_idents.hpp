@@ -4,23 +4,38 @@
 #include "utils/ast_ref_navigator.hpp"
 
 #include <map>
+#include <vector>
 
 struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
-    Ast_Scope* current_scope = NULL;
+    String_Map<std::vector<Ast_Statement*>> depending_statements;
 
-    bool has_unresolved_idents = false;
+    std::vector<Ast_Ident**> unresolved_idents;
+    Ast_Scope* current_scope = NULL;
 
     Resolve_Idents () : Compiler_Pipe("Resolved Idents") { /* empty */ }
 
     void handle (Ast_Statement* global_statement) {
         this->current_scope = global_statement->parent_scope;
 
-        this->has_unresolved_idents = false;
+        this->unresolved_idents.clear();
         Ast_Ref_Navigator::ast_handle(&global_statement);
 
-        if (!this->has_unresolved_idents) {
+        if (this->unresolved_idents.empty()) {
             this->push_out(global_statement);
-        } else this->requeue(global_statement);
+            if (global_statement->stm_type == AST_STATEMENT_DECLARATION) {
+                auto decl = static_cast<Ast_Declaration*>(global_statement);
+                if (this->depending_statements.contains(decl->name)) {
+                    auto deps = &(this->depending_statements[decl->name]);
+                    for (auto stm : *deps) {
+                        this->requeue(stm);
+                    }
+                    deps->clear();
+                }
+            }
+        } else {
+            auto ident_name = (*(this->unresolved_idents[0]))->name;
+            this->depending_statements[ident_name].push_back(global_statement);
+        }
     }
 
     bool resolve_ident (Ast_Expression** exp_ptr, Ast_Ident* ident, Ast_Declaration* decl) {
@@ -28,10 +43,12 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             auto exp_type = decl->expression->exp_type;
             if (exp_type == AST_EXPRESSION_FUNCTION || exp_type == AST_EXPRESSION_TYPE) {
                 (*exp_ptr) = decl->expression;
+                Ast_Ref_Navigator::ast_handle(exp_ptr);
                 return true;
             }
         }
         ident->declaration = decl;
+        Ast_Ref_Navigator::ast_handle(&ident->declaration);
         return false;
     }
 
@@ -43,7 +60,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             if (decl) {
                 this->resolve_ident((Ast_Expression**) ident_ptr, ident, decl);
             } else {
-                this->has_unresolved_idents = true;
+                this->unresolved_idents.push_back(ident_ptr);
             }
         }
     }
@@ -71,9 +88,11 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                             // by the ident, so we remove the namespace access completely.
                             auto is_replaced = this->resolve_ident((Ast_Expression**) binop_ptr, attr, decl);
                             if (!is_replaced) (*binop_ptr) = (Ast_Binary*) attr;
-                        } else this->has_unresolved_idents = true;
+                        } else {
+                            this->unresolved_idents.push_back((Ast_Ident**) &binop->rhs);
+                        }
                     }
-                } //else this->has_unresolved_idents = true;
+                }
             }
         }
     }
@@ -91,7 +110,15 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         if (!this->input_queue.empty()) {
             while (!this->input_queue.empty()) {
                 auto stm = this->input_queue.pop();
-                this->print_error(stm, "Statement could not be resolved");
+
+                this->unresolved_idents.clear();
+                Ast_Ref_Navigator::ast_handle(&stm);
+
+                for (auto ident_ptr : this->unresolved_idents) {
+                    auto ident = (*ident_ptr);
+
+                    this->error(ident, "Unresolved identifier: '%s'", ident->name);
+                }
             }
         }
     }

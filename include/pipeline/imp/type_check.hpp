@@ -19,7 +19,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         Ast_Navigator::ast_handle(decl);
 
         if (!decl->type && !decl->expression) {
-            this->print_error(decl, "Declarations must either have a value or a type");
+            this->error(decl, "Declarations must either have a value or a type");
             return;
         }
 
@@ -29,7 +29,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         } else if (!decl->expression) {
             this->inferrer->infer(decl->type);
             if (decl->type->inferred_type != Types::type_type) {
-                //this->print_error(decl->type, "Type of declaration must be a type instance");
+                //this->error(decl->type, "Type of declaration must be a type instance");
             }
         } else {
             decl->expression->inferred_type = static_cast<Ast_Type*>(decl->type);

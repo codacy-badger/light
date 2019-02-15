@@ -47,37 +47,66 @@ struct Compiler_Pipe : Pipe {
         this->to_requeue.push(input);
     }
 
-    void print_error (const char* format, ...) {
+    void debug (const char* format, ...) {
         va_list args;
         va_start(args, format);
-        this->print_error_v(format, args);
+        this->debug_v(format, args);
         va_end(args);
     }
 
-    void print_error (Ast* node, const char* format, ...) {
+    void debug (Ast* node, const char* format, ...) {
         va_list args;
         va_start(args, format);
-        this->print_error_v(format, args);
+        this->debug_v(format, args);
         this->print_location(&node->location);
         va_end(args);
     }
 
-    void print_error (Location* location, const char* format, ...) {
+    void debug (Location* location, const char* format, ...) {
         va_list args;
         va_start(args, format);
-        this->print_error_v(format, args);
+        this->debug_v(format, args);
         this->print_location(location);
         va_end(args);
     }
 
-    void print_location (Location* location) {
-        printf("\t@ %s, line %zd\n", location->filename, location->line);
+    void error (const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        this->error_v(format, args);
+        va_end(args);
     }
 
-    void print_error_v (const char* format, va_list args) {
+    void error (Ast* node, const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        this->error_v(format, args);
+        this->print_location(&node->location);
+        va_end(args);
+    }
+
+    void error (Location* location, const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        this->error_v(format, args);
+        this->print_location(location);
+        va_end(args);
+    }
+
+    void debug_v (const char* format, va_list args) {
+        printf("[DEBUG] ");
+        vprintf(format, args);
+        printf("\n");
+    }
+
+    void error_v (const char* format, va_list args) {
         printf("[ERROR] ");
         vprintf(format, args);
         printf("\n");
         this->context->workspace->stop_with_errors();
+    }
+
+    void print_location (Location* location) {
+        printf("\t@ %s, line %zd\n", location->filename, location->line);
     }
 };

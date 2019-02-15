@@ -52,7 +52,7 @@ struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             assert(ident->declaration->is_constant);
             return this->get_value_as_bool(ident->declaration->expression);
         } else {
-            this->print_error(exp, "Static IF condition can only be literal or pre-declared constant");
+            this->error(exp, "Static IF condition can only be literal or pre-declared constant");
             return false;
         }
     }
