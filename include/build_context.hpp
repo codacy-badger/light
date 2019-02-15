@@ -3,18 +3,18 @@
 #include "platform.hpp"
 #include "os.hpp"
 #include "arch.hpp"
-#include "compiler_events.hpp"
 #include "utils/async_queue.hpp"
 #include "utils/string_map.hpp"
 #include "ast/nodes.hpp"
-#include "front/parser/parser.hpp"
-
-// DEBUG INCLUDE
-#include "ast/printer.hpp"
 
 #include <vector>
 
 struct Workspace;
+struct Parser;
+struct Type_Inferrer;
+struct Type_Table;
+struct Type_Caster;
+struct Ast_Printer;
 
 struct Build_Context {
 	const char* output = NULL;
@@ -30,20 +30,27 @@ struct Build_Context {
 
 	// internal attributes for pipes
 
-    Async_Queue<Compiler_Event> events;
-
     Workspace* workspace = NULL;
 	Parser* parser = NULL;
 
-	Ast_Printer* printer = new Ast_Printer();
+	Type_Inferrer* type_inferrer = NULL;
+	Type_Table* type_table = NULL;
+	Type_Caster* type_caster = NULL;
 
-	void init (Workspace* w) {
-        this->parser = new Parser();
-		os_get_current_directory(this->base_path);
-		this->workspace = w;
-	}
+	Ast_Printer* printer = NULL;
 
-    void trigger (Compiler_Event event) {
-        this->events.push(event);
-    }
+	void init (Workspace* w);
+
+	void debug (const char* format, ...);
+	void debug (Ast* node, const char* format, ...);
+	void debug (Location* location, const char* format, ...);
+
+	void error (const char* format, ...);
+	void error (Ast* node, const char* format, ...);
+	void error (Location* location, const char* format, ...);
+
+	void print_location (Location* location);
+
+	void debug_v (const char* format, va_list args);
+	void error_v (const char* format, va_list args);
 };

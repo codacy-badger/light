@@ -1,7 +1,5 @@
 #pragma once
 
-#include "compiler_events.hpp"
-
 #include <thread>
 
 #define DEFAULT_WORKSPACE_NAME "default"
@@ -24,7 +22,6 @@ struct Workspace {
     Workspace (const char* name);
 
     void start_building ();
-    Compiler_Event get_next_event ();
     void stop_building ();
     void wait_for_full_build ();
     void stop_with_errors ();

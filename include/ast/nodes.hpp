@@ -356,7 +356,7 @@ struct Ast_Type : Ast_Expression {
 	size_t byte_size = 0;
 	size_t byte_padding = 0;
 
-	int64_t guid = -1;
+	uint64_t guid = 0;
 
 	Ast_Type() { this->exp_type = AST_EXPRESSION_TYPE; }
 
@@ -518,6 +518,8 @@ struct Ast_Binary : Ast_Expression {
 	Ast_Binary_Type binary_op = AST_BINARY_UNINITIALIZED;
 	Ast_Expression* lhs = NULL;
 	Ast_Expression* rhs = NULL;
+
+	bool type_should_match = false;
 
 	Ast_Binary (Ast_Binary_Type type) {
 		this->exp_type = AST_EXPRESSION_BINARY;

@@ -4,11 +4,21 @@
 #include "utils/ast_navigator.hpp"
 
 #include "pipeline/service/type_inferrer.hpp"
+#include "pipeline/service/type_table.hpp"
+#include "pipeline/service/type_caster.hpp"
 
 struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
-    Type_Inferrer* inferrer = new Type_Inferrer();
+    Type_Inferrer* inferrer = NULL;
+    Type_Table* type_table = NULL;
+    Type_Caster* caster = NULL;
 
     Type_Check () : Compiler_Pipe("Type Check") { /* empty */ }
+
+    void init () {
+        this->inferrer = this->context->type_inferrer;
+        this->type_table = this->context->type_table;
+        this->caster = this->context->type_caster;
+    }
 
     void handle (Ast_Statement* global_statement) {
         Ast_Navigator::ast_handle(global_statement);
@@ -19,15 +29,20 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         Ast_Navigator::ast_handle(decl);
 
         if (!decl->type && !decl->expression) {
-            this->error(decl, "Declarations must either have a value or a type");
+            this->context->error(decl, "Declarations must either have a value or a type");
             return;
         }
 
         if (!decl->type && decl->expression) {
             decl->type = decl->expression->inferred_type;
         } else if (decl->type && decl->expression) {
-            // @TODO match both inferred types & insert implicid cast if needed
-            decl->expression->inferred_type = static_cast<Ast_Type*>(decl->type);
+            assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
+            auto type = static_cast<Ast_Type*>(decl->type);
+
+            this->caster->try_implicid_cast(decl->expression->inferred_type,
+                type, &decl->expression);
+
+            //decl->expression->inferred_type = type;
         }
     }
 
@@ -57,6 +72,12 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         }
     }
 
+    void ast_handle (Ast_Type* type) {
+        this->type_table->unique(&type);
+
+        Ast_Navigator::ast_handle(type);
+    }
+
     void bind_attribute_or_error (Ast_Type* type, Ast_Ident* ident, Ast_Expression** exp_ptr) {
         switch (type->typedef_type) {
             case AST_TYPEDEF_STRUCT: {
@@ -65,7 +86,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 if (attr_decl) {
                     ident->declaration = attr_decl;
                 } else {
-                    this->error(ident, "Struct '%s' has no attribute named '%s'", type->name, ident->name);
+                    this->context->error(ident, "Struct '%s' has no attribute named '%s'", type->name, ident->name);
                 }
                 break;
             }
@@ -85,11 +106,11 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 break;
             }
             case AST_TYPEDEF_FUNCTION: {
-                this->error(ident, "Attribute access cannot be performed on function types");
+                this->context->error(ident, "Attribute access cannot be performed on function types");
                 break;
             }
             case AST_TYPEDEF_ARRAY: {
-                this->error(ident, "TODO");
+                this->context->error(ident, "TODO");
                 break;
             }
         }

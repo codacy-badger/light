@@ -58,12 +58,6 @@ void Workspace::run_async () {
     this->is_build_complete = true;
 }
 
-Compiler_Event Workspace::get_next_event () {
-	if (!this->context->events.empty()) {
-		return this->context->events.pop();
-	} else return Compiler_Event();
-}
-
 void Workspace::add_source_file (const char* absolute_path) {
     this->pipeline->add_source_file(absolute_path);
 }

@@ -58,7 +58,7 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\%s.li",
                 import->current_folder, import->path);
             if (!os_check_file_exists(import->resolved_source_file)) {
-                this->error("File not found: %s\n", import->resolved_source_file);
+                this->context->error("File not found: %s\n", import->resolved_source_file);
             }
         } else {
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\%s.li",
@@ -73,7 +73,7 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 this->context->base_path, import->path);
             if (os_check_file_exists(import->resolved_source_file)) return;
 
-            this->error("Module not found: %s\n", import->path);
+            this->context->error("Module not found: %s\n", import->path);
         }
     }
 };

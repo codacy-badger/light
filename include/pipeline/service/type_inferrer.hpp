@@ -5,7 +5,12 @@
 
 #include "ast/types.hpp"
 
+#include "pipeline/service/type_caster.hpp"
+
 struct Type_Inferrer {
+    Build_Context* context = NULL;
+
+    void init (Build_Context* c) { this->context = c; }
 
     void infer (Ast_Expression* exp) {
         if (exp->inferred_type) return;
@@ -94,16 +99,17 @@ struct Type_Inferrer {
             case AST_BINARY_MUL:
             case AST_BINARY_DIV:
             case AST_BINARY_REM: {
-                auto lhs_type = binary->lhs->inferred_type;
-                auto rhs_type = binary->rhs->inferred_type;
+                auto result = this->context->type_caster->try_bidirectional_implicid_cast(&binary->lhs, &binary->rhs);
+                if (!result) {
+                    auto lhs_type = binary->lhs->inferred_type;
+                    auto rhs_type = binary->rhs->inferred_type;
 
-                if (lhs_type != rhs_type) {
-                    printf("[ERROR!] types don't match: '%s' and '%s'\n",
+                    printf("[ERROR!] there's no implicid cast between '%s' and '%s'\n",
                         lhs_type->name, rhs_type->name);
-                    binary->inferred_type = lhs_type;
-                } else {
-                    binary->inferred_type = lhs_type;
-                }
+
+                    // @DEBUG
+                    binary->inferred_type = binary->lhs->inferred_type;
+                } else binary->inferred_type = binary->lhs->inferred_type;
 
                 break;
             }

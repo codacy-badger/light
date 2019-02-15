@@ -3,6 +3,8 @@
 #include "ast/nodes.hpp"
 #include "ast/types.hpp"
 
+#include "front/parser/lexer/lexer.hpp"
+
 struct Ast_Factory {
     template<typename T, typename ... Arguments>
     static T* create (Lexer* lexer, Arguments ... args) {

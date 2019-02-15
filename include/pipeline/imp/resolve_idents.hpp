@@ -127,7 +127,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                     for (auto ident_ptr : this->unresolved_idents) {
                         auto ident = (*ident_ptr);
 
-                        this->error(ident, "Unresolved identifier: '%s'", ident->name);
+                        this->context->error(ident, "Unresolved identifier: '%s'", ident->name);
                     }
                 }
             }
