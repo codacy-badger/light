@@ -10,10 +10,17 @@ struct Type_Caster {
 
     void init (Build_Context* c) { this->context = c; }
 
-    bool try_implicid_cast (Ast_Type* type_from, Ast_Type* type_to, Ast_Expression**) {
+    bool try_implicid_cast (Ast_Type* type_from, Ast_Type* type_to, Ast_Expression** exp_ptr) {
         if (type_from == type_to) return true;
 
-        printf("Try implicid cast: '%s' -> '%s'\n", type_from->name, type_to->name);
+        if (this->can_be_implicidly_casted(type_from, type_to)) {
+            auto cast = new Ast_Cast(*exp_ptr, type_to);
+            cast->location = (*exp_ptr)->location;
+            cast->inferred_type = type_to;
+            (*exp_ptr) = cast;
+            return true;
+        }
+
         return false;
     }
 
@@ -23,7 +30,23 @@ struct Type_Caster {
 
         if (type1 == type2) return true;
 
-        printf("Try bidirectional implicid cast: '%s' <-> '%s'\n", type1->name, type2->name);
+        bool success = this->try_implicid_cast(type1, type2, exp_ptr1);
+        if (success) return true;
+
+        success = this->try_implicid_cast(type2, type1, exp_ptr2);
+        if (success) return true;
+
+        return false;
+    }
+
+    bool can_be_implicidly_casted (Ast_Type* type_from, Ast_Type* type_to) {
+        if (type_from->is_primitive && type_to == Types::type_bool) return true;
+
+        if (type_from->is_primitive && type_to->is_primitive) {
+            if (type_from->is_number && type_to->is_number) {
+                return type_from->byte_size <= type_to->byte_size;
+            }
+        }
 
         return false;
     }

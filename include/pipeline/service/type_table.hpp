@@ -110,8 +110,44 @@ struct Type_Table {
 
         if (func_type->guid > 0) return;
 
+        assert(func_type->ret_type->exp_type == AST_EXPRESSION_TYPE);
+        this->unique(&func_type->typed_ret_type);
+        for (auto& arg_decl : func_type->arg_decls) {
+            assert(arg_decl->type->exp_type == AST_EXPRESSION_TYPE);
+            this->unique(&arg_decl->typed_type);
+        }
+
+        for (auto type : this->global_type_table) {
+            if (type->typedef_type == AST_TYPEDEF_FUNCTION) {
+                auto uniqued_function_type = static_cast<Ast_Function_Type*>(type);
+
+                if (this->types_are_equal(uniqued_function_type, func_type)) {
+                    (*func_type_ptr) = uniqued_function_type;
+                    return;
+                }
+            }
+        }
+
+        func_type->guid = this->global_type_table.size() + 1;
+        this->global_type_table.push_back(func_type);
         this->compute_type_name_if_needed(func_type);
-        printf("To unique function type: '%s'\n", func_type->name);
+    }
+
+    bool types_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
+        if (func_type1 == func_type2) return true;
+
+        if (func_type1->arg_decls.size() != func_type2->arg_decls.size()) return false;
+
+        if (func_type1->typed_ret_type != func_type2->typed_ret_type) return false;
+
+        for (size_t i = 0; i < func_type1->arg_decls.size(); i++) {
+            auto attr1 = func_type1->arg_decls[i];
+            auto attr2 = func_type2->arg_decls[i];
+
+            if (attr1->typed_type != attr2->typed_type) return false;
+        }
+
+        return true;
     }
 
     void compute_type_name_if_needed (Ast_Type* type) {

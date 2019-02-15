@@ -1,13 +1,13 @@
 #pragma once
 
 #include "pipeline/compiler_pipe.hpp"
-#include "utils/ast_navigator.hpp"
+#include "utils/ast_ref_navigator.hpp"
 
 #include "pipeline/service/type_inferrer.hpp"
 #include "pipeline/service/type_table.hpp"
 #include "pipeline/service/type_caster.hpp"
 
-struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
+struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     Type_Inferrer* inferrer = NULL;
     Type_Table* type_table = NULL;
     Type_Caster* caster = NULL;
@@ -21,12 +21,12 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void handle (Ast_Statement* global_statement) {
-        Ast_Navigator::ast_handle(global_statement);
+        Ast_Ref_Navigator::ast_handle(&global_statement);
         this->push_out(global_statement);
     }
 
     void ast_handle (Ast_Declaration* decl) {
-        Ast_Navigator::ast_handle(decl);
+        Ast_Ref_Navigator::ast_handle(decl);
 
         if (!decl->type && !decl->expression) {
             this->context->error(decl, "Declarations must either have a value or a type");
@@ -39,21 +39,24 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
             auto type = static_cast<Ast_Type*>(decl->type);
 
-            this->caster->try_implicid_cast(decl->expression->inferred_type,
+            auto success = this->caster->try_implicid_cast(decl->expression->inferred_type,
                 type, &decl->expression);
-
-            //decl->expression->inferred_type = type;
+            if (!success) {
+                this->context->error(decl->expression, "Value cannot be casted to '%s'", type->name);
+            }
         }
     }
 
-    void ast_handle (Ast_Expression* exp) {
-        Ast_Navigator::ast_handle(exp);
-        this->inferrer->infer(exp);
+    void ast_handle (Ast_Expression** exp_ptr) {
+        Ast_Ref_Navigator::ast_handle(exp_ptr);
+        this->inferrer->infer(*exp_ptr);
     }
 
-    void ast_handle (Ast_Binary* binary) {
+    void ast_handle (Ast_Binary** binary_ptr) {
+        auto binary = (*binary_ptr);
+
         if (binary->binary_op == AST_BINARY_ATTRIBUTE) {
-            this->ast_handle(binary->lhs);
+            this->ast_handle(&binary->lhs);
 
             assert(binary->lhs->inferred_type);
             assert(binary->rhs->exp_type == AST_EXPRESSION_IDENT);
@@ -62,20 +65,22 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             this->bind_attribute_or_error(binary->lhs->inferred_type, ident, &binary->lhs);
             assert(ident->declaration);
 
-            this->ast_handle(binary->rhs);
-        } else Ast_Navigator::ast_handle(binary);
+            this->ast_handle(&binary->rhs);
+        } else Ast_Ref_Navigator::ast_handle(binary_ptr);
     }
 
-    void ast_handle (Ast_Unary* unary) {
+    void ast_handle (Ast_Unary** unary_ptr) {
+        auto unary = (*unary_ptr);
+
         if (unary->unary_op != AST_UNARY_REFERENCE) {
-            Ast_Navigator::ast_handle(unary);
+            Ast_Ref_Navigator::ast_handle(unary_ptr);
         }
     }
 
-    void ast_handle (Ast_Type* type) {
-        this->type_table->unique(&type);
+    void ast_handle (Ast_Type** type_ptr) {
+        this->type_table->unique(type_ptr);
 
-        Ast_Navigator::ast_handle(type);
+        Ast_Ref_Navigator::ast_handle(type_ptr);
     }
 
     void bind_attribute_or_error (Ast_Type* type, Ast_Ident* ident, Ast_Expression** exp_ptr) {
