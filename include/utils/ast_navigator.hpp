@@ -13,6 +13,10 @@ struct Ast_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Scope*>(stm));
 				break;
 			}
+			case AST_STATEMENT_ASSIGN: {
+				this->ast_handle(reinterpret_cast<Ast_Assign*>(stm));
+				break;
+			}
 			case AST_STATEMENT_IF: {
 				this->ast_handle(reinterpret_cast<Ast_If*>(stm));
 				break;
@@ -49,8 +53,6 @@ struct Ast_Navigator {
 		}
 	}
 
-	virtual void ast_handle (const char*) { /* empty */ }
-
 	virtual void ast_handle (Ast_Arguments* args) {
 		for (auto exp : args->unnamed) {
 			this->ast_handle(exp);
@@ -75,6 +77,11 @@ struct Ast_Navigator {
 		}
 
         this->current_scope = tmp;
+	}
+
+	virtual void ast_handle (Ast_Assign* assign) {
+        this->ast_handle(assign->variable);
+        this->ast_handle(assign->value);
 	}
 
 	virtual void ast_handle (Ast_Declaration* decl) {

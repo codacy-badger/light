@@ -39,6 +39,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 this->requeue(stm);
             }
             deps->clear();
+            this->depending_statements.erase(decl->name);
         }
     }
 
@@ -52,7 +53,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             }
         }
         ident->declaration = decl;
-        Ast_Ref_Navigator::ast_handle(&ident->declaration);
+        Ast_Ref_Navigator::ast_handle(ident->declaration);
         return false;
     }
 
@@ -101,27 +102,33 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         }
     }
 
-    void ast_handle (Ast_Scope** scope_ptr) {
+    void ast_handle (Ast_Scope* scope) {
         auto tmp = this->current_scope;
-        this->current_scope = (*scope_ptr);
+        this->current_scope = scope;
 
-        Ast_Ref_Navigator::ast_handle(scope_ptr);
+        Ast_Ref_Navigator::ast_handle(scope);
 
         this->current_scope = tmp;
     }
 
     void shutdown () {
-        if (!this->input_queue.empty()) {
-            while (!this->input_queue.empty()) {
-                auto stm = this->input_queue.pop();
+        //
+        // @Bug @TODO this reports the same IDs multiple times, so we need to unique them
+        // ALSO! this system grabs dependencies from types & function scopes, in the way
+        // that a function that doesn't have an ID might depend on that other functions's
+        // unresolved id. We should review if this is what really should be happening...
+        //
+        if (!this->depending_statements.empty()) {
+            for (auto entry : this->depending_statements) {
+                for (auto stm : entry.second) {
+                    this->unresolved_idents.clear();
+                    Ast_Ref_Navigator::ast_handle(&stm);
 
-                this->unresolved_idents.clear();
-                Ast_Ref_Navigator::ast_handle(&stm);
+                    for (auto ident_ptr : this->unresolved_idents) {
+                        auto ident = (*ident_ptr);
 
-                for (auto ident_ptr : this->unresolved_idents) {
-                    auto ident = (*ident_ptr);
-
-                    this->error(ident, "Unresolved identifier: '%s'", ident->name);
+                        this->error(ident, "Unresolved identifier: '%s'", ident->name);
+                    }
                 }
             }
         }

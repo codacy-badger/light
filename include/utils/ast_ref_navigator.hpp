@@ -3,104 +3,109 @@
 #include "ast/nodes.hpp"
 
 struct Ast_Ref_Navigator {
-    virtual void ast_handle (Ast_Statement** stm) {
-		switch ((*stm)->stm_type) {
+    virtual void ast_handle (Ast_Statement** stm_ptr) {
+		switch ((*stm_ptr)->stm_type) {
 			case AST_STATEMENT_SCOPE: {
-				this->ast_handle(reinterpret_cast<Ast_Scope**>(stm));
+				this->ast_handle(reinterpret_cast<Ast_Scope*>(*stm_ptr));
+				break;
+			}
+			case AST_STATEMENT_ASSIGN: {
+				this->ast_handle(reinterpret_cast<Ast_Assign*>(*stm_ptr));
 				break;
 			}
 			case AST_STATEMENT_IF: {
-				this->ast_handle(reinterpret_cast<Ast_If**>(stm));
+				this->ast_handle(reinterpret_cast<Ast_If*>(*stm_ptr));
 				break;
 			}
 			case AST_STATEMENT_WHILE: {
-				this->ast_handle(reinterpret_cast<Ast_While**>(stm));
+				this->ast_handle(reinterpret_cast<Ast_While*>(*stm_ptr));
 				break;
 			}
 			case AST_STATEMENT_DECLARATION: {
-				this->ast_handle(reinterpret_cast<Ast_Declaration**>(stm));
+				this->ast_handle(reinterpret_cast<Ast_Declaration*>(*stm_ptr));
 				break;
 			}
 			case AST_STATEMENT_RETURN: {
-				this->ast_handle(reinterpret_cast<Ast_Return**>(stm));
+				this->ast_handle(reinterpret_cast<Ast_Return*>(*stm_ptr));
 				break;
 			}
 			case AST_STATEMENT_BREAK: {
-				this->ast_handle(reinterpret_cast<Ast_Break**>(stm));
+				this->ast_handle(reinterpret_cast<Ast_Break*>(*stm_ptr));
 				break;
 			}
 			case AST_STATEMENT_FOREIGN: {
-				this->ast_handle(reinterpret_cast<Ast_Foreign**>(stm));
+				this->ast_handle(reinterpret_cast<Ast_Foreign*>(*stm_ptr));
 				break;
 			}
 			case AST_STATEMENT_STATIC_IF: {
-				this->ast_handle(reinterpret_cast<Ast_Static_If**>(stm));
+				this->ast_handle(reinterpret_cast<Ast_Static_If*>(*stm_ptr));
 				break;
 			}
 			case AST_STATEMENT_EXPRESSION: {
-				this->ast_handle(reinterpret_cast<Ast_Expression**>(stm));
+				this->ast_handle(reinterpret_cast<Ast_Expression**>(stm_ptr));
 				break;
 			}
 			default: break;
 		}
 	}
 
-	virtual void ast_handle (const char**) { /* empty */ }
-
-	virtual void ast_handle (Ast_Arguments** args) {
-		for (auto &exp : (*args)->unnamed) {
+	virtual void ast_handle (Ast_Arguments* args) {
+		for (auto &exp : args->unnamed) {
 			this->ast_handle(&exp);
 		}
-		for (auto &exp : (*args)->named) {
-			this->ast_handle(&exp.second);
+		for (auto &entry : args->named) {
+			this->ast_handle(&entry.second);
 		}
 	}
 
-	virtual void ast_handle (Ast_Scope** scope) {
-		size_t initial_size = (*scope)->statements.size();
-		for (uint64_t i = 0; i < (*scope)->statements.size(); i++) {
-			this->ast_handle(&((*scope)->statements[i]));
+	virtual void ast_handle (Ast_Scope* scope) {
+		size_t initial_size = scope->statements.size();
+		for (uint64_t i = 0; i < scope->statements.size(); i++) {
+			this->ast_handle(&scope->statements[i]);
 
 			// INFO: if we add something to the scope, we have to increment
 			// the counter the same amount of items
-			if ((*scope)->statements.size() != initial_size) {
-				initial_size = (*scope)->statements.size();
+			if (scope->statements.size() != initial_size) {
+				initial_size = scope->statements.size();
 				i -= 1;
 			}
 		}
 	}
 
-	virtual void ast_handle (Ast_Declaration** decl) {
-        if ((*decl)->type) this->ast_handle(&(*decl)->type);
-		if ((*decl)->expression) this->ast_handle(&(*decl)->expression);
+	virtual void ast_handle (Ast_Assign* assign) {
+        this->ast_handle(&assign->variable);
+        this->ast_handle(&assign->value);
 	}
 
-	virtual void ast_handle (Ast_Return** ret) {
-		if ((*ret)->expression) this->ast_handle(&(*ret)->expression);
+	virtual void ast_handle (Ast_Declaration* decl) {
+        if (decl->type) this->ast_handle(&decl->type);
+		if (decl->expression) this->ast_handle(&decl->expression);
 	}
 
-	virtual void ast_handle (Ast_If** _if) {
-		this->ast_handle(&(*_if)->condition);
-		this->ast_handle(&(*_if)->then_body);
-		if ((*_if)->else_body) {
-			this->ast_handle(&(*_if)->else_body);
+	virtual void ast_handle (Ast_Return* ret) {
+		if (ret->expression) this->ast_handle(&ret->expression);
+	}
+
+	virtual void ast_handle (Ast_If* _if) {
+		this->ast_handle(&_if->condition);
+		this->ast_handle(_if->then_body);
+		if (_if->else_body) {
+			this->ast_handle(_if->else_body);
 		}
 	}
 
-	virtual void ast_handle (Ast_While** _while) {
-		this->ast_handle(&(*_while)->condition);
-		this->ast_handle(&(*_while)->body);
+	virtual void ast_handle (Ast_While* _while) {
+		this->ast_handle(&_while->condition);
+		this->ast_handle(_while->body);
 	}
 
-	virtual void ast_handle (Ast_Static_If** _if) {
-		this->ast_handle(&(*_if)->stm_if->condition);
+	virtual void ast_handle (Ast_Static_If* _if) {
+		this->ast_handle(&_if->stm_if->condition);
 	}
 
-	virtual void ast_handle (Ast_Import**) { /* empty */ }
+	virtual void ast_handle (Ast_Foreign*) { /* empty */ }
 
-	virtual void ast_handle (Ast_Foreign**) { /* empty */ }
-
-	virtual void ast_handle (Ast_Break**) { /* empty */ }
+	virtual void ast_handle (Ast_Break*) { /* empty */ }
 
 	virtual void ast_handle (Ast_Expression** exp) {
 		switch ((*exp)->exp_type) {
@@ -147,6 +152,8 @@ struct Ast_Ref_Navigator {
 		}
 	}
 
+	virtual void ast_handle (Ast_Import**) { /* empty */ }
+
 	virtual void ast_handle (Ast_Run** run) {
 		this->ast_handle(&(*run)->expression);
 	}
@@ -157,14 +164,14 @@ struct Ast_Ref_Navigator {
         (*func)->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
 		this->ast_handle(&(*func)->type);
 		if ((*func)->body) {
-            this->ast_handle(&(*func)->body);
+            this->ast_handle((*func)->body);
         }
         (*func)->func_flags &= ~FUNCTION_FLAG_BEING_CHECKED;
 	}
 
 	virtual void ast_handle (Ast_Function_Call** func_call) {
 		this->ast_handle(&(*func_call)->func);
-		this->ast_handle(&(*func_call)->arguments);
+		this->ast_handle((*func_call)->arguments);
 	}
 
 	virtual void ast_handle (Ast_Binary** binary) {
@@ -210,8 +217,7 @@ struct Ast_Ref_Navigator {
         if ((*_struct)->struct_flags & STRUCT_FLAG_BEING_CHECKED) return;
 
         (*_struct)->struct_flags |= STRUCT_FLAG_BEING_CHECKED;
-        auto tmp = &((*_struct)->scope);
-		this->ast_handle(&tmp);
+		this->ast_handle(&(*_struct)->scope);
         (*_struct)->struct_flags &= ~STRUCT_FLAG_BEING_CHECKED;
 	}
 
@@ -221,7 +227,7 @@ struct Ast_Ref_Navigator {
 
 	virtual void ast_handle (Ast_Function_Type** func_type) {
 		for (auto &arg_type : (*func_type)->arg_decls) {
-			this->ast_handle((Ast_Statement**) &arg_type);
+			this->ast_handle(arg_type);
 		}
 		this->ast_handle(&(*func_type)->ret_type);
 	}
