@@ -7,7 +7,7 @@ main :: fn {
     value2 := foo.a2.b1.a1;
     value3 := foo.some_other_value;
 
-    result := foozle(123, number = 12, baboozle = true);
+    result := foozle(123);
 
     phrase1 := "You break my 心...";
     phrase2 := "ο Δικαιοπολις εν αγρω εστιν";

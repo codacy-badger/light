@@ -1,6 +1,12 @@
 
 main :: fn {
-    f_result := factorial();
+    f_result := factorial(12);
+
+    value1 := foozle(1, 2, 3);
+    value2 := foozle(1, 2);
+    value3 := foozle(1);
+
+    value4 := foozle(1, c = 30);
 }
 
 factorial :: fn (number: u64) -> u64 {
@@ -10,6 +16,6 @@ factorial :: fn (number: u64) -> u64 {
     }
 }
 
-foozle :: fn (a: u64, b: u64, c: u64, d: u64) -> u64 {
+foozle :: fn (a: u64, b: u64 = 100, c: u64 = 200) -> u64 {
     return 0;
 }

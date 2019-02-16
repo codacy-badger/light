@@ -23,7 +23,7 @@ void Workspace::start_building () {
 
 void Workspace::wait_for_full_build () {
     this->start_building();
-    while (!this->is_build_complete) {}
+    while (!this->is_build_complete) { /* empty */ }
     this->stop_building();
 }
 

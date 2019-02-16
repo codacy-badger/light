@@ -9,6 +9,8 @@
 #include <vector>
 #include <algorithm>
 
+#define INVALID_ARGUMENT_INDEX 500
+
 struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
@@ -446,6 +448,16 @@ struct Ast_Function_Type : Ast_Type {
 	Ast_Function_Type() {
 		this->typedef_type = AST_TYPEDEF_FUNCTION;
 		this->is_primitive = true;
+	}
+
+	size_t get_argument_index (const char* _name) {
+        for (size_t i = 0; i < this->arg_decls.size(); i++) {
+			auto decl = this->arg_decls[i];
+            if (strcmp(decl->name, _name) == 0) {
+                return i;
+            }
+        }
+        return INVALID_ARGUMENT_INDEX;
 	}
 
     Ast_Declaration* get_declaration (const char* decl_name) {

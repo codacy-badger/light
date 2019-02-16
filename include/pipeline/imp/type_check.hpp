@@ -55,21 +55,71 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void ast_handle (Ast_Function_Call** call_ptr) {
         auto call = (*call_ptr);
 
-		this->ast_handle(&call->func);
+        Ast_Ref_Navigator::ast_handle(call_ptr);
 
         assert(call->func->inferred_type);
         assert(call->func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
         auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
 
-        auto min_unnamed_arguments = func_type->count_arguments_without_defaults();
-        if (call->arguments->unnamed.size() < min_unnamed_arguments) {
-            this->context->error(call, "Too few arguments for function call, should have at least %zd", min_unnamed_arguments);
+        auto min_arg_count = func_type->count_arguments_without_defaults();
+        auto max_arg_count = func_type->arg_decls.size();
+        if (call->arguments->unnamed.size() < min_arg_count) {
+            this->context->error(call, "Too few arguments for function call, should have at least %zd", min_arg_count);
             this->context->shutdown();
+            return;
         }
 
-        call->arguments->unnamed.reserve(min_unnamed_arguments);
+        call->arguments->unnamed.reserve(max_arg_count);
+        for (size_t i = call->arguments->unnamed.size(); i < max_arg_count; i++) {
+            call->arguments->unnamed.push_back(NULL);
+        }
 
-		Ast_Ref_Navigator::ast_handle(call->arguments);
+        for (auto entry : call->arguments->named) {
+            auto arg_index = func_type->get_argument_index(entry.first);
+            if (arg_index != INVALID_ARGUMENT_INDEX) {
+                auto existing_value = call->arguments->get_unnamed_value(arg_index);
+                if (existing_value) {
+                    this->context->error(call, "Multiple values provided for argument '%s'", entry.first);
+                    this->context->shutdown();
+                    return;
+                } else {
+                    call->arguments->unnamed[arg_index] = entry.second;
+                }
+            } else {
+                //
+                // @Bug @TODO this could produce incorrect error messages, since
+                // function types contain the argument names, but are also uniqued!
+                // possible solution: the argument names should be stored in the Ast_Function
+                // nodes, but we should be sure that assert(arg_names.size() == arg_decls.size())
+                //
+                this->context->error(call, "Function has no argument named '%s'", entry.first);
+                this->context->shutdown();
+                return;
+            }
+        }
+        call->arguments->named.clear();
+
+        for (size_t i = min_arg_count; i < func_type->arg_decls.size(); i++) {
+            auto existing_value = call->arguments->get_unnamed_value(i);
+            if (!existing_value) {
+                auto arg_decl = func_type->arg_decls[i];
+                assert(arg_decl->expression);
+
+                call->arguments->unnamed[i] = arg_decl->expression;
+            }
+        }
+
+        for (size_t i = 0; i < call->arguments->unnamed.size(); i++) {
+            auto arg_decl = func_type->arg_decls[i];
+            auto value = call->arguments->unnamed[i];
+            assert(arg_decl->type->exp_type == AST_EXPRESSION_TYPE);
+
+            auto success = this->caster->try_implicid_cast(value->inferred_type,
+                arg_decl->typed_type, &(call->arguments->unnamed[i]));
+            if (!success) {
+                this->context->error(value, "Value cannot be implicitly casted to '%s'", arg_decl->typed_type->name);
+            }
+        }
     }
 
     void ast_handle (Ast_Binary** binary_ptr) {
