@@ -52,6 +52,26 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         this->inferrer->infer(*exp_ptr);
     }
 
+    void ast_handle (Ast_Function_Call** call_ptr) {
+        auto call = (*call_ptr);
+
+		this->ast_handle(&call->func);
+
+        assert(call->func->inferred_type);
+        assert(call->func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
+        auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
+
+        auto min_unnamed_arguments = func_type->count_arguments_without_defaults();
+        if (call->arguments->unnamed.size() < min_unnamed_arguments) {
+            this->context->error(call, "Too few arguments for function call, should have at least %zd", min_unnamed_arguments);
+            this->context->shutdown();
+        }
+
+        call->arguments->unnamed.reserve(min_unnamed_arguments);
+
+		Ast_Ref_Navigator::ast_handle(call->arguments);
+    }
+
     void ast_handle (Ast_Binary** binary_ptr) {
         auto binary = (*binary_ptr);
 
@@ -79,7 +99,6 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
     void ast_handle (Ast_Type** type_ptr) {
         this->type_table->unique(type_ptr);
-
         Ast_Ref_Navigator::ast_handle(type_ptr);
     }
 

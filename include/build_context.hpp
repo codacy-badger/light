@@ -49,6 +49,8 @@ struct Build_Context {
 	void error (Ast* node, const char* format, ...);
 	void error (Location* location, const char* format, ...);
 
+	void shutdown ();
+
 	void print_location (Location* location);
 
 	void debug_v (const char* format, va_list args);

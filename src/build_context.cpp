@@ -73,6 +73,10 @@ void Build_Context::print_location (Location* location) {
     printf("\t@ %s, line %zd\n", location->filename, location->line);
 }
 
+void Build_Context::shutdown () {
+    this->workspace->stop_with_errors();
+}
+
 void Build_Context::debug_v (const char* format, va_list args) {
     printf("[DEBUG] ");
     vprintf(format, args);
@@ -83,5 +87,4 @@ void Build_Context::error_v (const char* format, va_list args) {
     printf("[ERROR] ");
     vprintf(format, args);
     printf("\n");
-    this->workspace->stop_with_errors();
 }

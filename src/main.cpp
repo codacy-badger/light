@@ -21,11 +21,7 @@ int main (int argc, char** argv) {
 
     workspace->wait_for_full_build();
 
-    if (workspace->has_error) {
-        printf("\nErrors found, stopping compilation...\n");
-    } else {
-        printf("\nDone in %8.6f\n", os_time_stop(start));
-    }
+    printf("\nDone in %8.6f\n", os_time_stop(start));
 }
 
 void apply_build_settings (Build_Context* context, int argc, char** argv) {

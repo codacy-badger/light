@@ -13,7 +13,7 @@ Workspace::Workspace (const char* name) {
 }
 
 void Workspace::start_building () {
-    printf("Starting workspace #%zd (%s)\n", this->guid, this->name);
+    printf("Starting workspace #%zd (%s)\n\n", this->guid, this->name);
 
     this->context->init(this);
     this->pipeline->init(this->context);
@@ -35,12 +35,17 @@ void Workspace::stop_building () {
 
     this->is_build_complete = true;
 
-    printf("Workspace #%zd (%s) complete\n", this->guid, this->name);
+    if (this->has_error) {
+        printf("\nErrors found, stopping compilation...\n");
+    } else {
+        printf("Workspace #%zd (%s) complete\n", this->guid, this->name);
+    }
 }
 
 void Workspace::stop_with_errors () {
     this->has_error = true;
     this->keep_going = false;
+    this->pipeline->shutdown();
 }
 
 void Workspace::run_async () {
