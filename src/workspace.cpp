@@ -43,6 +43,8 @@ void Workspace::stop_building () {
 }
 
 void Workspace::stop_with_errors () {
+    if (!this->keep_going) return;
+    
     this->has_error = true;
     this->keep_going = false;
     this->pipeline->shutdown();

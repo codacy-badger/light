@@ -51,7 +51,7 @@ struct Ast_Ref_Navigator {
 
 	virtual void ast_handle (Ast_Arguments* args) {
 		for (auto &exp : args->unnamed) {
-			this->ast_handle(&exp);
+			if (exp) this->ast_handle(&exp);
 		}
 		for (auto &entry : args->named) {
 			this->ast_handle(&entry.second);

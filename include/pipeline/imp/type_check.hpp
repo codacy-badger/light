@@ -30,6 +30,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
         if (!decl->type && !decl->expression) {
             this->context->error(decl, "Declarations must either have a value or a type");
+            this->context->shutdown();
             return;
         }
 
@@ -42,7 +43,10 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             auto success = this->caster->try_implicid_cast(decl->expression->inferred_type,
                 type, &decl->expression);
             if (!success) {
-                this->context->error(decl->expression, "Value cannot be casted to '%s'", type->name);
+                this->context->error(decl->expression, "Value cannot be implicitly casted from '%s' to '%s'",
+                    decl->expression->inferred_type->name, type->name);
+                this->context->shutdown();
+                return;
             }
         }
     }
@@ -63,8 +67,15 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
         auto min_arg_count = func_type->count_arguments_without_defaults();
         auto max_arg_count = func_type->arg_decls.size();
+
         if (call->arguments->unnamed.size() < min_arg_count) {
             this->context->error(call, "Too few arguments for function call, should have at least %zd", min_arg_count);
+            this->context->shutdown();
+            return;
+        }
+
+        if (call->arguments->unnamed.size() > max_arg_count) {
+            this->context->error(call, "Too many arguments for function call, should have at most %zd", max_arg_count);
             this->context->shutdown();
             return;
         }
@@ -117,7 +128,10 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             auto success = this->caster->try_implicid_cast(value->inferred_type,
                 arg_decl->typed_type, &(call->arguments->unnamed[i]));
             if (!success) {
-                this->context->error(value, "Value cannot be implicitly casted to '%s'", arg_decl->typed_type->name);
+                this->context->error(value, "Value cannot be implicitly casted from '%s' to '%s'",
+                    value->inferred_type->name, arg_decl->typed_type->name);
+                this->context->shutdown();
+                return;
             }
         }
     }
@@ -161,6 +175,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                     ident->declaration = attr_decl;
                 } else {
                     this->context->error(ident, "Struct '%s' has no attribute named '%s'", type->name, ident->name);
+                    this->context->shutdown();
+                    return;
                 }
                 break;
             }
@@ -181,10 +197,14 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             }
             case AST_TYPEDEF_FUNCTION: {
                 this->context->error(ident, "Attribute access cannot be performed on function types");
+                this->context->shutdown();
+                return;
                 break;
             }
             case AST_TYPEDEF_ARRAY: {
                 this->context->error(ident, "TODO");
+                this->context->shutdown();
+                return;
                 break;
             }
         }

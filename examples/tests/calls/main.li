@@ -6,8 +6,13 @@ main :: fn {
     value2 := foozle(1, 2);
     value3 := foozle(1);
 
-    value4 := foozle(1, c = 30);
+    value4 := foozle(1, c = 12);
+    value5 := foozle(1, b = 32);
+
+    weird := callback(42, factorial);
 }
+
+FN_TYPE :: fn (number: u64) -> u64;
 
 factorial :: fn (number: u64) -> u64 {
     if (number == 0) return 1;
@@ -16,6 +21,10 @@ factorial :: fn (number: u64) -> u64 {
     }
 }
 
-foozle :: fn (a: u64, b: u64 = 100, c: u64 = 200) -> u64 {
+foozle :: fn (a: u64, b: u64 = 100, c: u64 = 200) -> u32 {
     return 0;
+}
+
+callback :: fn (number: u64, func: FN_TYPE) -> u64 {
+    return func(number + 1);
 }

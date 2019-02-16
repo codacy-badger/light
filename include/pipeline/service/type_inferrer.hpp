@@ -156,7 +156,7 @@ struct Type_Inferrer {
 
     void infer (Ast_Arguments* args) {
 		for (auto exp : args->unnamed) {
-			this->infer(exp);
+			if (exp) this->infer(exp);
 		}
 		for (auto exp : args->named) {
 			this->infer(exp.second);
