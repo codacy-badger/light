@@ -2,6 +2,10 @@
 Foo :: struct {
     a1 : s64 = 550;
     a2: Bar;
+
+    #if DEBUG {
+        some_other_value : usize;
+    }
 }
 
 import "bar";
