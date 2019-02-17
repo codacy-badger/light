@@ -5,11 +5,14 @@ main :: fn {
     value1 := foozle(1, 2, 3);
     value2 := foozle(1, 2);
     value3 := foozle(1);
+    //fail1 := foozle();
 
     value4 := foozle(1, c = 12);
     value5 := foozle(1, b = 32);
+    value6 := foozle(a = 99, b = 32);
+    //fail5 := foozle(b = 32);
 
-    weird := callback(42, factorial);
+    weird := callback(42);
 }
 
 factorial :: fn (number: u64) -> u64 {
@@ -17,6 +20,10 @@ factorial :: fn (number: u64) -> u64 {
     else {
         return factorial(number - 1) + number;
     }
+}
+
+by10 :: fn (number: u64) -> u64 {
+    return number * 10;
 }
 
 foozle :: fn (a: u64, b: u64 = 100, c: u64 = 200) -> u32 {
@@ -27,6 +34,6 @@ barzle :: fn (x: u64, y: u64 = 7, z: u64 = 8) -> u32 {
     return 0;
 }
 
-callback :: fn (number: u64, func: fn (number: u64) -> u64) -> u64 {
+callback :: fn (number: u64, func: fn (number: u64) -> u64 = factorial) -> u64 {
     return func(number + 1);
 }
