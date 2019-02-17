@@ -78,11 +78,11 @@ struct Types {
     }
 
     static bool function_types_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
-        if (func_type1->arg_decls.size() != func_type2->arg_decls.size()) return false;
+        if (func_type1->arg_types.size() != func_type2->arg_types.size()) return false;
 
-        for (size_t i = 0; i < func_type1->arg_decls.size(); i++) {
-            auto arg_type1 = static_cast<Ast_Type*>(func_type1->arg_decls[i]->type);
-            auto arg_type2 = static_cast<Ast_Type*>(func_type2->arg_decls[i]->type);
+        for (size_t i = 0; i < func_type1->arg_types.size(); i++) {
+            auto arg_type1 = static_cast<Ast_Type*>(func_type1->arg_types[i]);
+            auto arg_type2 = static_cast<Ast_Type*>(func_type2->arg_types[i]);
             if (!Types::equal(arg_type1, arg_type2)) return false;
         }
 
@@ -141,15 +141,15 @@ struct Types {
     	        }
     	        case AST_TYPEDEF_FUNCTION: {
     	            auto _func = static_cast<Ast_Function_Type*>(type_inst);
-	        		auto arg_decls = _func->arg_decls;
+	        		auto arg_types = _func->arg_types;
 
 	        		size_t name_size = strlen("fn (");
-	        		if (arg_decls.size() > 0) {
-						auto param_name = Types::get_name(arg_decls[0]->type);
+	        		if (arg_types.size() > 0) {
+						auto param_name = Types::get_name(arg_types[0]);
 	        			name_size += strlen(param_name);
-	        			for (int i = 1; i < arg_decls.size(); i++) {
+	        			for (int i = 1; i < arg_types.size(); i++) {
 	        				name_size += strlen(", ");
-	        				param_name = Types::get_name(arg_decls[i]->type);
+	        				param_name = Types::get_name(arg_types[i]);
 	        				name_size += strlen(param_name);
 	        			}
 	        		}
@@ -163,15 +163,15 @@ struct Types {
 	        		offset += 4;
 
 					size_t par_type_name_length;
-	        		if (arg_decls.size() > 0) {
-						auto param_name = Types::get_name(arg_decls[0]->type);
+	        		if (arg_types.size() > 0) {
+						auto param_name = Types::get_name(arg_types[0]);
 						par_type_name_length = strlen(param_name);
 	        			memcpy(tmp + offset, param_name, par_type_name_length);
 	        			offset += par_type_name_length;
-	        			for (int i = 1; i < arg_decls.size(); i++) {
+	        			for (int i = 1; i < arg_types.size(); i++) {
 	        				memcpy(tmp + offset, ", ", 2);
 	        				offset += 2;
-	        				param_name = Types::get_name(arg_decls[i]->type);
+	        				param_name = Types::get_name(arg_types[i]);
 							par_type_name_length = strlen(param_name);
 	        				memcpy(tmp + offset, param_name, par_type_name_length);
 	        				offset += par_type_name_length;

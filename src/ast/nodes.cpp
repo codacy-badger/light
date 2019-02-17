@@ -14,12 +14,8 @@ Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_import
         }
     }
     if (this->scope_of) {
-		for (auto arg_decl : this->scope_of->func_type->arg_decls) {
-			if (strcmp(arg_decl->name, _name) == 0) {
-				return arg_decl;
-			}
-		}
-        decl = this->parent->find_const_declaration(_name);
+        decl = this->scope_of->args_scope->find_declaration(_name, false, false);
+        if (!decl) decl = this->parent->find_const_declaration(_name);
         if (!decl) {
             return this->get_global_scope()->find_declaration(_name, true, false);
         } else return decl;
@@ -47,11 +43,8 @@ Ast_Declaration* Ast_Scope::find_var_declaration (const char* _name) {
         }
     }
     if (this->scope_of) {
-		for (auto arg_decl : this->scope_of->func_type->arg_decls) {
-			if (strcmp(arg_decl->name, _name) == 0) {
-				return arg_decl;
-			}
-		}
+		auto decl = this->scope_of->args_scope->find_declaration(_name, false, false);
+        if (decl) return decl;
         return this->get_global_scope()->find_var_declaration(_name);
 	}
 
@@ -284,15 +277,15 @@ void ast_compute_type_name_if_needed (Ast_Type* type_inst) {
 	        case AST_TYPEDEF_FUNCTION: {
 	            auto _func = static_cast<Ast_Function_Type*>(type_inst);
 	            if (_func->name == NULL) {
-	        		auto arg_decls = _func->arg_decls;
+	        		auto arg_types = _func->arg_types;
 
 	        		size_t name_size = strlen("fn (");
-	        		if (arg_decls.size() > 0) {
-						auto param_name = _get_type_name(arg_decls[0]->type);
+	        		if (arg_types.size() > 0) {
+						auto param_name = _get_type_name(arg_types[0]);
 	        			name_size += strlen(param_name);
-	        			for (int i = 1; i < arg_decls.size(); i++) {
+	        			for (int i = 1; i < arg_types.size(); i++) {
 	        				name_size += strlen(", ");
-	        				param_name = _get_type_name(arg_decls[i]->type);
+	        				param_name = _get_type_name(arg_types[i]);
 	        				name_size += strlen(param_name);
 	        			}
 	        		}
@@ -306,15 +299,15 @@ void ast_compute_type_name_if_needed (Ast_Type* type_inst) {
 	        		offset += 4;
 
 					size_t par_type_name_length;
-	        		if (arg_decls.size() > 0) {
-						auto param_name = _get_type_name(arg_decls[0]->type);
+	        		if (arg_types.size() > 0) {
+						auto param_name = _get_type_name(arg_types[0]);
 						par_type_name_length = strlen(param_name);
 	        			memcpy(tmp + offset, param_name, par_type_name_length);
 	        			offset += par_type_name_length;
-	        			for (int i = 1; i < arg_decls.size(); i++) {
+	        			for (int i = 1; i < arg_types.size(); i++) {
 	        				memcpy(tmp + offset, ", ", 2);
 	        				offset += 2;
-	        				param_name = _get_type_name(arg_decls[i]->type);
+	        				param_name = _get_type_name(arg_types[i]);
 							par_type_name_length = strlen(param_name);
 	        				memcpy(tmp + offset, param_name, par_type_name_length);
 	        				offset += par_type_name_length;

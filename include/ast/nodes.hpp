@@ -6,10 +6,11 @@
 #include "utils/string_map.hpp"
 #include "utils/string_vector.hpp"
 
+#include <assert.h>
 #include <vector>
 #include <algorithm>
 
-#define INVALID_ARGUMENT_INDEX 500
+#define INVALID_ARG_INDEX 500
 
 struct Ast_Ident;
 struct Ast_Function;
@@ -439,7 +440,7 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 };
 
 struct Ast_Function_Type : Ast_Type {
-	std::vector<Ast_Declaration*> arg_decls;
+	std::vector<Ast_Expression*> arg_types;
 	union {
 		Ast_Expression* ret_type = NULL;
 		Ast_Type* typed_ret_type;
@@ -448,35 +449,6 @@ struct Ast_Function_Type : Ast_Type {
 	Ast_Function_Type() {
 		this->typedef_type = AST_TYPEDEF_FUNCTION;
 		this->is_primitive = true;
-	}
-
-	size_t get_argument_index (const char* _name) {
-        for (size_t i = 0; i < this->arg_decls.size(); i++) {
-			auto decl = this->arg_decls[i];
-            if (strcmp(decl->name, _name) == 0) {
-                return i;
-            }
-        }
-        return INVALID_ARGUMENT_INDEX;
-	}
-
-    Ast_Declaration* get_declaration (const char* decl_name) {
-        for (auto decl : this->arg_decls) {
-            if (strcmp(decl->name, decl_name) == 0) {
-                return decl;
-            }
-        }
-        return NULL;
-    }
-
-	size_t count_arguments_without_defaults () {
-		size_t count = 0;
-		for (auto decl : this->arg_decls) {
-			if (!decl->expression) {
-				count++;
-			}
-		}
-		return count;
 	}
 };
 
@@ -490,7 +462,10 @@ struct Ast_Function : Ast_Expression {
 		Ast_Expression* type = NULL;
 		Ast_Function_Type* func_type;
 	};
+
 	Ast_Scope* body = NULL;
+
+	Ast_Scope* args_scope = NULL;
 
 	// for foreign functions
 	const char* foreign_module_name = NULL;
@@ -503,6 +478,31 @@ struct Ast_Function : Ast_Expression {
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 
 	bool is_native () { return !!this->foreign_function_name; }
+
+	size_t get_arg_index (const char* _name) {
+		for (size_t i = 0; i < this->args_scope->statements.size(); i++) {
+			auto stm = this->args_scope->statements[i];
+
+			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+			auto decl = static_cast<Ast_Declaration*>(stm);
+
+			if (strcmp(decl->name, _name) == 0) return i;
+		}
+		return INVALID_ARG_INDEX;
+	}
+
+	Ast_Declaration* get_arg_declaration (size_t index) {
+		assert(this->args_scope->statements.size() > index);
+
+		auto arg_stm = this->args_scope->statements[index];
+		assert(arg_stm->stm_type == AST_STATEMENT_DECLARATION);
+		return static_cast<Ast_Declaration*>(arg_stm);
+	}
+
+	Ast_Expression* get_default_value (size_t index) {
+		auto arg_decl = this->get_arg_declaration(index);
+		return arg_decl->expression;
+	}
 };
 
 enum Ast_Binary_Type {

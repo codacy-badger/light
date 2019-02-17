@@ -12,8 +12,6 @@ main :: fn {
     weird := callback(42, factorial);
 }
 
-FN_TYPE :: fn (number: u64) -> u64;
-
 factorial :: fn (number: u64) -> u64 {
     if (number == 0) return 1;
     else {
@@ -25,6 +23,10 @@ foozle :: fn (a: u64, b: u64 = 100, c: u64 = 200) -> u32 {
     return 0;
 }
 
-callback :: fn (number: u64, func: FN_TYPE) -> u64 {
+barzle :: fn (x: u64, y: u64 = 7, z: u64 = 8) -> u32 {
+    return 0;
+}
+
+callback :: fn (number: u64, func: fn (number: u64) -> u64) -> u64 {
     return func(number + 1);
 }

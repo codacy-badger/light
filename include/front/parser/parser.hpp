@@ -280,7 +280,8 @@ struct Parser {
 			auto tmp = this->current_scope;
 			this->current_scope = sub_scope;
 
-			auto func_type = this->function_type();
+			auto args_scope = AST_NEW(Ast_Scope, this->current_scope);
+			auto func_type = this->function_type(args_scope);
 
 			this->current_scope = tmp;
 
@@ -289,6 +290,8 @@ struct Parser {
 				sub_scope->scope_of = func;
 				func->body = sub_scope;
 				func->type = func_type;
+
+				func->args_scope = args_scope;
 
 				this->scope(func->body);
 				this->lexer.expect(TOKEN_BRAC_CLOSE);
@@ -352,13 +355,15 @@ struct Parser {
 		} else return this->expression();
 	}
 
-	Ast_Function_Type* function_type () {
+	Ast_Function_Type* function_type (Ast_Scope* arg_scope = NULL) {
 		auto fn_type = AST_NEW(Ast_Function_Type);
 
 		if (this->lexer.try_skip(TOKEN_PAR_OPEN)) {
 			while (!this->lexer.try_skip(TOKEN_PAR_CLOSE)) {
 				auto decl = this->declaration();
-				fn_type->arg_decls.push_back(decl);
+				if (arg_scope) arg_scope->add(decl);
+
+				fn_type->arg_types.push_back(decl->type);
 
 				this->lexer.try_skip(TOKEN_COMMA);
 			}

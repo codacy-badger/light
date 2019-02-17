@@ -437,12 +437,12 @@ struct Ast_Printer {
 
     void print(Ast_Function_Type* func_type) {
         printf("fn");
-        if (func_type->arg_decls.size() > 0) {
+        if (func_type->arg_types.size() > 0) {
             printf(" (");
-            print(func_type->arg_decls[0]);
-            for (int i = 1; i < func_type->arg_decls.size(); i++) {
+            print(func_type->arg_types[0]);
+            for (int i = 1; i < func_type->arg_types.size(); i++) {
                 printf(", ");
-                print(func_type->arg_decls[i]);
+                print(func_type->arg_types[i]);
             }
             printf(")");
         }

@@ -65,71 +65,75 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         assert(call->func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
         auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
 
-        auto min_arg_count = func_type->count_arguments_without_defaults();
-        auto max_arg_count = func_type->arg_decls.size();
+        if (call->func->exp_type == AST_EXPRESSION_FUNCTION) {
+            auto func = static_cast<Ast_Function*>(call->func);
 
-        if (call->arguments->unnamed.size() < min_arg_count) {
-            this->context->error(call, "Too few arguments for function call, should have at least %zd", min_arg_count);
-            this->context->shutdown();
-            return;
-        }
+            auto arg_count = func_type->arg_types.size();
 
-        if (call->arguments->unnamed.size() > max_arg_count) {
-            this->context->error(call, "Too many arguments for function call, should have at most %zd", max_arg_count);
-            this->context->shutdown();
-            return;
-        }
-
-        call->arguments->unnamed.reserve(max_arg_count);
-        for (size_t i = call->arguments->unnamed.size(); i < max_arg_count; i++) {
-            call->arguments->unnamed.push_back(NULL);
-        }
-
-        for (auto entry : call->arguments->named) {
-            auto arg_index = func_type->get_argument_index(entry.first);
-            if (arg_index != INVALID_ARGUMENT_INDEX) {
-                auto existing_value = call->arguments->get_unnamed_value(arg_index);
-                if (existing_value) {
-                    this->context->error(call, "Multiple values provided for argument '%s'", entry.first);
-                    this->context->shutdown();
-                    return;
-                } else {
-                    call->arguments->unnamed[arg_index] = entry.second;
-                }
-            } else {
-                //
-                // @Bug @TODO this could produce incorrect error messages, since
-                // function types contain the argument names, but are also uniqued!
-                // possible solution: the argument names should be stored in the Ast_Function
-                // nodes, but we should be sure that assert(arg_names.size() == arg_decls.size())
-                //
-                this->context->error(call, "Function has no argument named '%s'", entry.first);
+            if (call->arguments->unnamed.size() > arg_count) {
+                this->context->error(call, "Too many arguments for function call, should have at most %zd", arg_count);
                 this->context->shutdown();
                 return;
             }
-        }
-        call->arguments->named.clear();
 
-        for (size_t i = min_arg_count; i < func_type->arg_decls.size(); i++) {
-            auto existing_value = call->arguments->get_unnamed_value(i);
-            if (!existing_value) {
-                auto arg_decl = func_type->arg_decls[i];
-                assert(arg_decl->expression);
-
-                call->arguments->unnamed[i] = arg_decl->expression;
+            call->arguments->unnamed.reserve(arg_count);
+            for (size_t i = call->arguments->unnamed.size(); i < arg_count; i++) {
+                call->arguments->unnamed.push_back(NULL);
             }
+
+            for (auto entry : call->arguments->named) {
+                auto arg_index = func->get_arg_index(entry.first);
+                if (arg_index != INVALID_ARG_INDEX) {
+                    auto existing_value = call->arguments->get_unnamed_value(arg_index);
+                    if (existing_value) {
+                        this->context->error(call, "Multiple values provided for argument '%s'", entry.first);
+                        this->context->shutdown();
+                        return;
+                    } else {
+                        call->arguments->unnamed[arg_index] = entry.second;
+                    }
+                } else {
+                    //
+                    // @Bug @TODO this could produce incorrect error messages, since
+                    // function types contain the argument names, but are also uniqued!
+                    // possible solution: the argument names should be stored in the Ast_Function
+                    // nodes, but we should be sure that assert(arg_names.size() == arg_types.size())
+                    //
+                    this->context->error(call, "Function has no argument named '%s'", entry.first);
+                    this->context->shutdown();
+                    return;
+                }
+            }
+            call->arguments->named.clear();
+
+            for (size_t i = 0; i < func_type->arg_types.size(); i++) {
+                auto existing_value = call->arguments->get_unnamed_value(i);
+                if (!existing_value) {
+                    auto arg_decl = func->get_arg_declaration(i);
+
+                    if (!arg_decl->expression) {
+                        this->context->error(call, "There's no value provided for argument '%s'", arg_decl->name);
+                    }
+
+                    call->arguments->unnamed[i] = arg_decl->expression;
+                }
+            }
+        } else {
+            // @TODO in case we're calling a function from a variable we should
+            // make sure arguments match, no default or named stuff
         }
 
         for (size_t i = 0; i < call->arguments->unnamed.size(); i++) {
-            auto arg_decl = func_type->arg_decls[i];
+            auto arg_type = func_type->arg_types[i];
             auto value = call->arguments->unnamed[i];
-            assert(arg_decl->type->exp_type == AST_EXPRESSION_TYPE);
+            assert(arg_type->exp_type == AST_EXPRESSION_TYPE);
+            auto arg_typed_type = static_cast<Ast_Type*>(arg_type);
 
             auto success = this->caster->try_implicid_cast(value->inferred_type,
-                arg_decl->typed_type, &(call->arguments->unnamed[i]));
+                arg_typed_type, &(call->arguments->unnamed[i]));
             if (!success) {
                 this->context->error(value, "Value cannot be implicitly casted from '%s' to '%s'",
-                    value->inferred_type->name, arg_decl->typed_type->name);
+                    value->inferred_type->name, arg_typed_type->name);
                 this->context->shutdown();
                 return;
             }
