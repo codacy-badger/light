@@ -3,7 +3,6 @@
 #include "lexer/lexer.hpp"
 #include "ast/nodes.hpp"
 #include "ast/types.hpp"
-#include "ast/factory.hpp"
 #include "platform.hpp"
 
 #define AST_NEW(T, ...) this->set_ast_location_info<T>(new T(__VA_ARGS__))
@@ -322,9 +321,9 @@ struct Parser {
 			this->lexer.skip();
 			return AST_NEW(Ast_Run, this->expression());
 		} else if (this->lexer.try_skip(TOKEN_FALSE)) {
-			return ast_make_literal(false);
+			return AST_NEW(Ast_Literal, false);
 		} else if (this->lexer.try_skip(TOKEN_TRUE)) {
-			return ast_make_literal(true);
+			return AST_NEW(Ast_Literal, true);
 		} else if (this->lexer.try_skip(TOKEN_MUL)) {
 			return AST_NEW(Ast_Unary, AST_UNARY_REFERENCE, this->expression());
 		} else if (this->lexer.try_skip(TOKEN_EXCLAMATION)) {

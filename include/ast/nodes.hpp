@@ -12,11 +12,9 @@
 
 #define INVALID_ARG_INDEX 500
 
-struct Ast_Ident;
 struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
-struct Ast_Struct_Type;
 struct Ast_Scope;
 struct Ast_Type;
 
@@ -207,6 +205,13 @@ struct Ast_Declaration : Ast_Statement {
 	bool is_global () { return this->scope->is_global(); }
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
+
+	Ast_Declaration(const char* name, Ast_Expression* type, Ast_Expression* value = NULL) {
+		this->stm_type = AST_STATEMENT_DECLARATION;
+		this->expression = value;
+		this->name = name;
+		this->type = type;
+	}
 };
 
 struct Ast_Return : Ast_Statement {
@@ -339,6 +344,30 @@ struct Ast_Literal : Ast_Expression {
 	size_t data_offset = 0;
 
 	Ast_Literal () { this->exp_type = AST_EXPRESSION_LITERAL; }
+
+	Ast_Literal (bool value) {
+		this->exp_type = AST_EXPRESSION_LITERAL;
+		this->literal_type = AST_LITERAL_BOOL;
+		this->bool_value = value;
+	}
+
+	Ast_Literal (uint64_t value) {
+		this->exp_type = AST_EXPRESSION_LITERAL;
+		this->literal_type = AST_LITERAL_UNSIGNED_INT;
+		this->uint_value = value;
+	}
+
+	Ast_Literal (int64_t value) {
+		this->exp_type = AST_EXPRESSION_LITERAL;
+		this->literal_type = AST_LITERAL_SIGNED_INT;
+		this->int_value = value;
+	}
+
+	Ast_Literal (const char* value) {
+		this->exp_type = AST_EXPRESSION_LITERAL;
+		this->literal_type = AST_LITERAL_STRING;
+		this->string_value = value;
+	}
 
 	bool is_hexadecimal () 	{ return string_value[0] == '0' && string_value[1] == 'x'; }
 	bool is_binary () 		{ return string_value[0] == '0' && string_value[1] == 'b'; }
@@ -552,11 +581,6 @@ struct Ast_Binary : Ast_Expression {
 		this->exp_type = AST_EXPRESSION_BINARY;
 		this->binary_op = token_to_binop(token_type);
 	}
-
-	Ast_Type* get_result_type();
-
-	static uint8_t get_precedence (Token_Type opToken);
-	static bool is_left_associative (Token_Type opToken);
 };
 
 enum Ast_Unary_Type {
@@ -594,19 +618,3 @@ struct Ast_Ident : Ast_Expression {
 
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };
-
-bool try_cast (Ast_Expression** exp_ptr, Ast_Type* type_from, Ast_Type* type_to);
-bool try_cast (Ast_Expression** exp_ptr, Ast_Type* type_to);
-
-Ast_Type* ast_get_container_signed (Ast_Type* unsigned_type);
-Ast_Struct_Type* ast_get_smallest_type (uint64_t value);
-Ast_Struct_Type* ast_get_smallest_type (int64_t value);
-
-Ast_Literal* ast_make_literal (const char* value);
-Ast_Literal* ast_make_literal (unsigned long long value);
-Ast_Literal* ast_make_literal (bool value);
-Ast_Ident* ast_make_ident (const char* name);
-Ast_Unary* ast_make_unary (Ast_Unary_Type type, Ast_Expression* expression);
-Ast_Binary* ast_make_binary (Ast_Binary_Type type, Ast_Expression* lhs, Ast_Expression* rhs);
-Ast_Declaration* ast_make_declaration (const char* name, Ast_Expression* exp, bool is_const = true);
-Ast_Declaration* ast_make_declaration_with_type (const char* name, Ast_Expression* type);

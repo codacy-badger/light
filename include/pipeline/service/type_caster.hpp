@@ -44,10 +44,26 @@ struct Type_Caster {
 
         if (type_from->is_primitive && type_to->is_primitive) {
             if (type_from->is_number && type_to->is_number) {
-                return type_from->byte_size <= type_to->byte_size;
+                if (type_from->is_signed == type_to->is_signed) {
+                    return type_from->byte_size <= type_to->byte_size;
+                } else {
+                    // @TODO: handle implicid casts from - to signed/unsigned
+                }
             }
         }
 
         return false;
+    }
+
+    Ast_Type* get_container_signed (Ast_Type* unsigned_type) {
+        if (unsigned_type == Types::type_u8) {
+            return Types::type_s16;
+        } else if (unsigned_type == Types::type_u16) {
+            return Types::type_s32;
+        } else if (unsigned_type == Types::type_u32) {
+            return Types::type_s64;
+        } else if (unsigned_type == Types::type_u64) {
+            return Types::type_s64;
+        } else return unsigned_type;
     }
 };

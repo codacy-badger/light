@@ -2,7 +2,6 @@
 
 #include "ast/nodes.hpp"
 #include "ast/types.hpp"
-#include "ast/factory.hpp"
 
 #define DECLARE_TYPE_INT(name) this->add_uint("TYPE_" #name, INTERNAL_TYPE_##name)
 
@@ -48,16 +47,29 @@ struct Internal_Scope : Ast_Scope {
 
     void add_type (Ast_Type* type) {
         type->inferred_type = Types::type_type;
-        this->add(Ast_Factory::declaration(internal_location, type->name, Types::type_type, type));
+
+        auto decl = new Ast_Declaration(type->name, Types::type_type, type);
+        decl->location = this->internal_location;
+        decl->is_constant = true;
+        this->add(decl);
     }
 
     void add_boolean (const char* name, bool value) {
-        auto literal = Ast_Factory::literal(internal_location, value);
-        this->add(Ast_Factory::declaration(internal_location, name, literal->inferred_type, literal));
+        auto literal = new Ast_Literal(value);
+        literal->location = this->internal_location;
+
+        auto decl = new Ast_Declaration(name, Types::type_bool, literal);
+        decl->location = this->internal_location;
+        decl->is_constant = true;
+        this->add(decl);
     }
 
     void add_uint (const char* name, uint64_t value) {
-        auto literal = Ast_Factory::literal(internal_location, value);
-        this->add(Ast_Factory::declaration(internal_location, name, literal->inferred_type, literal));
+        auto literal = new Ast_Literal(value);
+
+        auto decl = new Ast_Declaration(name, Types::type_u64, literal);
+        decl->location = this->internal_location;
+        decl->is_constant = true;
+        this->add(decl);
     }
 };

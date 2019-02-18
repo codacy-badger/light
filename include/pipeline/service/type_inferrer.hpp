@@ -195,6 +195,10 @@ struct Type_Inferrer {
     void infer (Ast_Literal* lit) {
         if (!lit->inferred_type) {
             switch (lit->literal_type) {
+                case AST_LITERAL_BOOL: {
+                    lit->inferred_type = Types::type_bool;
+                    break;
+                }
                 case AST_LITERAL_UNSIGNED_INT: {
                     lit->inferred_type = Type_Inferrer::get_smallest_type(lit->uint_value);
                     break;
