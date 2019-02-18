@@ -284,7 +284,6 @@ struct Ast_Expression : Ast_Statement {
 
 struct Ast_Import : Ast_Expression {
 	char path[MAX_PATH_LENGTH];
-	char current_folder[MAX_PATH_LENGTH];
 	bool is_include = false;
 	Ast_Scope* scope = NULL;
 

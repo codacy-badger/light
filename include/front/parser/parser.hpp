@@ -103,7 +103,7 @@ struct Parser {
 				import->scope = this->current_scope;
 				import->is_include = true;
 				this->string_literal_value(import->path);
-				os_get_current_directory(import->current_folder);
+				os_get_absolute_path(import->path, import->resolved_source_file);
 				return import;
 			}
 			case TOKEN_FOREIGN: {
@@ -309,7 +309,7 @@ struct Parser {
 			auto import = AST_NEW(Ast_Import);
 			import->scope = this->current_scope;
 			this->string_literal_value(import->path);
-			os_get_current_directory(import->current_folder);
+			os_get_absolute_path(import->path, import->resolved_source_file);
 			return import;
 		} else if (this->lexer.try_skip(TOKEN_CAST)) {
 			auto cast = AST_NEW(Ast_Cast);

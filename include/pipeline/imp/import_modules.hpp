@@ -79,14 +79,14 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
     void find_file_or_error (Ast_Import* import) {
         if (import->is_include) {
-            sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\%s.li",
-                import->current_folder, import->path);
+            sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s.li",
+                import->resolved_source_file);
             if (!os_check_file_exists(import->resolved_source_file)) {
                 this->context->error("File not found: %s\n", import->resolved_source_file);
             }
         } else {
-            sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\%s.li",
-                import->current_folder, import->path);
+            sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s.li",
+                import->resolved_source_file);
             if (os_check_file_exists(import->resolved_source_file)) return;
 
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\modules\\%s.li",
