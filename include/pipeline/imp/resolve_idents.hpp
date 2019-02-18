@@ -85,7 +85,10 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                         auto attr = static_cast<Ast_Ident*>(binop->rhs);
 
                         auto import = static_cast<Ast_Import*>(ident->declaration->expression);
-                        assert(import->file_scope);
+                        if (!import->file_scope) {
+                            this->unresolved_idents.push_back((Ast_Ident**) &binop->rhs);
+                            return;
+                        }
 
                         auto decl = import->file_scope->find_declaration(attr->name, false, false);
                         if (decl) {

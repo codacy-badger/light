@@ -10,3 +10,5 @@ Bar :: struct {
 }
 
 import "bazz";
+
+CALLBACK_TYPE :: fn (number: u64) -> bool;

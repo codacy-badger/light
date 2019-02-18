@@ -89,7 +89,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             auto success = this->caster->try_implicid_cast(decl->expression->inferred_type,
                 type, &decl->expression);
             if (!success) {
-                this->context->error(decl->expression, "Value cannot be implicitly casted from '%s' to '%s'",
+                this->context->error(decl->expression, "Expression cannot be implicitly casted from '%s' to '%s'",
                     decl->expression->inferred_type->name, type->name);
                 this->context->shutdown();
                 return;
@@ -178,7 +178,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             auto success = this->caster->try_implicid_cast(value->inferred_type,
                 arg_typed_type, &(call->arguments->unnamed[i]));
             if (!success) {
-                this->context->error(value, "Value cannot be implicitly casted from '%s' to '%s'",
+                this->context->error(value, "Expression cannot be implicitly casted from '%s' to '%s'",
                     value->inferred_type->name, arg_typed_type->name);
                 this->context->shutdown();
                 return;

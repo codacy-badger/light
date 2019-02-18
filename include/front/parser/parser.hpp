@@ -538,7 +538,9 @@ struct Parser {
 			func->name = name;
 		} else if (exp->exp_type == AST_EXPRESSION_TYPE) {
 			auto type = static_cast<Ast_Type*>(exp);
-			type->name = name;
+			if (type->typedef_type == AST_TYPEDEF_STRUCT) {
+				type->name = name;
+			}
 		}
 	}
 

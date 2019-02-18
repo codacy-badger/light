@@ -11,6 +11,7 @@ Bazz :: struct {
     c1: *Foo;
     c2: *bar.Bar;
     c3 := DEV;
+    c4 : *bar.CALLBACK_TYPE:
 }
 
 import "foo";
@@ -20,4 +21,8 @@ factorial :: fn (number: u64) -> u64 {
     else {
         return factorial(number - 1);
     }
+}
+
+callback : bar.CALLBACK_TYPE : fn (data: u64) -> bool {
+    return 0;
 }
