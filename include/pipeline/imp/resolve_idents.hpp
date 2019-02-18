@@ -66,6 +66,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 this->resolve_ident((Ast_Expression**) ident_ptr, ident, decl);
             } else {
                 this->unresolved_idents.push_back(ident_ptr);
+                return;
             }
         }
     }
@@ -95,6 +96,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                             if (!is_replaced) (*binop_ptr) = (Ast_Binary*) attr;
                         } else {
                             this->unresolved_idents.push_back((Ast_Ident**) &binop->rhs);
+                            return;
                         }
                     }
                 }
@@ -119,6 +121,8 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         // unresolved id. We should review if this is what really should be happening...
         //
         if (!this->depending_statements.empty()) {
+            std::vector<Ast_Ident*> uniqued_idents;
+
             for (auto entry : this->depending_statements) {
                 for (auto stm : entry.second) {
                     this->unresolved_idents.clear();
@@ -127,10 +131,18 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                     for (auto ident_ptr : this->unresolved_idents) {
                         auto ident = (*ident_ptr);
 
-                        this->context->error(ident, "Unresolved identifier: '%s'", ident->name);
+                        auto it = std::find(uniqued_idents.begin(), uniqued_idents.end(), ident);
+                        if(it == uniqued_idents.end()) {
+                            uniqued_idents.push_back(ident);
+                        }
                     }
                 }
             }
+
+            for (auto ident : uniqued_idents) {
+                this->context->error(ident, "Unresolved identifier: '%s'", ident->name);
+            }
+
             this->context->shutdown();
         }
     }

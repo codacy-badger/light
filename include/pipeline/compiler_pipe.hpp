@@ -56,6 +56,8 @@ struct Compiler_Pipe : Pipe {
     }
 
     void shutdown () {
+        if (!this->keep_working) return;
+        
         this->keep_working = false;
         this->on_shutdown();
     }

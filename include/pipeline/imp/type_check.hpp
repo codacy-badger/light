@@ -25,6 +25,47 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         this->push_out(global_statement);
     }
 
+    void ast_handle (Ast_Scope* scope) {
+        String_Map<std::vector<Ast_Declaration*>> decl_map;
+        scope->find_all_declarations(&decl_map);
+
+        for (auto entry : decl_map) {
+            if (entry.second.size() > 1) {
+                this->context->error(entry.second[0], "Multiple declarations with same name found for '%s':", entry.first);
+                for (size_t i = 1; i < entry.second.size(); i++) {
+                    this->context->error(entry.second[i], "Re-declaration of '%s' here", entry.first);
+                }
+                this->context->shutdown();
+                return;
+            }
+        }
+
+        Ast_Ref_Navigator::ast_handle(scope);
+    }
+
+    void ast_handle (Ast_Return* ret) {
+        Ast_Ref_Navigator::ast_handle(ret);
+
+        auto func = ret->scope->get_parent_function();
+        if (!func) {
+            this->context->error(ret, "Return statement found outside function scope");
+            this->context->shutdown();
+            return;
+        }
+
+        assert(func->type);
+        assert(func->type->exp_type == AST_EXPRESSION_TYPE);
+
+        auto success = this->caster->try_implicid_cast(ret->expression->inferred_type,
+            func->func_type->typed_ret_type, &ret->expression);
+        if (!success) {
+            this->context->error(ret, "Return value cannot be implicitly casted from '%s' to '%s'",
+                ret->expression->inferred_type->name, func->func_type->typed_ret_type->name);
+            this->context->shutdown();
+            return;
+        }
+    }
+
     void ast_handle (Ast_Declaration* decl) {
         Ast_Ref_Navigator::ast_handle(decl);
 

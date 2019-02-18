@@ -68,6 +68,15 @@ Ast_Declaration* Ast_Scope::find_const_declaration (const char* _name) {
     } else return NULL;
 }
 
+void Ast_Scope::find_all_declarations (String_Map<std::vector<Ast_Declaration*>>* decl_map) {
+    for (auto stm : this->statements) {
+        if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            (*decl_map)[decl->name].push_back(decl);
+        }
+    }
+}
+
 Ast_Function* Ast_Scope::get_parent_function () {
 	if (this->scope_of) return this->scope_of;
 	else {

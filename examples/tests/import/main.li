@@ -29,4 +29,6 @@ main :: fn {
         some_stuff := "This is very hard work!";
         value: Bruh;
     }
+
+    //ret_check :: fn -> u32 { return true; }
 }

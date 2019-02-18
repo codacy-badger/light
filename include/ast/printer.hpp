@@ -99,7 +99,7 @@ struct Ast_Printer {
         print(assign->value);
     }
 
-	void print(Ast_Declaration* decl) {
+	void print(Ast_Declaration* decl, bool short_version = false) {
         printf("%s", decl->name);
 
         if (decl->type) {
@@ -112,7 +112,7 @@ struct Ast_Printer {
             if (decl->is_constant) {
                 printf(": ");
             } else printf("= ");
-            print(decl->expression, false);
+            print(decl->expression, short_version);
         }
 	}
 
@@ -225,7 +225,28 @@ struct Ast_Printer {
         if (short_version) {
             printf("<%s>", func->name);
         } else {
-            print(func->type);
+            printf("fn");
+            if (func->args_scope->statements.size() > 0) {
+                printf(" (");
+                auto stm = func->args_scope->statements[0];
+                assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+                print(static_cast<Ast_Declaration*>(stm), true);
+                for (int i = 1; i < func->args_scope->statements.size(); i++) {
+                    printf(", ");
+                    stm = func->args_scope->statements[i];
+                    assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+                    print(static_cast<Ast_Declaration*>(stm), true);
+                }
+                printf(")");
+            }
+
+            assert(func->type->exp_type == AST_EXPRESSION_TYPE);
+            assert(func->func_type->typedef_type == AST_TYPEDEF_FUNCTION);
+            if (func->func_type->ret_type) {
+                printf(" -> ");
+                print(func->func_type->ret_type);
+            }
+
             printf(" ");
             print(func->body);
         }
@@ -436,7 +457,7 @@ struct Ast_Printer {
     }
 
     void print(Ast_Function_Type* func_type) {
-        printf("fn");
+        printf("{fn");
         if (func_type->arg_types.size() > 0) {
             printf(" (");
             print(func_type->arg_types[0]);
@@ -450,6 +471,7 @@ struct Ast_Printer {
             printf(" -> ");
             print(func_type->ret_type);
         }
+        printf("}");
     }
 
     void print(Ast_Struct_Type* struct_type, bool short_version = true) {
@@ -462,14 +484,15 @@ struct Ast_Printer {
     }
 
     void print(Ast_Pointer_Type* ptr_type) {
-        printf("*(");
+        printf("*");
         print(ptr_type->base);
-        printf(")");
     }
 
     void print(Ast_Array_Type* array_type) {
         printf("[");
-        print(array_type->length);
+        if (array_type->length) {
+            print(array_type->length);
+        }
         printf("] ");
         print(array_type->base);
     }

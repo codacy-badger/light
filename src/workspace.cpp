@@ -28,8 +28,8 @@ void Workspace::wait_for_full_build () {
 }
 
 void Workspace::stop_building () {
-    this->keep_going = false;
     this->pipeline->shutdown();
+    this->keep_going = false;
     this->thread->join();
     delete this->thread;
 
@@ -44,10 +44,10 @@ void Workspace::stop_building () {
 
 void Workspace::stop_with_errors () {
     if (!this->keep_going) return;
-    
+
     this->has_error = true;
-    this->keep_going = false;
     this->pipeline->shutdown();
+    this->keep_going = false;
 }
 
 void Workspace::run_async () {

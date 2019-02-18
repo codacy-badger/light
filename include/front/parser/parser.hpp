@@ -89,6 +89,7 @@ struct Parser {
 			case TOKEN_RETURN: {
 				this->lexer.skip();
 				auto output = AST_NEW(Ast_Return, this->expression());
+				output->scope = this->current_scope;
 				this->lexer.try_skip(TOKEN_STM_END);
 				return output;
 			}

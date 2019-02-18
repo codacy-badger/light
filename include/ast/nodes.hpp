@@ -92,7 +92,7 @@ struct Ast_Scope : Ast_Statement {
 
 	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Statement* stm) {
 		stm->parent_scope = this;
-		return this->statements.insert(it + 1, stm);
+		return this->statements.insert(it, stm);
 	}
 
 	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Scope* scope) {
@@ -107,15 +107,15 @@ struct Ast_Scope : Ast_Statement {
 	}
 
 	std::vector<Ast_Statement*>::iterator add (Ast_Statement* stm) {
-		return this->add(this->statements.end() - 1, stm);
+		return this->add(this->statements.end(), stm);
 	}
 
 	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*> others) {
-		return this->add(this->statements.end() - 1, others);
+		return this->add(this->statements.end(), others);
 	}
 
 	std::vector<Ast_Statement*>::iterator remove (Ast_Statement* stm) {
-		return this->statements.erase(this->find(stm)) - 1;
+		return this->statements.erase(this->find(stm));
 	}
 
 	Ast_Scope* get_global_scope () {
@@ -152,6 +152,8 @@ struct Ast_Scope : Ast_Statement {
 	Ast_Declaration* find_declaration (const char* _name, bool use_imports, bool recurse);
 	Ast_Declaration* find_const_declaration (const char* _name);
 	Ast_Declaration* find_var_declaration (const char* _name);
+
+	void find_all_declarations (String_Map<std::vector<Ast_Declaration*>>* decl_map);
 
 	bool is_ancestor (Ast_Scope* other);
 	Ast_Function* get_parent_function ();
@@ -209,6 +211,7 @@ struct Ast_Declaration : Ast_Statement {
 
 struct Ast_Return : Ast_Statement {
 	Ast_Expression* expression = NULL;
+	Ast_Scope* scope = NULL;
 
 	Ast_Return(Ast_Expression* expression = NULL) {
         this->stm_type = AST_STATEMENT_RETURN;

@@ -40,6 +40,10 @@ struct Type_Inferrer {
                 this->infer(static_cast<Ast_Unary*>(exp));
                 break;
             }
+            case AST_EXPRESSION_CAST: {
+                this->infer(static_cast<Ast_Cast*>(exp));
+                break;
+            }
             case AST_EXPRESSION_IDENT: {
                 this->infer(static_cast<Ast_Ident*>(exp));
                 break;
@@ -101,8 +105,8 @@ struct Type_Inferrer {
             case AST_BINARY_REM: {
                 auto result = this->context->type_caster->try_bidirectional_implicid_cast(&binary->lhs, &binary->rhs);
                 if (!result) {
-                    // @DEBUG
-                    binary->inferred_type = binary->lhs->inferred_type;
+                    this->context->error(binary, "Incompatible types on binary expression: '%s' and '%s'",
+                        binary->lhs->inferred_type->name, binary->rhs->inferred_type->name);
                 } else binary->inferred_type = binary->lhs->inferred_type;
 
                 break;
@@ -162,6 +166,18 @@ struct Type_Inferrer {
 			this->infer(exp.second);
 		}
 	}
+
+    void infer (Ast_Cast* cast) {
+        if (cast->inferred_type) return;
+
+        this->infer(cast->value);
+        this->infer(cast->cast_to);
+
+        assert(cast->cast_to);
+        assert(cast->cast_to->exp_type == AST_EXPRESSION_TYPE);
+        auto target_type = static_cast<Ast_Type*>(cast->cast_to);
+        cast->inferred_type = target_type;
+    }
 
     void infer (Ast_Ident* ident) {
         if (ident->inferred_type) return;
