@@ -374,37 +374,21 @@ struct Parser {
 
 		if (this->lexer.try_skip(TOKEN_ARROW)) {
 			if (this->lexer.try_skip(TOKEN_PAR_OPEN)) {
-				Ast_Declaration* decl = NULL;
-				while (!this->lexer.try_skip(TOKEN_PAR_CLOSE)) {
-					if (this->lexer.peek(0)->type == TOKEN_ID
-							&& this->lexer.peek(1)->type == TOKEN_COLON) {
-						decl = this->declaration();
-					} else {
-						decl = AST_NEW(Ast_Declaration);
-						decl->scope = this->current_scope;
-						decl->type = this->expression();
-					}
+				while (!this->lexer.is_next(TOKEN_PAR_CLOSE)) {
+					auto decl = this->get_return_declaration();
 					if (ret_scope) ret_scope->add(decl);
 					fn_type->ret_types.push_back(decl->type);
 
 					this->lexer.try_skip(TOKEN_COMMA);
 				}
+
+				this->lexer.expect(TOKEN_PAR_CLOSE);
 			} else {
-				Ast_Declaration* decl = NULL;
-				if (this->lexer.peek(0)->type == TOKEN_ID
-						&& this->lexer.peek(1)->type == TOKEN_COLON) {
-					decl = this->declaration();
-				} else {
-					decl = AST_NEW(Ast_Declaration);
-					decl->scope = this->current_scope;
-					decl->type = this->expression();
-				}
+				auto decl = this->get_return_declaration();
 				if (ret_scope) ret_scope->add(decl);
 				fn_type->ret_types.push_back(decl->type);
 			}
-		} else {
-			fn_type->ret_types.push_back(Types::type_void);
-		}
+		} else fn_type->ret_types.push_back(Types::type_void);
 
 		return fn_type;
 	}
@@ -437,6 +421,22 @@ struct Parser {
 			default: break;
 		}
 		return output;
+	}
+
+	bool is_next_declaration () {
+		return this->lexer.peek(0)->type == TOKEN_ID
+			&& this->lexer.peek(1)->type == TOKEN_COLON;
+	}
+
+	Ast_Declaration* get_return_declaration () {
+		if (this->is_next_declaration()) {
+			return this->declaration();
+		} else {
+			auto decl = AST_NEW(Ast_Declaration);
+			decl->scope = this->current_scope;
+			decl->type = this->expression();
+			return decl;
+		}
 	}
 
 	Ast_Literal* string_literal () {

@@ -76,7 +76,8 @@ struct Type_Inferrer {
         auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
 
         if (func_type->ret_types.size() > 1) {
-            assert(false);
+            // @TODO handle anonymous types or tuples with several types as returns
+            call->inferred_type = static_cast<Ast_Type*>(func_type->ret_types[0]);
         } else call->inferred_type = static_cast<Ast_Type*>(func_type->ret_types[0]);
     }
 
