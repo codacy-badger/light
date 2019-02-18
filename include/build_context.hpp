@@ -8,6 +8,7 @@
 #include "utils/array.hpp"
 #include "utils/async_queue.hpp"
 #include "utils/string_map.hpp"
+#include "utils/memory_arena.hpp"
 
 struct Workspace;
 struct Parser;
@@ -31,6 +32,9 @@ struct Build_Context {
 	// internal attributes for pipes
 
     Workspace* workspace = NULL;
+
+	Memory_Arena* arena = NULL;
+
 	Parser* parser = NULL;
 
 	Type_Inferrer* type_inferrer = NULL;

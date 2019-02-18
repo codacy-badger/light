@@ -5,12 +5,17 @@
 #include "ast/types.hpp"
 #include "platform.hpp"
 
-#define AST_NEW(T, ...) this->set_ast_location_info<T>(new T(__VA_ARGS__))
+#define AST_NEW(T, ...) this->set_ast_location_info<T>(new (this->arena->get<T>()) T(__VA_ARGS__))
 
 struct Parser {
 	Lexer lexer;
+	Memory_Arena* arena = NULL;
 
 	Ast_Scope* current_scope = NULL;
+
+	void init (Build_Context* context) {
+		this->arena = context->arena;
+	}
 
 	void parse_into (Ast_Scope* scope, const char* absolute_path) {
 		size_t length;
@@ -123,7 +128,7 @@ struct Parser {
 					for (auto stm : scope->statements) {
 						foreign->add(stm);
 					}
-					delete scope;
+					//delete scope;
 					this->lexer.expect(TOKEN_BRAC_CLOSE);
 				} else foreign->add(this->declaration());
 
@@ -449,7 +454,7 @@ struct Parser {
 	void string_literal_value (char* buffer) {
 		auto literal = this->string_literal();
 		memcpy(buffer, literal->string_value, strlen(literal->string_value) + 1);
-		delete literal;
+		//delete literal;
 	}
 
 	Ast_Arguments* comma_separated_values () {
@@ -470,7 +475,7 @@ struct Parser {
 				assert(exp->exp_type == AST_EXPRESSION_IDENT);
 				auto ident = static_cast<Ast_Ident*>(exp);
 				args->named[ident->name] = this->expression();
-				delete ident;
+				//delete ident;
 			} else args->unnamed.push_back(exp);
 			return true;
 		} else return false;

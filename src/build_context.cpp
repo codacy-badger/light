@@ -30,6 +30,8 @@ void error_v (const char* format, va_list args);
 void Build_Context::init (Workspace* w) {
     this->workspace = w;
 
+    this->arena = new Memory_Arena();
+
     this->parser = new Parser();
 
     this->type_inferrer = new Type_Inferrer();
@@ -38,6 +40,7 @@ void Build_Context::init (Workspace* w) {
 
     this->printer = new Ast_Printer();
 
+    this->parser->init(this);
     this->type_inferrer->init(this);
     this->type_table->init(this);
     this->type_caster->init(this);
