@@ -10,7 +10,7 @@ main :: fn {
     value4 := foozle(1, c = 12);
     value5 := foozle(1, b = 32);
     value6 := foozle(a = 99, b = 32);
-    //fail5 := foozle(b = 32);
+    fail5 := foozle(b = 32);
 
     weird := callback(42);
 

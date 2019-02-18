@@ -159,6 +159,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
                     if (!arg_decl->expression) {
                         this->context->error(call, "There's no value provided for argument '%s'", arg_decl->name);
+                        this->context->shutdown();
+                        return;
                     }
 
                     call->arguments->unnamed[i] = arg_decl->expression;
