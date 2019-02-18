@@ -221,6 +221,10 @@ struct Ast_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Array_Type*>(type_def));
 				break;
 			}
+			case AST_TYPEDEF_SLICE: {
+				this->ast_handle(reinterpret_cast<Ast_Slice_Type*>(type_def));
+				break;
+			}
 		}
 	}
 
@@ -248,5 +252,9 @@ struct Ast_Navigator {
 	virtual void ast_handle (Ast_Array_Type* arr) {
 		this->ast_handle(arr->base);
 		this->ast_handle(arr->length);
+	}
+
+	virtual void ast_handle (Ast_Slice_Type* slice) {
+        this->ast_handle((Ast_Struct_Type*) slice);
 	}
 };

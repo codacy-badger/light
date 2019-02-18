@@ -39,6 +39,10 @@ struct Type_Table {
                 this->unique(reinterpret_cast<Ast_Function_Type**>(type_ptr));
                 break;
             }
+            case AST_TYPEDEF_SLICE: {
+                this->unique(reinterpret_cast<Ast_Slice_Type**>(type_ptr));
+                break;
+            }
             default: assert(false);
         }
     }
@@ -103,6 +107,31 @@ struct Type_Table {
         this->compute_type_name_if_needed(array_type);
     }
 
+    void unique (Ast_Slice_Type** slice_type_ptr) {
+        auto slice_type = (*slice_type_ptr);
+
+        if (slice_type->guid > 0) return;
+
+        assert(slice_type->get_base()->exp_type == AST_EXPRESSION_TYPE);
+        this->unique(slice_type->get_typed_base_ptr());
+
+        For2 (this->global_type_table, type) {
+            if (type->typedef_type == AST_TYPEDEF_SLICE) {
+                auto uniqued_slice_type = static_cast<Ast_Slice_Type*>(type);
+                assert(uniqued_slice_type->get_base()->exp_type == AST_EXPRESSION_TYPE);
+
+                if (uniqued_slice_type->get_typed_base()->guid == slice_type->get_typed_base()->guid) {
+                    (*slice_type_ptr) = uniqued_slice_type;
+                    return;
+                }
+            }
+        }
+
+        slice_type->guid = this->global_type_table.size+ 1;
+        this->global_type_table.push(slice_type);
+        this->compute_type_name_if_needed(slice_type);
+    }
+
     void unique (Ast_Function_Type** func_type_ptr) {
         auto func_type = (*func_type_ptr);
 
@@ -156,6 +185,27 @@ struct Type_Table {
         return true;
     }
 
+    Ast_Pointer_Type* get_or_add_pointer_type (Ast_Type* base_type) {
+        this->unique(&base_type);
+
+        For2 (this->global_type_table, type) {
+            if (type->typedef_type == AST_TYPEDEF_POINTER) {
+                auto uniqued_ptr_type = static_cast<Ast_Pointer_Type*>(type);
+                assert(uniqued_ptr_type->base->exp_type == AST_EXPRESSION_TYPE);
+
+                if (uniqued_ptr_type->typed_base->guid == base_type->guid) {
+                    return uniqued_ptr_type;
+                }
+            }
+        }
+
+        auto ptr_type = new Ast_Pointer_Type(base_type);
+        ptr_type->guid = this->global_type_table.size + 1;
+        this->global_type_table.push(ptr_type);
+        this->compute_type_name_if_needed(ptr_type);
+        return ptr_type;
+    }
+
     void compute_type_name_if_needed (Ast_Type* type) {
         if (type->name) return;
 
@@ -200,10 +250,24 @@ struct Type_Table {
                 this->compute_type_name_if_needed(_arr->typed_base);
 
                 memset(this->type_name_buffer, '\0', MAX_TYPE_NAME_LENGTH);
-                sprintf_s(this->type_name_buffer, strlen(_arr->typed_base->name) + 2,
+                sprintf_s(this->type_name_buffer, strlen(_arr->typed_base->name) + 23,
                     "[%lld]%s", _arr->length_uint, _arr->typed_base->name);
 
                 _arr->name = _strdup(this->type_name_buffer);
+
+				break;
+	        }
+	        case AST_TYPEDEF_SLICE: {
+	            auto slice = static_cast<Ast_Slice_Type*>(type);
+
+                assert(slice->get_base()->exp_type == AST_EXPRESSION_TYPE);
+                this->compute_type_name_if_needed(slice->get_typed_base());
+
+                memset(this->type_name_buffer, '\0', MAX_TYPE_NAME_LENGTH);
+                sprintf_s(this->type_name_buffer, strlen(slice->get_typed_base()->name) + 3,
+                    "[]%s", slice->get_typed_base()->name);
+
+                slice->name = _strdup(this->type_name_buffer);
 
 				break;
 	        }

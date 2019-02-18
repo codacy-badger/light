@@ -1,0 +1,9 @@
+
+main :: fn {
+    view: [12]byte;
+
+    some_data: byte;
+
+    view.length = 12;
+    view.data = *some_data;
+}

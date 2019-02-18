@@ -348,7 +348,9 @@ struct Parser {
 			return AST_NEW(Ast_Pointer_Type, this->type_expression());
 		} else if (this->lexer.try_skip(TOKEN_SQ_BRAC_OPEN)) {
 			if (this->lexer.try_skip(TOKEN_SQ_BRAC_CLOSE)) {
-				return AST_NEW(Ast_Slice_Type, this->type_expression());
+				auto slice_type = AST_NEW(Ast_Slice_Type, this->type_expression());
+				slice_type->scope.parent = this->current_scope;
+				return slice_type;
 			} else {
 				auto length = this->expression();
 				this->lexer.expect(TOKEN_SQ_BRAC_CLOSE);

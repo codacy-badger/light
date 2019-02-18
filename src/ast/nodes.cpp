@@ -133,7 +133,7 @@ Ast_Type* Ast_Pointer_Type::get_base_type_recursive() {
 }
 
 Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type, const char* name) {
-	this->typedef_type = AST_TYPEDEF_STRUCT;
+	this->typedef_type = AST_TYPEDEF_SLICE;
 	this->is_slice = true;
     this->name = name;
 

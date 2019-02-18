@@ -464,6 +464,10 @@ struct Ast_Printer {
                 print(reinterpret_cast<Ast_Array_Type*>(type));
                 break;
             }
+        	case AST_TYPEDEF_SLICE : {
+                print(reinterpret_cast<Ast_Slice_Type*>(type));
+                break;
+            }
         }
     }
 
@@ -509,7 +513,12 @@ struct Ast_Printer {
         if (array_type->length) {
             print(array_type->length);
         }
-        printf("] ");
+        printf("]");
         print(array_type->base);
+    }
+
+    void print(Ast_Slice_Type* slice_type) {
+        printf("[]");
+        print(slice_type->get_typed_base());
     }
 };

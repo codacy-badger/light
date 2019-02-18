@@ -380,6 +380,7 @@ enum Ast_Type_Type {
 	AST_TYPEDEF_STRUCT,
 	AST_TYPEDEF_POINTER,
 	AST_TYPEDEF_ARRAY,
+	AST_TYPEDEF_SLICE,
 };
 
 struct Ast_Type : Ast_Expression {
@@ -465,8 +466,18 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 		return ptr_type->base;
 	}
 
+	Ast_Expression** get_base_ptr() {
+		auto attr_decl = this->find_attribute("data");
+		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->type);
+		return &ptr_type->base;
+	}
+
 	Ast_Type* get_typed_base() {
 		return static_cast<Ast_Type*>(this->get_base());
+	}
+
+	Ast_Type** get_typed_base_ptr() {
+		return reinterpret_cast<Ast_Type**>(this->get_base_ptr());
 	}
 };
 

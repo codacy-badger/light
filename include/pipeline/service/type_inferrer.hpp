@@ -6,6 +6,7 @@
 #include "ast/types.hpp"
 
 #include "pipeline/service/type_caster.hpp"
+#include "pipeline/service/type_table.hpp"
 
 struct Type_Inferrer {
     Build_Context* context = NULL;
@@ -155,8 +156,9 @@ struct Type_Inferrer {
                 break;
             }
         	case AST_UNARY_REFERENCE: {
-                auto type = unary->exp->inferred_type;
-                unary->inferred_type = new Ast_Pointer_Type(type);
+                auto base_type = unary->exp->inferred_type;
+                auto ptr_type = this->context->type_table->get_or_add_pointer_type(base_type);
+                unary->inferred_type = ptr_type;
                 unary->inferred_type->location = unary->location;
                 break;
             }
@@ -195,12 +197,10 @@ struct Type_Inferrer {
     void infer (Ast_Ident* ident) {
         if (ident->inferred_type) return;
 
-        if (ident->declaration) {
-            assert(ident->declaration);
-            assert(ident->declaration->type);
-            assert(ident->declaration->type->exp_type == AST_EXPRESSION_TYPE);
-            ident->inferred_type = static_cast<Ast_Type*>(ident->declaration->type);
-        }
+        assert(ident->declaration);
+        assert(ident->declaration->type);
+        assert(ident->declaration->type->exp_type == AST_EXPRESSION_TYPE);
+        ident->inferred_type = static_cast<Ast_Type*>(ident->declaration->type);
     }
 
     void infer (Ast_Literal* lit) {

@@ -43,6 +43,19 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         Ast_Ref_Navigator::ast_handle(scope);
     }
 
+    void ast_handle (Ast_Assign* assign) {
+        Ast_Ref_Navigator::ast_handle(assign);
+
+        auto success = this->caster->try_implicid_cast(assign->value->inferred_type,
+            assign->variable->inferred_type, &assign->value);
+        if (!success) {
+            this->context->error(assign->value, "Assignment value cannot be implicitly casted from '%s' to '%s'",
+                assign->value->inferred_type->name, assign->variable->inferred_type->name);
+            this->context->shutdown();
+            return;
+        }
+    }
+
     void ast_handle (Ast_Return* ret) {
         Ast_Ref_Navigator::ast_handle(ret);
 
@@ -198,10 +211,9 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             assert(binary->rhs->exp_type == AST_EXPRESSION_IDENT);
             auto ident = static_cast<Ast_Ident*>(binary->rhs);
 
-            this->bind_attribute_or_error(binary->lhs->inferred_type, ident, &binary->lhs);
-            assert(ident->declaration);
-
-            this->ast_handle(&binary->rhs);
+            auto modified = this->bind_attribute_or_error(binary->lhs->inferred_type, ident, binary_ptr);
+            if (modified) this->ast_handle((Ast_Expression**) binary_ptr);
+            else this->ast_handle(&binary->rhs);
         } else Ast_Ref_Navigator::ast_handle(binary_ptr);
     }
 
@@ -214,12 +226,28 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void ast_handle (Ast_Type** type_ptr) {
-        this->type_table->unique(type_ptr);
         Ast_Ref_Navigator::ast_handle(type_ptr);
+        this->type_table->unique(type_ptr);
     }
 
-    void bind_attribute_or_error (Ast_Type* type, Ast_Ident* ident, Ast_Expression** exp_ptr) {
+    void ast_handle (Ast_Array_Type** arr_type_ptr) {
+        Ast_Ref_Navigator::ast_handle(arr_type_ptr);
+
+        auto arr_type = (*arr_type_ptr);
+
+        if (arr_type->length->exp_type == AST_EXPRESSION_LITERAL) {
+            auto literal = static_cast<Ast_Literal*>(arr_type->length);
+            arr_type->length_uint = literal->uint_value;
+        } else {
+            this->context->error(arr_type->length, "Only literal unsigned integer values allowed in array type size");
+            this->context->shutdown();
+            return;
+        }
+    }
+
+    bool bind_attribute_or_error (Ast_Type* type, Ast_Ident* ident, Ast_Binary** binary_exp_ptr) {
         switch (type->typedef_type) {
+            case AST_TYPEDEF_SLICE:
             case AST_TYPEDEF_STRUCT: {
                 auto struct_type = static_cast<Ast_Struct_Type*>(type);
                 auto attr_decl = struct_type->find_attribute(ident->name);
@@ -228,7 +256,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 } else {
                     this->context->error(ident, "Struct '%s' has no attribute named '%s'", type->name, ident->name);
                     this->context->shutdown();
-                    return;
+                    return false;
                 }
                 break;
             }
@@ -238,27 +266,46 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                     assert(tmp->base->exp_type == AST_EXPRESSION_TYPE);
                     type = tmp->typed_base;
 
-                    auto tmp2 = (Ast_Ident*) new Ast_Unary(AST_UNARY_DEREFERENCE, *exp_ptr);
-                    tmp2->location = (*exp_ptr)->location;
-                    (*exp_ptr) = tmp2;
+                    auto left_exp_ptr = &(*binary_exp_ptr)->lhs;
+                    auto tmp2 = (Ast_Ident*) new Ast_Unary(AST_UNARY_DEREFERENCE, *left_exp_ptr);
+                    tmp2->location = (*left_exp_ptr)->location;
+                    (*left_exp_ptr) = tmp2;
                 }
 
-                this->bind_attribute_or_error(type, ident, exp_ptr);
+                this->bind_attribute_or_error(type, ident, binary_exp_ptr);
 
                 break;
             }
             case AST_TYPEDEF_FUNCTION: {
                 this->context->error(ident, "Attribute access cannot be performed on function types");
                 this->context->shutdown();
-                return;
+                return false;
                 break;
             }
             case AST_TYPEDEF_ARRAY: {
-                this->context->error(ident, "TODO");
-                this->context->shutdown();
-                return;
+                auto array_type = static_cast<Ast_Array_Type*>(type);
+                if (strcmp(ident->name, "length") == 0) {
+                    auto length_literal = new Ast_Literal(array_type->length_uint);
+                    length_literal->location = ident->location;
+                    this->inferrer->infer(length_literal);
+                    (*binary_exp_ptr) = (Ast_Binary*) length_literal;
+                    return true;
+                } else if (strcmp(ident->name, "data") == 0) {
+                    auto lhs = (*binary_exp_ptr)->lhs;
+                    lhs->inferred_type = array_type->typed_base;
+                    auto data_ptr = new Ast_Unary(AST_UNARY_REFERENCE, lhs);
+                    data_ptr->location = lhs->location;
+                    this->inferrer->infer(data_ptr);
+                    (*binary_exp_ptr) = (Ast_Binary*) data_ptr;
+                    return true;
+                } else {
+                    this->context->error(ident, "Array types doesn't have a '%s' attribute", ident->name);
+                    this->context->shutdown();
+                    return false;
+                }
                 break;
             }
         }
+        return false;
     }
 };
