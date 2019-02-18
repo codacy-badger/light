@@ -226,25 +226,36 @@ struct Ast_Printer {
             printf("<%s>", func->name);
         } else {
             printf("fn");
-            if (func->args_scope->statements.size() > 0) {
+            if (func->arg_scope->statements.size() > 0) {
                 printf(" (");
-                auto stm = func->args_scope->statements[0];
+                auto stm = func->arg_scope->statements[0];
                 assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                 print(static_cast<Ast_Declaration*>(stm), true);
-                for (int i = 1; i < func->args_scope->statements.size(); i++) {
+                for (int i = 1; i < func->arg_scope->statements.size(); i++) {
                     printf(", ");
-                    stm = func->args_scope->statements[i];
+                    stm = func->arg_scope->statements[i];
                     assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                     print(static_cast<Ast_Declaration*>(stm), true);
                 }
                 printf(")");
             }
 
-            assert(func->type->exp_type == AST_EXPRESSION_TYPE);
-            assert(func->func_type->typedef_type == AST_TYPEDEF_FUNCTION);
-            if (func->func_type->ret_type) {
-                printf(" -> ");
-                print(func->func_type->ret_type);
+            if (func->ret_scope->statements.size() > 0) {
+                printf(" -> (");
+                auto stm = func->ret_scope->statements[0];
+                assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+                auto decl = static_cast<Ast_Declaration*>(stm);
+                if (decl->name) print(decl, true);
+                else print(decl->type, true);
+                for (int i = 1; i < func->ret_scope->statements.size(); i++) {
+                    printf(", ");
+                    stm = func->ret_scope->statements[i];
+                    assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+                    decl = static_cast<Ast_Declaration*>(stm);
+                    if (decl->name) print(decl, true);
+                    else print(decl->type, true);
+                }
+                printf(")");
             }
 
             printf(" ");
@@ -467,9 +478,14 @@ struct Ast_Printer {
             }
             printf(")");
         }
-        if (func_type->ret_type) {
-            printf(" -> ");
-            print(func_type->ret_type);
+        if (func_type->ret_types.size() > 0) {
+            printf(" -> (");
+            print(func_type->ret_types[0]);
+            for (int i = 1; i < func_type->ret_types.size(); i++) {
+                printf(", ");
+                print(func_type->ret_types[i]);
+            }
+            printf(")");
         }
         printf("}");
     }

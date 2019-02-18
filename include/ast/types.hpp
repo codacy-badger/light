@@ -79,6 +79,7 @@ struct Types {
 
     static bool function_types_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
         if (func_type1->arg_types.size() != func_type2->arg_types.size()) return false;
+        if (func_type1->ret_types.size() != func_type2->ret_types.size()) return false;
 
         for (size_t i = 0; i < func_type1->arg_types.size(); i++) {
             auto arg_type1 = static_cast<Ast_Type*>(func_type1->arg_types[i]);
@@ -86,111 +87,13 @@ struct Types {
             if (!Types::equal(arg_type1, arg_type2)) return false;
         }
 
-        auto ret_type1 = static_cast<Ast_Type*>(func_type1->ret_type);
-        auto ret_type2 = static_cast<Ast_Type*>(func_type2->ret_type);
-        return Types::equal(ret_type1, ret_type2);
-    }
-
-    static void set_name (Ast_Type* type_inst) {
-        if (!type_inst->name) type_inst->name = Types::get_name(type_inst);
-    }
-
-    static const char* get_name (Ast_Expression* exp) {
-    	if (exp->exp_type == AST_EXPRESSION_IDENT) {
-    		auto ident = static_cast<Ast_Ident*>(exp);
-    		return ident->name;
-    	} else if (exp->exp_type == AST_EXPRESSION_TYPE) {
-    		auto type_inst = static_cast<Ast_Type*>(exp);
-    		return Types::get_name(type_inst);
-    	} else {
-            //Logger::internal(exp, "Cannot compute type name");
-            return NULL;
+        for (size_t i = 0; i < func_type1->ret_types.size(); i++) {
+            auto ret_type1 = static_cast<Ast_Type*>(func_type1->ret_types[i]);
+            auto ret_type2 = static_cast<Ast_Type*>(func_type2->ret_types[i]);
+            if (!Types::equal(ret_type1, ret_type2)) return false;
         }
-    }
 
-    static const char* get_name (Ast_Type* type_inst) {
-    	if (!type_inst->name) {
-    		switch (type_inst->typedef_type) {
-    	        case AST_TYPEDEF_STRUCT: {
-    				auto slice = static_cast<Ast_Slice_Type*>(type_inst);
-
-					auto base_name = Types::get_name(slice->get_base());
-	        		auto base_name_length = strlen(base_name);
-                    auto tmp = (char*) malloc(base_name_length + 3);
-                    sprintf_s(tmp, base_name_length + 23, "[]%s", base_name);
-
-                    return tmp;
-    			}
-    	        case AST_TYPEDEF_POINTER: {
-    	            auto _ptr = static_cast<Ast_Pointer_Type*>(type_inst);
-
-					auto base_name = Types::get_name(_ptr->base);
-	        		auto base_name_length = strlen(base_name);
-	        		auto tmp = (char*) malloc(base_name_length + 2);
-                    sprintf_s(tmp, base_name_length + 23, "*%s", base_name);
-                    return tmp;
-    	        }
-    	        case AST_TYPEDEF_ARRAY: {
-    	            auto _arr = static_cast<Ast_Array_Type*>(type_inst);
-
-					auto base_name = Types::get_name(_arr->base);
-	        		auto base_name_length = strlen(base_name);
-					auto tmp = (char*) malloc(base_name_length + 23);
-					sprintf_s(tmp, base_name_length + 23, "[%lld]%s", _arr->length_uint, base_name);
-                    return tmp;
-    	        }
-    	        case AST_TYPEDEF_FUNCTION: {
-    	            auto _func = static_cast<Ast_Function_Type*>(type_inst);
-	        		auto arg_types = _func->arg_types;
-
-	        		size_t name_size = strlen("fn (");
-	        		if (arg_types.size() > 0) {
-						auto param_name = Types::get_name(arg_types[0]);
-	        			name_size += strlen(param_name);
-	        			for (int i = 1; i < arg_types.size(); i++) {
-	        				name_size += strlen(", ");
-	        				param_name = Types::get_name(arg_types[i]);
-	        				name_size += strlen(param_name);
-	        			}
-	        		}
-	        		name_size += strlen(") -> ");
-					auto ret_name = Types::get_name(_func->ret_type);
-	        		name_size += strlen(ret_name);
-	        		auto tmp = (char*) malloc(name_size + 1);
-
-	        		size_t offset = 0;
-	        		memcpy(tmp, "fn (", 4);
-	        		offset += 4;
-
-					size_t par_type_name_length;
-	        		if (arg_types.size() > 0) {
-						auto param_name = Types::get_name(arg_types[0]);
-						par_type_name_length = strlen(param_name);
-	        			memcpy(tmp + offset, param_name, par_type_name_length);
-	        			offset += par_type_name_length;
-	        			for (int i = 1; i < arg_types.size(); i++) {
-	        				memcpy(tmp + offset, ", ", 2);
-	        				offset += 2;
-	        				param_name = Types::get_name(arg_types[i]);
-							par_type_name_length = strlen(param_name);
-	        				memcpy(tmp + offset, param_name, par_type_name_length);
-	        				offset += par_type_name_length;
-	        			}
-	        		}
-
-	        		memcpy(tmp + offset, ") -> ", 5);
-	        		offset += 5;
-					par_type_name_length = strlen(ret_name);
-	        		memcpy(tmp + offset, ret_name, par_type_name_length);
-	        		offset += par_type_name_length;
-	        		tmp[offset] = '\0';
-
-                    return tmp;
-    	        }
-    	    }
-    	} else return type_inst->name;
-        //Logger::internal(type_inst, "Could not compute the name of the type");
-        return NULL;
+        return true;
     }
 
     static Internal_Type get_internal_type (Ast_Type* type) {

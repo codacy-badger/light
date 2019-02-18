@@ -75,8 +75,9 @@ struct Type_Inferrer {
         assert(call->func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
         auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
 
-        //assert(func_type->ret_type->exp_type == AST_EXPRESSION_TYPE);
-        call->inferred_type = static_cast<Ast_Type*>(func_type->ret_type);
+        if (func_type->ret_types.size() > 1) {
+            assert(false);
+        } else call->inferred_type = static_cast<Ast_Type*>(func_type->ret_types[0]);
     }
 
     void infer (Ast_Type* type) {

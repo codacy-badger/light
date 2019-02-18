@@ -281,8 +281,9 @@ struct Parser {
 			auto tmp = this->current_scope;
 			this->current_scope = sub_scope;
 
-			auto args_scope = AST_NEW(Ast_Scope, this->current_scope);
-			auto func_type = this->function_type(args_scope);
+			auto arg_scope = AST_NEW(Ast_Scope, this->current_scope);
+			auto ret_scope = AST_NEW(Ast_Scope, this->current_scope);
+			auto func_type = this->function_type(arg_scope, ret_scope);
 
 			this->current_scope = tmp;
 
@@ -292,7 +293,8 @@ struct Parser {
 				func->body = sub_scope;
 				func->type = func_type;
 
-				func->args_scope = args_scope;
+				func->arg_scope = arg_scope;
+				func->ret_scope = ret_scope;
 
 				this->scope(func->body);
 				this->lexer.expect(TOKEN_BRAC_CLOSE);
@@ -356,7 +358,7 @@ struct Parser {
 		} else return this->expression();
 	}
 
-	Ast_Function_Type* function_type (Ast_Scope* arg_scope = NULL) {
+	Ast_Function_Type* function_type (Ast_Scope* arg_scope = NULL, Ast_Scope* ret_scope = NULL) {
 		auto fn_type = AST_NEW(Ast_Function_Type);
 
 		if (this->lexer.try_skip(TOKEN_PAR_OPEN)) {
@@ -371,8 +373,38 @@ struct Parser {
 		}
 
 		if (this->lexer.try_skip(TOKEN_ARROW)) {
-			fn_type->ret_type = this->expression();
-		} else fn_type->ret_type = Types::type_void;
+			if (this->lexer.try_skip(TOKEN_PAR_OPEN)) {
+				Ast_Declaration* decl = NULL;
+				while (!this->lexer.try_skip(TOKEN_PAR_CLOSE)) {
+					if (this->lexer.peek(0)->type == TOKEN_ID
+							&& this->lexer.peek(1)->type == TOKEN_COLON) {
+						decl = this->declaration();
+					} else {
+						decl = AST_NEW(Ast_Declaration);
+						decl->scope = this->current_scope;
+						decl->type = this->expression();
+					}
+					if (ret_scope) ret_scope->add(decl);
+					fn_type->ret_types.push_back(decl->type);
+
+					this->lexer.try_skip(TOKEN_COMMA);
+				}
+			} else {
+				Ast_Declaration* decl = NULL;
+				if (this->lexer.peek(0)->type == TOKEN_ID
+						&& this->lexer.peek(1)->type == TOKEN_COLON) {
+					decl = this->declaration();
+				} else {
+					decl = AST_NEW(Ast_Declaration);
+					decl->scope = this->current_scope;
+					decl->type = this->expression();
+				}
+				if (ret_scope) ret_scope->add(decl);
+				fn_type->ret_types.push_back(decl->type);
+			}
+		} else {
+			fn_type->ret_types.push_back(Types::type_void);
+		}
 
 		return fn_type;
 	}

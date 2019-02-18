@@ -163,7 +163,8 @@ struct Ast_Ref_Navigator {
 
         (*func)->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
 		this->ast_handle(&(*func)->type);
-        this->ast_handle((*func)->args_scope);
+        this->ast_handle((*func)->arg_scope);
+        this->ast_handle((*func)->ret_scope);
 		if ((*func)->body) {
             this->ast_handle((*func)->body);
         }
@@ -230,7 +231,9 @@ struct Ast_Ref_Navigator {
 		for (auto &arg_type : (*func_type)->arg_types) {
 			this->ast_handle(&arg_type);
 		}
-		this->ast_handle(&(*func_type)->ret_type);
+        for (auto &ret_type : (*func_type)->ret_types) {
+			this->ast_handle(&ret_type);
+		}
 	}
 
 	virtual void ast_handle (Ast_Array_Type** arr) {

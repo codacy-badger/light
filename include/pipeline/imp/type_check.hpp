@@ -56,11 +56,16 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         assert(func->type);
         assert(func->type->exp_type == AST_EXPRESSION_TYPE);
 
+        assert(func->func_type->ret_types.size() > 0);
+        auto ret_type = func->func_type->ret_types[0];
+        assert(ret_type->exp_type == AST_EXPRESSION_TYPE);
+        auto typed_ret_type = static_cast<Ast_Type*>(ret_type);
+
         auto success = this->caster->try_implicid_cast(ret->expression->inferred_type,
-            func->func_type->typed_ret_type, &ret->expression);
+            typed_ret_type, &ret->expression);
         if (!success) {
             this->context->error(ret, "Return value cannot be implicitly casted from '%s' to '%s'",
-                ret->expression->inferred_type->name, func->func_type->typed_ret_type->name);
+                ret->expression->inferred_type->name, typed_ret_type->name);
             this->context->shutdown();
             return;
         }

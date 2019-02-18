@@ -444,10 +444,7 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 
 struct Ast_Function_Type : Ast_Type {
 	std::vector<Ast_Expression*> arg_types;
-	union {
-		Ast_Expression* ret_type = NULL;
-		Ast_Type* typed_ret_type;
-	};
+	std::vector<Ast_Expression*> ret_types;
 
 	Ast_Function_Type() {
 		this->typedef_type = AST_TYPEDEF_FUNCTION;
@@ -468,7 +465,8 @@ struct Ast_Function : Ast_Expression {
 
 	Ast_Scope* body = NULL;
 
-	Ast_Scope* args_scope = NULL;
+	Ast_Scope* arg_scope = NULL;
+	Ast_Scope* ret_scope = NULL;
 
 	// for foreign functions
 	const char* foreign_module_name = NULL;
@@ -483,8 +481,8 @@ struct Ast_Function : Ast_Expression {
 	bool is_native () { return !!this->foreign_function_name; }
 
 	size_t get_arg_index (const char* _name) {
-		for (size_t i = 0; i < this->args_scope->statements.size(); i++) {
-			auto stm = this->args_scope->statements[i];
+		for (size_t i = 0; i < this->arg_scope->statements.size(); i++) {
+			auto stm = this->arg_scope->statements[i];
 
 			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 			auto decl = static_cast<Ast_Declaration*>(stm);
@@ -495,9 +493,9 @@ struct Ast_Function : Ast_Expression {
 	}
 
 	Ast_Declaration* get_arg_declaration (size_t index) {
-		assert(this->args_scope->statements.size() > index);
+		assert(this->arg_scope->statements.size() > index);
 
-		auto arg_stm = this->args_scope->statements[index];
+		auto arg_stm = this->arg_scope->statements[index];
 		assert(arg_stm->stm_type == AST_STATEMENT_DECLARATION);
 		return static_cast<Ast_Declaration*>(arg_stm);
 	}
@@ -596,8 +594,6 @@ struct Ast_Ident : Ast_Expression {
 
 	Ast_Ident () { this->exp_type = AST_EXPRESSION_IDENT; }
 };
-
-void ast_compute_type_name_if_needed (Ast_Type* type_inst);
 
 bool try_cast (Ast_Expression** exp_ptr, Ast_Type* type_from, Ast_Type* type_to);
 bool try_cast (Ast_Expression** exp_ptr, Ast_Type* type_to);

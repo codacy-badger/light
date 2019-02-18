@@ -8,13 +8,13 @@ Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_import
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             decl = static_cast<Ast_Declaration*>(stm);
-            if (strcmp(decl->name, _name) == 0) {
+            if (decl->name && strcmp(decl->name, _name) == 0) {
                 return decl;
             }
         }
     }
     if (this->scope_of) {
-        decl = this->scope_of->args_scope->find_declaration(_name, false, false);
+        decl = this->scope_of->arg_scope->find_declaration(_name, false, false);
         if (!decl) decl = this->parent->find_const_declaration(_name);
         if (!decl) {
             return this->get_global_scope()->find_declaration(_name, true, false);
@@ -37,13 +37,13 @@ Ast_Declaration* Ast_Scope::find_var_declaration (const char* _name) {
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            if (!decl->is_constant && strcmp(decl->name, _name) == 0) {
+            if (decl->name && !decl->is_constant && strcmp(decl->name, _name) == 0) {
                 return decl;
             }
         }
     }
     if (this->scope_of) {
-		auto decl = this->scope_of->args_scope->find_declaration(_name, false, false);
+		auto decl = this->scope_of->arg_scope->find_declaration(_name, false, false);
         if (decl) return decl;
         return this->get_global_scope()->find_var_declaration(_name);
 	}
@@ -57,7 +57,7 @@ Ast_Declaration* Ast_Scope::find_const_declaration (const char* _name) {
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            if (decl->is_constant && strcmp(decl->name, _name) == 0) {
+            if (decl->name && decl->is_constant && strcmp(decl->name, _name) == 0) {
                 return decl;
             }
         }
@@ -72,7 +72,9 @@ void Ast_Scope::find_all_declarations (String_Map<std::vector<Ast_Declaration*>>
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            (*decl_map)[decl->name].push_back(decl);
+            if (decl->name) {
+                (*decl_map)[decl->name].push_back(decl);
+            }
         }
     }
 }
@@ -232,109 +234,6 @@ bool Ast_Binary::is_left_associative (Token_Type opToken) {
 	switch (opToken) {
 		case TOKEN_EQUAL: 			return true;
 		default: 		  			return false;
-	}
-}
-
-const char* _get_type_name (Ast_Expression* exp) {
-	if (exp->exp_type == AST_EXPRESSION_IDENT) {
-		auto ident = static_cast<Ast_Ident*>(exp);
-		return ident->name;
-	} else if (exp->exp_type == AST_EXPRESSION_TYPE) {
-		auto type_inst = static_cast<Ast_Type*>(exp);
-		ast_compute_type_name_if_needed(type_inst);
-		return type_inst->name;
-	} else abort();
-}
-
-void ast_compute_type_name_if_needed (Ast_Type* type_inst) {
-	if (!type_inst->name) {
-		switch (type_inst->typedef_type) {
-	        case AST_TYPEDEF_STRUCT: {
-				auto _struct = static_cast<Ast_Struct_Type*>(type_inst);
-				if (_struct->is_slice) {
-					auto slice = static_cast<Ast_Slice_Type*>(type_inst);
-					auto base_name = _get_type_name(slice->get_base());
-	        		auto base_name_length = strlen(base_name);
-                    auto tmp = (char*) malloc(base_name_length + 3);
-                    sprintf_s(tmp, base_name_length + 23, "[]%s", base_name);
-                    slice->name = tmp;
-				}
-				break;
-			}
-	        case AST_TYPEDEF_POINTER: {
-	            auto _ptr = static_cast<Ast_Pointer_Type*>(type_inst);
-	            if (_ptr->name == NULL) {
-					auto base_name = _get_type_name(_ptr->base);
-	        		auto base_name_length = strlen(base_name);
-	        		auto tmp = (char*) malloc(base_name_length + 2);
-                    sprintf_s(tmp, base_name_length + 23, "*%s", base_name);
-                    _ptr->name = tmp;
-	        	}
-				break;
-	        }
-	        case AST_TYPEDEF_ARRAY: {
-	            auto _arr = static_cast<Ast_Array_Type*>(type_inst);
-	            if (_arr->name == NULL) {
-					auto base_name = _get_type_name(_arr->base);
-	        		auto base_name_length = strlen(base_name);
-					auto tmp = (char*) malloc(base_name_length + 23);
-					sprintf_s(tmp, base_name_length + 23, "[%lld]%s", _arr->length_uint, base_name);
-                    _arr->name = tmp;
-	        	}
-				break;
-	        }
-	        case AST_TYPEDEF_FUNCTION: {
-	            auto _func = static_cast<Ast_Function_Type*>(type_inst);
-	            if (_func->name == NULL) {
-	        		auto arg_types = _func->arg_types;
-
-	        		size_t name_size = strlen("fn (");
-	        		if (arg_types.size() > 0) {
-						auto param_name = _get_type_name(arg_types[0]);
-	        			name_size += strlen(param_name);
-	        			for (int i = 1; i < arg_types.size(); i++) {
-	        				name_size += strlen(", ");
-	        				param_name = _get_type_name(arg_types[i]);
-	        				name_size += strlen(param_name);
-	        			}
-	        		}
-	        		name_size += strlen(") -> ");
-					auto ret_name = _get_type_name(_func->ret_type);
-	        		name_size += strlen(ret_name);
-	        		auto tmp = (char*) malloc(name_size + 1);
-
-	        		size_t offset = 0;
-	        		memcpy(tmp, "fn (", 4);
-	        		offset += 4;
-
-					size_t par_type_name_length;
-	        		if (arg_types.size() > 0) {
-						auto param_name = _get_type_name(arg_types[0]);
-						par_type_name_length = strlen(param_name);
-	        			memcpy(tmp + offset, param_name, par_type_name_length);
-	        			offset += par_type_name_length;
-	        			for (int i = 1; i < arg_types.size(); i++) {
-	        				memcpy(tmp + offset, ", ", 2);
-	        				offset += 2;
-	        				param_name = _get_type_name(arg_types[i]);
-							par_type_name_length = strlen(param_name);
-	        				memcpy(tmp + offset, param_name, par_type_name_length);
-	        				offset += par_type_name_length;
-	        			}
-	        		}
-
-	        		memcpy(tmp + offset, ") -> ", 5);
-	        		offset += 5;
-					par_type_name_length = strlen(ret_name);
-	        		memcpy(tmp + offset, ret_name, par_type_name_length);
-	        		offset += par_type_name_length;
-	        		tmp[offset] = '\0';
-
-                    _func->name = tmp;
-	        	}
-	        }
-	        default: break;
-	    }
 	}
 }
 
