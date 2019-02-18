@@ -242,7 +242,7 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_Function_Type* func_type) {
 		for (auto arg_type : func_type->arg_types) {
-			this->ast_handle((Ast_Statement*) arg_type);
+			if (arg_type) this->ast_handle((Ast_Statement*) arg_type);
 		}
         for (auto ret_type : func_type->ret_types) {
 			this->ast_handle((Ast_Statement*) ret_type);

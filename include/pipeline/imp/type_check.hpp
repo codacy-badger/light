@@ -115,6 +115,34 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         this->inferrer->infer(*exp_ptr);
     }
 
+    void ast_handle (Ast_Function** func_ptr) {
+        auto func = (*func_ptr);
+
+        if (func->func_flags & FUNCTION_FLAG_BEING_CHECKED) return;
+
+        func->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
+        this->ast_handle(func->arg_scope);
+        this->ast_handle(func->ret_scope);
+
+        assert(func->type->exp_type == AST_EXPRESSION_TYPE);
+        assert(func->func_type->typedef_type == AST_TYPEDEF_FUNCTION);
+        for (size_t i = 0; i < func->func_type->arg_types.size(); i++) {
+            auto arg_type = func->func_type->arg_types[i];
+            if (!arg_type) {
+                auto arg_stm = func->arg_scope->statements[i];
+                assert(arg_stm->stm_type == AST_STATEMENT_DECLARATION);
+                auto decl = static_cast<Ast_Declaration*>(arg_stm);
+                func->func_type->arg_types[i] = decl->typed_type;
+            }
+        }
+
+		this->ast_handle(&func->type);
+		if (func->body) {
+            this->ast_handle(func->body);
+        }
+        func->func_flags &= ~FUNCTION_FLAG_BEING_CHECKED;
+    }
+
     void ast_handle (Ast_Function_Call** call_ptr) {
         auto call = (*call_ptr);
 
