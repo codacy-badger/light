@@ -51,9 +51,9 @@ void Workspace::stop_with_errors () {
 }
 
 void Workspace::run_async () {
-    for (auto relative_path : this->context->input_files) {
+    For (this->context->input_files) {
         auto absolute_path = new char[MAX_PATH_LENGTH];
-        os_get_absolute_path(relative_path, absolute_path);
+        os_get_absolute_path(it, absolute_path);
         this->pipeline->add_source_file(absolute_path);
     }
 

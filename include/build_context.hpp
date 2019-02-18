@@ -3,11 +3,11 @@
 #include "platform.hpp"
 #include "os.hpp"
 #include "arch.hpp"
-#include "utils/async_queue.hpp"
-#include "utils/string_map.hpp"
 #include "ast/nodes.hpp"
 
-#include <vector>
+#include "utils/array.hpp"
+#include "utils/async_queue.hpp"
+#include "utils/string_map.hpp"
 
 struct Workspace;
 struct Parser;
@@ -18,7 +18,7 @@ struct Ast_Printer;
 
 struct Build_Context {
 	const char* output = NULL;
-	std::vector<const char*> input_files;
+	Array<const char*> input_files;
 
 	char base_path[MAX_PATH_LENGTH];
 

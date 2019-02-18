@@ -1,18 +1,16 @@
 #pragma once
 
 #include "ast/nodes.hpp"
-#include "utils/ast_navigator.hpp"
-
 #include "ast/types.hpp"
 
-#include <vector>
+#include "utils/array.hpp"
 
 #define MAX_TYPE_NAME_LENGTH 1024
 
 struct Type_Table {
     Build_Context* context = NULL;
 
-    std::vector<Ast_Type*> global_type_table;
+    Array<Ast_Type*> global_type_table = Array<Ast_Type*>(16);
 
     char type_name_buffer[MAX_TYPE_NAME_LENGTH];
 
@@ -50,8 +48,8 @@ struct Type_Table {
 
         if (_struct->guid > 0) return;
 
-        _struct->guid = this->global_type_table.size() + 1;
-        this->global_type_table.push_back(_struct);
+        _struct->guid = this->global_type_table.size + 1;
+        this->global_type_table.push(_struct);
         this->compute_type_name_if_needed(_struct);
     }
 
@@ -63,7 +61,7 @@ struct Type_Table {
         assert(ptr_type->base->exp_type == AST_EXPRESSION_TYPE);
         this->unique(&ptr_type->typed_base);
 
-        for (auto type : this->global_type_table) {
+        For2 (this->global_type_table, type) {
             if (type->typedef_type == AST_TYPEDEF_POINTER) {
                 auto uniqued_ptr_type = static_cast<Ast_Pointer_Type*>(type);
                 assert(uniqued_ptr_type->base->exp_type == AST_EXPRESSION_TYPE);
@@ -75,8 +73,8 @@ struct Type_Table {
             }
         }
 
-        ptr_type->guid = this->global_type_table.size() + 1;
-        this->global_type_table.push_back(ptr_type);
+        ptr_type->guid = this->global_type_table.size + 1;
+        this->global_type_table.push(ptr_type);
         this->compute_type_name_if_needed(ptr_type);
     }
 
@@ -88,7 +86,7 @@ struct Type_Table {
         assert(array_type->base->exp_type == AST_EXPRESSION_TYPE);
         this->unique(&array_type->typed_base);
 
-        for (auto type : this->global_type_table) {
+        For2 (this->global_type_table, type) {
             if (type->typedef_type == AST_TYPEDEF_ARRAY) {
                 auto uniqued_array_type = static_cast<Ast_Array_Type*>(type);
                 assert(uniqued_array_type->base->exp_type == AST_EXPRESSION_TYPE);
@@ -100,8 +98,8 @@ struct Type_Table {
             }
         }
 
-        array_type->guid = this->global_type_table.size() + 1;
-        this->global_type_table.push_back(array_type);
+        array_type->guid = this->global_type_table.size+ 1;
+        this->global_type_table.push(array_type);
         this->compute_type_name_if_needed(array_type);
     }
 
@@ -119,7 +117,7 @@ struct Type_Table {
             this->unique((Ast_Type**) &ret_type);
         }
 
-        for (auto type : this->global_type_table) {
+        For2 (this->global_type_table, type) {
             if (type->typedef_type == AST_TYPEDEF_FUNCTION) {
                 auto uniqued_function_type = static_cast<Ast_Function_Type*>(type);
 
@@ -130,8 +128,8 @@ struct Type_Table {
             }
         }
 
-        func_type->guid = this->global_type_table.size() + 1;
-        this->global_type_table.push_back(func_type);
+        func_type->guid = this->global_type_table.size + 1;
+        this->global_type_table.push(func_type);
         this->compute_type_name_if_needed(func_type);
     }
 

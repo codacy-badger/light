@@ -38,7 +38,7 @@ void apply_build_settings (Build_Context* context, int argc, char** argv) {
                 context->is_multithread = true;
             } else WARN(UKNOWN_ARG_FORMAT);
         } else {
-            context->input_files.push_back(argv[i]);
+            context->input_files.push(argv[i]);
         }
     }
 }
