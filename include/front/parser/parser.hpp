@@ -318,7 +318,6 @@ struct Parser {
 			this->lexer.expect(TOKEN_PAR_CLOSE);
 			return result;
 		} else if (this->lexer.try_skip(TOKEN_HASH)) {
-			this->lexer.skip();
 			return AST_NEW(Ast_Run, this->expression());
 		} else if (this->lexer.try_skip(TOKEN_FALSE)) {
 			return AST_NEW(Ast_Literal, false);

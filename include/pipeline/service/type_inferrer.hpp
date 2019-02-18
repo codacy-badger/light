@@ -52,6 +52,10 @@ struct Type_Inferrer {
                 this->infer(static_cast<Ast_Literal*>(exp));
                 break;
             }
+            case AST_EXPRESSION_RUN: {
+                this->infer(static_cast<Ast_Run*>(exp));
+                break;
+            }
             default: assert(false);
         }
         assert(exp->inferred_type);
@@ -65,6 +69,13 @@ struct Type_Inferrer {
         assert(func->type);
 
         func->inferred_type = func->func_type;
+    }
+
+    void infer (Ast_Run* run) {
+        assert(run->expression);
+        this->infer(run->expression);
+
+        run->inferred_type = run->expression->inferred_type;
     }
 
     void infer (Ast_Function_Call* call) {
