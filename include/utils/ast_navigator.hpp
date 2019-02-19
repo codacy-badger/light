@@ -17,6 +17,10 @@ struct Ast_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Assign*>(stm));
 				break;
 			}
+			case AST_STATEMENT_DEFER: {
+				this->ast_handle(reinterpret_cast<Ast_Defer*>(stm));
+				break;
+			}
 			case AST_STATEMENT_IF: {
 				this->ast_handle(reinterpret_cast<Ast_If*>(stm));
 				break;
@@ -84,6 +88,10 @@ struct Ast_Navigator {
         this->ast_handle(assign->value);
 	}
 
+	virtual void ast_handle (Ast_Defer* defer) {
+        this->ast_handle(defer->statement);
+	}
+
 	virtual void ast_handle (Ast_Declaration* decl) {
 		if (decl->type) this->ast_handle(decl->type);
 		if (decl->expression) this->ast_handle(decl->expression);
@@ -120,6 +128,10 @@ struct Ast_Navigator {
 		switch (exp->exp_type) {
 			case AST_EXPRESSION_RUN: {
 				this->ast_handle(reinterpret_cast<Ast_Run*>(exp));
+				break;
+			}
+			case AST_EXPRESSION_COMMA_SEPARATED: {
+				this->ast_handle(reinterpret_cast<Ast_Comma_Separated*>(exp));
 				break;
 			}
 			case AST_EXPRESSION_IMPORT: {
@@ -163,6 +175,13 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_Run* run) {
 		this->ast_handle(run->expression);
+	}
+
+	virtual void ast_handle (Ast_Comma_Separated* comma_separated) {
+        auto arr = &(comma_separated->expressions);
+        for (size_t i = 0; i < arr->size; i++) {
+            this->ast_handle((*arr)[i]);
+        }
 	}
 
 	virtual void ast_handle (Ast_Function* func) {

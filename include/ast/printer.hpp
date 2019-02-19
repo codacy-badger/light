@@ -41,6 +41,10 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Assign*>(stm));
 				break;
 			}
+			case AST_STATEMENT_DEFER: {
+				print(reinterpret_cast<Ast_Defer*>(stm));
+				break;
+			}
 			case AST_STATEMENT_IF: {
 				print(reinterpret_cast<Ast_If*>(stm));
 				break;
@@ -97,6 +101,11 @@ struct Ast_Printer {
         print(assign->variable);
         printf(" = ");
         print(assign->value);
+    }
+
+    void print(Ast_Defer* defer) {
+        printf("defer ");
+        print(defer->statement);
     }
 
 	void print(Ast_Declaration* decl, bool short_version = false) {

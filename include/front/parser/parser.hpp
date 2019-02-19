@@ -69,14 +69,18 @@ struct Parser {
 				this->lexer.skip();
 				return this->statement();
 			}
+			case TOKEN_IF: {
+				return this->_if();
+			}
+			case TOKEN_DEFER: {
+				this->lexer.skip();
+				return AST_NEW(Ast_Defer, this->statement());
+			}
 			case TOKEN_BRAC_OPEN: {
 				this->lexer.skip();
 				auto _scope = this->scope();
 				this->lexer.expect(TOKEN_BRAC_CLOSE);
 				return _scope;
-			}
-			case TOKEN_IF: {
-				return this->_if();
 			}
 			case TOKEN_WHILE: {
 				this->lexer.skip();

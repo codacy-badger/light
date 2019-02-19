@@ -6,6 +6,7 @@
 #include "front/parser/lexer/token.hpp"
 #include "utils/string_map.hpp"
 #include "utils/string_vector.hpp"
+#include "utils/array.hpp"
 
 #include <assert.h>
 #include <vector>
@@ -48,6 +49,7 @@ struct Ast_Arguments : Ast {
 enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
 	AST_STATEMENT_SCOPE,
+	AST_STATEMENT_DEFER,
 	AST_STATEMENT_ASSIGN,
 	AST_STATEMENT_IF,
 	AST_STATEMENT_WHILE,
@@ -165,6 +167,15 @@ struct Ast_Assign : Ast_Statement {
 	Ast_Assign () { this->stm_type = AST_STATEMENT_ASSIGN; }
 };
 
+struct Ast_Defer : Ast_Statement {
+	Ast_Statement* statement;
+
+	Ast_Defer (Ast_Statement* statement = NULL) {
+		this->stm_type = AST_STATEMENT_DEFER;
+		this->statement = statement;
+	}
+};
+
 struct Ast_If : Ast_Statement {
 	Ast_Expression* condition = NULL;
 	Ast_Scope* then_body = NULL;
@@ -261,6 +272,7 @@ struct Ast_Static_If : Ast_Statement {
 
 enum Ast_Expression_Type {
 	AST_EXPRESSION_UNDEFINED = 0,
+	AST_EXPRESSION_COMMA_SEPARATED,
 	AST_EXPRESSION_TYPE,
 	AST_EXPRESSION_RUN,
 	AST_EXPRESSION_FUNCTION,
@@ -281,6 +293,12 @@ struct Ast_Expression : Ast_Statement {
 	int8_t reg = -1;
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
+};
+
+struct Ast_Comma_Separated : Ast_Expression {
+	Array<Ast_Expression*> expressions;
+
+	Ast_Comma_Separated() { this->exp_type = AST_EXPRESSION_COMMA_SEPARATED; }
 };
 
 struct Ast_Import : Ast_Expression {

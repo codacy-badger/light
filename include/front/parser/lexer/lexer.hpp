@@ -127,6 +127,7 @@ struct Lexer {
 				if (this->identifier(token)) {
 					if (token->equal("break", 	5)) { token->type = TOKEN_BREAK; }
 					if (token->equal("cast", 	4)) { token->type = TOKEN_CAST; }
+					if (token->equal("defer", 	5)) { token->type = TOKEN_DEFER; }
 					if (token->equal("else", 	4)) { token->type = TOKEN_ELSE; }
 					if (token->equal("fn", 		2)) { token->type = TOKEN_FUNCTION; }
 					if (token->equal("false", 	5)) { token->type = TOKEN_FALSE; }
