@@ -162,7 +162,6 @@ struct Ast_Ref_Navigator {
         if ((*func)->func_flags & FUNCTION_FLAG_BEING_CHECKED) return;
 
         (*func)->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
-		this->ast_handle(&(*func)->type);
         this->ast_handle((*func)->arg_scope);
         this->ast_handle((*func)->ret_scope);
 		if ((*func)->body) {

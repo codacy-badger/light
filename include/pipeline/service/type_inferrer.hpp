@@ -59,7 +59,7 @@ struct Type_Inferrer {
             }
             default: assert(false);
         }
-        assert(exp->inferred_type);
+        //assert(exp->inferred_type);
     }
 
     void infer (Ast_Import* import) {
@@ -67,9 +67,8 @@ struct Type_Inferrer {
     }
 
     void infer (Ast_Function* func) {
-        assert(func->type);
-
-        func->inferred_type = func->func_type;
+        auto func_type = this->context->type_table->get_or_add_function_type(func);
+        func->inferred_type = func_type;
     }
 
     void infer (Ast_Run* run) {

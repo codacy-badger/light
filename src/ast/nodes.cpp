@@ -106,7 +106,7 @@ void Ast_Foreign::add (Ast_Declaration* decl) {
         if (type->typedef_type == AST_TYPEDEF_FUNCTION) {
             auto func = new Ast_Function();
             func->location = type->location;
-            func->type = static_cast<Ast_Function_Type*>(type);
+            //func->type = static_cast<Ast_Function_Type*>(type);
             func->foreign_function_name = this->get_foreign_function_name(decl->name);
             func->foreign_module_name = this->module_name;
             func->name = decl->name;

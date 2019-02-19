@@ -5,7 +5,7 @@
 #include "ast/types.hpp"
 #include "platform.hpp"
 
-#define AST_NEW(T, ...) this->set_ast_location_info<T>(new (this->arena->get<T>()) T(__VA_ARGS__))
+#define AST_NEW(T, ...) this->set_ast_location_info<T>(new (this->arena->get(sizeof(T))) T(__VA_ARGS__))
 
 struct Parser {
 	Lexer lexer;
@@ -295,7 +295,6 @@ struct Parser {
 				auto func = AST_NEW(Ast_Function);
 				sub_scope->scope_of = func;
 				func->body = sub_scope;
-				func->type = func_type;
 
 				func->arg_scope = arg_scope;
 				func->ret_scope = ret_scope;

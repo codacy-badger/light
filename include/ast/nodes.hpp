@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform.hpp"
+#include "ast/types.hpp"
 #include "utils/location.hpp"
 #include "front/parser/lexer/token.hpp"
 #include "utils/string_map.hpp"
@@ -497,15 +498,11 @@ struct Ast_Function : Ast_Expression {
 	uint16_t func_flags = 0;
 
 	const char* name = NULL;
-	union {
-		Ast_Expression* type = NULL;
-		Ast_Function_Type* func_type;
-	};
-
-	Ast_Scope* body = NULL;
 
 	Ast_Scope* arg_scope = NULL;
 	Ast_Scope* ret_scope = NULL;
+
+	Ast_Scope* body = NULL;
 
 	// for foreign functions
 	const char* foreign_module_name = NULL;
@@ -518,6 +515,26 @@ struct Ast_Function : Ast_Expression {
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 
 	bool is_native () { return !!this->foreign_function_name; }
+
+	Ast_Function_Type* build_function_type () {
+		auto func_type = new Ast_Function_Type();
+
+		for (auto stm : this->arg_scope->statements) {
+			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+			auto decl = static_cast<Ast_Declaration*>(stm);
+			func_type->arg_types.push_back(decl->type);
+		}
+
+		if (this->ret_scope->statements.size() > 0) {
+			for (auto stm : this->ret_scope->statements) {
+				assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+				auto decl = static_cast<Ast_Declaration*>(stm);
+				func_type->ret_types.push_back(decl->type);
+			}
+		} else func_type->ret_types.push_back(Types::type_void);
+
+		return func_type;
+	}
 
 	size_t get_arg_index (const char* _name) {
 		for (size_t i = 0; i < this->arg_scope->statements.size(); i++) {

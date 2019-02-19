@@ -1,5 +1,7 @@
 #include "ast/types.hpp"
 
+#include "ast/nodes.hpp"
+
 Ast_Struct_Type* build_type_string () {
     auto type_string = new Ast_Struct_Type("string");
     type_string->inferred_type = Types::type_type;

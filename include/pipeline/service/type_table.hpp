@@ -206,6 +206,12 @@ struct Type_Table {
         return ptr_type;
     }
 
+    Ast_Function_Type* get_or_add_function_type (Ast_Function* func) {
+        auto func_type = func->build_function_type();
+        this->unique(&func_type);
+        return func_type;
+    }
+
     void compute_type_name_if_needed (Ast_Type* type) {
         if (type->name) return;
 
