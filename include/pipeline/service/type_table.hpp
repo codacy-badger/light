@@ -52,9 +52,7 @@ struct Type_Table {
 
         if (_struct->guid > 0) return;
 
-        _struct->guid = this->global_type_table.size + 1;
-        this->global_type_table.push(_struct);
-        this->compute_type_name_if_needed(_struct);
+        this->add_unique(_struct);
     }
 
     void unique (Ast_Pointer_Type** ptr_type_ptr) {
@@ -77,9 +75,7 @@ struct Type_Table {
             }
         }
 
-        ptr_type->guid = this->global_type_table.size + 1;
-        this->global_type_table.push(ptr_type);
-        this->compute_type_name_if_needed(ptr_type);
+        this->add_unique(ptr_type);
     }
 
     void unique (Ast_Array_Type** array_type_ptr) {
@@ -102,9 +98,7 @@ struct Type_Table {
             }
         }
 
-        array_type->guid = this->global_type_table.size+ 1;
-        this->global_type_table.push(array_type);
-        this->compute_type_name_if_needed(array_type);
+        this->add_unique(array_type);
     }
 
     void unique (Ast_Slice_Type** slice_type_ptr) {
@@ -127,9 +121,7 @@ struct Type_Table {
             }
         }
 
-        slice_type->guid = this->global_type_table.size+ 1;
-        this->global_type_table.push(slice_type);
-        this->compute_type_name_if_needed(slice_type);
+        this->add_unique(slice_type);
     }
 
     void unique (Ast_Function_Type** func_type_ptr) {
@@ -157,9 +149,37 @@ struct Type_Table {
             }
         }
 
-        func_type->guid = this->global_type_table.size + 1;
-        this->global_type_table.push(func_type);
-        this->compute_type_name_if_needed(func_type);
+        this->add_unique(func_type);
+    }
+
+    void unique (Ast_Tuple_Type** tuple_type_ptr) {
+        auto tuple_type = (*tuple_type_ptr);
+
+        if (tuple_type->guid > 0) return;
+
+        for (size_t i = 0; i < tuple_type->types.size; i++) {
+            assert(tuple_type->types[i]->exp_type == AST_EXPRESSION_TYPE);
+            this->unique((Ast_Type**) &(tuple_type->types[i]));
+        }
+
+        For2 (this->global_type_table, type) {
+            if (type->typedef_type == AST_TYPEDEF_TUPLE) {
+                auto uniqued_tuple_type = static_cast<Ast_Tuple_Type*>(type);
+
+                if (this->types_are_equal(uniqued_tuple_type, tuple_type)) {
+                    (*tuple_type_ptr) = uniqued_tuple_type;
+                    return;
+                }
+            }
+        }
+
+        this->add_unique(tuple_type);
+    }
+
+    void add_unique (Ast_Type* type) {
+        type->guid = this->global_type_table.size + 1;
+        this->global_type_table.push(type);
+        this->compute_type_name_if_needed(type);
     }
 
     bool types_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
@@ -185,6 +205,21 @@ struct Type_Table {
         return true;
     }
 
+    bool types_are_equal (Ast_Tuple_Type* tuple_type1, Ast_Tuple_Type* tuple_type2) {
+        if (tuple_type1 == tuple_type2) return true;
+
+        if (tuple_type1->types.size != tuple_type2->types.size) return false;
+
+        for (size_t i = 0; i < tuple_type1->types.size; i++) {
+            auto type1 = tuple_type1->types[i];
+            auto type2 = tuple_type2->types[i];
+
+            if (type1 != type2) return false;
+        }
+
+        return true;
+    }
+
     Ast_Pointer_Type* get_or_add_pointer_type (Ast_Type* base_type) {
         this->unique(&base_type);
 
@@ -204,6 +239,18 @@ struct Type_Table {
         this->global_type_table.push(ptr_type);
         this->compute_type_name_if_needed(ptr_type);
         return ptr_type;
+    }
+
+    Ast_Tuple_Type* get_or_add_tuple_type (Ast_Comma_Separated* comma_separated) {
+        auto tuple_type = new Ast_Tuple_Type();
+        tuple_type->types.resize(comma_separated->expressions.size);
+        For (comma_separated->expressions) {
+            auto value = comma_separated->expressions[i];
+            assert(value->inferred_type);
+            tuple_type->types[i] = value->inferred_type;
+        }
+        this->unique(&tuple_type);
+        return tuple_type;
     }
 
     Ast_Function_Type* get_or_add_function_type (Ast_Function* func) {
@@ -274,6 +321,35 @@ struct Type_Table {
                     "[]%s", slice->get_typed_base()->name);
 
                 slice->name = _strdup(this->type_name_buffer);
+
+				break;
+	        }
+	        case AST_TYPEDEF_TUPLE: {
+	            auto tuple = static_cast<Ast_Tuple_Type*>(type);
+                assert(tuple->types.size > 0);
+
+                auto exp = tuple->types[0];
+                assert(exp->exp_type == AST_EXPRESSION_TYPE);
+                auto child_type = static_cast<Ast_Type*>(exp);
+                this->compute_type_name_if_needed(child_type);
+
+                memset(this->type_name_buffer, '\0', MAX_TYPE_NAME_LENGTH);
+                sprintf_s(this->type_name_buffer, strlen(child_type->name) + 2,
+                    "<%s", child_type->name);
+
+                for (size_t i = 1; i < tuple->types.size; i++) {
+                    strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, ", ");
+
+                    exp = tuple->types[i];
+                    assert(exp->exp_type == AST_EXPRESSION_TYPE);
+                    child_type = static_cast<Ast_Type*>(exp);
+                    this->compute_type_name_if_needed(child_type);
+
+                    strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, child_type->name);
+                }
+                strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, ">");
+
+                tuple->name = _strdup(this->type_name_buffer);
 
 				break;
 	        }

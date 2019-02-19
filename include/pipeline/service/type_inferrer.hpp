@@ -76,7 +76,8 @@ struct Type_Inferrer {
     }
 
     void infer (Ast_Comma_Separated* comma_separated) {
-        comma_separated->inferred_type = Types::type_void;
+        auto tuple_type = this->context->type_table->get_or_add_tuple_type(comma_separated);
+        comma_separated->inferred_type = tuple_type;
     }
 
     void infer (Ast_Run* run) {

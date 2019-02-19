@@ -394,6 +394,7 @@ enum Ast_Type_Type {
 	AST_TYPEDEF_POINTER,
 	AST_TYPEDEF_ARRAY,
 	AST_TYPEDEF_SLICE,
+	AST_TYPEDEF_TUPLE,
 };
 
 struct Ast_Type : Ast_Expression {
@@ -491,6 +492,15 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 
 	Ast_Type** get_typed_base_ptr() {
 		return reinterpret_cast<Ast_Type**>(this->get_base_ptr());
+	}
+};
+
+struct Ast_Tuple_Type : Ast_Type {
+	Array<Ast_Expression*> types;
+
+	Ast_Tuple_Type() {
+		this->typedef_type = AST_TYPEDEF_TUPLE;
+		this->is_primitive = true;
 	}
 };
 

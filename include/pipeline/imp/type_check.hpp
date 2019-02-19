@@ -238,6 +238,34 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         }
     }
 
+    void ast_handle (Ast_Comma_Separated** comma_separated_ptr) {
+        Ast_Ref_Navigator::ast_handle(comma_separated_ptr);
+
+        auto comma_separated = (*comma_separated_ptr);
+
+        bool all_are_types = true;
+        bool some_are_types = false;
+        For (comma_separated->expressions) {
+            if (it->exp_type != AST_EXPRESSION_TYPE) {
+                all_are_types = false;
+            }
+            some_are_types |= (it->exp_type == AST_EXPRESSION_TYPE);
+        }
+
+        if (some_are_types && !all_are_types) {
+            this->context->error(comma_separated, "Comma separated values cannot have types in them");
+            this->context->shutdown();
+            return;
+        }
+
+        if (all_are_types) {
+            auto tuple_type = new Ast_Tuple_Type();
+            tuple_type->types = comma_separated->expressions;
+            this->context->type_table->unique(&tuple_type);
+            (*comma_separated_ptr) = (Ast_Comma_Separated*) tuple_type;
+        }
+    }
+
     void ast_handle (Ast_Type** type_ptr) {
         Ast_Ref_Navigator::ast_handle(type_ptr);
         this->type_table->unique(type_ptr);

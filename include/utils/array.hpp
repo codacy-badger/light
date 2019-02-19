@@ -14,24 +14,28 @@ struct Array {
 
     Array (size_t initial_size = 0) {
         if (initial_size > 0) {
-            this->resize(initial_size);
+            this->_ensure_size(initial_size);
         }
     }
 
     void resize (size_t new_size) {
         if (this->capacity == new_size) return;
 
-        this->data = (T*) realloc(this->data, sizeof(T) * new_size);
-        this->capacity = new_size;
-        if (!this->data) {
-            fprintf(stderr, "Error allocating memory for Array\n");
-            abort();
-        }
+        this->_ensure_size(new_size);
+        this->size = new_size;
     }
 
     void _ensure_size (size_t new_size) {
         if (this->capacity < new_size) {
-            this->resize(this->capacity ? this->capacity * 2 : 1);
+            auto new_size_pow2 = this->capacity ? this->capacity * 2 : 1;
+            while (new_size_pow2 < new_size) new_size_pow2 *= 2;
+
+            this->data = (T*) realloc(this->data, sizeof(T) * new_size_pow2);
+            this->capacity = new_size_pow2;
+            if (!this->data) {
+                fprintf(stderr, "Error allocating memory for Array\n");
+                abort();
+            }
         }
     }
 

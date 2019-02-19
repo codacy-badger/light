@@ -501,6 +501,10 @@ struct Ast_Printer {
                 print(reinterpret_cast<Ast_Slice_Type*>(type));
                 break;
             }
+        	case AST_TYPEDEF_TUPLE : {
+                print(reinterpret_cast<Ast_Tuple_Type*>(type));
+                break;
+            }
         }
     }
 
@@ -553,5 +557,17 @@ struct Ast_Printer {
     void print(Ast_Slice_Type* slice_type) {
         printf("[]");
         print(slice_type->get_typed_base());
+    }
+
+    void print(Ast_Tuple_Type* tuple_type) {
+        assert(tuple_type->types.size > 0);
+
+        printf("<");
+        print(tuple_type->types[0]);
+        for (size_t i = 1; i < tuple_type->types.size; i++) {
+            printf(", ");
+            print(tuple_type->types[i]);
+        }
+        printf(">");
     }
 };
