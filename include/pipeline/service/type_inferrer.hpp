@@ -196,9 +196,9 @@ struct Type_Inferrer {
     void infer (Ast_Ident* ident) {
         if (ident->inferred_type) return;
 
-        //assert(ident->declaration);
-        //assert(ident->declaration->type);
-        //assert(ident->declaration->type->exp_type == AST_EXPRESSION_TYPE);
+        assert(ident->declaration);
+        assert(ident->declaration->type);
+        assert(ident->declaration->type->exp_type == AST_EXPRESSION_TYPE);
         ident->inferred_type = static_cast<Ast_Type*>(ident->declaration->type);
     }
 
