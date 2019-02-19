@@ -196,12 +196,12 @@ struct Ast_Break : Ast_Statement {
 };
 
 struct Ast_Declaration : Ast_Statement {
-	const char* name = NULL;
+	Array<const char*> names;
 	union {
 		Ast_Expression* type = NULL;
 		Ast_Type* typed_type;
 	};
-	Ast_Expression* expression = NULL;
+	Array<Ast_Expression*> values;
 
     bool is_constant = false;
 	Ast_Scope* scope = NULL;
@@ -220,8 +220,8 @@ struct Ast_Declaration : Ast_Statement {
 
 	Ast_Declaration(const char* name, Ast_Expression* type, Ast_Expression* value = NULL) {
 		this->stm_type = AST_STATEMENT_DECLARATION;
-		this->expression = value;
-		this->name = name;
+		this->values.push(value);
+		this->names.push(name);
 		this->type = type;
 	}
 };
@@ -242,9 +242,6 @@ struct Ast_Foreign : Ast_Statement {
 	std::vector<Ast_Declaration*> declarations;
 
 	Ast_Foreign () { this->stm_type = AST_STATEMENT_FOREIGN; }
-
-    void add (Ast_Statement* stm);
-    void add (Ast_Declaration* decl);
 
     const char* get_foreign_module_name_from_file () {
         if (this->location.filename != NULL) {
@@ -561,7 +558,8 @@ struct Ast_Function : Ast_Expression {
 			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 			auto decl = static_cast<Ast_Declaration*>(stm);
 
-			if (strcmp(decl->name, _name) == 0) return i;
+			assert(decl->names.size > 0);
+			if (strcmp(decl->names[0], _name) == 0) return i;
 		}
 		return INVALID_ARG_INDEX;
 	}
@@ -576,7 +574,8 @@ struct Ast_Function : Ast_Expression {
 
 	Ast_Expression* get_default_value (size_t index) {
 		auto arg_decl = this->get_arg_declaration(index);
-		return arg_decl->expression;
+		assert(arg_decl->values.size > 0);
+		return arg_decl->values[0];
 	}
 };
 

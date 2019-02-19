@@ -8,9 +8,13 @@ Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_import
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             decl = static_cast<Ast_Declaration*>(stm);
-            if (decl->name && strcmp(decl->name, _name) == 0) {
-                return decl;
+            for (size_t i = 0; i < decl->names.size; i++) {
+                auto decl_name = decl->names[i];
+                if (decl_name && strcmp(decl_name, _name) == 0) {
+                    return decl;
+                }
             }
+
         }
     }
     if (this->scope_of) {
@@ -37,8 +41,13 @@ Ast_Declaration* Ast_Scope::find_var_declaration (const char* _name) {
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            if (decl->name && !decl->is_constant && strcmp(decl->name, _name) == 0) {
-                return decl;
+            if (!decl->is_constant) {
+                for (size_t i = 0; i < decl->names.size; i++) {
+                    auto decl_name = decl->names[i];
+                    if (decl_name && strcmp(decl_name, _name) == 0) {
+                        return decl;
+                    }
+                }
             }
         }
     }
@@ -57,8 +66,13 @@ Ast_Declaration* Ast_Scope::find_const_declaration (const char* _name) {
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            if (decl->name && decl->is_constant && strcmp(decl->name, _name) == 0) {
-                return decl;
+            if (decl->is_constant) {
+                for (size_t i = 0; i < decl->names.size; i++) {
+                    auto decl_name = decl->names[i];
+                    if (decl_name && strcmp(decl_name, _name) == 0) {
+                        return decl;
+                    }
+                }
             }
         }
     }
@@ -72,8 +86,11 @@ void Ast_Scope::find_all_declarations (String_Map<std::vector<Ast_Declaration*>>
     for (auto stm : this->statements) {
         if (stm->stm_type == AST_STATEMENT_DECLARATION) {
             auto decl = static_cast<Ast_Declaration*>(stm);
-            if (decl->name) {
-                (*decl_map)[decl->name].push_back(decl);
+            for (size_t i = 0; i < decl->names.size; i++) {
+                auto decl_name = decl->names[i];
+                if (decl_name) {
+                    (*decl_map)[decl_name].push_back(decl);
+                }
             }
         }
     }
@@ -89,33 +106,6 @@ Ast_Function* Ast_Scope::get_parent_function () {
 		}
 		return NULL;
 	}
-}
-
-void Ast_Foreign::add (Ast_Statement* stm) {
-    if (stm->stm_type == AST_STATEMENT_DECLARATION) {
-        auto decl = static_cast<Ast_Declaration*>(stm);
-        this->add(decl);
-    } else printf("Only declarations can go inside #foreign scopes");
-}
-
-void Ast_Foreign::add (Ast_Declaration* decl) {
-    if (!decl->is_constant) printf("Declarations inside #foreign scope must be function types");
-    if (!decl->expression) printf("Declarations inside #foreign scope must have values");
-    if (decl->expression->exp_type == AST_EXPRESSION_TYPE) {
-        auto type = static_cast<Ast_Type*>(decl->expression);
-        if (type->typedef_type == AST_TYPEDEF_FUNCTION) {
-            auto func = new Ast_Function();
-            func->location = type->location;
-            //func->type = static_cast<Ast_Function_Type*>(type);
-            func->foreign_function_name = this->get_foreign_function_name(decl->name);
-            func->foreign_module_name = this->module_name;
-            func->name = decl->name;
-
-            decl->expression = func;
-
-            this->declarations.push_back(decl);
-        } else printf("Only function types can go inside #foreign scope declarations");
-    } else printf("Only types can go inside #foreign scope declarations");
 }
 
 // TODO: precompute depth for each pointer type (when uniqued?)

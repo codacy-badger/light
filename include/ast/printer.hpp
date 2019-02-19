@@ -109,19 +109,29 @@ struct Ast_Printer {
     }
 
 	void print(Ast_Declaration* decl, bool short_version = false) {
-        printf("%s", decl->name);
+        printf(decl->names[0]);
+        for (size_t i = 1; i < decl->names.size; i++) {
+            printf(", %s", decl->names[i]);
+        }
 
         if (decl->type) {
             printf(" : ");
             print(decl->type);
         } else printf(" :");
 
-        if (decl->expression) {
+        if (decl->values.size > 0) {
             if (decl->type) printf(" ");
             if (decl->is_constant) {
                 printf(": ");
             } else printf("= ");
-            print(decl->expression, short_version);
+
+            if (decl->values.size > 0) {
+                print(decl->values[0], short_version);
+                for (size_t i = 1; i < decl->values.size; i++) {
+                    printf(", ");
+                    print(decl->values[i], short_version);
+                }
+            }
         }
 	}
 
@@ -254,14 +264,14 @@ struct Ast_Printer {
                 auto stm = func->ret_scope->statements[0];
                 assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                 auto decl = static_cast<Ast_Declaration*>(stm);
-                if (decl->name) print(decl, true);
+                if (decl->names.size > 0) print(decl, true);
                 else print(decl->type, true);
                 for (int i = 1; i < func->ret_scope->statements.size(); i++) {
                     printf(", ");
                     stm = func->ret_scope->statements[i];
                     assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                     decl = static_cast<Ast_Declaration*>(stm);
-                    if (decl->name) print(decl, true);
+                    if (decl->names.size > 0) print(decl, true);
                     else print(decl->type, true);
                 }
                 printf(")");

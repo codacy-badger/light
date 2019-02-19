@@ -6,13 +6,10 @@ Ast_Struct_Type* build_type_string () {
     auto type_string = new Ast_Struct_Type("string");
     type_string->inferred_type = Types::type_type;
 
-    auto length_decl = new Ast_Declaration();
-    length_decl->type = Types::type_u64;
-    length_decl->name = "length";
+    auto length_decl = new Ast_Declaration("length", Types::type_u64);
 
-    auto data_decl = new Ast_Declaration();
-    data_decl->type = new Ast_Pointer_Type(Types::type_byte);
-    data_decl->name = "data";
+    auto data_decl_type = new Ast_Pointer_Type(Types::type_byte);
+    auto data_decl = new Ast_Declaration("data", data_decl_type);
 
     type_string->scope.add(length_decl);
     type_string->scope.add(data_decl);
@@ -24,13 +21,10 @@ Ast_Struct_Type* build_type_any () {
     auto type_any = new Ast_Struct_Type("any");
     type_any->inferred_type = Types::type_type;
 
-    auto type_decl = new Ast_Declaration();
-    type_decl->type = Types::type_u8;
-    type_decl->name = "type";
+    auto type_decl = new Ast_Declaration("type", Types::type_u8);
 
-    auto value_decl = new Ast_Declaration();
-    value_decl->type = new Ast_Pointer_Type(Types::type_void);
-    value_decl->name = "value";
+    auto value_decl_type = new Ast_Pointer_Type(Types::type_void);
+    auto value_decl = new Ast_Declaration("value", value_decl_type);
 
     type_any->scope.add(type_decl);
     type_any->scope.add(value_decl);

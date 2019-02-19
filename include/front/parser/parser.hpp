@@ -126,7 +126,7 @@ struct Parser {
 					//Logger::error_and_stop(&this->lexer.peek()->location, "foreign function name can only be used with scopes");
 				}
 
-				if (this->lexer.try_skip(TOKEN_BRAC_OPEN)) {
+				/*if (this->lexer.try_skip(TOKEN_BRAC_OPEN)) {
 					// @TODO implement custom method instead of using scope()
 					auto scope = this->scope();
 					for (auto stm : scope->statements) {
@@ -134,7 +134,7 @@ struct Parser {
 					}
 					//delete scope;
 					this->lexer.expect(TOKEN_BRAC_CLOSE);
-				} else foreign->add(this->declaration());
+				} else foreign->add(this->declaration());*/
 
 				return foreign;
 			}
@@ -199,7 +199,7 @@ struct Parser {
 		if(!this->lexer.is_next(TOKEN_ID)) return NULL;
 
 		auto decl = AST_NEW(Ast_Declaration);
-		decl->name = this->copy_token_text_and_skip();
+		decl->names.push(this->copy_token_text_and_skip());
 		decl->scope = this->current_scope;
 
 		this->lexer.expect(TOKEN_COLON);
@@ -209,8 +209,24 @@ struct Parser {
 			decl->is_constant = true;
 		} else this->lexer.try_skip(TOKEN_EQUAL);
 
-		decl->expression = this->expression();
-		this->bind(decl->name, decl->expression);
+		auto value = this->expression();
+		if (value) decl->values.push(value);
+
+		if (decl->names.size == decl->values.size) {
+			for (size_t i = 0; i < decl->values.size; i++) {
+				auto name = decl->names[i];
+				value = decl->values[i];
+				this->bind(name, value);
+			}
+		} else if (decl->values.size == 1) {
+			auto name = decl->names[0];
+			for (size_t i = 0; i < decl->values.size; i++) {
+				value = decl->values[i];
+				this->bind(name, value);
+			}
+		} else {
+			// @TODO print error
+		}
 
 		this->lexer.try_skip(TOKEN_STM_END);
 

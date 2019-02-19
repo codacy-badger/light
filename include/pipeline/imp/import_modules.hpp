@@ -41,10 +41,11 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void ast_handle (Ast_Declaration* decl) {
-        if (decl->is_constant && decl->expression) {
-            if (decl->expression->exp_type == AST_EXPRESSION_IMPORT) {
-                auto import = static_cast<Ast_Import*>(decl->expression);
-                this->handle_import(import, decl->name);
+        if (decl->is_constant && decl->values.size > 0) {
+            if (decl->values[0]->exp_type == AST_EXPRESSION_IMPORT) {
+                auto import = static_cast<Ast_Import*>(decl->values[0]);
+                assert(decl->names.size > 0);
+                this->handle_import(import, decl->names[0]);
                 return;
             }
         }

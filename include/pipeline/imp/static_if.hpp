@@ -57,8 +57,8 @@ struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         // INFO: we don't want to resolve static ifs for declaration types, since
         // those types could be values of other global declaration and we would
         // be falsely responsible of resolving those ifs.
-        if (decl->expression) {
-            Ast_Navigator::ast_handle(decl->expression);
+        For (decl->values) {
+            Ast_Navigator::ast_handle(it);
         }
     }
 
@@ -77,7 +77,7 @@ struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             auto ident = static_cast<Ast_Ident*>(exp);
             assert(ident->declaration);
             assert(ident->declaration->is_constant);
-            return this->get_value_as_bool(ident->declaration->expression);
+            return this->get_value_as_bool(ident->declaration->values[0]);
         } else {
             this->context->error(exp, "Static IF condition can only be literal or pre-declared constant");
             return false;

@@ -33,21 +33,25 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void try_requeue_depending_statements (Ast_Declaration* decl) {
-        if (this->depending_statements.contains(decl->name)) {
-            auto deps = &(this->depending_statements[decl->name]);
-            for (auto stm : *deps) {
-                this->requeue(stm);
+        for (size_t i = 0; i < decl->names.size; i++) {
+            auto decl_name = decl->names[i];
+
+            if (this->depending_statements.contains(decl_name)) {
+                auto deps = &(this->depending_statements[decl_name]);
+                for (auto stm : *deps) {
+                    this->requeue(stm);
+                }
+                deps->clear();
+                this->depending_statements.erase(decl_name);
             }
-            deps->clear();
-            this->depending_statements.erase(decl->name);
         }
     }
 
     bool resolve_ident (Ast_Expression** exp_ptr, Ast_Ident* ident, Ast_Declaration* decl) {
-        if (decl->is_constant && decl->expression) {
-            auto exp_type = decl->expression->exp_type;
+        if (decl->is_constant && decl->values.size > 0) {
+            auto exp_type = decl->values[0]->exp_type;
             if (exp_type == AST_EXPRESSION_FUNCTION || exp_type == AST_EXPRESSION_TYPE) {
-                (*exp_ptr) = decl->expression;
+                (*exp_ptr) = decl->values[0];
                 Ast_Ref_Navigator::ast_handle(exp_ptr);
                 return true;
             }
@@ -80,11 +84,11 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             Ast_Ref_Navigator::ast_handle(&binop->lhs);
             if (binop->lhs->exp_type == AST_EXPRESSION_IDENT) {
                 auto ident = static_cast<Ast_Ident*>(binop->lhs);
-                if (ident->declaration && ident->declaration->expression) {
-                    if (ident->declaration->expression->exp_type == AST_EXPRESSION_IMPORT) {
+                if (ident->declaration && ident->declaration->values.size > 0) {
+                    if (ident->declaration->values[0]->exp_type == AST_EXPRESSION_IMPORT) {
                         auto attr = static_cast<Ast_Ident*>(binop->rhs);
 
-                        auto import = static_cast<Ast_Import*>(ident->declaration->expression);
+                        auto import = static_cast<Ast_Import*>(ident->declaration->values[0]);
                         if (!import->file_scope) {
                             this->unresolved_idents.push_back((Ast_Ident**) &binop->rhs);
                             return;

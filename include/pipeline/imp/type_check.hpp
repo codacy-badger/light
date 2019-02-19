@@ -86,27 +86,30 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void ast_handle (Ast_Declaration* decl) {
         Ast_Ref_Navigator::ast_handle(decl);
 
-        if (!decl->type && !decl->expression) {
+        if (!decl->type && decl->values.empty()) {
             this->context->error(decl, "Declarations must either have a value or a type");
             this->context->shutdown();
             return;
         }
 
-        if (!decl->type && decl->expression) {
-            decl->type = decl->expression->inferred_type;
-        } else if (decl->type && decl->expression) {
+        if (!decl->type && !decl->values.empty()) {
+            decl->type = decl->values[0]->inferred_type;
+        } else if (decl->type && !decl->values.empty()) {
             assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
             auto type = static_cast<Ast_Type*>(decl->type);
 
-            auto success = this->caster->try_implicid_cast(decl->expression->inferred_type,
-                type, &decl->expression);
+            auto success = this->caster->try_implicid_cast(decl->values[0]->inferred_type,
+                type, &decl->values[0]);
             if (!success) {
-                this->context->error(decl->expression, "Expression cannot be implicitly casted from '%s' to '%s'",
-                    decl->expression->inferred_type->name, type->name);
+                this->context->error(decl->values[0], "Expression cannot be implicitly casted from '%s' to '%s'",
+                    decl->values[0]->inferred_type->name, type->name);
                 this->context->shutdown();
                 return;
             }
         }
+
+        assert(decl->type);
+        assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
     }
 
     void ast_handle (Ast_Expression** exp_ptr) {
@@ -169,13 +172,13 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 if (!existing_value) {
                     auto arg_decl = func->get_arg_declaration(i);
 
-                    if (!arg_decl->expression) {
-                        this->context->error(call, "There's no value provided for argument '%s'", arg_decl->name);
+                    if (arg_decl->values.empty()) {
+                        this->context->error(call, "There's no value provided for argument '%s'", arg_decl->names[0]);
                         this->context->shutdown();
                         return;
                     }
 
-                    call->arguments->unnamed[i] = arg_decl->expression;
+                    call->arguments->unnamed[i] = arg_decl->values[0];
                 }
             }
         } else {
