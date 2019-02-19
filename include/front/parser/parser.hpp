@@ -145,15 +145,12 @@ struct Parser {
 					default: return AST_NEW(Ast_Run, this->expression());
 				}
 			}
-			case TOKEN_ID: {
-				if (this->lexer.peek(1)->type == TOKEN_COLON) {
-					return this->declaration();
-				}
-			}
 			default: {
 				auto exp = this->expression();
 				if (exp) {
-					if (this->lexer.try_skip(TOKEN_EQUAL)) {
+					if (this->lexer.try_skip(TOKEN_COLON)) {
+						return this->declaration(exp);
+					} else if (this->lexer.try_skip(TOKEN_EQUAL)) {
 						auto assign = AST_NEW(Ast_Assign);
 						assign->variable = exp;
 						assign->value = this->expression();
@@ -195,7 +192,7 @@ struct Parser {
 		} else return static_cast<Ast_Scope*>(stm);
 	}
 
-	Ast_Declaration* declaration () {
+	Ast_Declaration* simple_declaration () {
 		if(!this->lexer.is_next(TOKEN_ID)) return NULL;
 
 		auto decl = AST_NEW(Ast_Declaration);
@@ -204,30 +201,15 @@ struct Parser {
 
 		this->lexer.expect(TOKEN_COLON);
 
-		auto type = this->expression();
-		if (type) decl->types.push(type);
+		decl->type = this->sub_expression();
 
 		if (this->lexer.try_skip(TOKEN_COLON)) {
 			decl->is_constant = true;
 		} else this->lexer.try_skip(TOKEN_EQUAL);
 
-		auto value = this->expression();
-		if (value) decl->values.push(value);
-
-		if (decl->names.size == decl->values.size) {
-			for (size_t i = 0; i < decl->values.size; i++) {
-				auto name = decl->names[i];
-				value = decl->values[i];
-				this->bind(name, value);
-			}
-		} else if (decl->values.size == 1) {
-			auto name = decl->names[0];
-			for (size_t i = 0; i < decl->values.size; i++) {
-				value = decl->values[i];
-				this->bind(name, value);
-			}
-		} else {
-			// @TODO print error
+		decl->value = this->sub_expression();
+		For (decl->names) {
+			this->bind(it, decl->value);
 		}
 
 		this->lexer.try_skip(TOKEN_STM_END);
@@ -235,7 +217,63 @@ struct Parser {
 		return decl;
 	}
 
-	Ast_Expression* expression (short min_precedence = 1) {
+	Ast_Declaration* declaration (Ast_Expression* pre_exp) {
+		auto decl = AST_NEW(Ast_Declaration);
+		decl->scope = this->current_scope;
+
+		switch (pre_exp->exp_type) {
+			case AST_EXPRESSION_COMMA_SEPARATED: {
+				auto comma_separated = static_cast<Ast_Comma_Separated*>(pre_exp);
+				For (comma_separated->expressions) {
+					if (it->exp_type == AST_EXPRESSION_IDENT) {
+						auto ident = static_cast<Ast_Ident*>(it);
+						decl->names.push(ident->name);
+					} else {
+						// @TODO print error
+					}
+				}
+				break;
+			}
+			case AST_EXPRESSION_IDENT: {
+				auto ident = static_cast<Ast_Ident*>(pre_exp);
+				decl->names.push(ident->name);
+				break;
+			}
+			default: {
+				// @TODO print error
+			}
+		}
+
+		decl->type = this->expression();
+
+		if (this->lexer.try_skip(TOKEN_COLON)) {
+			decl->is_constant = true;
+		} else this->lexer.try_skip(TOKEN_EQUAL);
+
+		decl->value = this->expression();
+		For (decl->names) {
+			this->bind(it, decl->value);
+		}
+
+		this->lexer.try_skip(TOKEN_STM_END);
+
+		return decl;
+	}
+
+	Ast_Expression* expression () {
+		auto exp = this->sub_expression();
+		if (this->lexer.is_next(TOKEN_COMMA)) {
+			auto comma_separated = AST_NEW(Ast_Comma_Separated);
+			comma_separated->expressions.push(exp);
+			while (this->lexer.try_skip(TOKEN_COMMA)) {
+				exp = this->sub_expression();
+				comma_separated->expressions.push(exp);
+			}
+			return comma_separated;
+		} else return exp;
+	}
+
+	Ast_Expression* sub_expression (short min_precedence = 1) {
 		auto output = this->atom();
 	    if (output != NULL) {
 	        auto tt = this->lexer.peek()->type;
@@ -252,7 +290,7 @@ struct Parser {
 					this->lexer.expect(TOKEN_PAR_CLOSE);
 				} else if (tt == TOKEN_SQ_BRAC_OPEN) {
 					Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
-					_tmp->rhs = this->expression(precedence);
+					_tmp->rhs = this->sub_expression(precedence);
 					_tmp->lhs = output;
 					output = _tmp;
 
@@ -273,7 +311,7 @@ struct Parser {
 					}
 
 					Ast_Binary* _tmp = AST_NEW(Ast_Binary, tt);
-					_tmp->rhs = this->expression(next_min_precedence);
+					_tmp->rhs = this->sub_expression(next_min_precedence);
 					_tmp->lhs = output;
 					output = _tmp;
 				}
@@ -381,11 +419,11 @@ struct Parser {
 
 		if (this->lexer.try_skip(TOKEN_PAR_OPEN)) {
 			while (!this->lexer.try_skip(TOKEN_PAR_CLOSE)) {
-				auto decl = this->declaration();
+				auto decl = this->simple_declaration();
 				if (arg_scope) arg_scope->add(decl);
 
-				if (!decl->types.empty()) {
-					fn_type->arg_types.push_back(decl->types[0]);
+				if (decl->type) {
+					fn_type->arg_types.push_back(decl->type);
 				}
 
 				this->lexer.try_skip(TOKEN_COMMA);
@@ -398,8 +436,8 @@ struct Parser {
 					auto decl = this->get_return_declaration();
 					if (ret_scope) ret_scope->add(decl);
 
-					if (!decl->types.empty()) {
-						fn_type->ret_types.push_back(decl->types[0]);
+					if (decl->type) {
+						fn_type->ret_types.push_back(decl->type);
 					}
 
 					this->lexer.try_skip(TOKEN_COMMA);
@@ -410,8 +448,8 @@ struct Parser {
 				auto decl = this->get_return_declaration();
 				if (ret_scope) ret_scope->add(decl);
 
-				if (!decl->types.empty()) {
-					fn_type->ret_types.push_back(decl->types[0]);
+				if (decl->type) {
+					fn_type->ret_types.push_back(decl->type);
 				}
 			}
 		} else fn_type->ret_types.push_back(Types::type_void);
@@ -449,21 +487,18 @@ struct Parser {
 		return output;
 	}
 
-	bool is_next_declaration () {
+	bool is_next_simple_declaration () {
 		return this->lexer.peek(0)->type == TOKEN_ID
 			&& this->lexer.peek(1)->type == TOKEN_COLON;
 	}
 
 	Ast_Declaration* get_return_declaration () {
-		if (this->is_next_declaration()) {
-			return this->declaration();
+		if (this->is_next_simple_declaration()) {
+			return this->simple_declaration();
 		} else {
 			auto decl = AST_NEW(Ast_Declaration);
 			decl->scope = this->current_scope;
-
-			auto type = this->expression();
-			if (type) decl->types.push(type);
-
+			decl->type = this->expression();
 			return decl;
 		}
 	}
@@ -497,10 +532,28 @@ struct Parser {
 	bool parse_next_expression_or_assignment (Ast_Arguments* args) {
 		auto exp = this->expression();
 		if (exp) {
+			if (exp->exp_type == AST_EXPRESSION_COMMA_SEPARATED) {
+				auto comma_separated = static_cast<Ast_Comma_Separated*>(exp);
+				auto last_index = comma_separated->expressions.size - 1;
+				auto last_item = comma_separated->expressions[last_index];
+
+				if (last_item->exp_type == AST_EXPRESSION_IDENT) {
+					for (size_t i = 0; i < comma_separated->expressions.size - 1; i++) {
+						args->unnamed.push_back(comma_separated->expressions[i]);
+					}
+					exp = last_item;
+				} else {
+					For (comma_separated->expressions) {
+						args->unnamed.push_back(it);
+					}
+					return true;
+				}
+			}
+
 			if (this->lexer.try_skip(TOKEN_EQUAL)) {
 				assert(exp->exp_type == AST_EXPRESSION_IDENT);
 				auto ident = static_cast<Ast_Ident*>(exp);
-				args->named[ident->name] = this->expression();
+				args->named[ident->name] = this->sub_expression();
 				//delete ident;
 			} else args->unnamed.push_back(exp);
 			return true;
@@ -564,14 +617,27 @@ struct Parser {
 	void bind (const char* name, Ast_Expression* exp) {
 		if (!exp) return;
 
-		if (exp->exp_type == AST_EXPRESSION_FUNCTION) {
-			auto func = static_cast<Ast_Function*>(exp);
-			func->name = name;
-		} else if (exp->exp_type == AST_EXPRESSION_TYPE) {
-			auto type = static_cast<Ast_Type*>(exp);
-			if (type->typedef_type == AST_TYPEDEF_STRUCT) {
-				type->name = name;
+		switch (exp->exp_type) {
+			case AST_EXPRESSION_COMMA_SEPARATED: {
+				auto comma_separated = static_cast<Ast_Comma_Separated*>(exp);
+				For (comma_separated->expressions) {
+					this->bind(name, it);
+				}
+				break;
 			}
+			case AST_EXPRESSION_TYPE: {
+				auto type = static_cast<Ast_Type*>(exp);
+				if (type->typedef_type == AST_TYPEDEF_STRUCT) {
+					type->name = name;
+				}
+				break;
+			}
+			case AST_EXPRESSION_FUNCTION: {
+				auto func = static_cast<Ast_Function*>(exp);
+				func->name = name;
+				break;
+			}
+			default: return;
 		}
 	}
 

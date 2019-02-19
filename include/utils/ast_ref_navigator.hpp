@@ -86,12 +86,8 @@ struct Ast_Ref_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Declaration* decl) {
-        for (size_t i = 0; i < decl->types.size; i++) {
-            this->ast_handle(&(decl->types.data[i]));
-        }
-        for (size_t i = 0; i < decl->values.size; i++) {
-            this->ast_handle(&(decl->values.data[i]));
-        }
+        if (decl->type) this->ast_handle(&decl->type);
+        if (decl->value) this->ast_handle(&decl->value);
 	}
 
 	virtual void ast_handle (Ast_Return* ret) {

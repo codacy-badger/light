@@ -114,28 +114,18 @@ struct Ast_Printer {
             printf(", %s", decl->names[i]);
         }
 
-        if (decl->types.size > 0) {
+        if (decl->type) {
             printf(" : ");
-            print(decl->types[0]);
-            for (size_t i = 1; i < decl->types.size; i++) {
-                printf(", ");
-                print(decl->types[i]);
-            }
+            print(decl->type);
         } else printf(" :");
 
-        if (decl->values.size > 0) {
-            if (!decl->types.empty()) printf(" ");
+        if (decl->value) {
+            if (decl->type) printf(" ");
             if (decl->is_constant) {
                 printf(": ");
             } else printf("= ");
 
-            if (decl->values.size > 0) {
-                print(decl->values[0], short_version);
-                for (size_t i = 1; i < decl->values.size; i++) {
-                    printf(", ");
-                    print(decl->values[i], short_version);
-                }
-            }
+            print(decl->value, short_version);
         }
 	}
 
@@ -199,6 +189,10 @@ struct Ast_Printer {
                 print(reinterpret_cast<Ast_Function*>(exp), short_version);
                 break;
             }
+            case AST_EXPRESSION_COMMA_SEPARATED: {
+                print(reinterpret_cast<Ast_Comma_Separated*>(exp), short_version);
+                break;
+            }
 			case AST_EXPRESSION_IMPORT: {
 				print(reinterpret_cast<Ast_Import*>(exp));
 				break;
@@ -235,6 +229,10 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Literal*>(exp));
 				break;
 			}
+			default: {
+                printf("--UNDEFINED--");
+                break;
+            }
 		}
 	}
 
@@ -269,20 +267,32 @@ struct Ast_Printer {
                 assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 if (decl->names.size > 0) print(decl, true);
-                else print(decl->types[0], true);
+                else print(decl->type, true);
                 for (int i = 1; i < func->ret_scope->statements.size(); i++) {
                     printf(", ");
                     stm = func->ret_scope->statements[i];
                     assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                     decl = static_cast<Ast_Declaration*>(stm);
                     if (decl->names.size > 0) print(decl, true);
-                    else print(decl->types[0], true);
+                    else print(decl->type, true);
                 }
                 printf(")");
             }
 
             printf(" ");
             print(func->body);
+        }
+    }
+
+    void print(Ast_Comma_Separated* comma_separated, bool short_version = true) {
+        if (comma_separated->expressions.size > 0) {
+            auto exp = comma_separated->expressions[0];
+            print(exp, short_version);
+            for (size_t i = 1; i < comma_separated->expressions.size; i++) {
+                printf(", ");
+                exp = comma_separated->expressions[i];
+                print(exp, short_version);
+            }
         }
     }
 

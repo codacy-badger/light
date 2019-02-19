@@ -25,6 +25,10 @@ struct Type_Inferrer {
                 this->infer(static_cast<Ast_Function*>(exp));
                 break;
             }
+            case AST_EXPRESSION_COMMA_SEPARATED: {
+                this->infer(static_cast<Ast_Comma_Separated*>(exp));
+                break;
+            }
             case AST_EXPRESSION_TYPE: {
                 this->infer(static_cast<Ast_Type*>(exp));
                 break;
@@ -69,6 +73,10 @@ struct Type_Inferrer {
     void infer (Ast_Function* func) {
         auto func_type = this->context->type_table->get_or_add_function_type(func);
         func->inferred_type = func_type;
+    }
+
+    void infer (Ast_Comma_Separated* comma_separated) {
+        comma_separated->inferred_type = Types::type_void;
     }
 
     void infer (Ast_Run* run) {
@@ -197,11 +205,9 @@ struct Type_Inferrer {
         if (ident->inferred_type) return;
 
         assert(ident->declaration);
-        assert(ident->declaration->types.size > 0);
-        For (ident->declaration->types) {
-            assert(it->exp_type == AST_EXPRESSION_TYPE);
-        }
-        ident->inferred_type = static_cast<Ast_Type*>(ident->declaration->types[0]);
+        assert(ident->declaration->type);
+        assert(ident->declaration->type->exp_type == AST_EXPRESSION_TYPE);
+        ident->inferred_type = static_cast<Ast_Type*>(ident->declaration->type);
     }
 
     void infer (Ast_Literal* lit) {

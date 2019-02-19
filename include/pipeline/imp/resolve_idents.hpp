@@ -48,10 +48,10 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     bool resolve_ident (Ast_Expression** exp_ptr, Ast_Ident* ident, Ast_Declaration* decl) {
-        if (decl->is_constant && decl->values.size > 0) {
-            auto exp_type = decl->values[0]->exp_type;
+        if (decl->is_constant && decl->value != NULL) {
+            auto exp_type = decl->value->exp_type;
             if (exp_type == AST_EXPRESSION_FUNCTION || exp_type == AST_EXPRESSION_TYPE) {
-                (*exp_ptr) = decl->values[0];
+                (*exp_ptr) = decl->value;
                 Ast_Ref_Navigator::ast_handle(exp_ptr);
                 return true;
             }
@@ -84,11 +84,11 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             Ast_Ref_Navigator::ast_handle(&binop->lhs);
             if (binop->lhs->exp_type == AST_EXPRESSION_IDENT) {
                 auto ident = static_cast<Ast_Ident*>(binop->lhs);
-                if (ident->declaration && ident->declaration->values.size > 0) {
-                    if (ident->declaration->values[0]->exp_type == AST_EXPRESSION_IMPORT) {
+                if (ident->declaration && ident->declaration->value != NULL) {
+                    if (ident->declaration->value->exp_type == AST_EXPRESSION_IMPORT) {
                         auto attr = static_cast<Ast_Ident*>(binop->rhs);
 
-                        auto import = static_cast<Ast_Import*>(ident->declaration->values[0]);
+                        auto import = static_cast<Ast_Import*>(ident->declaration->value);
                         if (!import->file_scope) {
                             this->unresolved_idents.push_back((Ast_Ident**) &binop->rhs);
                             return;

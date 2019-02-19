@@ -197,8 +197,8 @@ struct Ast_Break : Ast_Statement {
 
 struct Ast_Declaration : Ast_Statement {
 	Array<const char*> names;
-	Array<Ast_Expression*> types;
-	Array<Ast_Expression*> values;
+	Ast_Expression* type;
+	Ast_Expression* value;
 
     bool is_constant = false;
 	Ast_Scope* scope = NULL;
@@ -217,9 +217,9 @@ struct Ast_Declaration : Ast_Statement {
 
 	Ast_Declaration(const char* name, Ast_Expression* type, Ast_Expression* value = NULL) {
 		this->stm_type = AST_STATEMENT_DECLARATION;
-		if (value) this->values.push(value);
 		this->names.push(name);
-		this->types.push(type);
+		this->value = value;
+		this->type = type;
 	}
 };
 
@@ -475,13 +475,13 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 
 	Ast_Expression* get_base() {
 		auto attr_decl = this->find_attribute("data");
-		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->types[0]);
+		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->type);
 		return ptr_type->base;
 	}
 
 	Ast_Expression** get_base_ptr() {
 		auto attr_decl = this->find_attribute("data");
-		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->types[0]);
+		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->type);
 		return &ptr_type->base;
 	}
 
@@ -534,14 +534,14 @@ struct Ast_Function : Ast_Expression {
 		for (auto stm : this->arg_scope->statements) {
 			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 			auto decl = static_cast<Ast_Declaration*>(stm);
-			func_type->arg_types.push_back(decl->types[0]);
+			func_type->arg_types.push_back(decl->type);
 		}
 
 		if (this->ret_scope->statements.size() > 0) {
 			for (auto stm : this->ret_scope->statements) {
 				assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 				auto decl = static_cast<Ast_Declaration*>(stm);
-				func_type->ret_types.push_back(decl->types[0]);
+				func_type->ret_types.push_back(decl->type);
 			}
 		} else func_type->ret_types.push_back(Types::type_void);
 
@@ -571,8 +571,8 @@ struct Ast_Function : Ast_Expression {
 
 	Ast_Expression* get_default_value (size_t index) {
 		auto arg_decl = this->get_arg_declaration(index);
-		assert(arg_decl->values.size > 0);
-		return arg_decl->values[0];
+		assert(arg_decl->value != NULL);
+		return arg_decl->value;
 	}
 };
 
