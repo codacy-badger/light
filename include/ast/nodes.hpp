@@ -217,7 +217,7 @@ struct Ast_Declaration : Ast_Statement {
 
 	Ast_Declaration(const char* name, Ast_Expression* type, Ast_Expression* value = NULL) {
 		this->stm_type = AST_STATEMENT_DECLARATION;
-		this->values.push(value);
+		if (value) this->values.push(value);
 		this->names.push(name);
 		this->types.push(type);
 	}

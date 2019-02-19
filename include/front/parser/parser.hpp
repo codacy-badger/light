@@ -204,7 +204,7 @@ struct Parser {
 
 		this->lexer.expect(TOKEN_COLON);
 
-		auto type = this->type_expression();
+		auto type = this->expression();
 		if (type) decl->types.push(type);
 
 		if (this->lexer.try_skip(TOKEN_COLON)) {
@@ -326,6 +326,20 @@ struct Parser {
 
 				return func;
 			} else return func_type;
+		} else if (this->lexer.try_skip(TOKEN_SQ_BRAC_OPEN)) {
+			if (this->lexer.try_skip(TOKEN_SQ_BRAC_CLOSE)) {
+				auto slice_type = AST_NEW(Ast_Slice_Type, this->expression());
+				slice_type->scope.parent = this->current_scope;
+				return slice_type;
+			} else {
+				auto length = this->expression();
+				this->lexer.expect(TOKEN_SQ_BRAC_CLOSE);
+
+ 				auto _array = AST_NEW(Ast_Array_Type);
+				_array->base = this->expression();
+				_array->length = length;
+				return _array;
+			}
 		} else if (this->lexer.try_skip(TOKEN_IMPORT)) {
 			auto import = AST_NEW(Ast_Import);
 			import->scope = this->current_scope;
@@ -335,7 +349,7 @@ struct Parser {
 		} else if (this->lexer.try_skip(TOKEN_CAST)) {
 			auto cast = AST_NEW(Ast_Cast);
 			this->lexer.expect(TOKEN_PAR_OPEN);
-			cast->cast_to = this->type_expression();
+			cast->cast_to = this->expression();
 			this->lexer.expect(TOKEN_PAR_CLOSE);
 			cast->value = this->expression();
 			return cast;
@@ -360,28 +374,6 @@ struct Parser {
 		} else if (this->lexer.try_skip(TOKEN_ADD)) {
 			return this->expression();
 		} else return this->literal();
-	}
-
-	Ast_Expression* type_expression () {
-		if (this->lexer.try_skip(TOKEN_FUNCTION)) {
-			return this->function_type();
-		} else if (this->lexer.try_skip(TOKEN_MUL)) {
-			return AST_NEW(Ast_Pointer_Type, this->type_expression());
-		} else if (this->lexer.try_skip(TOKEN_SQ_BRAC_OPEN)) {
-			if (this->lexer.try_skip(TOKEN_SQ_BRAC_CLOSE)) {
-				auto slice_type = AST_NEW(Ast_Slice_Type, this->type_expression());
-				slice_type->scope.parent = this->current_scope;
-				return slice_type;
-			} else {
-				auto length = this->expression();
-				this->lexer.expect(TOKEN_SQ_BRAC_CLOSE);
-
- 				auto _array = AST_NEW(Ast_Array_Type);
-				_array->base = this->type_expression();
-				_array->length = length;
-				return _array;
-			}
-		} else return this->expression();
 	}
 
 	Ast_Function_Type* function_type (Ast_Scope* arg_scope = NULL, Ast_Scope* ret_scope = NULL) {

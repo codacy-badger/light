@@ -227,10 +227,16 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void ast_handle (Ast_Unary** unary_ptr) {
+        Ast_Ref_Navigator::ast_handle(unary_ptr);
+
         auto unary = (*unary_ptr);
 
-        if (unary->unary_op != AST_UNARY_REFERENCE) {
-            Ast_Ref_Navigator::ast_handle(unary_ptr);
+        assert(unary->exp->inferred_type);
+        if (unary->exp->inferred_type == Types::type_type) {
+            auto base_type = static_cast<Ast_Type*>(unary->exp);
+            auto ptr_type = this->context->type_table->get_or_add_pointer_type(base_type);
+            ptr_type->inferred_type = Types::type_type;
+            (*unary_ptr) = (Ast_Unary*) ptr_type;
         }
     }
 
