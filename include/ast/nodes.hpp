@@ -197,10 +197,7 @@ struct Ast_Break : Ast_Statement {
 
 struct Ast_Declaration : Ast_Statement {
 	Array<const char*> names;
-	union {
-		Ast_Expression* type = NULL;
-		Ast_Type* typed_type;
-	};
+	Array<Ast_Expression*> types;
 	Array<Ast_Expression*> values;
 
     bool is_constant = false;
@@ -222,7 +219,7 @@ struct Ast_Declaration : Ast_Statement {
 		this->stm_type = AST_STATEMENT_DECLARATION;
 		this->values.push(value);
 		this->names.push(name);
-		this->type = type;
+		this->types.push(type);
 	}
 };
 
@@ -478,13 +475,13 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 
 	Ast_Expression* get_base() {
 		auto attr_decl = this->find_attribute("data");
-		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->type);
+		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->types[0]);
 		return ptr_type->base;
 	}
 
 	Ast_Expression** get_base_ptr() {
 		auto attr_decl = this->find_attribute("data");
-		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->type);
+		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->types[0]);
 		return &ptr_type->base;
 	}
 
@@ -537,14 +534,14 @@ struct Ast_Function : Ast_Expression {
 		for (auto stm : this->arg_scope->statements) {
 			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 			auto decl = static_cast<Ast_Declaration*>(stm);
-			func_type->arg_types.push_back(decl->type);
+			func_type->arg_types.push_back(decl->types[0]);
 		}
 
 		if (this->ret_scope->statements.size() > 0) {
 			for (auto stm : this->ret_scope->statements) {
 				assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 				auto decl = static_cast<Ast_Declaration*>(stm);
-				func_type->ret_types.push_back(decl->type);
+				func_type->ret_types.push_back(decl->types[0]);
 			}
 		} else func_type->ret_types.push_back(Types::type_void);
 

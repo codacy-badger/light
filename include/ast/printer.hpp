@@ -114,13 +114,17 @@ struct Ast_Printer {
             printf(", %s", decl->names[i]);
         }
 
-        if (decl->type) {
+        if (decl->types.size > 0) {
             printf(" : ");
-            print(decl->type);
+            print(decl->types[0]);
+            for (size_t i = 1; i < decl->types.size; i++) {
+                printf(", ");
+                print(decl->types[i]);
+            }
         } else printf(" :");
 
         if (decl->values.size > 0) {
-            if (decl->type) printf(" ");
+            if (!decl->types.empty()) printf(" ");
             if (decl->is_constant) {
                 printf(": ");
             } else printf("= ");
@@ -265,14 +269,14 @@ struct Ast_Printer {
                 assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 if (decl->names.size > 0) print(decl, true);
-                else print(decl->type, true);
+                else print(decl->types[0], true);
                 for (int i = 1; i < func->ret_scope->statements.size(); i++) {
                     printf(", ");
                     stm = func->ret_scope->statements[i];
                     assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                     decl = static_cast<Ast_Declaration*>(stm);
                     if (decl->names.size > 0) print(decl, true);
-                    else print(decl->type, true);
+                    else print(decl->types[0], true);
                 }
                 printf(")");
             }

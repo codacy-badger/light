@@ -69,9 +69,9 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         auto stm = func->ret_scope->statements[0];
 		assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 		auto ret0_decl = static_cast<Ast_Declaration*>(stm);
-        assert(ret0_decl->type);
-        assert(ret0_decl->type->exp_type == AST_EXPRESSION_TYPE);
-        auto typed_ret_type = static_cast<Ast_Type*>(ret0_decl->type);
+        assert(ret0_decl->types.size > 0);
+        assert(ret0_decl->types[0]->exp_type == AST_EXPRESSION_TYPE);
+        auto typed_ret_type = static_cast<Ast_Type*>(ret0_decl->types[0]);
 
         auto success = this->caster->try_implicid_cast(ret->expression->inferred_type,
             typed_ret_type, &ret->expression);
@@ -86,17 +86,17 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void ast_handle (Ast_Declaration* decl) {
         Ast_Ref_Navigator::ast_handle(decl);
 
-        if (!decl->type && decl->values.empty()) {
+        if (decl->types.empty() && decl->values.empty()) {
             this->context->error(decl, "Declarations must either have a value or a type");
             this->context->shutdown();
             return;
         }
 
-        if (!decl->type && !decl->values.empty()) {
-            decl->type = decl->values[0]->inferred_type;
-        } else if (decl->type && !decl->values.empty()) {
-            assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
-            auto type = static_cast<Ast_Type*>(decl->type);
+        if (decl->types.empty() && !decl->values.empty()) {
+            decl->types.push(decl->values[0]->inferred_type);
+        } else if (!decl->types.empty() && !decl->values.empty()) {
+            assert(decl->types[0]->exp_type == AST_EXPRESSION_TYPE);
+            auto type = static_cast<Ast_Type*>(decl->types[0]);
 
             auto success = this->caster->try_implicid_cast(decl->values[0]->inferred_type,
                 type, &decl->values[0]);
@@ -108,8 +108,10 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             }
         }
 
-        assert(decl->type);
-        assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
+        assert(decl->types.size > 0);
+        For (decl->types) {
+            assert(it->exp_type == AST_EXPRESSION_TYPE);
+        }
     }
 
     void ast_handle (Ast_Expression** exp_ptr) {

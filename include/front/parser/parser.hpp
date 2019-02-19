@@ -203,7 +203,9 @@ struct Parser {
 		decl->scope = this->current_scope;
 
 		this->lexer.expect(TOKEN_COLON);
-		decl->type = this->type_expression();
+
+		auto type = this->type_expression();
+		if (type) decl->types.push(type);
 
 		if (this->lexer.try_skip(TOKEN_COLON)) {
 			decl->is_constant = true;
@@ -390,7 +392,9 @@ struct Parser {
 				auto decl = this->declaration();
 				if (arg_scope) arg_scope->add(decl);
 
-				fn_type->arg_types.push_back(decl->type);
+				if (!decl->types.empty()) {
+					fn_type->arg_types.push_back(decl->types[0]);
+				}
 
 				this->lexer.try_skip(TOKEN_COMMA);
 			}
@@ -401,7 +405,10 @@ struct Parser {
 				while (!this->lexer.is_next(TOKEN_PAR_CLOSE)) {
 					auto decl = this->get_return_declaration();
 					if (ret_scope) ret_scope->add(decl);
-					fn_type->ret_types.push_back(decl->type);
+
+					if (!decl->types.empty()) {
+						fn_type->ret_types.push_back(decl->types[0]);
+					}
 
 					this->lexer.try_skip(TOKEN_COMMA);
 				}
@@ -410,7 +417,10 @@ struct Parser {
 			} else {
 				auto decl = this->get_return_declaration();
 				if (ret_scope) ret_scope->add(decl);
-				fn_type->ret_types.push_back(decl->type);
+
+				if (!decl->types.empty()) {
+					fn_type->ret_types.push_back(decl->types[0]);
+				}
 			}
 		} else fn_type->ret_types.push_back(Types::type_void);
 
@@ -458,7 +468,10 @@ struct Parser {
 		} else {
 			auto decl = AST_NEW(Ast_Declaration);
 			decl->scope = this->current_scope;
-			decl->type = this->expression();
+
+			auto type = this->expression();
+			if (type) decl->types.push(type);
+
 			return decl;
 		}
 	}
