@@ -432,27 +432,31 @@ struct Parser {
 
 		if (this->lexer.try_skip(TOKEN_ARROW)) {
 			if (this->lexer.try_skip(TOKEN_PAR_OPEN)) {
-				while (!this->lexer.is_next(TOKEN_PAR_CLOSE)) {
-					auto decl = this->get_return_declaration();
+				auto tuple_type = AST_NEW(Ast_Tuple_Type);
+
+				auto decl = this->get_return_declaration();
+
+				if (ret_scope) ret_scope->add(decl);
+				tuple_type->types.push(decl->type);
+
+				while (this->lexer.try_skip(TOKEN_COMMA)) {
+					decl = this->get_return_declaration();
+
 					if (ret_scope) ret_scope->add(decl);
-
-					if (decl->type) {
-						fn_type->ret_types.push_back(decl->type);
-					}
-
-					this->lexer.try_skip(TOKEN_COMMA);
+					tuple_type->types.push(decl->type);
 				}
 
+				fn_type->ret_type = tuple_type;
 				this->lexer.expect(TOKEN_PAR_CLOSE);
 			} else {
-				auto decl = this->get_return_declaration();
-				if (ret_scope) ret_scope->add(decl);
+				auto decl = AST_NEW(Ast_Declaration);
+				decl->scope = this->current_scope;
+				decl->type = this->sub_expression();
 
-				if (decl->type) {
-					fn_type->ret_types.push_back(decl->type);
-				}
+				if (ret_scope) ret_scope->add(decl);
+				fn_type->ret_type = decl->type;
 			}
-		} else fn_type->ret_types.push_back(Types::type_void);
+		} else fn_type->ret_type = Types::type_void;
 
 		return fn_type;
 	}
@@ -498,7 +502,7 @@ struct Parser {
 		} else {
 			auto decl = AST_NEW(Ast_Declaration);
 			decl->scope = this->current_scope;
-			decl->type = this->expression();
+			decl->type = this->sub_expression();
 			return decl;
 		}
 	}

@@ -95,10 +95,10 @@ struct Type_Inferrer {
         assert(call->func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
         auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
 
-        if (func_type->ret_types.size() > 1) {
+        if (func_type->ret_type) {
             // @TODO handle anonymous types or tuples with several types as returns
-            call->inferred_type = static_cast<Ast_Type*>(func_type->ret_types[0]);
-        } else call->inferred_type = static_cast<Ast_Type*>(func_type->ret_types[0]);
+            call->inferred_type = static_cast<Ast_Type*>(func_type->ret_type);
+        } else call->inferred_type = static_cast<Ast_Type*>(func_type->ret_type);
     }
 
     void infer (Ast_Type* type) {

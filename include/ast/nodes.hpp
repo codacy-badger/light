@@ -506,7 +506,7 @@ struct Ast_Tuple_Type : Ast_Type {
 
 struct Ast_Function_Type : Ast_Type {
 	std::vector<Ast_Expression*> arg_types;
-	std::vector<Ast_Expression*> ret_types;
+	Ast_Expression* ret_type;
 
 	Ast_Function_Type() {
 		this->typedef_type = AST_TYPEDEF_FUNCTION;
@@ -548,12 +548,23 @@ struct Ast_Function : Ast_Expression {
 		}
 
 		if (this->ret_scope->statements.size() > 0) {
-			for (auto stm : this->ret_scope->statements) {
+			if (this->ret_scope->statements.size() > 1) {
+				auto tuple_type = new Ast_Tuple_Type();
+
+				for (auto stm : this->ret_scope->statements) {
+					assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+					auto decl = static_cast<Ast_Declaration*>(stm);
+					tuple_type->types.push(decl->type);
+				}
+
+				func_type->ret_type = tuple_type;
+			} else {
+				auto stm = this->ret_scope->statements[0];
 				assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 				auto decl = static_cast<Ast_Declaration*>(stm);
-				func_type->ret_types.push_back(decl->type);
+				func_type->ret_type = decl->type;
 			}
-		} else func_type->ret_types.push_back(Types::type_void);
+		} else func_type->ret_type = Types::type_void;
 
 		return func_type;
 	}

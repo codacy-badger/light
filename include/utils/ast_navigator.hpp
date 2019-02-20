@@ -53,7 +53,7 @@ struct Ast_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Expression*>(stm));
 				break;
 			}
-			default: break;
+			default: assert(false);
 		}
 	}
 
@@ -170,6 +170,7 @@ struct Ast_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Type*>(exp));
 				break;
 			}
+			default: assert(false);
 		}
 	}
 
@@ -178,9 +179,8 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Comma_Separated* comma_separated) {
-        auto arr = &(comma_separated->expressions);
-        for (size_t i = 0; i < arr->size; i++) {
-            this->ast_handle((*arr)[i]);
+        for (size_t i = 0; i < comma_separated->expressions.size; i++) {
+            this->ast_handle(comma_separated->expressions[i]);
         }
 	}
 
@@ -189,7 +189,11 @@ struct Ast_Navigator {
 
         func->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
         this->ast_handle(func->arg_scope);
-        this->ast_handle(func->ret_scope);
+        for (auto stm : func->ret_scope->statements) {
+            assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            this->ast_handle(decl->type);
+        }
 		if (func->body) {
             this->ast_handle(func->body);
         }
@@ -243,6 +247,11 @@ struct Ast_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Slice_Type*>(type_def));
 				break;
 			}
+			case AST_TYPEDEF_TUPLE: {
+				this->ast_handle(reinterpret_cast<Ast_Tuple_Type*>(type_def));
+				break;
+			}
+			default: assert(false);
 		}
 	}
 
@@ -260,11 +269,11 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_Function_Type* func_type) {
 		for (auto arg_type : func_type->arg_types) {
-			if (arg_type) this->ast_handle((Ast_Statement*) arg_type);
+			if (arg_type) {
+                this->ast_handle(arg_type);
+            }
 		}
-        for (auto ret_type : func_type->ret_types) {
-			this->ast_handle((Ast_Statement*) ret_type);
-		}
+        this->ast_handle(func_type->ret_type);
 	}
 
 	virtual void ast_handle (Ast_Array_Type* arr) {
@@ -274,5 +283,11 @@ struct Ast_Navigator {
 
 	virtual void ast_handle (Ast_Slice_Type* slice) {
         this->ast_handle((Ast_Struct_Type*) slice);
+	}
+
+	virtual void ast_handle (Ast_Tuple_Type* tuple) {
+        for (size_t i = 0; i < tuple->types.size; i++) {
+            this->ast_handle(tuple->types[i]);
+        }
 	}
 };

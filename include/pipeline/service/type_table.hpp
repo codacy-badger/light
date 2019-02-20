@@ -43,6 +43,10 @@ struct Type_Table {
                 this->unique(reinterpret_cast<Ast_Slice_Type**>(type_ptr));
                 break;
             }
+            case AST_TYPEDEF_TUPLE: {
+                this->unique(reinterpret_cast<Ast_Tuple_Type**>(type_ptr));
+                break;
+            }
             default: assert(false);
         }
     }
@@ -133,10 +137,8 @@ struct Type_Table {
             assert(arg_type->exp_type == AST_EXPRESSION_TYPE);
             this->unique((Ast_Type**) &arg_type);
         }
-        for (auto& ret_type : func_type->ret_types) {
-            assert(ret_type->exp_type == AST_EXPRESSION_TYPE);
-            this->unique((Ast_Type**) &ret_type);
-        }
+        assert(func_type->ret_type->exp_type == AST_EXPRESSION_TYPE);
+        this->unique((Ast_Type**) &func_type->ret_type);
 
         For2 (this->global_type_table, type) {
             if (type->typedef_type == AST_TYPEDEF_FUNCTION) {
@@ -186,20 +188,13 @@ struct Type_Table {
         if (func_type1 == func_type2) return true;
 
         if (func_type1->arg_types.size() != func_type2->arg_types.size()) return false;
-        if (func_type1->ret_types.size() != func_type2->ret_types.size()) return false;
+        if (func_type1->ret_type != func_type2->ret_type) return false;
 
         for (size_t i = 0; i < func_type1->arg_types.size(); i++) {
             auto attr_type1 = func_type1->arg_types[i];
             auto attr_type2 = func_type2->arg_types[i];
 
             if (attr_type1 != attr_type2) return false;
-        }
-
-        for (size_t i = 0; i < func_type1->ret_types.size(); i++) {
-            auto ret_type1 = func_type1->ret_types[i];
-            auto ret_type2 = func_type2->ret_types[i];
-
-            if (ret_type1 != ret_type2) return false;
         }
 
         return true;
@@ -378,24 +373,10 @@ struct Type_Table {
                 }
                 strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, ") -> ");
 
-                if (_func->ret_types.size() > 0) {
-                    auto arg_type = _func->ret_types[0];
-                    assert(arg_type->exp_type == AST_EXPRESSION_TYPE);
-
-                    auto typed_type = static_cast<Ast_Type*>(arg_type);
-                    this->compute_type_name_if_needed(typed_type);
-                    strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, typed_type->name);
-                    for (size_t i = 1; i < _func->ret_types.size(); i++) {
-                        strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, ", ");
-
-                        arg_type = _func->ret_types[i];
-                        assert(arg_type->exp_type == AST_EXPRESSION_TYPE);
-
-                        typed_type = static_cast<Ast_Type*>(arg_type);
-                        this->compute_type_name_if_needed(typed_type);
-                        strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, typed_type->name);
-                    }
-                }
+                assert(_func->ret_type->exp_type == AST_EXPRESSION_TYPE);
+                auto typed_ret_type = static_cast<Ast_Type*>(_func->ret_type);
+                this->compute_type_name_if_needed(typed_ret_type);
+                strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, typed_ret_type->name);
 
                 _func->name = _strdup(this->type_name_buffer);
 

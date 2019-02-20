@@ -1,4 +1,8 @@
 
- main :: fn {
-    a, b := 1, cast(u64) 2;
- }
+main :: fn {
+    a, b : u64, u64 = 1, 65;
+}
+
+try_parse :  : fn (number: u32) -> (u64, another: usize) {
+    return number * 12, number;
+}

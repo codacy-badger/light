@@ -49,7 +49,7 @@ struct Ast_Ref_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Expression**>(stm_ptr));
 				break;
 			}
-			default: break;
+			default: assert(false);
 		}
 	}
 
@@ -161,6 +161,7 @@ struct Ast_Ref_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Type**>(exp));
 				break;
 			}
+			default: assert(false);
 		}
 	}
 
@@ -182,7 +183,11 @@ struct Ast_Ref_Navigator {
 
         (*func)->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
         this->ast_handle((*func)->arg_scope);
-        this->ast_handle((*func)->ret_scope);
+        for (auto stm : (*func)->ret_scope->statements) {
+            assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            this->ast_handle(&decl->type);
+        }
 		if ((*func)->body) {
             this->ast_handle((*func)->body);
         }
@@ -234,6 +239,11 @@ struct Ast_Ref_Navigator {
 				this->ast_handle(reinterpret_cast<Ast_Slice_Type**>(type_def));
 				break;
 			}
+			case AST_TYPEDEF_TUPLE: {
+				this->ast_handle(reinterpret_cast<Ast_Tuple_Type**>(type_def));
+				break;
+			}
+			default: assert(false);
 		}
 	}
 
@@ -253,9 +263,7 @@ struct Ast_Ref_Navigator {
 		for (auto &arg_type : (*func_type)->arg_types) {
 			if (arg_type) this->ast_handle(&arg_type);
 		}
-        for (auto &ret_type : (*func_type)->ret_types) {
-			this->ast_handle(&ret_type);
-		}
+        this->ast_handle(&((*func_type)->ret_type));
 	}
 
 	virtual void ast_handle (Ast_Array_Type** arr) {
@@ -265,5 +273,12 @@ struct Ast_Ref_Navigator {
 
 	virtual void ast_handle (Ast_Slice_Type** slice_ptr) {
         this->ast_handle((Ast_Struct_Type**) slice_ptr);
+	}
+
+	virtual void ast_handle (Ast_Tuple_Type** tuple_ptr) {
+        auto arr = &((*tuple_ptr)->types);
+        for (size_t i = 0; i < arr->size; i++) {
+            this->ast_handle(&((*arr)[i]));
+        }
 	}
 };

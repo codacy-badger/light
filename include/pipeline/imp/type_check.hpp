@@ -57,8 +57,6 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void ast_handle (Ast_Return* ret) {
-        Ast_Ref_Navigator::ast_handle(ret);
-
         auto func = ret->scope->get_parent_function();
         if (!func) {
             this->context->error(ret, "Return statement found outside function scope");
@@ -66,12 +64,16 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             return;
         }
 
-        auto stm = func->ret_scope->statements[0];
-		assert(stm->stm_type == AST_STATEMENT_DECLARATION);
-		auto ret0_decl = static_cast<Ast_Declaration*>(stm);
-        assert(ret0_decl->type);
-        assert(ret0_decl->type->exp_type == AST_EXPRESSION_TYPE);
-        auto typed_ret_type = static_cast<Ast_Type*>(ret0_decl->type);
+        this->inferrer->infer(func);
+        assert(func->inferred_type);
+        assert(func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
+
+        auto func_type = static_cast<Ast_Function_Type*>(func->inferred_type);
+        assert(func_type->ret_type->exp_type == AST_EXPRESSION_TYPE);
+        auto typed_ret_type = static_cast<Ast_Type*>(func_type->ret_type);
+
+        this->tuple_try_cast_subtypes(typed_ret_type, ret->expression);
+        Ast_Ref_Navigator::ast_handle(ret);
 
         auto success = this->caster->try_implicid_cast(ret->expression->inferred_type,
             typed_ret_type, &ret->expression);
@@ -84,29 +86,34 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void ast_handle (Ast_Declaration* decl) {
-        Ast_Ref_Navigator::ast_handle(decl);
-
         if (!decl->type && !decl->value) {
             this->context->error(decl, "Declarations must either have a value or a type");
             this->context->shutdown();
             return;
         }
 
-        if (!decl->type && decl->value) {
-            decl->type = decl->value->inferred_type;
-        } else if (decl->type && decl->value) {
-            assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
-            auto type = static_cast<Ast_Type*>(decl->type);
+        if (decl->value) {
+            if (decl->type) {
+                this->ast_handle(&decl->type);
+                assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
+                auto decl_type = static_cast<Ast_Type*>(decl->type);
 
-            auto success = this->caster->try_implicid_cast(decl->value->inferred_type,
-                type, &decl->value);
-            if (!success) {
-                this->context->error(decl->value, "Expression cannot be implicitly casted from '%s' to '%s'",
-                    decl->value->inferred_type->name, type->name);
-                this->context->shutdown();
-                return;
+                this->tuple_try_cast_subtypes(decl_type, decl->value);
+                Ast_Ref_Navigator::ast_handle(decl);
+
+                auto success = this->caster->try_implicid_cast(decl->value->inferred_type,
+                    decl_type, &decl->value);
+                if (!success) {
+                    this->context->error(decl->value, "Expression cannot be implicitly casted from '%s' to '%s'",
+                        decl->value->inferred_type->name, decl_type->name);
+                    this->context->shutdown();
+                    return;
+                }
+            } else {
+                this->ast_handle(&decl->value);
+                decl->type = decl->value->inferred_type;
             }
-        }
+        } else this->ast_handle(&decl->type);
 
         assert(decl->type);
         assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
@@ -283,6 +290,38 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             this->context->error(arr_type->length, "Only literal unsigned integer values allowed in array type size");
             this->context->shutdown();
             return;
+        }
+    }
+
+    void tuple_try_cast_subtypes (Ast_Type* type, Ast_Expression* value) {
+        if (!type || !value) return;
+
+        if (value->exp_type == AST_EXPRESSION_COMMA_SEPARATED && type->typedef_type == AST_TYPEDEF_TUPLE) {
+            auto comma_separated = static_cast<Ast_Comma_Separated*>(value);
+            auto tuple_type = static_cast<Ast_Tuple_Type*>(type);
+            assert(comma_separated->expressions.size == tuple_type->types.size);
+
+            for (size_t i = 0; i < tuple_type->types.size; i++) {
+                auto item_value_ptr = &(comma_separated->expressions[i]);
+                auto item_value = comma_separated->expressions[i];
+                auto item_type_ptr = &(tuple_type->types[i]);
+                auto item_type = tuple_type->types[i];
+
+                this->ast_handle(item_value_ptr);
+                this->ast_handle(item_type_ptr);
+
+                assert(item_type->exp_type == AST_EXPRESSION_TYPE);
+                auto item_typed_type = static_cast<Ast_Type*>(item_type);
+
+                auto success = this->caster->try_implicid_cast(item_value->inferred_type,
+                    item_typed_type, item_value_ptr);
+                if (!success) {
+                    this->context->error(item_value, "Tuple value cannot be implicitly casted from '%s' to '%s'",
+                        item_value->inferred_type->name, item_typed_type->name);
+                    this->context->shutdown();
+                    return;
+                }
+            }
         }
     }
 
