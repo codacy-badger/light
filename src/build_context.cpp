@@ -73,11 +73,16 @@ void Build_Context::error (Location* location, const char* format, ...) {
 }
 
 void Build_Context::shutdown () {
+    if (!this->workspace->keep_going) return;
+    
+    printf("\nErrors found, stopping compilation...\n");
     this->workspace->stop_with_errors();
 }
 
 void Build_Context::print_location (Location* location) {
     if (!this->workspace->keep_going) return;
+
+    assert(location->filename);
 
     printf("\t@ %s, line %zd\n", location->filename, location->line);
 }

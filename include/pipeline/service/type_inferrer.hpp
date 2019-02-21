@@ -206,9 +206,11 @@ struct Type_Inferrer {
         if (ident->inferred_type) return;
 
         assert(ident->declaration);
-        assert(ident->declaration->type);
-        assert(ident->declaration->type->exp_type == AST_EXPRESSION_TYPE);
-        ident->inferred_type = static_cast<Ast_Type*>(ident->declaration->type);
+        auto var_type = this->get_variable_type(ident->declaration, ident->name);
+
+        assert(var_type);
+        assert(var_type->exp_type == AST_EXPRESSION_TYPE);
+        ident->inferred_type = static_cast<Ast_Type*>(var_type);
     }
 
     void infer (Ast_Literal* lit) {
@@ -237,6 +239,31 @@ struct Type_Inferrer {
             }
         }
     }
+
+	Ast_Type* get_variable_type (Ast_Declaration* decl, const char* _name) {
+        assert(decl);
+		assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
+		auto decl_type = static_cast<Ast_Type*>(decl->type);
+
+        assert(decl->names.size > 0);
+		if (decl->names.size > 1) {
+			assert(decl_type->typedef_type == AST_TYPEDEF_TUPLE);
+            auto tuple_type = static_cast<Ast_Tuple_Type*>(decl_type);
+
+    		For (decl->names) {
+    			if (strcmp(it, _name) == 0) {
+    				auto type = tuple_type->types[i];
+                    assert(type->exp_type == AST_EXPRESSION_TYPE);
+    				return static_cast<Ast_Type*>(type);
+    			}
+    		}
+
+            return NULL;
+		} else {
+            assert(decl_type->typedef_type != AST_TYPEDEF_TUPLE);
+    		return decl_type;
+        }
+	}
 
     static Ast_Type* get_container_signed (Ast_Type* unsigned_type) {
         if (unsigned_type == Types::type_u8) {

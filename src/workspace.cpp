@@ -36,7 +36,7 @@ void Workspace::stop_building () {
     this->is_build_complete = true;
 
     if (this->has_error) {
-        printf("\nErrors found, stopping compilation...\n");
+        //printf("\nErrors found, stopping compilation...\n");
     } else {
         printf("Workspace #%zd (%s) complete\n", this->guid, this->name);
     }

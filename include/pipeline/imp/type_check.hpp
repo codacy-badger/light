@@ -268,6 +268,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         if (all_are_types) {
             auto tuple_type = new Ast_Tuple_Type();
             tuple_type->types = comma_separated->expressions;
+            tuple_type->location = comma_separated->location;
             this->context->type_table->unique(&tuple_type);
             (*comma_separated_ptr) = (Ast_Comma_Separated*) tuple_type;
         }
@@ -299,7 +300,13 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         if (value->exp_type == AST_EXPRESSION_COMMA_SEPARATED && type->typedef_type == AST_TYPEDEF_TUPLE) {
             auto comma_separated = static_cast<Ast_Comma_Separated*>(value);
             auto tuple_type = static_cast<Ast_Tuple_Type*>(type);
-            assert(comma_separated->expressions.size == tuple_type->types.size);
+
+            if (comma_separated->expressions.size != tuple_type->types.size) {
+                this->context->error(type, "Mismatch between number of types (%zd) and number of values (%zd)",
+                    comma_separated->expressions.size, tuple_type->types.size);
+                this->context->shutdown();
+                return;
+            }
 
             for (size_t i = 0; i < tuple_type->types.size; i++) {
                 auto item_value_ptr = &(comma_separated->expressions[i]);
