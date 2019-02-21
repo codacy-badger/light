@@ -7,6 +7,8 @@
 #include "pipeline/service/type_table.hpp"
 #include "pipeline/service/type_caster.hpp"
 
+#include <stdint.h>
+
 struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     Type_Inferrer* inferrer = NULL;
     Type_Table* type_table = NULL;
@@ -122,6 +124,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void ast_handle (Ast_Expression** exp_ptr) {
         Ast_Ref_Navigator::ast_handle(exp_ptr);
         this->inferrer->infer(*exp_ptr);
+        assert((*exp_ptr)->inferred_type);
     }
 
     void ast_handle (Ast_Function_Call** call_ptr) {
@@ -135,59 +138,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
         if (call->func->exp_type == AST_EXPRESSION_FUNCTION) {
             auto func = static_cast<Ast_Function*>(call->func);
-
-            auto arg_count = func_type->arg_types.size();
-
-            if (call->arguments->unnamed.size() > arg_count) {
-                this->context->error(call, "Too many arguments for function call, should have at most %zd", arg_count);
-                this->context->shutdown();
-                return;
-            }
-
-            call->arguments->unnamed.reserve(arg_count);
-            for (size_t i = call->arguments->unnamed.size(); i < arg_count; i++) {
-                call->arguments->unnamed.push_back(NULL);
-            }
-
-            for (auto entry : call->arguments->named) {
-                auto arg_index = func->get_arg_index(entry.first);
-                if (arg_index != INVALID_ARG_INDEX) {
-                    auto existing_value = call->arguments->get_unnamed_value(arg_index);
-                    if (existing_value) {
-                        this->context->error(call, "Multiple values provided for argument '%s'", entry.first);
-                        this->context->shutdown();
-                        return;
-                    } else {
-                        call->arguments->unnamed[arg_index] = entry.second;
-                    }
-                } else {
-                    //
-                    // @Bug @TODO this could produce incorrect error messages, since
-                    // function types contain the argument names, but are also uniqued!
-                    // possible solution: the argument names should be stored in the Ast_Function
-                    // nodes, but we should be sure that assert(arg_names.size() == arg_types.size())
-                    //
-                    this->context->error(call, "Function has no argument named '%s'", entry.first);
-                    this->context->shutdown();
-                    return;
-                }
-            }
-            call->arguments->named.clear();
-
-            for (size_t i = 0; i < func_type->arg_types.size(); i++) {
-                auto existing_value = call->arguments->get_unnamed_value(i);
-                if (!existing_value) {
-                    auto arg_decl = func->get_arg_declaration(i);
-
-                    if (!arg_decl->value) {
-                        this->context->error(call, "There's no value provided for argument '%s'", arg_decl->names[0]);
-                        this->context->shutdown();
-                        return;
-                    }
-
-                    call->arguments->unnamed[i] = arg_decl->value;
-                }
-            }
+            this->resolve_defaults_and_named(call->arguments, func->arg_scope);
         } else {
             // @TODO in case we're calling a function from a variable we should
             // make sure arguments match, no default or named stuff
@@ -195,9 +146,11 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
         for (size_t i = 0; i < call->arguments->unnamed.size(); i++) {
             auto arg_type = func_type->arg_types[i];
-            auto value = call->arguments->unnamed[i];
             assert(arg_type->exp_type == AST_EXPRESSION_TYPE);
             auto arg_typed_type = static_cast<Ast_Type*>(arg_type);
+
+            auto value = call->arguments->unnamed[i];
+            if (!value) return;
 
             auto success = this->caster->try_implicid_cast(value->inferred_type,
                 arg_typed_type, &(call->arguments->unnamed[i]));
@@ -330,6 +283,82 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 }
             }
         }
+    }
+
+    void resolve_defaults_and_named (Ast_Arguments* args, Ast_Scope* resolver) {
+        auto decl_count = resolver->statements.size();
+
+        if (args->unnamed.size() > decl_count) {
+            this->context->error(args, "Too many arguments, should have at most %zd", decl_count);
+            this->context->shutdown();
+            return;
+        }
+
+        args->unnamed.reserve(decl_count);
+        for (size_t i = args->unnamed.size(); i < decl_count; i++) {
+            args->unnamed.push_back(NULL);
+        }
+
+        for (auto entry : args->named) {
+            auto arg_index = this->get_arg_index(resolver, entry.first);
+            if (arg_index != SIZE_MAX) {
+                auto existing_value = args->get_unnamed_value(arg_index);
+                if (existing_value) {
+                    this->context->error(args, "Multiple values provided for argument '%s'", entry.first);
+                    this->context->shutdown();
+                    return;
+                } else {
+                    args->unnamed[arg_index] = entry.second;
+                }
+            } else {
+                //
+                // @Bug @TODO this could produce incorrect error messages, since
+                // function types contain the argument names, but are also uniqued!
+                // possible solution: the argument names should be stored in the Ast_Function
+                // nodes, but we should be sure that assert(arg_names.size() == arg_types.size())
+                //
+                this->context->error(args, "Function has no argument named '%s'", entry.first);
+                this->context->shutdown();
+                return;
+            }
+        }
+        args->named.clear();
+
+        for (size_t i = 0; i < decl_count; i++) {
+            auto existing_value = args->get_unnamed_value(i);
+            if (!existing_value) {
+                auto arg_decl = this->get_arg_declaration(resolver, i);
+
+                if (!arg_decl->value) {
+                    this->context->error(args, "There's no value provided for argument '%s'", arg_decl->names[0]);
+                    this->context->shutdown();
+                    return;
+                }
+
+                args->unnamed[i] = arg_decl->value;
+            }
+        }
+    }
+
+    size_t get_arg_index (Ast_Scope* scope, const char* _name) {
+        for (size_t i = 0; i < scope->statements.size(); i++) {
+            auto stm = scope->statements[i];
+
+            assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+            auto decl = static_cast<Ast_Declaration*>(stm);
+
+            assert(decl->names.size > 0);
+            if (strcmp(decl->names[0], _name) == 0) return i;
+        }
+        return SIZE_MAX;
+    }
+
+    Ast_Declaration* get_arg_declaration (Ast_Scope* scope, size_t index) {
+        assert(scope->statements.size() > index);
+
+        auto arg_stm = scope->statements[index];
+        assert(arg_stm->stm_type == AST_STATEMENT_DECLARATION);
+        return static_cast<Ast_Declaration*>(arg_stm);
     }
 
     bool bind_attribute_or_error (Ast_Type* type, Ast_Ident* ident, Ast_Binary** binary_exp_ptr) {

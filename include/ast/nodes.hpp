@@ -12,8 +12,6 @@
 #include <vector>
 #include <algorithm>
 
-#define INVALID_ARG_INDEX 500
-
 struct Ast_Function;
 struct Ast_Expression;
 struct Ast_Declaration;
@@ -29,15 +27,6 @@ struct Ast {
 struct Ast_Arguments : Ast {
 	std::vector<Ast_Expression*> unnamed;
 	String_Map<Ast_Expression*> named;
-
-    Ast_Expression* get_named_value (const char* param_name) {
-	    for (auto entry : this->named) {
-	        if (strcmp(entry.first, param_name) == 0) {
-	            return entry.second;
-	        }
-	    }
-	    return NULL;
-	}
 
     Ast_Expression* get_unnamed_value (const size_t index) {
 	    if (index < this->unnamed.size()) {
@@ -416,7 +405,6 @@ struct Ast_Type : Ast_Expression {
 };
 
 const uint16_t STRUCT_FLAG_BEING_CHECKED 	= 0x0001;
-const uint16_t STRUCT_FLAG_IDENTS_RESOLVED 	= 0x0002;
 
 struct Ast_Struct_Type : Ast_Type {
 	uint16_t struct_flags = 0;
@@ -498,10 +486,7 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 struct Ast_Tuple_Type : Ast_Type {
 	Array<Ast_Expression*> types;
 
-	Ast_Tuple_Type() {
-		this->typedef_type = AST_TYPEDEF_TUPLE;
-		this->is_primitive = true;
-	}
+	Ast_Tuple_Type() { this->typedef_type = AST_TYPEDEF_TUPLE; }
 };
 
 struct Ast_Function_Type : Ast_Type {
@@ -567,33 +552,6 @@ struct Ast_Function : Ast_Expression {
 		} else func_type->ret_type = Types::type_void;
 
 		return func_type;
-	}
-
-	size_t get_arg_index (const char* _name) {
-		for (size_t i = 0; i < this->arg_scope->statements.size(); i++) {
-			auto stm = this->arg_scope->statements[i];
-
-			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
-			auto decl = static_cast<Ast_Declaration*>(stm);
-
-			assert(decl->names.size > 0);
-			if (strcmp(decl->names[0], _name) == 0) return i;
-		}
-		return INVALID_ARG_INDEX;
-	}
-
-	Ast_Declaration* get_arg_declaration (size_t index) {
-		assert(this->arg_scope->statements.size() > index);
-
-		auto arg_stm = this->arg_scope->statements[index];
-		assert(arg_stm->stm_type == AST_STATEMENT_DECLARATION);
-		return static_cast<Ast_Declaration*>(arg_stm);
-	}
-
-	Ast_Expression* get_default_value (size_t index) {
-		auto arg_decl = this->get_arg_declaration(index);
-		assert(arg_decl->value != NULL);
-		return arg_decl->value;
 	}
 };
 
