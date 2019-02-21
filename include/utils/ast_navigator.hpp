@@ -57,15 +57,6 @@ struct Ast_Navigator {
 		}
 	}
 
-	virtual void ast_handle (Ast_Arguments* args) {
-		for (auto exp : args->unnamed) {
-			if (exp) this->ast_handle(exp);
-		}
-		for (auto exp : args->named) {
-			this->ast_handle(exp.second);
-		}
-	}
-
 	virtual void ast_handle (Ast_Scope* scope) {
         auto tmp = this->current_scope;
         this->current_scope = scope;
@@ -181,6 +172,9 @@ struct Ast_Navigator {
 	virtual void ast_handle (Ast_Comma_Separated* comma_separated) {
         for (size_t i = 0; i < comma_separated->expressions.size; i++) {
             this->ast_handle(comma_separated->expressions[i]);
+        }
+        for (auto entry : comma_separated->named_expressions) {
+            this->ast_handle(entry.second);
         }
 	}
 

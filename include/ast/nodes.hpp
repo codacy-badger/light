@@ -24,17 +24,6 @@ struct Ast {
 	Location location;
 };
 
-struct Ast_Arguments : Ast {
-	std::vector<Ast_Expression*> unnamed;
-	String_Map<Ast_Expression*> named;
-
-    Ast_Expression* get_unnamed_value (const size_t index) {
-	    if (index < this->unnamed.size()) {
-	        return this->unnamed[index];
-	    } else return NULL;
-	}
-};
-
 enum Ast_Statement_Type {
 	AST_STATEMENT_UNDEFINED = 0,
 	AST_STATEMENT_SCOPE,
@@ -280,8 +269,15 @@ struct Ast_Expression : Ast_Statement {
 
 struct Ast_Comma_Separated : Ast_Expression {
 	Array<Ast_Expression*> expressions;
+	String_Map<Ast_Expression*> named_expressions;
 
 	Ast_Comma_Separated() { this->exp_type = AST_EXPRESSION_COMMA_SEPARATED; }
+
+    Ast_Expression* get_unnamed_value (const size_t index) {
+	    if (index < this->expressions.size) {
+	        return this->expressions[index];
+	    } else return NULL;
+	}
 };
 
 struct Ast_Import : Ast_Expression {
@@ -624,7 +620,7 @@ struct Ast_Unary : Ast_Expression {
 
 struct Ast_Function_Call : Ast_Expression {
 	Ast_Expression* func;
-	Ast_Arguments* arguments;
+	Ast_Comma_Separated* arguments;
 
 	Ast_Function_Call() { this->exp_type = AST_EXPRESSION_CALL; }
 };

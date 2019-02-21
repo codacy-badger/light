@@ -76,6 +76,8 @@ struct Type_Inferrer {
     }
 
     void infer (Ast_Comma_Separated* comma_separated) {
+        if (comma_separated->expressions.size == 0) return;
+        
         auto tuple_type = this->context->type_table->get_or_add_tuple_type(comma_separated);
         comma_separated->inferred_type = tuple_type;
     }
@@ -180,15 +182,6 @@ struct Type_Inferrer {
             }
         }
     }
-
-    void infer (Ast_Arguments* args) {
-		for (auto exp : args->unnamed) {
-			if (exp) this->infer(exp);
-		}
-		for (auto exp : args->named) {
-			this->infer(exp.second);
-		}
-	}
 
     void infer (Ast_Cast* cast) {
         if (cast->inferred_type) return;

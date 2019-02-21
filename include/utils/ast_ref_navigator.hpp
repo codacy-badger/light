@@ -53,15 +53,6 @@ struct Ast_Ref_Navigator {
 		}
 	}
 
-	virtual void ast_handle (Ast_Arguments* args) {
-		for (auto &exp : args->unnamed) {
-			if (exp) this->ast_handle(&exp);
-		}
-		for (auto &entry : args->named) {
-			this->ast_handle(&entry.second);
-		}
-	}
-
 	virtual void ast_handle (Ast_Scope* scope) {
 		size_t initial_size = scope->statements.size();
 		for (uint64_t i = 0; i < scope->statements.size(); i++) {
@@ -176,6 +167,9 @@ struct Ast_Ref_Navigator {
         for (size_t i = 0; i < arr->size; i++) {
             this->ast_handle(&((*arr)[i]));
         }
+        for (auto entry : (*comma_separated)->named_expressions) {
+            this->ast_handle(&entry.second);
+        }
 	}
 
 	virtual void ast_handle (Ast_Function** func) {
@@ -196,7 +190,7 @@ struct Ast_Ref_Navigator {
 
 	virtual void ast_handle (Ast_Function_Call** func_call) {
 		this->ast_handle(&(*func_call)->func);
-		this->ast_handle((*func_call)->arguments);
+		this->ast_handle(&(*func_call)->arguments);
 	}
 
 	virtual void ast_handle (Ast_Binary** binary) {

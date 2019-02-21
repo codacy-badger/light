@@ -522,46 +522,25 @@ struct Parser {
 		//delete literal;
 	}
 
-	Ast_Arguments* comma_separated_values () {
-		auto args = AST_NEW(Ast_Arguments);
+	Ast_Comma_Separated* comma_separated_values () {
+		auto comma_separated = AST_NEW(Ast_Comma_Separated);
 
-		auto is_parsing = this->parse_next_expression_or_assignment(args);
-		while (is_parsing && this->lexer.try_skip(TOKEN_COMMA)) {
-			is_parsing = this->parse_next_expression_or_assignment(args);
+		auto exp = this->sub_expression();
+		if (exp != NULL) {
+			if (exp->exp_type == AST_EXPRESSION_IDENT && this->lexer.try_skip(TOKEN_EQUAL)) {
+				auto ident = static_cast<Ast_Ident*>(exp);
+				comma_separated->named_expressions[ident->name] = this->sub_expression();
+			} else comma_separated->expressions.push(exp);
+			while (this->lexer.try_skip(TOKEN_COMMA)) {
+				exp = this->sub_expression();
+				if (exp->exp_type == AST_EXPRESSION_IDENT && this->lexer.try_skip(TOKEN_EQUAL)) {
+					auto ident = static_cast<Ast_Ident*>(exp);
+					comma_separated->named_expressions[ident->name] = this->sub_expression();
+				} else comma_separated->expressions.push(exp);
+			}
 		}
 
-		return args;
-	}
-
-	bool parse_next_expression_or_assignment (Ast_Arguments* args) {
-		auto exp = this->expression();
-		if (exp) {
-			if (exp->exp_type == AST_EXPRESSION_COMMA_SEPARATED) {
-				auto comma_separated = static_cast<Ast_Comma_Separated*>(exp);
-				auto last_index = comma_separated->expressions.size - 1;
-				auto last_item = comma_separated->expressions[last_index];
-
-				if (last_item->exp_type == AST_EXPRESSION_IDENT) {
-					for (size_t i = 0; i < comma_separated->expressions.size - 1; i++) {
-						args->unnamed.push_back(comma_separated->expressions[i]);
-					}
-					exp = last_item;
-				} else {
-					For (comma_separated->expressions) {
-						args->unnamed.push_back(it);
-					}
-					return true;
-				}
-			}
-
-			if (this->lexer.try_skip(TOKEN_EQUAL)) {
-				assert(exp->exp_type == AST_EXPRESSION_IDENT);
-				auto ident = static_cast<Ast_Ident*>(exp);
-				args->named[ident->name] = this->sub_expression();
-				//delete ident;
-			} else args->unnamed.push_back(exp);
-			return true;
-		} else return false;
+		return comma_separated;
 	}
 
 	Ast_Ident* ident () {

@@ -144,16 +144,16 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             // make sure arguments match, no default or named stuff
         }
 
-        for (size_t i = 0; i < call->arguments->unnamed.size(); i++) {
+        for (size_t i = 0; i < call->arguments->expressions.size; i++) {
             auto arg_type = func_type->arg_types[i];
             assert(arg_type->exp_type == AST_EXPRESSION_TYPE);
             auto arg_typed_type = static_cast<Ast_Type*>(arg_type);
 
-            auto value = call->arguments->unnamed[i];
+            auto value = call->arguments->expressions[i];
             if (!value) return;
 
             auto success = this->caster->try_implicid_cast(value->inferred_type,
-                arg_typed_type, &(call->arguments->unnamed[i]));
+                arg_typed_type, &(call->arguments->expressions[i]));
             if (!success) {
                 this->context->error(value, "Expression cannot be implicitly casted from '%s' to '%s'",
                     value->inferred_type->name, arg_typed_type->name);
@@ -202,6 +202,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         Ast_Ref_Navigator::ast_handle(comma_separated_ptr);
 
         auto comma_separated = (*comma_separated_ptr);
+        if (comma_separated->expressions.size == 0) return;
 
         bool all_are_types = true;
         bool some_are_types = false;
@@ -285,21 +286,20 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         }
     }
 
-    void resolve_defaults_and_named (Ast_Arguments* args, Ast_Scope* resolver) {
+    void resolve_defaults_and_named (Ast_Comma_Separated* args, Ast_Scope* resolver) {
         auto decl_count = resolver->statements.size();
 
-        if (args->unnamed.size() > decl_count) {
+        if (args->expressions.size > decl_count) {
             this->context->error(args, "Too many arguments, should have at most %zd", decl_count);
             this->context->shutdown();
             return;
         }
 
-        args->unnamed.reserve(decl_count);
-        for (size_t i = args->unnamed.size(); i < decl_count; i++) {
-            args->unnamed.push_back(NULL);
+        for (size_t i = args->expressions.size; i < decl_count; i++) {
+            args->expressions.push(NULL);
         }
 
-        for (auto entry : args->named) {
+        for (auto entry : args->named_expressions) {
             auto arg_index = this->get_arg_index(resolver, entry.first);
             if (arg_index != SIZE_MAX) {
                 auto existing_value = args->get_unnamed_value(arg_index);
@@ -308,7 +308,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                     this->context->shutdown();
                     return;
                 } else {
-                    args->unnamed[arg_index] = entry.second;
+                    args->expressions[arg_index] = entry.second;
                 }
             } else {
                 //
@@ -322,7 +322,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 return;
             }
         }
-        args->named.clear();
+        args->named_expressions.clear();
 
         for (size_t i = 0; i < decl_count; i++) {
             auto existing_value = args->get_unnamed_value(i);
@@ -335,7 +335,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                     return;
                 }
 
-                args->unnamed[i] = arg_decl->value;
+                args->expressions[i] = arg_decl->value;
             }
         }
     }

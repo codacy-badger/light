@@ -7,30 +7,6 @@ struct Ast_Printer {
 
     Ast_Printer (size_t default_tab_level = 0) { this->current_tabs = default_tab_level; }
 
-    void print (Ast_Arguments* args) {
-        printf("(");
-        if (args->unnamed.size() > 0) {
-            print(args->unnamed[0]);
-            for (size_t i = 1; i < args->unnamed.size(); i++) {
-                printf(", ");
-                print(args->unnamed[i]);
-            }
-        }
-        if (args->named.size() > 0) {
-            if (args->unnamed.size()) printf(", ");
-
-            auto it = args->named.begin();
-            printf("%s = ", it->first);
-            print(it->second);
-            for (size_t i = 1; i < args->named.size(); i++) {
-                it++;
-                printf(", %s = ", it->first);
-                print(it->second);
-            }
-        }
-        printf(")");
-    }
-
     void print(Ast_Statement* stm) {
         switch (stm->stm_type) {
 			case AST_STATEMENT_SCOPE: {
@@ -297,7 +273,9 @@ struct Ast_Printer {
 
     void print(Ast_Function_Call* call) {
         print(call->func);
+        printf("(");
         print(call->arguments);
+        printf(")");
     }
 
     void print(Ast_Unary* unary) {
