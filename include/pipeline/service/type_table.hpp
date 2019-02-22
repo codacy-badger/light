@@ -160,7 +160,11 @@ struct Type_Table {
         if (tuple_type->guid > 0) return;
 
         for (size_t i = 0; i < tuple_type->types.size; i++) {
-            assert(tuple_type->types[i]->exp_type == AST_EXPRESSION_TYPE);
+            auto sub_type = tuple_type->types[i];
+
+            if (!sub_type) return;
+
+            assert(sub_type->exp_type == AST_EXPRESSION_TYPE);
             this->unique((Ast_Type**) &(tuple_type->types[i]));
         }
 
@@ -241,8 +245,11 @@ struct Type_Table {
         tuple_type->types.resize(comma_separated->expressions.size);
         For (comma_separated->expressions) {
             auto value = comma_separated->expressions[i];
-            assert(value->inferred_type);
-            tuple_type->types[i] = value->inferred_type;
+
+            if (value) {
+                assert(value->inferred_type);
+                tuple_type->types[i] = value->inferred_type;
+            } else tuple_type->types[i] = NULL;
         }
         this->unique(&tuple_type);
         return tuple_type;

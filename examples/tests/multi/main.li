@@ -1,12 +1,14 @@
 
 main :: fn {
-    a := 1;
-
     z, y := get_number();
 
-    b := a * z;
+    b := 13 * z;
+
+    val1, val2: u16, bool;
+    val1, val2 = get_number();
+    //val1 = get_number();
 }
 
-get_number :: fn -> (u8, is_valid: bool) {
-    return 12, false;
+get_number :: fn -> (number: u16, is_valid: bool = false) {
+    return is_valid = true, number = 102;
 }

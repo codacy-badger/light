@@ -74,6 +74,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         assert(func_type->ret_type->exp_type == AST_EXPRESSION_TYPE);
         auto typed_ret_type = static_cast<Ast_Type*>(func_type->ret_type);
 
+        this->resolve_defaults_and_named(ret->result, func->ret_scope);
         this->tuple_try_cast_subtypes(typed_ret_type, (Ast_Expression**) &ret->result);
         Ast_Ref_Navigator::ast_handle(ret);
 
@@ -122,6 +123,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void ast_handle (Ast_Expression** exp_ptr) {
+        if (!(*exp_ptr)) return;
+
         Ast_Ref_Navigator::ast_handle(exp_ptr);
         this->inferrer->infer(*exp_ptr);
         //assert((*exp_ptr)->inferred_type);
@@ -207,6 +210,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         bool all_are_types = true;
         bool some_are_types = false;
         For (comma_separated->expressions) {
+            if (!it) continue;
+            
             if (it->exp_type != AST_EXPRESSION_TYPE) {
                 all_are_types = false;
             }
@@ -274,6 +279,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                     auto item_type_ptr = &(tuple_type->types[i]);
                     auto item_type = tuple_type->types[i];
 
+                    if (!item_value) continue;
+
                     this->ast_handle(item_value_ptr);
                     this->ast_handle(item_type_ptr);
 
@@ -337,9 +344,15 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 auto arg_decl = this->get_arg_declaration(resolver, i);
 
                 if (!arg_decl->value) {
-                    this->context->error(args, "There's no value provided for argument '%s'", arg_decl->names[0]);
+                    if (arg_decl->names.size > 0) {
+                        this->context->error(args, "There's no value provided for argument '%s'", arg_decl->names[0]);
+                    } else {
+                        this->context->error(args, "There's no value provided for unnamed argument at index %zd", i);
+                    }
                     this->context->shutdown();
                     return;
+                } else if (arg_decl->names[0]) {
+
                 }
 
                 args->expressions[i] = arg_decl->value;
