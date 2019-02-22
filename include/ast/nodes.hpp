@@ -403,6 +403,7 @@ struct Ast_Type : Ast_Expression {
 };
 
 const uint16_t STRUCT_FLAG_BEING_CHECKED 	= 0x0001;
+const uint16_t STRUCT_FLAG_SIZED 			= 0x0002;
 
 struct Ast_Struct_Type : Ast_Type {
 	uint16_t struct_flags = 0;
@@ -418,6 +419,8 @@ struct Ast_Struct_Type : Ast_Type {
 		this->is_signed = is_signed;
 		this->byte_size = byte_size;
 		this->name = name;
+
+		if (byte_size > 0) this->struct_flags |= STRUCT_FLAG_SIZED;
 	}
 
 	Ast_Declaration* find_attribute (const char* attribute_name) {
