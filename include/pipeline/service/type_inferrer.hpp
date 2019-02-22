@@ -77,7 +77,7 @@ struct Type_Inferrer {
 
     void infer (Ast_Comma_Separated* comma_separated) {
         if (comma_separated->expressions.size == 0) return;
-        
+
         auto tuple_type = this->context->type_table->get_or_add_tuple_type(comma_separated);
         comma_separated->inferred_type = tuple_type;
     }
@@ -129,8 +129,12 @@ struct Type_Inferrer {
             case AST_BINARY_REM: {
                 auto result = this->context->type_caster->try_bidirectional_implicid_cast(&binary->lhs, &binary->rhs);
                 if (!result) {
+                    binary->inferred_type = binary->lhs->inferred_type;
+                    
                     this->context->error(binary, "Incompatible types on binary expression: '%s' and '%s'",
                         binary->lhs->inferred_type->name, binary->rhs->inferred_type->name);
+                    this->context->shutdown();
+                    return;
                 } else binary->inferred_type = binary->lhs->inferred_type;
 
                 break;

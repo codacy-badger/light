@@ -12,9 +12,10 @@
 #include <vector>
 #include <algorithm>
 
-struct Ast_Function;
-struct Ast_Expression;
+struct Ast_Comma_Separated;
 struct Ast_Declaration;
+struct Ast_Expression;
+struct Ast_Function;
 struct Ast_Scope;
 struct Ast_Type;
 
@@ -202,12 +203,12 @@ struct Ast_Declaration : Ast_Statement {
 };
 
 struct Ast_Return : Ast_Statement {
-	Ast_Expression* expression = NULL;
+	Ast_Comma_Separated* result = NULL;
 	Ast_Scope* scope = NULL;
 
-	Ast_Return(Ast_Expression* expression = NULL) {
+	Ast_Return(Ast_Comma_Separated* result = NULL) {
         this->stm_type = AST_STATEMENT_RETURN;
-        this->expression = expression;
+        this->result = result;
     }
 };
 

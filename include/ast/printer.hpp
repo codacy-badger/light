@@ -106,11 +106,8 @@ struct Ast_Printer {
 	}
 
 	void print(Ast_Return* ret) {
-        printf("return");
-        if (ret->expression) {
-            printf(" ");
-            print(ret->expression);
-        }
+        printf("return ");
+        print(ret->result);
 	}
 
 	void print(Ast_Static_If* static_if) {

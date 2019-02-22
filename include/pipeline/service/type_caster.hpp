@@ -11,7 +11,28 @@ struct Type_Caster {
     void init (Build_Context* c) { this->context = c; }
 
     bool try_implicid_cast (Ast_Type* type_from, Ast_Type* type_to, Ast_Expression** exp_ptr) {
+        if (!type_from || !type_to) return false;
         if (type_from == type_to) return true;
+
+        if (type_from->typedef_type == AST_TYPEDEF_TUPLE) {
+            auto tuple_type_from = static_cast<Ast_Tuple_Type*>(type_from);
+
+            if (type_to->typedef_type != AST_TYPEDEF_TUPLE) {
+                if (tuple_type_from->types.size != 1) return false;
+
+                auto exp = (*exp_ptr);
+                if (exp->exp_type == AST_EXPRESSION_COMMA_SEPARATED) {
+                    auto comma_separated = static_cast<Ast_Comma_Separated*>(exp);
+                    exp_ptr = (comma_separated->expressions.data + 0);
+                }
+
+                auto type_exp = tuple_type_from->types[0];
+                assert(type_exp->exp_type == AST_EXPRESSION_TYPE);
+                auto type_from_in_tuple = static_cast<Ast_Type*>(type_exp);
+
+                return this->try_implicid_cast(type_from_in_tuple, type_to, exp_ptr);
+            }
+        }
 
         if (this->can_be_implicidly_casted(type_from, type_to)) {
             auto cast = new Ast_Cast(*exp_ptr, type_to);

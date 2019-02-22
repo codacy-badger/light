@@ -82,7 +82,7 @@ struct Ast_Ref_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Return* ret) {
-		if (ret->expression) this->ast_handle(&ret->expression);
+		this->ast_handle((Ast_Expression**) &ret->result);
 	}
 
 	virtual void ast_handle (Ast_If* _if) {

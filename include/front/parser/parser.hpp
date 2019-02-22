@@ -96,7 +96,7 @@ struct Parser {
 			}
 			case TOKEN_RETURN: {
 				this->lexer.skip();
-				auto output = AST_NEW(Ast_Return, this->expression());
+				auto output = AST_NEW(Ast_Return, this->comma_separated_values());
 				output->scope = this->current_scope;
 				this->lexer.try_skip(TOKEN_STM_END);
 				return output;
@@ -561,8 +561,6 @@ struct Parser {
 		switch (token_type) {
 			default: 		  			return 0;
 
-	        case TOKEN_PAR_OPEN:        return 1;
-
 			case TOKEN_SQ_BRAC_OPEN:    return 2;
 			case TOKEN_DOUBLE_PIPE:		return 3;
 			case TOKEN_DOUBLE_AMP:		return 4;
@@ -591,9 +589,10 @@ struct Parser {
 			case TOKEN_CARET:
 			case TOKEN_EXCLAMATION:		return 13;
 
+			case TOKEN_DOT:
+			case TOKEN_PAR_OPEN:
 			case TOKEN_DOUBLE_ADD:
-			case TOKEN_DOUBLE_SUB:
-			case TOKEN_DOT:   			return 14;
+			case TOKEN_DOUBLE_SUB:		return 14;
 		}
 	}
 
