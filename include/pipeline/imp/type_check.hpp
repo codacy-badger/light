@@ -28,6 +28,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void ast_handle (Ast_Scope* scope) {
+        if (scope->scope_flags & SCOPE_FLAG_TYPES_CHECKED) return;
+        
         String_Map<std::vector<Ast_Declaration*>> decl_map;
         scope->find_all_declarations(&decl_map);
 
@@ -43,6 +45,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         }
 
         Ast_Ref_Navigator::ast_handle(scope);
+        scope->scope_flags |= SCOPE_FLAG_TYPES_CHECKED;
     }
 
     void ast_handle (Ast_Assign* assign) {

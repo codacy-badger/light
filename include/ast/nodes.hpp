@@ -48,6 +48,7 @@ struct Ast_Statement : Ast {
 
 const uint16_t SCOPE_FLAG_FULLY_PARSED 		= 0x0001;
 const uint16_t SCOPE_FLAG_IMPORTS_RESOLVED	= 0x0002;
+const uint16_t SCOPE_FLAG_TYPES_CHECKED		= 0x0004;
 
 struct Ast_Scope : Ast_Statement {
 	uint16_t scope_flags = 0;
