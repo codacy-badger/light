@@ -403,7 +403,8 @@ struct Ast_Type : Ast_Expression {
 };
 
 const uint16_t STRUCT_FLAG_BEING_CHECKED 	= 0x0001;
-const uint16_t STRUCT_FLAG_SIZED 			= 0x0002;
+const uint16_t STRUCT_FLAG_TYPE_CHECKED		= 0x0002;
+const uint16_t STRUCT_FLAG_SIZED 			= 0x0004;
 
 struct Ast_Struct_Type : Ast_Type {
 	uint16_t struct_flags = 0;

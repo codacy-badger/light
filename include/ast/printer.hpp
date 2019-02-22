@@ -511,7 +511,7 @@ struct Ast_Printer {
     }
 
     void print(Ast_Pointer_Type* ptr_type) {
-        printf("*");
+        printf("^");
         print(ptr_type->base);
     }
 

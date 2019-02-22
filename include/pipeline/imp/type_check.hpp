@@ -268,6 +268,15 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         this->type_table->unique(type_ptr);
     }
 
+    void ast_handle (Ast_Struct_Type** struct_type_ptr) {
+        auto struct_type = (*struct_type_ptr);
+
+        if (struct_type->struct_flags & STRUCT_FLAG_TYPE_CHECKED) return;
+
+        Ast_Ref_Navigator::ast_handle(struct_type_ptr);
+        struct_type->struct_flags |= STRUCT_FLAG_TYPE_CHECKED;
+    }
+
     void ast_handle (Ast_Array_Type** arr_type_ptr) {
         Ast_Ref_Navigator::ast_handle(arr_type_ptr);
 
