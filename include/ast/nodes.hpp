@@ -49,6 +49,8 @@ struct Ast_Statement : Ast {
 const uint16_t SCOPE_FLAG_FULLY_PARSED 		= 0x0001;
 const uint16_t SCOPE_FLAG_IMPORTS_RESOLVED	= 0x0002;
 const uint16_t SCOPE_FLAG_TYPES_CHECKED		= 0x0004;
+const uint16_t SCOPE_FLAG_IS_IMPERATIVE		= 0x0008;
+const uint16_t SCOPE_FLAG_IS_SIZED			= 0x0010;
 
 struct Ast_Scope : Ast_Statement {
 	uint16_t scope_flags = 0;
@@ -59,6 +61,9 @@ struct Ast_Scope : Ast_Statement {
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
+
+	size_t stack_byte_padding = 0;
+	size_t stack_byte_size = 0;
 
 	Ast_Scope (Ast_Scope* parent = NULL) {
 		this->stm_type = AST_STATEMENT_SCOPE;

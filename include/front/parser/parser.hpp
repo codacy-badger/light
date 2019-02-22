@@ -79,6 +79,7 @@ struct Parser {
 			case TOKEN_BRAC_OPEN: {
 				this->lexer.skip();
 				auto _scope = this->scope();
+	            _scope->scope_flags |= SCOPE_FLAG_IS_IMPERATIVE;
 				this->lexer.expect(TOKEN_BRAC_CLOSE);
 				return _scope;
 			}
@@ -187,6 +188,7 @@ struct Parser {
 		auto stm = this->statement();
 		if (stm->stm_type != AST_STATEMENT_SCOPE) {
 			auto scope = AST_NEW(Ast_Scope, this->current_scope);
+			scope->scope_flags |= SCOPE_FLAG_IS_IMPERATIVE;
 			scope->add(stm);
 			return scope;
 		} else return static_cast<Ast_Scope*>(stm);
@@ -360,6 +362,7 @@ struct Parser {
 				func->ret_scope = ret_scope;
 
 				this->scope(func->body);
+	            func->body->scope_flags |= SCOPE_FLAG_IS_IMPERATIVE;
 				this->lexer.expect(TOKEN_BRAC_CLOSE);
 
 				return func;
