@@ -48,6 +48,9 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void ast_handle (Ast_Assign* assign) {
         Ast_Ref_Navigator::ast_handle(assign);
 
+        // @TODO check if the variable side of the assignment has storage
+        // if not it's a compiler error
+
         auto success = this->caster->try_implicid_cast(assign->value->inferred_type,
             assign->variable->inferred_type, &assign->value);
         if (!success) {
@@ -211,7 +214,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         bool some_are_types = false;
         For (comma_separated->expressions) {
             if (!it) continue;
-            
+
             if (it->exp_type != AST_EXPRESSION_TYPE) {
                 all_are_types = false;
             }

@@ -1,6 +1,6 @@
 
 main :: fn {
-    z, y := get_number();
+    z, k := get_number();
 
     b := 13 * z;
 

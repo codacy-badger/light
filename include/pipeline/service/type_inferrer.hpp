@@ -130,7 +130,7 @@ struct Type_Inferrer {
                 auto result = this->context->type_caster->try_bidirectional_implicid_cast(&binary->lhs, &binary->rhs);
                 if (!result) {
                     binary->inferred_type = binary->lhs->inferred_type;
-                    
+
                     this->context->error(binary, "Incompatible types on binary expression: '%s' and '%s'",
                         binary->lhs->inferred_type->name, binary->rhs->inferred_type->name);
                     this->context->shutdown();
@@ -244,21 +244,26 @@ struct Type_Inferrer {
 
         assert(decl->names.size > 0);
 		if (decl->names.size > 1) {
-			assert(decl_type->typedef_type == AST_TYPEDEF_TUPLE);
-            auto tuple_type = static_cast<Ast_Tuple_Type*>(decl_type);
+            if (decl_type->typedef_type == AST_TYPEDEF_TUPLE) {
+                auto tuple_type = static_cast<Ast_Tuple_Type*>(decl_type);
 
-    		For (decl->names) {
-    			if (strcmp(it, _name) == 0) {
-    				auto type = tuple_type->types[i];
-                    assert(type->exp_type == AST_EXPRESSION_TYPE);
-    				return static_cast<Ast_Type*>(type);
-    			}
-    		}
+                For (decl->names) {
+                    if (strcmp(it, _name) == 0) {
+                        auto type = tuple_type->types[i];
+                        assert(type->exp_type == AST_EXPRESSION_TYPE);
+                        return static_cast<Ast_Type*>(type);
+                    }
+                }
 
-            return NULL;
+                return NULL;
+            } else return decl_type;
 		} else {
-            assert(decl_type->typedef_type != AST_TYPEDEF_TUPLE);
-    		return decl_type;
+            if (decl_type->typedef_type == AST_TYPEDEF_TUPLE) {
+                auto tuple_type = static_cast<Ast_Tuple_Type*>(decl_type);
+                auto first_tuple_type = tuple_type->types[0];
+                assert(first_tuple_type->exp_type == AST_EXPRESSION_TYPE);
+                return static_cast<Ast_Type*>(first_tuple_type);
+            } else return decl_type;
         }
 	}
 
