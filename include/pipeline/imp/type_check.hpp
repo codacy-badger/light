@@ -14,6 +14,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     Type_Table* type_table = NULL;
     Type_Caster* caster = NULL;
 
+    String_Map<std::vector<Ast_Declaration*>> decl_map;
+
     Type_Check () : Compiler_Pipe("Type Check") { /* empty */ }
 
     void init () {
@@ -29,8 +31,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
     void ast_handle (Ast_Scope* scope) {
         if (scope->scope_flags & SCOPE_FLAG_TYPES_CHECKED) return;
-        
-        String_Map<std::vector<Ast_Declaration*>> decl_map;
+
+        decl_map.clear();
         scope->find_all_declarations(&decl_map);
 
         for (auto entry : decl_map) {
