@@ -138,6 +138,28 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         //assert((*exp_ptr)->inferred_type);
     }
 
+    void ast_handle (Ast_Function** func_ptr) {
+        auto func = (*func_ptr);
+
+        for (auto stm : func->ret_scope->statements) {
+            assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            if (decl->type) continue;
+
+            if (decl->value) {
+                this->ast_handle(&decl->value);
+                assert(decl->value->inferred_type);
+                decl->type = decl->value->inferred_type;
+            } else {
+                this->context->error(decl, "Declaration must have a type or a value");
+                this->context->shutdown();
+                return;
+            }
+        }
+
+        Ast_Ref_Navigator::ast_handle(func_ptr);
+    }
+
     void ast_handle (Ast_Function_Call** call_ptr) {
         auto call = (*call_ptr);
 

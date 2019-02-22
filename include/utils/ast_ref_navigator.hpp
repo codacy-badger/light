@@ -180,7 +180,7 @@ struct Ast_Ref_Navigator {
         for (auto stm : (*func)->ret_scope->statements) {
             assert(stm->stm_type == AST_STATEMENT_DECLARATION);
             auto decl = static_cast<Ast_Declaration*>(stm);
-            this->ast_handle(&decl->type);
+            if (decl->type) this->ast_handle(&decl->type);
         }
 		if ((*func)->body) {
             this->ast_handle((*func)->body);

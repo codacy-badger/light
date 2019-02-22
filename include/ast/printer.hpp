@@ -235,7 +235,7 @@ struct Ast_Printer {
             }
 
             if (func->ret_scope->statements.size() > 0) {
-                printf(" -> ");
+                printf(" -> (");
                 auto stm = func->ret_scope->statements[0];
                 assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                 auto decl = static_cast<Ast_Declaration*>(stm);
@@ -249,6 +249,7 @@ struct Ast_Printer {
                     if (decl->names.size > 0) print(decl, true);
                     else print(decl->type, true);
                 }
+                printf(")");
             }
 
             printf(" ");

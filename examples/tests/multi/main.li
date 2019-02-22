@@ -9,6 +9,6 @@ main :: fn {
     //val1 = get_number();
 }
 
-get_number :: fn -> (number: u16, is_valid: bool = false) {
-    return is_valid = true, number = 102;
+get_number :: fn -> (number: u16, is_valid := false) {
+    return is_valid = 1, number = 102;
 }
