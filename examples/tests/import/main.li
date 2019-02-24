@@ -28,6 +28,8 @@ main :: fn {
         next: *Bruh;
     }
 
+    asd1 := bruh.next.num;
+
     nested :: fn {
         some_stuff := "This is very hard work!";
         value: Bruh;

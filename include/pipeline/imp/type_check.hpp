@@ -123,6 +123,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             } else {
                 this->ast_handle(&decl->value);
                 decl->type = decl->value->inferred_type;
+                this->ast_handle(&decl->type);
             }
         } else this->ast_handle(&decl->type);
 

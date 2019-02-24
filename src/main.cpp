@@ -14,14 +14,10 @@ bool str_eq (const char* str1, size_t len1, const char* str2, size_t len2);
 bool str_eq (const char* str1, const char* str2, size_t len2);
 
 int main (int argc, char** argv) {
-    auto start = os_get_time();
-
     auto workspace = Workspace::create_workspace();
     apply_build_settings(workspace->context, argc, argv);
 
     workspace->wait_for_full_build();
-
-    printf("\nDone in %8.6f\n", os_time_stop(start));
 }
 
 void apply_build_settings (Build_Context* context, int argc, char** argv) {

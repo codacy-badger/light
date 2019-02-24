@@ -1,5 +1,7 @@
 @echo off
 
+call "os\win32\setup.bat"
+
 if not exist build mkdir build
 if not exist bin mkdir bin
 

@@ -19,12 +19,12 @@ struct Type_Table {
     void unique (Ast_Type** type_ptr) {
         auto type = (*type_ptr);
 
-        if (type->guid > 0) return;
+        if (type->type_guid > 0) return;
 
         switch (type->typedef_type) {
             case AST_TYPEDEF_STRUCT: {
                 this->unique(reinterpret_cast<Ast_Struct_Type**>(type_ptr));
-                assert(type->guid > 0);
+                assert(type->type_guid > 0);
                 break;
             }
             case AST_TYPEDEF_POINTER: {
@@ -54,7 +54,7 @@ struct Type_Table {
     void unique (Ast_Struct_Type** struct_ptr) {
         auto _struct = (*struct_ptr);
 
-        if (_struct->guid > 0) return;
+        if (_struct->type_guid > 0) return;
 
         this->add_unique(_struct);
     }
@@ -62,7 +62,7 @@ struct Type_Table {
     void unique (Ast_Pointer_Type** ptr_type_ptr) {
         auto ptr_type = (*ptr_type_ptr);
 
-        if (ptr_type->guid > 0) return;
+        if (ptr_type->type_guid > 0) return;
 
         assert(ptr_type->base->exp_type == AST_EXPRESSION_TYPE);
         this->unique(&ptr_type->typed_base);
@@ -72,7 +72,7 @@ struct Type_Table {
                 auto uniqued_ptr_type = static_cast<Ast_Pointer_Type*>(type);
                 assert(uniqued_ptr_type->base->exp_type == AST_EXPRESSION_TYPE);
 
-                if (uniqued_ptr_type->typed_base->guid == ptr_type->typed_base->guid) {
+                if (uniqued_ptr_type->typed_base->type_guid == ptr_type->typed_base->type_guid) {
                     (*ptr_type_ptr) = uniqued_ptr_type;
                     return;
                 }
@@ -85,7 +85,7 @@ struct Type_Table {
     void unique (Ast_Array_Type** array_type_ptr) {
         auto array_type = (*array_type_ptr);
 
-        if (array_type->guid > 0) return;
+        if (array_type->type_guid > 0) return;
 
         assert(array_type->base->exp_type == AST_EXPRESSION_TYPE);
         this->unique(&array_type->typed_base);
@@ -95,7 +95,7 @@ struct Type_Table {
                 auto uniqued_array_type = static_cast<Ast_Array_Type*>(type);
                 assert(uniqued_array_type->base->exp_type == AST_EXPRESSION_TYPE);
 
-                if (uniqued_array_type->typed_base->guid == array_type->typed_base->guid) {
+                if (uniqued_array_type->typed_base->type_guid == array_type->typed_base->type_guid) {
                     (*array_type_ptr) = uniqued_array_type;
                     return;
                 }
@@ -108,7 +108,7 @@ struct Type_Table {
     void unique (Ast_Slice_Type** slice_type_ptr) {
         auto slice_type = (*slice_type_ptr);
 
-        if (slice_type->guid > 0) return;
+        if (slice_type->type_guid > 0) return;
 
         assert(slice_type->get_base()->exp_type == AST_EXPRESSION_TYPE);
         this->unique(slice_type->get_typed_base_ptr());
@@ -118,7 +118,7 @@ struct Type_Table {
                 auto uniqued_slice_type = static_cast<Ast_Slice_Type*>(type);
                 assert(uniqued_slice_type->get_base()->exp_type == AST_EXPRESSION_TYPE);
 
-                if (uniqued_slice_type->get_typed_base()->guid == slice_type->get_typed_base()->guid) {
+                if (uniqued_slice_type->get_typed_base()->type_guid == slice_type->get_typed_base()->type_guid) {
                     (*slice_type_ptr) = uniqued_slice_type;
                     return;
                 }
@@ -131,7 +131,7 @@ struct Type_Table {
     void unique (Ast_Function_Type** func_type_ptr) {
         auto func_type = (*func_type_ptr);
 
-        if (func_type->guid > 0) return;
+        if (func_type->type_guid > 0) return;
 
         for (auto& arg_type : func_type->arg_types) {
             assert(arg_type->exp_type == AST_EXPRESSION_TYPE);
@@ -157,7 +157,7 @@ struct Type_Table {
     void unique (Ast_Tuple_Type** tuple_type_ptr) {
         auto tuple_type = (*tuple_type_ptr);
 
-        if (tuple_type->guid > 0) return;
+        if (tuple_type->type_guid > 0) return;
 
         for (size_t i = 0; i < tuple_type->types.size; i++) {
             auto sub_type = tuple_type->types[i];
@@ -183,7 +183,7 @@ struct Type_Table {
     }
 
     void add_unique (Ast_Type* type) {
-        type->guid = this->global_type_table.size + 1;
+        type->type_guid = this->global_type_table.size + 1;
         this->global_type_table.push(type);
         this->compute_type_name_if_needed(type);
     }
@@ -227,14 +227,14 @@ struct Type_Table {
                 auto uniqued_ptr_type = static_cast<Ast_Pointer_Type*>(type);
                 assert(uniqued_ptr_type->base->exp_type == AST_EXPRESSION_TYPE);
 
-                if (uniqued_ptr_type->typed_base->guid == base_type->guid) {
+                if (uniqued_ptr_type->typed_base->type_guid == base_type->type_guid) {
                     return uniqued_ptr_type;
                 }
             }
         }
 
         auto ptr_type = new Ast_Pointer_Type(base_type);
-        ptr_type->guid = this->global_type_table.size + 1;
+        ptr_type->type_guid = this->global_type_table.size + 1;
         this->global_type_table.push(ptr_type);
         this->compute_type_name_if_needed(ptr_type);
         return ptr_type;
@@ -256,10 +256,42 @@ struct Type_Table {
     }
 
     Ast_Function_Type* get_or_add_function_type (Ast_Function* func) {
-        auto func_type = func->build_function_type();
+        auto func_type = this->build_function_type(func);
         this->unique(&func_type);
         return func_type;
     }
+
+	Ast_Function_Type* build_function_type (Ast_Function* func) {
+		auto func_type = new Ast_Function_Type();
+        func_type->inferred_type = Types::type_type;
+
+		for (auto stm : func->arg_scope->statements) {
+			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+			auto decl = static_cast<Ast_Declaration*>(stm);
+			func_type->arg_types.push_back(decl->type);
+		}
+
+		if (func->ret_scope->statements.size() > 0) {
+			if (func->ret_scope->statements.size() > 1) {
+				auto tuple_type = new Ast_Tuple_Type();
+
+				for (auto stm : func->ret_scope->statements) {
+					assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+					auto decl = static_cast<Ast_Declaration*>(stm);
+					tuple_type->types.push(decl->type);
+				}
+
+				func_type->ret_type = tuple_type;
+			} else {
+				auto stm = func->ret_scope->statements[0];
+				assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+				auto decl = static_cast<Ast_Declaration*>(stm);
+				func_type->ret_type = decl->type;
+			}
+		} else func_type->ret_type = Types::type_void;
+
+		return func_type;
+	}
 
     void compute_type_name_if_needed (Ast_Type* type) {
         if (type->name) return;

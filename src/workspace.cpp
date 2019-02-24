@@ -14,6 +14,7 @@ Workspace::Workspace (const char* name) {
 
 void Workspace::start_building () {
     printf("Starting workspace #%zd (%s)\n\n", this->guid, this->name);
+    this->start_time = os_get_time();
 
     this->context->init(this);
     this->pipeline->init(this->context);
@@ -34,12 +35,10 @@ void Workspace::stop_building () {
     delete this->thread;
 
     this->is_build_complete = true;
+    this->total_time += os_time_stop(this->start_time);
 
-    if (this->has_error) {
-        //printf("\nErrors found, stopping compilation...\n");
-    } else {
-        printf("Workspace #%zd (%s) complete\n", this->guid, this->name);
-    }
+    printf("Stopping Workspace #%zd (%s) done in %8.6fs\n",
+        this->guid, this->name, this->total_time);
 }
 
 void Workspace::stop_with_errors () {

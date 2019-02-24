@@ -29,6 +29,10 @@ struct Async_Queue {
         return this->wrapped.pop();
     }
 
+    size_t size () {
+        return this->wrapped.size();
+    }
+
     bool empty () {
         return this->wrapped.empty();
     }

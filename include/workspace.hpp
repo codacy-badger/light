@@ -19,6 +19,9 @@ struct Workspace {
     bool has_error = false;
     bool is_build_complete = false;
 
+    uint64_t start_time = 0;
+    double total_time = 0;
+
     Workspace (const char* name);
 
     void start_building ();

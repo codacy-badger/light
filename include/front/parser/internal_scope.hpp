@@ -47,20 +47,20 @@ struct Internal_Scope : Ast_Scope {
         this->add(decl);
     }
 
-    void add_boolean (const char* name, bool value) {
+    void add_boolean (const char* _name, bool value) {
         auto literal = new Ast_Literal(value);
         literal->location = this->internal_location;
 
-        auto decl = new Ast_Declaration(name, Types::type_bool, literal);
+        auto decl = new Ast_Declaration(_name, Types::type_bool, literal);
         decl->location = this->internal_location;
         decl->is_constant = true;
         this->add(decl);
     }
 
-    void add_uint (const char* name, uint64_t value) {
+    void add_uint (const char* _name, uint64_t value) {
         auto literal = new Ast_Literal(value);
 
-        auto decl = new Ast_Declaration(name, Types::type_u64, literal);
+        auto decl = new Ast_Declaration(_name, Types::type_u64, literal);
         decl->location = this->internal_location;
         decl->is_constant = true;
         this->add(decl);

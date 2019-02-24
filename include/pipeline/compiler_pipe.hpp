@@ -7,12 +7,13 @@
 template<typename Tin, typename Tout = Tin>
 struct Compiler_Pipe : Pipe {
     Async_Queue<Tin> input_queue;
-    Queue<Tin> to_requeue;
 
     Async_Queue<Tout>* output_queue = NULL;
 
     bool has_pushed_work = false;
     bool keep_working = true;
+
+    double seconds_working = 0;
 
     Compiler_Pipe (const char* name) : Pipe(name) { /* empty */ }
 
@@ -24,12 +25,16 @@ struct Compiler_Pipe : Pipe {
 
         if (!this->input_queue.empty()) {
             this->has_pushed_work = false;
-            while (!this->input_queue.empty()) {
+
+            auto start = os_get_time();
+
+            auto num_items = this->input_queue.size();
+            for (size_t i = 0; i < num_items; i++) {
                 this->handle(this->input_queue.pop());
             }
-            while (!this->to_requeue.empty()) {
-                this->push_in(this->to_requeue.pop());
-            }
+            
+            this->seconds_working += os_time_stop(start);
+
             return this->has_pushed_work;
         } else return false;
     }
@@ -52,12 +57,12 @@ struct Compiler_Pipe : Pipe {
     void requeue (Tin input) {
         if (!this->keep_working) return;
 
-        this->to_requeue.push(input);
+        this->input_queue.push(input);
     }
 
     void shutdown () {
         if (!this->keep_working) return;
-        
+
         this->keep_working = false;
         this->on_shutdown();
     }

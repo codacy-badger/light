@@ -10,6 +10,8 @@
 #include "imp/static_if.hpp"
 #include "imp/compute_sizes.hpp"
 
+#include "imp/generate_bytecode.hpp"
+
 #include "imp/print_step.hpp"
 
 /*
@@ -57,6 +59,9 @@ struct Build_Pipeline {
     Static_If* static_if = new Static_If(&import_modules->input_queue);
     Type_Check* type_check = new Type_Check();
     Compute_Sizes* compute_sizes = new Compute_Sizes();
+
+    Generate_Bytecode* generate_bytecode = new Generate_Bytecode();
+
     Print_Step* printer = new Print_Step();
 
     std::vector<Pipe*> pipes;
@@ -70,6 +75,9 @@ struct Build_Pipeline {
         pipes.push_back(this->static_if);
         pipes.push_back(this->type_check);
         pipes.push_back(this->compute_sizes);
+
+        pipes.push_back(this->generate_bytecode);
+
         pipes.push_back(this->printer);
 
         BIND_PIPES(this->parse_step, this->import_modules);
@@ -77,7 +85,10 @@ struct Build_Pipeline {
         BIND_PIPES(this->resolve_idents, this->static_if);
         BIND_PIPES(this->static_if, this->type_check);
         BIND_PIPES(this->type_check, this->compute_sizes);
-        BIND_PIPES(this->compute_sizes, this->printer);
+
+        BIND_PIPES(this->compute_sizes, this->generate_bytecode);
+
+        BIND_PIPES(this->generate_bytecode, this->printer);
 
         for (auto pipe : this->pipes) {
             pipe->context = context;

@@ -5,7 +5,7 @@
 #include "ast/types.hpp"
 #include "platform.hpp"
 
-#define AST_NEW(T, ...) this->set_ast_location_info<T>(new (this->arena->get(sizeof(T))) T(__VA_ARGS__))
+#define AST_NEW(T, ...) (T*) this->set_ast_location_info(new (this->arena->get(sizeof(T))) T(__VA_ARGS__))
 
 struct Parser {
 	Lexer lexer;
@@ -632,8 +632,9 @@ struct Parser {
 		return output;
 	}
 
-	template<typename T>
-	T* set_ast_location_info (T* ast_node) {
+	Ast* set_ast_location_info (Ast* ast_node) {
+		static size_t ast_guid = 1;
+		ast_node->ast_guid = ast_guid++;
 		ast_node->location.filename = this->lexer.source_path;
 		ast_node->location.line = this->lexer.scanner.current_line;
 		return ast_node;

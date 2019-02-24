@@ -7,5 +7,3 @@ if "%VS150COMNTOOLS%"=="" call "C:\Program Files (x86)\Microsoft Visual Studio\2
 %CurrentDir:~0,2%
 cd %CurrentDir%
 SET "CurrentDir="
-
-git submodule update --init --recursive

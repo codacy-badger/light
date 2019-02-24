@@ -23,6 +23,7 @@ struct Instruction;
 
 struct Ast {
 	Location location;
+	size_t ast_guid = 0;
 };
 
 enum Ast_Statement_Type {
@@ -302,7 +303,7 @@ struct Ast_Run : Ast_Expression {
 	Ast_Expression* expression = NULL;
 
 	// for bytecode
-	std::vector<Instruction*> bytecode;
+	Array<Instruction*> bytecode;
 
 	Ast_Run (Ast_Expression* expression = NULL) {
 		this->exp_type = AST_EXPRESSION_RUN;
@@ -400,7 +401,7 @@ struct Ast_Type : Ast_Expression {
 	size_t byte_size = 0;
 	size_t byte_padding = 0;
 
-	uint64_t guid = 0;
+	uint64_t type_guid = 0;
 
 	Ast_Type() { this->exp_type = AST_EXPRESSION_TYPE; }
 
@@ -506,7 +507,8 @@ struct Ast_Function_Type : Ast_Type {
 	}
 };
 
-const uint16_t FUNCTION_FLAG_BEING_CHECKED 	= 0x0001;
+const uint16_t FUNCTION_FLAG_BEING_CHECKED 			= 0x0001;
+const uint16_t FUNCTION_FLAG_BYTECODE_GENERATED 	= 0x0002;
 
 struct Ast_Function : Ast_Expression {
 	uint16_t func_flags = 0;
@@ -524,42 +526,11 @@ struct Ast_Function : Ast_Expression {
 	void* foreign_function_pointer = NULL;
 
 	// for bytecode
-	std::vector<Instruction*> bytecode;
+	Array<Instruction*> bytecode;
 
 	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
 
 	bool is_native () { return !!this->foreign_function_name; }
-
-	Ast_Function_Type* build_function_type () {
-		auto func_type = new Ast_Function_Type();
-
-		for (auto stm : this->arg_scope->statements) {
-			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
-			auto decl = static_cast<Ast_Declaration*>(stm);
-			func_type->arg_types.push_back(decl->type);
-		}
-
-		if (this->ret_scope->statements.size() > 0) {
-			if (this->ret_scope->statements.size() > 1) {
-				auto tuple_type = new Ast_Tuple_Type();
-
-				for (auto stm : this->ret_scope->statements) {
-					assert(stm->stm_type == AST_STATEMENT_DECLARATION);
-					auto decl = static_cast<Ast_Declaration*>(stm);
-					tuple_type->types.push(decl->type);
-				}
-
-				func_type->ret_type = tuple_type;
-			} else {
-				auto stm = this->ret_scope->statements[0];
-				assert(stm->stm_type == AST_STATEMENT_DECLARATION);
-				auto decl = static_cast<Ast_Declaration*>(stm);
-				func_type->ret_type = decl->type;
-			}
-		} else func_type->ret_type = Types::type_void;
-
-		return func_type;
-	}
 };
 
 enum Ast_Binary_Type {

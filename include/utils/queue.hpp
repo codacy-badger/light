@@ -16,6 +16,10 @@ struct Queue {
         return next_event;
     }
 
+    size_t size () {
+        return this->wrapped.size();
+    }
+
     bool empty () {
         return this->wrapped.empty();
     }
