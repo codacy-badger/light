@@ -200,7 +200,10 @@ struct Ast_Break : Ast_Statement {
 
 struct Ast_Declaration : Ast_Statement {
 	Array<const char*> names;
-	Ast_Expression* type;
+	union {
+		Ast_Expression* type;
+		Ast_Type* typed_type;
+	};
 	Ast_Expression* value;
 
     bool is_constant = false;

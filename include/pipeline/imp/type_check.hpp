@@ -150,6 +150,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 case AST_EXPRESSION_FUNCTION:
                 case AST_EXPRESSION_TYPE: {
                     (*ident_ptr) = (Ast_Ident*) decl->value;
+                    //Ast_Ref_Navigator::ast_handle((Ast_Expression**) ident_ptr);
                     break;
                 }
                 default: break;
@@ -245,8 +246,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         if (unary->exp->inferred_type == Types::type_type) {
             auto base_type = static_cast<Ast_Type*>(unary->exp);
             auto ptr_type = this->context->type_table->get_or_add_pointer_type(base_type);
-            ptr_type->inferred_type = Types::type_type;
             (*unary_ptr) = (Ast_Unary*) ptr_type;
+            Ast_Ref_Navigator::ast_handle((Ast_Expression**) unary_ptr);
         }
     }
 
@@ -285,6 +286,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void ast_handle (Ast_Type** type_ptr) {
         Ast_Ref_Navigator::ast_handle(type_ptr);
         this->type_table->unique(type_ptr);
+        this->compute_type_size(*type_ptr);
     }
 
     void ast_handle (Ast_Struct_Type** struct_type_ptr) {
@@ -293,22 +295,113 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         if (struct_type->struct_flags & STRUCT_FLAG_TYPE_CHECKED) return;
 
         Ast_Ref_Navigator::ast_handle(struct_type_ptr);
+        for (size_t i = 0; i < struct_type->scope.statements.size(); i++) {
+            auto stm = struct_type->scope.statements[i];
+
+            assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+            auto decl = static_cast<Ast_Declaration*>(stm);
+
+            assert(decl->names.size > 0);
+            assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
+            assert(decl->type->inferred_type == Types::type_type);
+            assert(decl->typed_type->byte_size > 0);
+            if (decl->value) {
+                assert(decl->value->inferred_type);
+            }
+        }
+
         struct_type->struct_flags |= STRUCT_FLAG_TYPE_CHECKED;
+    }
+
+    void ast_handle (Ast_Pointer_Type** ptr_type_ptr) {
+        auto ptr_type = (*ptr_type_ptr);
+
+        if (ptr_type->typed_base->typedef_type != AST_TYPEDEF_STRUCT) {
+            Ast_Ref_Navigator::ast_handle(ptr_type_ptr);
+        }
+
+        ptr_type->byte_size = this->context->target_arch->register_size;
+    }
+
+    void ast_handle (Ast_Function_Type** func_type_ptr) {
+        Ast_Ref_Navigator::ast_handle(func_type_ptr);
+        (*func_type_ptr)->byte_size = this->context->target_arch->register_size;
     }
 
     void ast_handle (Ast_Array_Type** arr_type_ptr) {
         Ast_Ref_Navigator::ast_handle(arr_type_ptr);
 
         auto arr_type = (*arr_type_ptr);
+        assert(arr_type->base->exp_type == AST_EXPRESSION_TYPE);
+        assert(arr_type->base->inferred_type == Types::type_type);
 
-        if (arr_type->length->exp_type == AST_EXPRESSION_LITERAL) {
-            auto literal = static_cast<Ast_Literal*>(arr_type->length);
-            arr_type->length_uint = literal->uint_value;
-        } else {
+        if (arr_type->length->exp_type != AST_EXPRESSION_LITERAL) {
             this->context->error(arr_type->length, "Only literal unsigned integer values allowed in array type size");
             this->context->shutdown();
             return;
         }
+        
+        auto literal = static_cast<Ast_Literal*>(arr_type->length);
+        arr_type->length_uint = literal->uint_value;
+
+        auto base_type_size = arr_type->typed_base->byte_size;
+        assert(base_type_size > 0);
+        
+        arr_type->byte_size = arr_type->length_uint * base_type_size;
+    }
+
+    void compute_type_size (Ast_Type* type) {
+        switch (type->typedef_type) {
+            case AST_TYPEDEF_SLICE:
+            case AST_TYPEDEF_STRUCT: {
+                auto struct_type = static_cast<Ast_Struct_Type*>(type);
+                this->compute_struct_type_size(struct_type);
+                break;
+            }
+            case AST_TYPEDEF_FUNCTION:
+            case AST_TYPEDEF_POINTER: {
+                type->byte_size = this->context->target_arch->register_size;
+                break;
+            }
+            case AST_TYPEDEF_ARRAY: {
+                auto arr_type = static_cast<Ast_Array_Type*>(type);
+
+                auto base_type_size = arr_type->typed_base->byte_size;
+                assert(base_type_size > 0);
+                
+                arr_type->byte_size = arr_type->length_uint * base_type_size;
+                break;
+            }
+        }
+    }
+
+    void compute_struct_type_size (Ast_Struct_Type* struct_type) {
+        if (struct_type->struct_flags & STRUCT_FLAG_SIZED) return;
+
+        struct_type->byte_size = 0;
+        struct_type->byte_padding = 0;
+        for (size_t i = 0; i < struct_type->scope.statements.size(); i++) {
+            auto stm = struct_type->scope.statements[i];
+
+            if (stm->stm_type == AST_STATEMENT_DECLARATION) {
+                auto decl = static_cast<Ast_Declaration*>(stm);
+                assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
+
+                auto decl_type = static_cast<Ast_Type*>(decl->type);
+                assert(decl_type->byte_size > 0);
+
+                decl->attribute_byte_offset = struct_type->byte_size;
+
+                struct_type->byte_size += decl_type->byte_size;
+                if ((struct_type->byte_size % 8) > 0) {
+                    auto padding = 8 - (struct_type->byte_size % 8);
+                    struct_type->byte_padding += padding;
+                    struct_type->byte_size += padding;
+                }
+            } else assert(false);
+        }
+
+        struct_type->struct_flags |= STRUCT_FLAG_SIZED;
     }
 
     void tuple_try_cast_subtypes (Ast_Expression* type_exp, Ast_Expression** value_ptr) {
@@ -353,6 +446,22 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                         this->context->shutdown();
                         return;
                     }
+                }
+            } else {
+                assert(comma_separated->expressions.size == 1);
+                auto item_value_ptr = &(comma_separated->expressions[0]);
+                auto item_value = comma_separated->expressions[0];
+
+                this->ast_handle(item_value_ptr);
+                this->ast_handle(&type);
+
+                auto success = this->caster->try_implicid_cast(item_value->inferred_type,
+                    type, item_value_ptr);
+                if (!success) {
+                    this->context->error(item_value, "Value cannot be implicitly casted from '%s' to '%s'",
+                        item_value->inferred_type->name, type->name);
+                    this->context->shutdown();
+                    return;
                 }
             }
         }
@@ -463,6 +572,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                     auto left_exp_ptr = &(*binary_exp_ptr)->lhs;
                     auto tmp2 = (Ast_Ident*) new Ast_Unary(AST_UNARY_DEREFERENCE, *left_exp_ptr);
                     tmp2->location = (*left_exp_ptr)->location;
+                    tmp2->inferred_type = type;
                     (*left_exp_ptr) = tmp2;
                 }
 

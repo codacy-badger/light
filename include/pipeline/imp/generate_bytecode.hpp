@@ -9,34 +9,46 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     Generate_Bytecode() : Compiler_Pipe("Generate Bytecode") { /* empty */ }
 
     void handle (Ast_Statement* global_statement) {
-        //Ast_Navigator::ast_handle(global_statement);
+        Ast_Navigator::ast_handle(global_statement);
         this->push_out(global_statement);
     }
 
-    void generate_bytecode_for_function (Ast_Function* func) {
+    void ast_handle (Ast_Declaration* decl) {
+        if (decl->value) {
+            switch (decl->value->exp_type) {
+                case AST_EXPRESSION_FUNCTION: {
+                    auto func = static_cast<Ast_Function*>(decl->value);
+                    this->ensure_bytecode_for_function(func);
+                    return;
+                }
+                case AST_EXPRESSION_TYPE: {
+                    return;
+                }
+            }
+        }
+        Ast_Navigator::ast_handle(decl);
+    }
+
+    void ensure_bytecode_for_function (Ast_Function* func) {
         assert(func->bytecode.size == 0);
 
         auto unique_func_name = build_unique_name(func);
         printf("\nGenerate bytecode for function '%s' (%s)...\n\n",
             func->name, unique_func_name);
 
+        Ast_Navigator::ast_handle(func);
+
         printf("\n...DONE\n\n");
     }
 
     void ast_handle (Ast_Expression* exp) {
-        //assert(exp->inferred_type);
+        assert(exp->inferred_type);
         Ast_Navigator::ast_handle(exp);
     }
 
     void ast_handle (Ast_Function* func) {
-        Ast_Navigator::ast_handle(func);
-
-        if (!(func->func_flags & FUNCTION_FLAG_BYTECODE_GENERATED)) {
-            this->generate_bytecode_for_function(func);
-            func->func_flags |= FUNCTION_FLAG_BYTECODE_GENERATED;
-        }
-
-        // @TODO generate bytecode to get that function (LOAD_CONST?)
+        auto size = func->inferred_type->byte_size;
+        printf("SET_FUNC_PTR %zd, %p\n", size, func);
     }
 
     void ast_handle (Ast_Literal* literal) {
@@ -63,7 +75,6 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 break;
             }
         }
-        printf("SET_CONST");
     }
 
 	char* build_unique_name (Ast_Function* func) {
