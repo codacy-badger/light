@@ -23,7 +23,10 @@ struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         if (global_statement->stm_type != AST_STATEMENT_STATIC_IF) {
             if (this->has_generated_new_internal_code) {
                 flow_back->push(global_statement);
-            } else this->push_out(global_statement);
+            } else {
+                global_statement->stm_flags |= STM_FLAG_STATIC_IFS_RESOLVED;
+                this->push_out(global_statement);
+            }
         }
     }
 

@@ -83,12 +83,13 @@ struct Build_Pipeline {
         BIND_PIPES(this->parse_step, this->import_modules);
         BIND_PIPES(this->import_modules, this->resolve_idents);
         BIND_PIPES(this->resolve_idents, this->static_if);
-        BIND_PIPES(this->static_if, this->type_check);
-        BIND_PIPES(this->type_check, this->compute_sizes);
+        //BIND_PIPES(this->static_if, this->type_check);
+        //BIND_PIPES(this->type_check, this->compute_sizes);
 
-        BIND_PIPES(this->compute_sizes, this->generate_bytecode);
+        //BIND_PIPES(this->compute_sizes, this->generate_bytecode);
 
-        BIND_PIPES(this->generate_bytecode, this->printer);
+        //BIND_PIPES(this->generate_bytecode, this->printer);
+        BIND_PIPES(this->static_if, this->printer);
 
         for (auto pipe : this->pipes) {
             pipe->context = context;

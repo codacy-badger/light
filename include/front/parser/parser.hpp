@@ -199,7 +199,6 @@ struct Parser {
 
 		auto decl = AST_NEW(Ast_Declaration);
 		decl->names.push(this->copy_token_text_and_skip());
-		decl->scope = this->current_scope;
 
 		this->lexer.expect(TOKEN_COLON);
 
@@ -221,7 +220,6 @@ struct Parser {
 
 	Ast_Declaration* declaration (Ast_Expression* pre_exp) {
 		auto decl = AST_NEW(Ast_Declaration);
-		decl->scope = this->current_scope;
 
 		switch (pre_exp->exp_type) {
 			case AST_EXPRESSION_COMMA_SEPARATED: {
@@ -453,7 +451,6 @@ struct Parser {
 				this->lexer.expect(TOKEN_PAR_CLOSE);
 			} else {
 				auto decl = AST_NEW(Ast_Declaration);
-				decl->scope = this->current_scope;
 				decl->type = this->sub_expression();
 
 				if (ret_scope) ret_scope->add(decl);
@@ -504,7 +501,6 @@ struct Parser {
 			return this->simple_declaration();
 		} else {
 			auto decl = AST_NEW(Ast_Declaration);
-			decl->scope = this->current_scope;
 			decl->type = this->sub_expression();
 			return decl;
 		}

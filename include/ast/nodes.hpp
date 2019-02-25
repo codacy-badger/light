@@ -41,10 +41,16 @@ enum Ast_Statement_Type {
 	AST_STATEMENT_EXPRESSION,
 };
 
+// @Info this flag only applies to global statements, 
+// since those are the only ones that we have to handle
+// in special order
+const uint16_t STM_FLAG_IDENTS_RESOLVED 	= 0x0001;
+const uint16_t STM_FLAG_STATIC_IFS_RESOLVED = 0x0002;
+
 struct Ast_Statement : Ast {
 	Ast_Statement_Type stm_type = AST_STATEMENT_UNDEFINED;
-	uint16_t stm_flags = 0;
 	Ast_Scope* parent_scope = NULL;
+	uint16_t stm_flags = 0;
 };
 
 const uint16_t SCOPE_FLAG_FULLY_PARSED 		= 0x0001;
@@ -142,7 +148,18 @@ struct Ast_Scope : Ast_Statement {
 
 	void find_all_declarations (String_Map<std::vector<Ast_Declaration*>>* decl_map);
 
-	bool is_ancestor (Ast_Scope* other);
+	bool is_ancestor_of (Ast_Scope* other) {
+		if (this == other) return true;
+
+		while (other->parent) {
+			other = other->parent;
+			if (this == other) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	Ast_Function* get_parent_function ();
 };
 
@@ -187,7 +204,6 @@ struct Ast_Declaration : Ast_Statement {
 	Ast_Expression* value;
 
     bool is_constant = false;
-	Ast_Scope* scope = NULL;
 
 	// for struct property
 	size_t attribute_byte_offset = 0;
@@ -197,7 +213,7 @@ struct Ast_Declaration : Ast_Statement {
 	int64_t bytecode_stack_offset = -1;
 	bool is_spilled = true;
 
-	bool is_global () { return this->scope->is_global(); }
+	bool is_global () { return !this->parent_scope || this->parent_scope->is_global(); }
 
 	Ast_Declaration() { this->stm_type = AST_STATEMENT_DECLARATION; }
 
@@ -433,6 +449,8 @@ struct Ast_Struct_Type : Ast_Type {
 	Ast_Declaration* find_attribute (const char* attribute_name) {
 		return this->scope.find_declaration(attribute_name, true, false);
 	}
+
+	bool is_global () { return !this->scope.parent || this->scope.parent->is_global(); }
 };
 
 struct Ast_Pointer_Type : Ast_Type {

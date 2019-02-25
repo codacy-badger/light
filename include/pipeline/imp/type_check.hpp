@@ -139,6 +139,24 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         //assert((*exp_ptr)->inferred_type);
     }
 
+    void ast_handle (Ast_Ident** ident_ptr) {
+        auto ident = (*ident_ptr);
+
+        assert(ident->declaration);
+        auto decl = ident->declaration;
+
+        if (decl->is_constant && decl->value != NULL) {
+            switch (decl->value->exp_type) {
+                case AST_EXPRESSION_FUNCTION:
+                case AST_EXPRESSION_TYPE: {
+                    (*ident_ptr) = (Ast_Ident*) decl->value;
+                    break;
+                }
+                default: break;
+            }
+        }
+    }
+
     void ast_handle (Ast_Function** func_ptr) {
         auto func = (*func_ptr);
 

@@ -14,6 +14,7 @@ struct Internal_Scope : Ast_Scope {
 
         Types::type_usize->byte_size = target_arch->register_size;
 
+	    this->add_type(Types::type_namespace);
 	    this->add_type(Types::type_type);
 	    this->add_type(Types::type_void);
 	    this->add_type(Types::type_bool);
@@ -38,10 +39,12 @@ struct Internal_Scope : Ast_Scope {
         this->add_boolean("DEBUG",      true);
     }
 
-    void add_type (Ast_Type* type) {
-        type->inferred_type = Types::type_type;
+    void add_type (Ast_Struct_Type* struct_type) {
+        struct_type->inferred_type = Types::type_type;
 
-        auto decl = new Ast_Declaration(type->name, Types::type_type, type);
+        auto decl = new Ast_Declaration(struct_type->name, Types::type_type, struct_type);
+        decl->stm_flags |= STM_FLAG_IDENTS_RESOLVED;
+        decl->stm_flags |= STM_FLAG_STATIC_IFS_RESOLVED;
         decl->location = this->internal_location;
         decl->is_constant = true;
         this->add(decl);
@@ -52,6 +55,8 @@ struct Internal_Scope : Ast_Scope {
         literal->location = this->internal_location;
 
         auto decl = new Ast_Declaration(_name, Types::type_bool, literal);
+        decl->stm_flags |= STM_FLAG_IDENTS_RESOLVED;
+        decl->stm_flags |= STM_FLAG_STATIC_IFS_RESOLVED;
         decl->location = this->internal_location;
         decl->is_constant = true;
         this->add(decl);
@@ -61,6 +66,8 @@ struct Internal_Scope : Ast_Scope {
         auto literal = new Ast_Literal(value);
 
         auto decl = new Ast_Declaration(_name, Types::type_u64, literal);
+        decl->stm_flags |= STM_FLAG_IDENTS_RESOLVED;
+        decl->stm_flags |= STM_FLAG_STATIC_IFS_RESOLVED;
         decl->location = this->internal_location;
         decl->is_constant = true;
         this->add(decl);

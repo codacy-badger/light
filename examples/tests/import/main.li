@@ -1,5 +1,6 @@
 
 import "foo";
+import "bar";
 
 main :: fn {
     foo: Foo;
@@ -21,7 +22,7 @@ main :: fn {
     bruh: Bruh;
 
     Bruh :: struct {
-        foo: Foo;
+        bar: Bar;
         num := 123;
         is_valid := false;
 
