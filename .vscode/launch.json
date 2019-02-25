@@ -8,7 +8,7 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "M:/documents/projects/light/bin/light.exe",
+            "program": "${workspaceFolder}/bin/light.exe",
             "args": [
                 "examples/tests/import/main.li",
                 "examples/tests/calls/main.li",
