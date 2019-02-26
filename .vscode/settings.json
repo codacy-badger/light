@@ -5,6 +5,7 @@
         "xtr1common": "cpp",
         "cmath": "cpp",
         "functional": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "vector": "cpp"
     }
 }

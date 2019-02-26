@@ -53,6 +53,12 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void ast_handle (Ast_Assign* assign) {
         Ast_Ref_Navigator::ast_handle(assign);
 
+        if (!this->defines_storage(assign->variable)) {
+            this->context->error(assign->variable, "Right part of the assignment doesn't declare storage");
+            this->context->shutdown();
+            return;
+        }
+
         // @TODO check if the variable side of the assignment has storage
         // if not it's a compiler error
 
@@ -527,6 +533,34 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
                 args->expressions[i] = arg_decl->value;
             }
+        }
+    }
+
+    bool defines_storage (Ast_Expression* exp) {
+        // @TODO this needs improvement!
+
+        switch (exp->exp_type) {
+            case AST_EXPRESSION_IDENT:  return true;
+            case AST_EXPRESSION_COMMA_SEPARATED: {
+                auto comma_separated = static_cast<Ast_Comma_Separated*>(exp);
+                For (comma_separated->expressions) {
+                    if (!this->defines_storage(it)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            case AST_EXPRESSION_BINARY: {
+                auto binary = static_cast<Ast_Binary*>(exp);
+                switch (binary->binary_op) {
+                    case AST_BINARY_ATTRIBUTE: return true;
+                    default: {
+                        return this->defines_storage(binary->lhs)
+                            || this->defines_storage(binary->rhs);
+                    }
+                }
+            }
+            default:                    return false;
         }
     }
 

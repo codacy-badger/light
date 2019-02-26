@@ -132,6 +132,8 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void on_shutdown () {
+        if (this->context->has_error) return;
+        
         //
         // @Bug @TODO this reports the same IDs multiple times, so we need to unique them
         // ALSO! this system grabs dependencies from types & function scopes, in the way

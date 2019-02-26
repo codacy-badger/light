@@ -1,6 +1,6 @@
 
 main :: fn {
-    view: [12]byte;
+    view: []byte;
 
     some_data: byte;
 

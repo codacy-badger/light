@@ -26,6 +26,8 @@ struct Build_Context {
 	bool is_multithread = false;
 	bool is_debug = false;
 
+	bool has_error = false;
+
 	OS* target_os = OS::get_current_os();
 	Arch* target_arch = Arch::get_current_arch();
 

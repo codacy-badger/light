@@ -98,6 +98,8 @@ void Build_Context::debug_v (const char* format, va_list args) {
 void Build_Context::error_v (const char* format, va_list args) {
     if (!this->workspace->keep_going) return;
 
+    this->has_error = true;
+
     printf("[ERROR] ");
     vprintf(format, args);
     printf("\n");
