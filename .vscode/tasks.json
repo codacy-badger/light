@@ -12,10 +12,13 @@
             "command": [
                 "os/win32/build",
             ],
+            "presentation": {
+                "clear": true,
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-        }
+        },
     ],
 }

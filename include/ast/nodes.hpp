@@ -57,7 +57,6 @@ const uint16_t SCOPE_FLAG_FULLY_PARSED 		= 0x0001;
 const uint16_t SCOPE_FLAG_IMPORTS_RESOLVED	= 0x0002;
 const uint16_t SCOPE_FLAG_TYPES_CHECKED		= 0x0004;
 const uint16_t SCOPE_FLAG_IS_IMPERATIVE		= 0x0008;
-const uint16_t SCOPE_FLAG_IS_SIZED			= 0x0010;
 
 struct Ast_Scope : Ast_Statement {
 	uint16_t scope_flags = 0;
@@ -289,7 +288,7 @@ struct Ast_Expression : Ast_Statement {
 	Ast_Type* inferred_type = NULL;
 
 	// for bytecode
-	int8_t reg = -1;
+	int64_t reg = -1;
 
 	Ast_Expression() { this->stm_type = AST_STATEMENT_EXPRESSION; }
 };
@@ -409,9 +408,14 @@ enum Ast_Type_Type {
 	AST_TYPEDEF_TUPLE,
 };
 
+const uint16_t TYPE_FLAG_TYPE_CHECKED	= 0x0001;
+const uint16_t TYPE_FLAG_SIZED 			= 0x0002;
+
 struct Ast_Type : Ast_Expression {
 	Ast_Type_Type typedef_type = AST_TYPEDEF_UNDEFINED;
 	const char* name = NULL;
+	
+	uint16_t type_flags = 0;
 
 	bool is_primitive = false;
 	bool is_number = false;
@@ -428,8 +432,6 @@ struct Ast_Type : Ast_Expression {
 };
 
 const uint16_t STRUCT_FLAG_BEING_CHECKED 	= 0x0001;
-const uint16_t STRUCT_FLAG_TYPE_CHECKED		= 0x0002;
-const uint16_t STRUCT_FLAG_SIZED 			= 0x0004;
 
 struct Ast_Struct_Type : Ast_Type {
 	uint16_t struct_flags = 0;
@@ -446,7 +448,7 @@ struct Ast_Struct_Type : Ast_Type {
 		this->byte_size = byte_size;
 		this->name = name;
 
-		if (byte_size > 0) this->struct_flags |= STRUCT_FLAG_SIZED;
+		if (byte_size > 0) this->type_flags |= TYPE_FLAG_SIZED;
 	}
 
 	Ast_Declaration* find_attribute (const char* attribute_name) {
@@ -529,7 +531,8 @@ struct Ast_Function_Type : Ast_Type {
 };
 
 const uint16_t FUNCTION_FLAG_BEING_CHECKED 			= 0x0001;
-const uint16_t FUNCTION_FLAG_BYTECODE_GENERATED 	= 0x0002;
+const uint16_t FUNCTION_FLAG_TYPE_CHECKED 			= 0x0002;
+const uint16_t FUNCTION_FLAG_BYTECODE_GENERATED 	= 0x0004;
 
 struct Ast_Function : Ast_Expression {
 	uint16_t func_flags = 0;

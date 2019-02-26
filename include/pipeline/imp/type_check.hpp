@@ -150,7 +150,6 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 case AST_EXPRESSION_FUNCTION:
                 case AST_EXPRESSION_TYPE: {
                     (*ident_ptr) = (Ast_Ident*) decl->value;
-                    //Ast_Ref_Navigator::ast_handle((Ast_Expression**) ident_ptr);
                     break;
                 }
                 default: break;
@@ -178,6 +177,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         }
 
         Ast_Ref_Navigator::ast_handle(func_ptr);
+        func->func_flags |= FUNCTION_FLAG_TYPE_CHECKED;
     }
 
     void ast_handle (Ast_Function_Call** call_ptr) {
@@ -284,15 +284,19 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void ast_handle (Ast_Type** type_ptr) {
+        auto type = (*type_ptr);
+
+        if (type->type_flags & TYPE_FLAG_TYPE_CHECKED) return;
+
         Ast_Ref_Navigator::ast_handle(type_ptr);
         this->type_table->unique(type_ptr);
         this->compute_type_size(*type_ptr);
+
+        type->type_flags |= TYPE_FLAG_TYPE_CHECKED;
     }
 
     void ast_handle (Ast_Struct_Type** struct_type_ptr) {
         auto struct_type = (*struct_type_ptr);
-
-        if (struct_type->struct_flags & STRUCT_FLAG_TYPE_CHECKED) return;
 
         Ast_Ref_Navigator::ast_handle(struct_type_ptr);
         for (size_t i = 0; i < struct_type->scope.statements.size(); i++) {
@@ -309,8 +313,6 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 assert(decl->value->inferred_type);
             }
         }
-
-        struct_type->struct_flags |= STRUCT_FLAG_TYPE_CHECKED;
     }
 
     void ast_handle (Ast_Pointer_Type** ptr_type_ptr) {
@@ -351,6 +353,8 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void compute_type_size (Ast_Type* type) {
+        if (type->type_flags & TYPE_FLAG_SIZED) return;
+
         switch (type->typedef_type) {
             case AST_TYPEDEF_SLICE:
             case AST_TYPEDEF_STRUCT: {
@@ -373,11 +377,11 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 break;
             }
         }
+
+        type->type_flags |= TYPE_FLAG_SIZED;
     }
 
     void compute_struct_type_size (Ast_Struct_Type* struct_type) {
-        if (struct_type->struct_flags & STRUCT_FLAG_SIZED) return;
-
         struct_type->byte_size = 0;
         struct_type->byte_padding = 0;
         for (size_t i = 0; i < struct_type->scope.statements.size(); i++) {
@@ -386,6 +390,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             if (stm->stm_type == AST_STATEMENT_DECLARATION) {
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
+                if (decl->is_constant) continue;
 
                 auto decl_type = static_cast<Ast_Type*>(decl->type);
                 assert(decl_type->byte_size > 0);
@@ -400,8 +405,6 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 }
             } else assert(false);
         }
-
-        struct_type->struct_flags |= STRUCT_FLAG_SIZED;
     }
 
     void tuple_try_cast_subtypes (Ast_Expression* type_exp, Ast_Expression** value_ptr) {
