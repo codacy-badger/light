@@ -3,13 +3,16 @@
 #include "pipeline/compiler_pipe.hpp"
 #include "utils/ast_navigator.hpp"
 
-#define PUSH_LVAL(new_val) auto lval_tmp = as_left_value; as_left_value = new_val;
-#define POP_LVAL as_left_value = lval_tmp;
+#define PUSH_LVAL(new_val) auto lval_tmp = is_left_value; is_left_value = new_val;
+#define POP_LVAL is_left_value = lval_tmp;
 
 struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     uint64_t next_register = 0;
+    uint64_t stack_offset = 0;
 
-    bool as_left_value = false;
+    Array<Instruction*>* bytecode = NULL;
+
+    bool is_left_value = false;
 
     Generate_Bytecode() : Compiler_Pipe("Generate Bytecode") { /* empty */ }
 
@@ -32,8 +35,12 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 auto type_at = this->get_type_at(decl, i);
                 auto var_size = type_at->byte_size;
 
-                printf("STACK_ALLOCATE %zd\n", var_size);
-                printf("(TODO: load decl value into stack)\n");
+                decl->reg = this->next_register++;
+                printf("(dedicated decl register: %zd, %zd)\n", decl->reg, var_size);
+
+                // @TODO ensure the stack offset is aligned as needed
+
+                printf("(TODO: load decl value into reg (or stack?))\n");
             }
         }
     }
@@ -45,7 +52,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         Ast_Navigator::ast_handle(assign->value);
 
-        if (this->can_be_in_register(assign->value->inferred_type)) {
+        if (this->should_be_in_register(assign->value->inferred_type)) {
             printf("STORE %zd, %zd\n", assign->variable->reg, assign->value->reg);
         } else {
             printf("COPY_MEM %zd, %zd\n", assign->variable->reg, assign->value->reg);
@@ -67,15 +74,16 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         }
         
         ident->reg = this->next_register++;
-        auto offset = ident->declaration->bytecode_offset;
+        
         if (ident->declaration->is_global()) {
+            auto offset = ident->declaration->global_offset;
+            assert(offset > 0);
+
             printf("GLOBAL_OFFSET %zd, %zd\n", ident->reg, offset);
-        } else {
-            printf("STACK_OFFSET %zd, %zd\n", ident->reg, offset);
         }
 
-        if (this->can_be_in_register(ident->inferred_type)) {
-            printf("LOAD %zd, %zd\n", ident->reg, ident->reg);
+        if (this->should_be_in_register(ident->inferred_type)) {
+            printf("LOAD %zd, %zd\n", ident->reg, ident->declaration->reg);
         }
     }
 
@@ -104,8 +112,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         this->ensure_bytecode_for_function(func);
         
         func->reg = this->next_register++;
-        auto size = func->inferred_type->byte_size;
-        printf("SET_FUNC_PTR %zd, %zd, %p\n", func->reg, size, func);
+        printf("SET_FUNC_PTR %zd, %p\n", func->reg, func);
     }
 
     void ast_handle (Ast_Literal* literal) {
@@ -135,8 +142,8 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         }
     }
 
-    bool can_be_in_register (Ast_Type* type) {
-        return type->is_primitive;
+    bool should_be_in_register (Ast_Type* type) {
+        return !this->is_left_value && type->is_primitive;
     }
 
     void ensure_bytecode_for_run_directive (Ast_Run* run) {
@@ -144,10 +151,17 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         printf("\nGenerate bytecode for run directive...\n\n");
 
-        auto tmp = this->next_register;
+        auto tmp1 = this->next_register;
         this->next_register = 0;
+
+        auto tmp2 = this->stack_offset;
+        this->stack_offset = 0;
+
         Ast_Navigator::ast_handle(run);
-        this->next_register = tmp;
+
+        this->stack_offset = tmp2;
+
+        this->next_register = tmp1;
 
         // @DEBUG to prevent functions to run this all the time
         run->bytecode.push(NULL);
@@ -159,20 +173,31 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         if (func->bytecode.size > 0) return;
 
         auto unique_func_name = this->build_unique_name(func);
-        printf("\nGenerate bytecode for function '%s' (%s)...\n\n",
+        this->context->debug(func, "\nGenerate bytecode for function '%s' (%s)...",
             func->name, unique_func_name);
 
-        auto tmp = this->next_register;
+        // @DEBUG to prevent functions to run this all the time
+        func->bytecode.push(NULL);
+
+        auto tmp1 = this->next_register;
         this->next_register = 0;
+
+        auto tmp2 = this->stack_offset;
+        this->stack_offset = 0;
+
+        for (auto stm : func->arg_scope->statements) {
+            assert(stm->stm_type == AST_STATEMENT_DECLARATION);
+            auto decl = static_cast<Ast_Declaration*>(stm);
+            decl->reg = this->next_register++;
+        }
 
         printf("PUSH_FUNC %p\n", func);
         Ast_Navigator::ast_handle(func);
         printf("POP_FUNC\n");
 
-        this->next_register = tmp;
+        this->stack_offset = tmp2;
 
-        // @DEBUG to prevent functions to run this all the time
-        func->bytecode.push(NULL);
+        this->next_register = tmp1;
 
         printf("\n...DONE\n\n");
     }

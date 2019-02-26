@@ -211,7 +211,8 @@ struct Ast_Declaration : Ast_Statement {
 	size_t attribute_byte_offset = 0;
 
 	// for bytecode
-	int64_t bytecode_offset = -1;
+	int64_t global_offset = -1;
+	int64_t reg = -1;
 
 	bool is_global () { return !this->parent_scope || this->parent_scope->is_global(); }
 
