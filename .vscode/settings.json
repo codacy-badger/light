@@ -3,6 +3,8 @@
     "files.associations": {
         "xfunctional": "cpp",
         "xtr1common": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "functional": "cpp",
+        "system_error": "cpp"
     }
 }

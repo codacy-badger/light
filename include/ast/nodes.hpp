@@ -211,9 +211,7 @@ struct Ast_Declaration : Ast_Statement {
 	size_t attribute_byte_offset = 0;
 
 	// for bytecode
-	int64_t bytecode_global_offset = -1;
-	int64_t bytecode_stack_offset = -1;
-	bool is_spilled = true;
+	int64_t bytecode_offset = -1;
 
 	bool is_global () { return !this->parent_scope || this->parent_scope->is_global(); }
 
@@ -515,7 +513,10 @@ struct Ast_Slice_Type : Ast_Struct_Type {
 };
 
 struct Ast_Tuple_Type : Ast_Type {
-	Array<Ast_Expression*> types;
+	union {
+		Array<Ast_Expression*> types = Array<Ast_Expression*>();
+		Array<Ast_Type*> typed_types;
+	};
 
 	Ast_Tuple_Type() { this->typedef_type = AST_TYPEDEF_TUPLE; }
 };
