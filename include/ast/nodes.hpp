@@ -524,7 +524,10 @@ struct Ast_Tuple_Type : Ast_Type {
 
 struct Ast_Function_Type : Ast_Type {
 	std::vector<Ast_Expression*> arg_types;
-	Ast_Expression* ret_type;
+	union {
+		Ast_Expression* ret_type = NULL;
+		Ast_Type* typed_ret_type;
+	};
 
 	Ast_Function_Type() {
 		this->typedef_type = AST_TYPEDEF_FUNCTION;

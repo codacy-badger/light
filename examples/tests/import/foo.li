@@ -14,7 +14,9 @@ foozle :: fn (number := 512) -> u64 {
     result := bazz.factorial(number * 2);
     result = result + 5;
 
-    return result;
+    BIG_BANG_NUMBER :: 897;
+
+    return result * BIG_BANG_NUMBER;
 }
 
 bazz :: import "bazz"

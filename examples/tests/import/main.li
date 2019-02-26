@@ -13,11 +13,7 @@ main :: fn {
         result := foozle(123);
     }
 
-    phrase1 := "You break my 心...";
-    phrase2 := "ο Δικαιοπολις εν αγρω εστιν";
-
     ptr1 := *nested;
-    ptr2 := *phrase2;
 
     bruh: Bruh;
 
@@ -32,9 +28,6 @@ main :: fn {
     asd1 := bruh.next.num;
 
     nested :: fn {
-        some_stuff := "This is very hard work!";
         value: Bruh;
     }
-
-    //ret_check :: fn -> u32 { return true; }
 }

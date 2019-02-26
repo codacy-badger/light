@@ -28,20 +28,32 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void ast_handle (Ast_Declaration* decl) {
-        Ast_Navigator::ast_handle(decl);
-
         if (!decl->is_constant) {
+            Ast_Navigator::ast_handle(decl);
+
             For (decl->names) {
+                auto value_at = this->get_value_at(decl, i);
                 auto type_at = this->get_type_at(decl, i);
                 auto var_size = type_at->byte_size;
 
                 decl->reg = this->next_register++;
-                printf("(dedicated decl register: %zd, %zd)\n", decl->reg, var_size);
+                printf("ALLOCATE %zd, %zd\n", decl->reg, var_size);
 
                 // @TODO ensure the stack offset is aligned as needed
 
-                printf("(TODO: load decl value into reg (or stack?))\n");
+                if (value_at) {
+                    Ast_Navigator::ast_handle(value_at);
+
+                    if (this->should_be_in_register(value_at->inferred_type)) {
+                        printf("STORE %zd, %zd\n", decl->reg, value_at->reg);
+                    } else {
+                        printf("COPY_MEM %zd, %zd\n", decl->reg, value_at->reg);
+                    }
+                }
             }
+        } else if (decl->value->exp_type == AST_EXPRESSION_FUNCTION) {
+            auto func = static_cast<Ast_Function*>(decl->value);
+            this->ensure_bytecode_for_function(func);
         }
     }
 
@@ -73,14 +85,14 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             return;
         }
         
-        ident->reg = this->next_register++;
-        
         if (ident->declaration->is_global()) {
             auto offset = ident->declaration->global_offset;
             assert(offset > 0);
 
             printf("GLOBAL_OFFSET %zd, %zd\n", ident->reg, offset);
         }
+        
+        ident->reg = this->next_register++;
 
         if (this->should_be_in_register(ident->inferred_type)) {
             printf("LOAD %zd, %zd\n", ident->reg, ident->declaration->reg);
@@ -92,9 +104,18 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     void ast_handle (Ast_Function_Call* call) {
         Ast_Navigator::ast_handle(call->func);
 
-        printf("CALL_SETUP (TODO)\n");
+        assert(call->func->inferred_type);
+        assert(call->func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
+        auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
 
-        Ast_Navigator::ast_handle(call->arguments);
+        auto arg_count = func_type->arg_types.size();
+        auto return_count = this->get_return_count(func_type);
+        printf("CALL_SETUP %zd, %zd, (convention)\n", arg_count, return_count);
+
+        For (call->arguments->expressions) {
+            Ast_Navigator::ast_handle(it);
+            printf("CALL_SET_ARGUMENT %zd, %zd\n", i, it->reg);
+        }
 
         printf("CALL %zd\n", call->func->reg);
     }
@@ -136,20 +157,16 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 break;
             }
             case AST_LITERAL_STRING: {
-                printf("LOAD_CONST (TODO)\n");
+                assert(false);
                 break;
             }
         }
     }
 
-    bool should_be_in_register (Ast_Type* type) {
-        return !this->is_left_value && type->is_primitive;
-    }
-
     void ensure_bytecode_for_run_directive (Ast_Run* run) {
         if (run->bytecode.size > 0) return;
 
-        printf("\nGenerate bytecode for run directive...\n\n");
+        this->context->debug(run, "Generate bytecode for run directive...");
 
         auto tmp1 = this->next_register;
         this->next_register = 0;
@@ -173,7 +190,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         if (func->bytecode.size > 0) return;
 
         auto unique_func_name = this->build_unique_name(func);
-        this->context->debug(func, "\nGenerate bytecode for function '%s' (%s)...",
+        this->context->debug(func, "Generate bytecode for function '%s' (%s)...",
             func->name, unique_func_name);
 
         // @DEBUG to prevent functions to run this all the time
@@ -217,4 +234,26 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 			return decl->typed_type;
 		} else return NULL;
 	}
+
+    Ast_Expression* get_value_at (Ast_Declaration* decl, size_t index) {
+        if (!decl->value) return NULL;
+
+		if (decl->value->exp_type == AST_EXPRESSION_COMMA_SEPARATED) {
+			auto comma_separated = static_cast<Ast_Comma_Separated*>(decl->value);
+			return comma_separated->expressions[index];
+		} else if (index == 0) {
+			return decl->value;
+		} else return NULL;
+	}
+
+    size_t get_return_count (Ast_Function_Type* func_type) {
+        if (func_type->typed_ret_type->typedef_type == AST_TYPEDEF_TUPLE) {
+			auto tuple_type = static_cast<Ast_Tuple_Type*>(func_type->typed_ret_type);
+			return tuple_type->types.size;
+		} else return 1;
+    }
+
+    bool should_be_in_register (Ast_Type* type) {
+        return !this->is_left_value && type->is_primitive;
+    }
 };
