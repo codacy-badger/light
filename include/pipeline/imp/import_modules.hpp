@@ -74,7 +74,7 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     void ast_handle (Ast_Import* import) {
         this->context->error(import, "Invalid import statement, valid forms are:");
         this->context->error("\t- Anonymous import: \"import \"foo\"\"");
-        this->context->error("\t- Named import: \"foozle :: import \"foo\"\"");
+        this->context->error("\t- Namespaced import: \"foozle :: import \"foo\"\"");
         this->context->shutdown();
     }
 

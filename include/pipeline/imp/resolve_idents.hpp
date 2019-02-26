@@ -9,7 +9,7 @@
 #include <vector>
 
 struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
-    std::vector<Ast_Ident**> unresolved_idents;
+    std::vector<Ast_Ident*> unresolved_idents;
     Ast_Scope* current_scope = NULL;
 
     bool resolving_inside_pointer = false;
@@ -36,7 +36,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             if (decl) {
                 ident->declaration = decl;
             } else {
-                this->unresolved_idents.push_back(ident_ptr);
+                this->unresolved_idents.push_back(ident);
                 return;
             }
         }
@@ -48,21 +48,18 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 if (decl->value->exp_type == AST_EXPRESSION_FUNCTION) {
                     auto func = static_cast<Ast_Function*>(decl->value);
                     if (func->body->is_ancestor_of(ident->scope)) {
-                        //this->context->debug(ident, "Recursive ident resolution, SKIP!");
                         return;
                     }
                 }
 
                 if (!this->resolving_inside_pointer) {
                     if (!(decl->stm_flags & STM_FLAG_IDENTS_RESOLVED)) {
-                        //this->context->debug(ident, "Ident resolved but ident->decl not resolved");
-                        this->unresolved_idents.push_back(ident_ptr);
+                        this->unresolved_idents.push_back(ident);
                         return;
                     }
 
                     if (!(decl->stm_flags & STM_FLAG_STATIC_IFS_RESOLVED)) {
-                        //this->context->debug(ident, "Ident resolved but static ifs not resolved");
-                        this->unresolved_idents.push_back(ident_ptr);
+                        this->unresolved_idents.push_back(ident);
                         return;
                     }
                 }
@@ -85,7 +82,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
                         auto import = static_cast<Ast_Import*>(ident->declaration->value);
                         if (!import->file_scope) {
-                            this->unresolved_idents.push_back((Ast_Ident**) &binop->rhs);
+                            this->unresolved_idents.push_back(attr);
                             return;
                         }
 
@@ -95,7 +92,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                             (*binop_ptr) = (Ast_Binary*) attr;
                             this->ast_handle((Ast_Ident**) binop_ptr);
                         } else {
-                            this->unresolved_idents.push_back((Ast_Ident**) &binop->rhs);
+                            this->unresolved_idents.push_back(attr);
                             return;
                         }
                     }
@@ -134,12 +131,6 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void on_shutdown () {
         if (this->context->has_error) return;
         
-        //
-        // @Bug @TODO this reports the same IDs multiple times, so we need to unique them
-        // ALSO! this system grabs dependencies from types & function scopes, in the way
-        // that a function that doesn't have an ID might depend on that other functions's
-        // unresolved id. We should review if this is what really should be happening...
-        //
         if (!this->input_queue.empty()) {
             std::vector<Ast_Ident*> uniqued_idents;
 
@@ -149,9 +140,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 this->unresolved_idents.clear();
                 Ast_Ref_Navigator::ast_handle(&stm);
 
-                for (auto ident_ptr : this->unresolved_idents) {
-                    auto ident = (*ident_ptr);
-
+                for (auto ident : this->unresolved_idents) {
                     auto it = std::find(uniqued_idents.begin(), uniqued_idents.end(), ident);
                     if(it == uniqued_idents.end()) {
                         uniqued_idents.push_back(ident);

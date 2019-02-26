@@ -9,12 +9,15 @@
 
 struct Parser {
 	Lexer lexer;
+
+	Build_Context* context = NULL;
 	Memory_Arena* arena = NULL;
 
 	Ast_Scope* current_scope = NULL;
 
-	void init (Build_Context* context) {
-		this->arena = context->arena;
+	void init (Build_Context* c) {
+		this->arena = c->arena;
+		this->context = c;
 	}
 
 	void parse_into (Ast_Scope* scope, const char* absolute_path) {
@@ -59,10 +62,11 @@ struct Parser {
 		this->current_scope = _tmp;
 		return scope;
 	}
+
 	Ast_Statement* statement () {
 		switch (this->lexer.peek()->type) {
 			case TOKEN_EOF: {
-				//this->report_expected("statement");
+				this->lexer.report_expected("statement");
 				return NULL;
 			}
 			case TOKEN_STM_END: {
@@ -277,7 +281,7 @@ struct Parser {
 		auto output = this->atom();
 	    if (output != NULL) {
 	        auto tt = this->lexer.peek()->type;
-			auto precedence = get_operator_precedence(tt);
+			auto precedence = this->get_operator_precedence(tt);
 			while (precedence >= min_precedence) {
 				this->lexer.skip();
 
@@ -317,7 +321,7 @@ struct Parser {
 				}
 
 				tt = this->lexer.peek()->type;
-				precedence = get_operator_precedence(tt);
+				precedence = this->get_operator_precedence(tt);
 			}
 	    }
 		return output;
@@ -435,13 +439,13 @@ struct Parser {
 			if (this->lexer.try_skip(TOKEN_PAR_OPEN)) {
 				auto tuple_type = AST_NEW(Ast_Tuple_Type);
 
-				auto decl = this->get_return_declaration();
+				auto decl = this->short_declaration();
 
 				if (ret_scope) ret_scope->add(decl);
 				tuple_type->types.push(decl->type);
 
 				while (this->lexer.try_skip(TOKEN_COMMA)) {
-					decl = this->get_return_declaration();
+					decl = this->short_declaration();
 
 					if (ret_scope) ret_scope->add(decl);
 					tuple_type->types.push(decl->type);
@@ -496,7 +500,7 @@ struct Parser {
 			&& this->lexer.peek(1)->type == TOKEN_COLON;
 	}
 
-	Ast_Declaration* get_return_declaration () {
+	Ast_Declaration* short_declaration () {
 		if (this->is_next_simple_declaration()) {
 			return this->simple_declaration();
 		} else {
