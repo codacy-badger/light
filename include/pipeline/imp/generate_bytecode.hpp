@@ -29,8 +29,6 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
     void ast_handle (Ast_Declaration* decl) {
         if (!decl->is_constant) {
-            Ast_Navigator::ast_handle(decl);
-
             For (decl->names) {
                 auto value_at = this->get_value_at(decl, i);
                 auto type_at = this->get_type_at(decl, i);
@@ -93,9 +91,10 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         }
         
         ident->reg = this->next_register++;
-
         if (this->should_be_in_register(ident->inferred_type)) {
             printf("LOAD %zd, %zd\n", ident->reg, ident->declaration->reg);
+        } else {
+            printf("COPY %zd, %zd\n", ident->reg, ident->declaration->reg);
         }
     }
 
@@ -118,6 +117,17 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         }
 
         printf("CALL %zd\n", call->func->reg);
+
+        call->ret_regs.resize(return_count);
+        for (size_t i = 0; i < return_count; i++ ) {
+            auto ret_reg = this->next_register++;
+            printf("CALL_RETURN %zd, %zd\n", ret_reg, i);
+            call->ret_regs[i] = ret_reg;
+        }
+
+        if (return_count > 0) {
+            call->reg = call->ret_regs[0];
+        }
     }
 
     void ast_handle (Ast_Run* run) {
@@ -126,7 +136,13 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         // @TODO run directive NOW
         // @TODO if inferred type is not void...
         // @TODO ...get run result from interpreter
-        // @TODO generate instructions for the literal value
+
+        assert(run->inferred_type);
+        if (run->inferred_type->byte_size > 0) {
+            run->reg = this->next_register++;
+            auto size = run->inferred_type->byte_size;
+            printf("SET_CONST %zd, %zd, (run result)\n", run->reg, size);
+        }
     }
 
     void ast_handle (Ast_Function* func) {
@@ -134,6 +150,88 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         
         func->reg = this->next_register++;
         printf("SET_FUNC_PTR %zd, %p\n", func->reg, func);
+    }
+
+    void ast_handle (Ast_Cast* cast) {
+        Ast_Navigator::ast_handle(cast->value);
+
+        cast->reg = this->next_register++;
+        printf("CAST %zd, (target), %zd, (source)\n", cast->reg, cast->value->reg);
+    }
+
+    void ast_handle (Ast_Binary* binary) {
+        switch (binary->binary_op) {
+            case AST_BINARY_ATTRIBUTE: {
+                PUSH_LVAL(true);
+                Ast_Navigator::ast_handle(binary->lhs);
+                POP_LVAL;
+
+                assert(binary->rhs->exp_type == AST_EXPRESSION_IDENT);
+                auto attr = static_cast<Ast_Ident*>(binary->rhs);
+                assert(attr->declaration);
+                auto attr_offset = attr->declaration->attribute_byte_offset;
+
+                binary->reg = this->next_register++;
+                printf("ADD_CONST %zd, %zd, %zd, (type)\n",
+                    binary->reg, binary->lhs->reg, attr_offset);
+                break;
+            }
+            case AST_BINARY_SUBSCRIPT: {
+                PUSH_LVAL(true);
+                Ast_Navigator::ast_handle(binary->lhs);
+                POP_LVAL;
+                Ast_Navigator::ast_handle(binary->rhs);
+
+                binary->reg = this->next_register++;
+                printf("ADD %zd, %zd, %zd, (type)\n",
+                    binary->reg, binary->lhs->reg, binary->rhs->reg);
+                break;
+            }
+            default: {
+                Ast_Navigator::ast_handle(binary->lhs);
+                Ast_Navigator::ast_handle(binary->rhs);
+
+                binary->reg = this->next_register++;
+                printf("(some binop) %zd, %zd, %zd, (type)\n",
+                    binary->reg, binary->lhs->reg, binary->rhs->reg);
+                break;
+            }
+        }
+    }
+
+    void ast_handle (Ast_Unary* unary) {
+        switch (unary->unary_op) {
+            case AST_UNARY_DEREFERENCE: {
+                Ast_Navigator::ast_handle(unary->exp);
+                
+                unary->reg = this->next_register++;
+                printf("LOAD %zd, %zd\n", unary->reg, unary->exp->reg);
+                break;
+            }
+            case AST_UNARY_REFERENCE: {
+                PUSH_LVAL(true);
+                Ast_Navigator::ast_handle(unary->exp);
+                POP_LVAL;
+                
+                unary->reg = this->next_register++;
+                printf("COPY %zd, %zd\n", unary->reg, unary->exp->reg);
+                break;
+            }
+            case AST_UNARY_NEGATE: {
+                Ast_Navigator::ast_handle(unary->exp);
+                
+                unary->reg = this->next_register++;
+                printf("NEGATE %zd, %zd\n", unary->reg, unary->exp->reg);
+                break;
+            }
+            case AST_UNARY_NOT: {
+                Ast_Navigator::ast_handle(unary->exp);
+                
+                unary->reg = this->next_register++;
+                printf("NOT %zd, %zd\n", unary->reg, unary->exp->reg);
+                break;
+            }
+        }
     }
 
     void ast_handle (Ast_Literal* literal) {

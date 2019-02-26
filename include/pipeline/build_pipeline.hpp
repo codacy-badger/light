@@ -84,7 +84,7 @@ struct Build_Pipeline {
 
         BIND_PIPES(this->type_check, this->generate_bytecode);
 
-        BIND_PIPES(this->generate_bytecode, this->printer);
+        //BIND_PIPES(this->generate_bytecode, this->printer);
 
         for (auto pipe : this->pipes) {
             pipe->context = context;

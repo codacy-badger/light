@@ -633,6 +633,8 @@ struct Ast_Function_Call : Ast_Expression {
 	Ast_Expression* func;
 	Ast_Comma_Separated* arguments;
 
+	Array<int64_t> ret_regs;
+
 	Ast_Function_Call() { this->exp_type = AST_EXPRESSION_CALL; }
 };
 
