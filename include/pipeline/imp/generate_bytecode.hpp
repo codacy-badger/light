@@ -61,7 +61,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         if (_if->else_body) {
             printf("JUMP (endif index)\n");
-            
+
             Ast_Navigator::ast_handle(_if->else_body);
         }
     }
@@ -350,24 +350,20 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     void run_all_deferred () {
         if (!this->has_deferred_statements()) return;
 
-        printf("--ALL_DEFERRED START\n");
         For3 (this->deferred_stack, statements, j) {
             For (statements) {
                 Ast_Navigator::ast_handle(it);
             }
         }
-        printf("--ALL_DEFERRED STOP\n");
     }
 
     void pop_deferred () {
         auto deferred = this->deferred_stack.pop();
         if (deferred.empty()) return;
 
-        printf("--POP_DEFERRED START\n");
         For (deferred) {
             Ast_Navigator::ast_handle(it);
         }
-        printf("--POP_DEFERRED STOP\n");
     }
 
     void ensure_bytecode_for_run_directive (Ast_Run* run) {
