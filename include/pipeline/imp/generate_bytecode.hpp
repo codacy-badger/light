@@ -226,9 +226,6 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void ast_handle (Ast_Binary* binary) {
-        assert(binary->inferred_type);
-        auto target_type = get_bytecode_type(this->context, binary->inferred_type);
-        
         switch (binary->binary_op) {
             case AST_BINARY_ATTRIBUTE: {
                 PUSH_LVAL(true);
@@ -242,7 +239,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
                 binary->reg = this->next_register++;
                 printf("ADD_CONST %zd, %zd, %zd, %d\n",
-                    binary->reg, binary->lhs->reg, attr_offset, target_type);
+                    binary->reg, binary->lhs->reg, attr_offset, BYTECODE_TYPE_POINTER);
                 break;
             }
             case AST_BINARY_SUBSCRIPT: {
@@ -253,16 +250,110 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
                 binary->reg = this->next_register++;
                 printf("ADD %zd, %zd, %zd, %d\n",
-                    binary->reg, binary->lhs->reg, binary->rhs->reg, target_type);
+                    binary->reg, binary->lhs->reg, binary->rhs->reg, BYTECODE_TYPE_POINTER);
                 break;
             }
             default: {
+                assert(binary->inferred_type);
+                auto target_type = get_bytecode_type(this->context, binary->inferred_type);
+
                 Ast_Navigator::ast_handle(binary->lhs);
                 Ast_Navigator::ast_handle(binary->rhs);
 
                 binary->reg = this->next_register++;
-                printf("(some binop) %zd, %zd, %zd, %d\n",
-                    binary->reg, binary->lhs->reg, binary->rhs->reg, target_type);
+                switch (binary->binary_op) {
+                    case AST_BINARY_LOGICAL_AND: {
+                        printf("BINARY_LOGICAL_AND %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_LOGICAL_OR: {
+                        printf("BINARY_LOGICAL_OR %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_ADD: {
+                        printf("BINARY_ADD %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_SUB: {
+                        printf("BINARY_SUB %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_MUL: {
+                        printf("BINARY_MUL %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_DIV: {
+                        printf("BINARY_DIV %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_REM: {
+                        printf("BINARY_REM %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_BITWISE_AND: {
+                        printf("BINARY_AND %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_BITWISE_OR: {
+                        printf("BINARY_OR %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_BITWISE_XOR: {
+                        printf("BINARY_XOR %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_BITWISE_RIGHT_SHIFT: {
+                        printf("BINARY_RIGHT_SHIFT %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_BITWISE_LEFT_SHIFT: {
+                        printf("BINARY_LEFT_SHIFT %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_EQ: {
+                        printf("BINARY_EQ %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_NEQ: {
+                        printf("BINARY_NEQ %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_LT: {
+                        printf("BINARY_LT %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_LTE: {
+                        printf("BINARY_LTE %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_GT: {
+                        printf("BINARY_GT %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    case AST_BINARY_GTE: {
+                        printf("BINARY_GTE %zd, %zd, %zd, %d\n", binary->reg,
+                            binary->lhs->reg, binary->rhs->reg, target_type);
+                        break;
+                    }
+                    default: assert(false);
+                }
                 break;
             }
         }

@@ -5,6 +5,23 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(Windows) Full Test",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/light.exe",
+            "args": [
+                "examples/tests/import/main.li",
+                "examples/tests/calls/main.li",
+                "examples/tests/slice/main.li",
+                "examples/tests/multi/main.li",
+                "examples/tests/defer/main.li",
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "externalConsole": false,
+            "internalConsoleOptions": "openOnSessionStart",
+        },
+        {
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
