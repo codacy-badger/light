@@ -411,6 +411,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 }
             } else assert(false);
         }
+        assert((struct_type->byte_size % 8) == 0);
     }
 
     void tuple_try_cast_subtypes (Ast_Expression* type_exp, Ast_Expression** value_ptr) {

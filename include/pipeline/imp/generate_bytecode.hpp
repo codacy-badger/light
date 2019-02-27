@@ -6,6 +6,27 @@
 #define PUSH_LVAL(new_val) auto lval_tmp = is_left_value; is_left_value = new_val;
 #define POP_LVAL is_left_value = lval_tmp;
 
+enum Bytecode_Type : uint8_t {
+    BYTECODE_TYPE_UNDEFINED = 0,
+
+    BYTECODE_TYPE_BOOL,
+
+    BYTECODE_TYPE_U8,
+    BYTECODE_TYPE_U16,
+    BYTECODE_TYPE_U32,
+    BYTECODE_TYPE_U64,
+
+    BYTECODE_TYPE_S8,
+    BYTECODE_TYPE_S16,
+    BYTECODE_TYPE_S32,
+    BYTECODE_TYPE_S64,
+
+    BYTECODE_TYPE_F32,
+    BYTECODE_TYPE_F64,
+
+    BYTECODE_TYPE_POINTER,
+};
+
 struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     uint64_t next_register = 0;
     uint64_t stack_offset = 0;
@@ -36,8 +57,6 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
                 decl->reg = this->next_register++;
                 printf("ALLOCATE %zd, %zd\n", decl->reg, var_size);
-
-                // @TODO ensure the stack offset is aligned as needed
 
                 if (value_at) {
                     Ast_Navigator::ast_handle(value_at);
@@ -146,6 +165,8 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void ast_handle (Ast_Function* func) {
+        if (func->is_native()) return;
+
         this->ensure_bytecode_for_function(func);
         
         func->reg = this->next_register++;
@@ -155,11 +176,20 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     void ast_handle (Ast_Cast* cast) {
         Ast_Navigator::ast_handle(cast->value);
 
+        assert(cast->value->inferred_type);
+        assert(cast->cast_to->exp_type == AST_EXPRESSION_TYPE);
+        auto target_type = this->get_bytecode_type(cast->typed_cast_to);
+        auto source_type = this->get_bytecode_type(cast->value->inferred_type);
+
         cast->reg = this->next_register++;
-        printf("CAST %zd, (target), %zd, (source)\n", cast->reg, cast->value->reg);
+        printf("CAST %zd, %d, %zd, %d\n",
+            cast->reg, target_type, cast->value->reg, source_type);
     }
 
     void ast_handle (Ast_Binary* binary) {
+        assert(binary->inferred_type);
+        auto target_type = this->get_bytecode_type(binary->inferred_type);
+        
         switch (binary->binary_op) {
             case AST_BINARY_ATTRIBUTE: {
                 PUSH_LVAL(true);
@@ -172,8 +202,8 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 auto attr_offset = attr->declaration->attribute_byte_offset;
 
                 binary->reg = this->next_register++;
-                printf("ADD_CONST %zd, %zd, %zd, (type)\n",
-                    binary->reg, binary->lhs->reg, attr_offset);
+                printf("ADD_CONST %zd, %zd, %zd, %d\n",
+                    binary->reg, binary->lhs->reg, attr_offset, target_type);
                 break;
             }
             case AST_BINARY_SUBSCRIPT: {
@@ -183,8 +213,8 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 Ast_Navigator::ast_handle(binary->rhs);
 
                 binary->reg = this->next_register++;
-                printf("ADD %zd, %zd, %zd, (type)\n",
-                    binary->reg, binary->lhs->reg, binary->rhs->reg);
+                printf("ADD %zd, %zd, %zd, %d\n",
+                    binary->reg, binary->lhs->reg, binary->rhs->reg, target_type);
                 break;
             }
             default: {
@@ -192,8 +222,8 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 Ast_Navigator::ast_handle(binary->rhs);
 
                 binary->reg = this->next_register++;
-                printf("(some binop) %zd, %zd, %zd, (type)\n",
-                    binary->reg, binary->lhs->reg, binary->rhs->reg);
+                printf("(some binop) %zd, %zd, %zd, %d\n",
+                    binary->reg, binary->lhs->reg, binary->rhs->reg, target_type);
                 break;
             }
         }
@@ -268,14 +298,12 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         auto tmp1 = this->next_register;
         this->next_register = 0;
-
         auto tmp2 = this->stack_offset;
         this->stack_offset = 0;
 
         Ast_Navigator::ast_handle(run);
 
         this->stack_offset = tmp2;
-
         this->next_register = tmp1;
 
         // @DEBUG to prevent functions to run this all the time
@@ -296,7 +324,6 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         auto tmp1 = this->next_register;
         this->next_register = 0;
-
         auto tmp2 = this->stack_offset;
         this->stack_offset = 0;
 
@@ -308,13 +335,35 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         printf("PUSH_FUNC %p\n", func);
         Ast_Navigator::ast_handle(func);
-        printf("POP_FUNC\n");
 
         this->stack_offset = tmp2;
-
         this->next_register = tmp1;
 
         printf("\n...DONE\n\n");
+    }
+
+    uint8_t get_bytecode_type (Ast_Type* type) {
+        if (type == Types::type_bool)   return BYTECODE_TYPE_BOOL;
+        if (type == Types::type_u8)     return BYTECODE_TYPE_U8;
+        if (type == Types::type_u16)    return BYTECODE_TYPE_U16;
+        if (type == Types::type_u32)    return BYTECODE_TYPE_U32;
+        if (type == Types::type_u64)    return BYTECODE_TYPE_U64;
+        if (type == Types::type_s8)     return BYTECODE_TYPE_S8;
+        if (type == Types::type_s16)    return BYTECODE_TYPE_S16;
+        if (type == Types::type_s32)    return BYTECODE_TYPE_S32;
+        if (type == Types::type_s64)    return BYTECODE_TYPE_S64;
+        if (type == Types::type_f32)    return BYTECODE_TYPE_F32;
+        if (type == Types::type_f64)    return BYTECODE_TYPE_F64;
+
+        switch (type->typedef_type) {
+            case AST_TYPEDEF_FUNCTION:
+            case AST_TYPEDEF_POINTER: {
+                return BYTECODE_TYPE_POINTER;
+            }
+            default: break;
+        }
+
+        return BYTECODE_TYPE_UNDEFINED;
     }
 
 	char* build_unique_name (Ast_Function* func) {

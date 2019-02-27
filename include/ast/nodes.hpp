@@ -330,7 +330,10 @@ struct Ast_Run : Ast_Expression {
 
 struct Ast_Cast : Ast_Expression {
 	Ast_Expression* value;
-	Ast_Expression* cast_to;
+	union {
+		Ast_Expression* cast_to = NULL;
+		Ast_Type* typed_cast_to;
+	};
 
 	bool is_array_to_slice_cast = false;
     bool is_value_to_any_cast = false;
