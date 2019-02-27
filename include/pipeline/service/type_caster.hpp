@@ -3,12 +3,16 @@
 #include "ast/nodes.hpp"
 #include "utils/ast_navigator.hpp"
 
-#include "ast/types.hpp"
-
 struct Type_Caster {
     Build_Context* context = NULL;
 
-    void init (Build_Context* c) { this->context = c; }
+    Type_Table* type_table = NULL;
+
+    void init (Build_Context* c) {
+        this->context = c;
+
+        this->type_table = c->type_table;
+    }
 
     bool try_implicid_cast (Ast_Type* type_from, Ast_Type* type_to, Ast_Expression** exp_ptr) {
         if (!type_from || !type_to) return false;
@@ -61,7 +65,7 @@ struct Type_Caster {
     }
 
     bool can_be_implicidly_casted (Ast_Type* type_from, Ast_Type* type_to) {
-        if (type_from->is_primitive && type_to == Types::type_bool) return true;
+        if (type_from->is_primitive && type_to == this->type_table->type_bool) return true;
 
         if (type_from->is_primitive && type_to->is_primitive) {
             if (type_from->is_number && type_to->is_number) {
@@ -77,14 +81,14 @@ struct Type_Caster {
     }
 
     Ast_Type* get_container_signed (Ast_Type* unsigned_type) {
-        if (unsigned_type == Types::type_u8) {
-            return Types::type_s16;
-        } else if (unsigned_type == Types::type_u16) {
-            return Types::type_s32;
-        } else if (unsigned_type == Types::type_u32) {
-            return Types::type_s64;
-        } else if (unsigned_type == Types::type_u64) {
-            return Types::type_s64;
+        if (unsigned_type == this->type_table->type_u8) {
+            return this->type_table->type_s16;
+        } else if (unsigned_type == this->type_table->type_u16) {
+            return this->type_table->type_s32;
+        } else if (unsigned_type == this->type_table->type_u32) {
+            return this->type_table->type_s64;
+        } else if (unsigned_type == this->type_table->type_u64) {
+            return this->type_table->type_s64;
         } else return unsigned_type;
     }
 };

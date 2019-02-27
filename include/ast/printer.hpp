@@ -526,7 +526,7 @@ struct Ast_Printer {
 
     void print(Ast_Slice_Type* slice_type) {
         printf("[]");
-        print(slice_type->get_typed_base());
+        print(slice_type->typed_base);
     }
 
     void print(Ast_Tuple_Type* tuple_type) {

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "pipeline/compiler_pipe.hpp"
-#include "front/parser/parser.hpp"
-#include "front/parser/internal_scope.hpp"
+#include "parser/parser.hpp"
+#include "parser/internal_scope.hpp"
 #include "platform.hpp"
 
 #include "pipeline/service/modules.hpp"

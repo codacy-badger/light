@@ -343,17 +343,19 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     uint8_t get_bytecode_type (Ast_Type* type) {
-        if (type == Types::type_bool)   return BYTECODE_TYPE_BOOL;
-        if (type == Types::type_u8)     return BYTECODE_TYPE_U8;
-        if (type == Types::type_u16)    return BYTECODE_TYPE_U16;
-        if (type == Types::type_u32)    return BYTECODE_TYPE_U32;
-        if (type == Types::type_u64)    return BYTECODE_TYPE_U64;
-        if (type == Types::type_s8)     return BYTECODE_TYPE_S8;
-        if (type == Types::type_s16)    return BYTECODE_TYPE_S16;
-        if (type == Types::type_s32)    return BYTECODE_TYPE_S32;
-        if (type == Types::type_s64)    return BYTECODE_TYPE_S64;
-        if (type == Types::type_f32)    return BYTECODE_TYPE_F32;
-        if (type == Types::type_f64)    return BYTECODE_TYPE_F64;
+        auto type_table = this->context->type_table;
+
+        if (type == type_table->type_bool)   return BYTECODE_TYPE_BOOL;
+        if (type == type_table->type_u8)     return BYTECODE_TYPE_U8;
+        if (type == type_table->type_u16)    return BYTECODE_TYPE_U16;
+        if (type == type_table->type_u32)    return BYTECODE_TYPE_U32;
+        if (type == type_table->type_u64)    return BYTECODE_TYPE_U64;
+        if (type == type_table->type_s8)     return BYTECODE_TYPE_S8;
+        if (type == type_table->type_s16)    return BYTECODE_TYPE_S16;
+        if (type == type_table->type_s32)    return BYTECODE_TYPE_S32;
+        if (type == type_table->type_s64)    return BYTECODE_TYPE_S64;
+        if (type == type_table->type_f32)    return BYTECODE_TYPE_F32;
+        if (type == type_table->type_f64)    return BYTECODE_TYPE_F64;
 
         switch (type->typedef_type) {
             case AST_TYPEDEF_FUNCTION:

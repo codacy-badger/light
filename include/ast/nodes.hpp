@@ -1,9 +1,8 @@
 #pragma once
 
 #include "platform.hpp"
-#include "ast/types.hpp"
 #include "utils/location.hpp"
-#include "front/parser/lexer/token.hpp"
+#include "parser/lexer/token.hpp"
 #include "utils/string_map.hpp"
 #include "utils/string_vector.hpp"
 #include "utils/array.hpp"
@@ -492,27 +491,16 @@ struct Ast_Array_Type : Ast_Type {
 };
 
 struct Ast_Slice_Type : Ast_Struct_Type {
+	union {
+		Ast_Expression* base = NULL;
+		Ast_Type* typed_base;
+	};
 
-	Ast_Slice_Type(Ast_Expression* base_type, const char* name = NULL);
-
-	Ast_Expression* get_base() {
-		auto attr_decl = this->find_attribute("data");
-		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->type);
-		return ptr_type->base;
-	}
-
-	Ast_Expression** get_base_ptr() {
-		auto attr_decl = this->find_attribute("data");
-		auto ptr_type = static_cast<Ast_Pointer_Type*>(attr_decl->type);
-		return &ptr_type->base;
-	}
-
-	Ast_Type* get_typed_base() {
-		return static_cast<Ast_Type*>(this->get_base());
-	}
-
-	Ast_Type** get_typed_base_ptr() {
-		return reinterpret_cast<Ast_Type**>(this->get_base_ptr());
+	Ast_Slice_Type(Ast_Expression* base_type, const char* name = NULL) {
+		this->typedef_type = AST_TYPEDEF_SLICE;
+		this->base = base_type;
+		this->is_slice = true;
+		this->name = name;
 	}
 };
 

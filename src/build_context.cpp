@@ -2,7 +2,7 @@
 
 #include "workspace.hpp"
 
-#include "front/parser/parser.hpp"
+#include "parser/parser.hpp"
 
 #include "pipeline/service/type_inferrer.hpp"
 #include "pipeline/service/type_table.hpp"

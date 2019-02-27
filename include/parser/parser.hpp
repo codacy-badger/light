@@ -2,8 +2,8 @@
 
 #include "lexer/lexer.hpp"
 #include "ast/nodes.hpp"
-#include "ast/types.hpp"
 #include "platform.hpp"
+#include "pipeline/service/type_table.hpp"
 
 #define AST_NEW(T, ...) (T*) this->set_ast_location_info(new (this->arena->get(sizeof(T))) T(__VA_ARGS__))
 
@@ -11,11 +11,13 @@ struct Parser {
 	Lexer lexer;
 
 	Build_Context* context = NULL;
+	Type_Table* type_table = NULL;
 	Memory_Arena* arena = NULL;
 
 	Ast_Scope* current_scope = NULL;
 
 	void init (Build_Context* c) {
+		this->type_table = c->type_table;
 		this->arena = c->arena;
 		this->context = c;
 	}
@@ -460,7 +462,7 @@ struct Parser {
 				if (ret_scope) ret_scope->add(decl);
 				fn_type->ret_type = decl->type;
 			}
-		} else fn_type->ret_type = Types::type_void;
+		} else fn_type->ret_type = this->type_table->type_void;
 
 		return fn_type;
 	}

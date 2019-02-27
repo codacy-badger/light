@@ -249,7 +249,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         auto unary = (*unary_ptr);
 
         assert(unary->exp->inferred_type);
-        if (unary->exp->inferred_type == Types::type_type) {
+        if (unary->exp->inferred_type == this->type_table->type_type) {
             auto base_type = static_cast<Ast_Type*>(unary->exp);
             auto ptr_type = this->context->type_table->get_or_add_pointer_type(base_type);
             (*unary_ptr) = (Ast_Unary*) ptr_type;
@@ -313,7 +313,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
             assert(decl->names.size > 0);
             assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
-            assert(decl->type->inferred_type == Types::type_type);
+            assert(decl->type->inferred_type == this->type_table->type_type);
             assert(decl->typed_type->byte_size > 0);
             if (decl->value) {
                 assert(decl->value->inferred_type);
@@ -341,7 +341,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
         auto arr_type = (*arr_type_ptr);
         assert(arr_type->base->exp_type == AST_EXPRESSION_TYPE);
-        assert(arr_type->base->inferred_type == Types::type_type);
+        assert(arr_type->base->inferred_type == this->type_table->type_type);
 
         if (arr_type->length->exp_type != AST_EXPRESSION_LITERAL) {
             this->context->error(arr_type->length, "Only literal unsigned integer values allowed in array type size");

@@ -3,15 +3,19 @@
 #include "ast/nodes.hpp"
 #include "utils/ast_navigator.hpp"
 
-#include "ast/types.hpp"
-
 #include "pipeline/service/type_caster.hpp"
 #include "pipeline/service/type_table.hpp"
 
 struct Type_Inferrer {
     Build_Context* context = NULL;
 
-    void init (Build_Context* c) { this->context = c; }
+    Type_Table* type_table = NULL;
+
+    void init (Build_Context* c) {
+        this->context = c;
+
+        this->type_table = c->type_table;
+    }
 
     void infer (Ast_Expression* exp) {
         if (exp->inferred_type) return;
@@ -67,7 +71,7 @@ struct Type_Inferrer {
     }
 
     void infer (Ast_Import* import) {
-        import->inferred_type = Types::type_namespace;
+        import->inferred_type = this->type_table->type_namespace;
     }
 
     void infer (Ast_Function* func) {
@@ -104,7 +108,7 @@ struct Type_Inferrer {
     }
 
     void infer (Ast_Type* type) {
-        type->inferred_type = Types::type_type;
+        type->inferred_type = this->type_table->type_type;
     }
 
     void infer (Ast_Binary* binary) {
@@ -147,7 +151,7 @@ struct Type_Inferrer {
             case AST_BINARY_LTE:
             case AST_BINARY_GT:
             case AST_BINARY_GTE: {
-                binary->inferred_type = Types::type_bool;
+                binary->inferred_type = this->type_table->type_bool;
                 break;
             }
         }
@@ -177,7 +181,7 @@ struct Type_Inferrer {
                 break;
             }
         	case AST_UNARY_NOT: {
-                unary->inferred_type = Types::type_bool;
+                unary->inferred_type = this->type_table->type_bool;
                 break;
             }
         	case AST_UNARY_NEGATE: {
@@ -214,23 +218,23 @@ struct Type_Inferrer {
         if (!lit->inferred_type) {
             switch (lit->literal_type) {
                 case AST_LITERAL_BOOL: {
-                    lit->inferred_type = Types::type_bool;
+                    lit->inferred_type = this->type_table->type_bool;
                     break;
                 }
                 case AST_LITERAL_UNSIGNED_INT: {
-                    lit->inferred_type = Type_Inferrer::get_smallest_type(lit->uint_value);
+                    lit->inferred_type = this->get_smallest_type(lit->uint_value);
                     break;
                 }
                 case AST_LITERAL_SIGNED_INT: {
-                    lit->inferred_type = Type_Inferrer::get_smallest_type(lit->int_value);
+                    lit->inferred_type = this->get_smallest_type(lit->int_value);
                     break;
                 }
                 case AST_LITERAL_DECIMAL: {
-                    lit->inferred_type = Types::type_f64;
+                    lit->inferred_type = this->type_table->type_f64;
                     break;
                 }
                 case AST_LITERAL_STRING: {
-                    lit->inferred_type = Types::type_string;
+                    lit->inferred_type = this->type_table->type_string;
                     break;
                 }
             }
@@ -267,35 +271,35 @@ struct Type_Inferrer {
         }
 	}
 
-    static Ast_Type* get_container_signed (Ast_Type* unsigned_type) {
-        if (unsigned_type == Types::type_u8) {
-            return Types::type_s16;
-        } else if (unsigned_type == Types::type_u16) {
-            return Types::type_s32;
-        } else if (unsigned_type == Types::type_u32) {
-            return Types::type_s64;
-        } else if (unsigned_type == Types::type_u64) {
-            return Types::type_s64;
+    Ast_Type* get_container_signed (Ast_Type* unsigned_type) {
+        if (unsigned_type == this->type_table->type_u8) {
+            return this->type_table->type_s16;
+        } else if (unsigned_type == this->type_table->type_u16) {
+            return this->type_table->type_s32;
+        } else if (unsigned_type == this->type_table->type_u32) {
+            return this->type_table->type_s64;
+        } else if (unsigned_type == this->type_table->type_u64) {
+            return this->type_table->type_s64;
         } else return unsigned_type;
     }
 
-    static Ast_Struct_Type* get_smallest_type (uint64_t value) {
+    Ast_Struct_Type* get_smallest_type (uint64_t value) {
         if (value <= UINT32_MAX) {
             if (value <= UINT16_MAX) {
                 if (value <= UINT8_MAX) {
-                    return Types::type_u8;
-                } else return Types::type_u16;
-            } else return Types::type_u32;
-        } else return Types::type_u64;
+                    return this->type_table->type_u8;
+                } else return this->type_table->type_u16;
+            } else return this->type_table->type_u32;
+        } else return this->type_table->type_u64;
     }
 
-    static Ast_Struct_Type* get_smallest_type (int64_t value) {
+    Ast_Struct_Type* get_smallest_type (int64_t value) {
         if (value <= INT32_MAX && value >= INT32_MIN) {
             if (value <= INT16_MAX && value >= INT16_MIN) {
                 if (value <= INT8_MAX && value >= INT8_MIN) {
-                    return Types::type_s8;
-                } else return Types::type_s16;
-            } else return Types::type_s32;
-        } else return Types::type_s64;
+                    return this->type_table->type_s8;
+                } else return this->type_table->type_s16;
+            } else return this->type_table->type_s32;
+        } else return this->type_table->type_s64;
     }
 };

@@ -4,7 +4,7 @@ Foo :: struct {
     a2: Bar;
 
     #if DEBUG {
-        some_other_value : usize = 12;
+        some_other_value : u32 = 12;
     }
 }
 

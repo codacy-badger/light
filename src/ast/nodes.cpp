@@ -1,7 +1,5 @@
 #include "ast/nodes.hpp"
 
-#include "ast/types.hpp"
-
 Ast_Declaration* Ast_Scope::find_declaration (const char* _name, bool use_imports, bool recurse) {
     Ast_Declaration* decl = NULL;
 
@@ -120,20 +118,6 @@ Ast_Type* Ast_Pointer_Type::get_base_type_recursive() {
     }
 
     return base_type;
-}
-
-Ast_Slice_Type::Ast_Slice_Type(Ast_Expression* base_type, const char* name) {
-	this->typedef_type = AST_TYPEDEF_SLICE;
-	this->is_slice = true;
-    this->name = name;
-
-    auto ptr_type = new Ast_Pointer_Type(base_type);
-
-    auto length_decl = new Ast_Declaration("length", Types::type_u64);
-    auto data_decl = new Ast_Declaration("data", ptr_type);
-
-    this->scope.add(length_decl);
-    this->scope.add(data_decl);
 }
 
 Ast_Binary_Type token_to_binop (Token_Type tType) {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ast/nodes.hpp"
-#include "ast/types.hpp"
 
 #include "utils/array.hpp"
 
@@ -10,11 +9,79 @@
 struct Type_Table {
     Build_Context* context = NULL;
 
-    Array<Ast_Type*> global_type_table = Array<Ast_Type*>(16);
+    Array<Ast_Struct_Type*> internal_types = Array<Ast_Struct_Type*>(32);
+    Array<Ast_Type*> global_type_table = Array<Ast_Type*>(32);
+    uint8_t function_pointer_size = 0;
+    uint8_t pointer_size = 0;
 
     char type_name_buffer[MAX_TYPE_NAME_LENGTH];
+    
+    Ast_Struct_Type* type_namespace = NULL;
+	Ast_Struct_Type* type_type = NULL;
+	Ast_Struct_Type* type_void = NULL;
+	Ast_Struct_Type* type_bool = NULL;
+	Ast_Struct_Type* type_byte = NULL;
+	Ast_Struct_Type* type_s8 = NULL;
+	Ast_Struct_Type* type_s16 = NULL;
+	Ast_Struct_Type* type_s32 = NULL;
+	Ast_Struct_Type* type_s64 = NULL;
+	Ast_Struct_Type* type_u8 = NULL;
+	Ast_Struct_Type* type_u16 = NULL;
+	Ast_Struct_Type* type_u32 = NULL;
+	Ast_Struct_Type* type_u64 = NULL;
+	Ast_Struct_Type* type_f32 = NULL;
+	Ast_Struct_Type* type_f64 = NULL;
+	Ast_Struct_Type* type_string = NULL;
+    Ast_Struct_Type* type_any = NULL;
+    
+    void init (Build_Context* c) {
+        this->context = c;
 
-    void init (Build_Context* c) { this->context = c; }
+        this->function_pointer_size = c->target_arch->register_size;
+        this->pointer_size = c->target_arch->register_size;
+
+        this->type_namespace    = new Ast_Struct_Type("namespace",  0);
+        this->type_type         = new Ast_Struct_Type("type",       0, true /* primitive */ );
+        this->type_void         = new Ast_Struct_Type("void",       0, true);
+        this->type_bool         = new Ast_Struct_Type("bool",       1, true);
+        this->type_byte         = new Ast_Struct_Type("byte",       1, true);
+        this->type_s8           = new Ast_Struct_Type("s8",         1, true, true /* number */ , true /* signed */ );
+        this->type_s16          = new Ast_Struct_Type("s16",        2, true, true, true);
+        this->type_s32          = new Ast_Struct_Type("s32",        4, true, true, true);
+        this->type_s64          = new Ast_Struct_Type("s64",        8, true, true, true);
+        this->type_u8           = new Ast_Struct_Type("u8",         1, true, true);
+        this->type_u16          = new Ast_Struct_Type("u16",        2, true, true);
+        this->type_u32          = new Ast_Struct_Type("u32",        4, true, true);
+        this->type_u64          = new Ast_Struct_Type("u64",        8, true, true);
+        this->type_f32          = new Ast_Struct_Type("f32",        4, true, true);
+        this->type_f64          = new Ast_Struct_Type("f64",        8, true, true);
+        
+        auto str_type = new Ast_Struct_Type("string");
+        str_type->inferred_type = this->type_type;
+
+        auto length_decl = new Ast_Declaration("length", this->type_u64);
+
+        auto data_decl_type = new Ast_Pointer_Type(this->type_byte);
+        auto data_decl = new Ast_Declaration("data", data_decl_type);
+
+        str_type->scope.add(length_decl);
+        str_type->scope.add(data_decl);
+
+        this->type_string = str_type;
+
+        auto any_type = new Ast_Struct_Type("any");
+        any_type->inferred_type = this->type_type;
+
+        auto type_decl = new Ast_Declaration("type", this->type_u8);
+
+        auto value_decl_type = new Ast_Pointer_Type(this->type_void);
+        auto value_decl = new Ast_Declaration("value", value_decl_type);
+
+        any_type->scope.add(type_decl);
+        any_type->scope.add(value_decl);
+
+        this->type_any = any_type;
+    }
 
     void unique (Ast_Type** type_ptr) {
         auto type = (*type_ptr);
@@ -79,6 +146,7 @@ struct Type_Table {
             }
         }
 
+        ptr_type->byte_size = this->pointer_size;
         this->add_unique(ptr_type);
     }
 
@@ -110,21 +178,22 @@ struct Type_Table {
 
         if (slice_type->type_guid > 0) return;
 
-        assert(slice_type->get_base()->exp_type == AST_EXPRESSION_TYPE);
-        this->unique(slice_type->get_typed_base_ptr());
+        assert(slice_type->base->exp_type == AST_EXPRESSION_TYPE);
+        this->unique(&slice_type->typed_base);
 
         For2 (this->global_type_table, type) {
             if (type->typedef_type == AST_TYPEDEF_SLICE) {
                 auto uniqued_slice_type = static_cast<Ast_Slice_Type*>(type);
-                assert(uniqued_slice_type->get_base()->exp_type == AST_EXPRESSION_TYPE);
+                assert(uniqued_slice_type->base->exp_type == AST_EXPRESSION_TYPE);
 
-                if (uniqued_slice_type->get_typed_base()->type_guid == slice_type->get_typed_base()->type_guid) {
+                if (uniqued_slice_type->typed_base->type_guid == slice_type->typed_base->type_guid) {
                     (*slice_type_ptr) = uniqued_slice_type;
                     return;
                 }
             }
         }
 
+        this->add_slice_attributes(slice_type);
         this->add_unique(slice_type);
     }
 
@@ -151,6 +220,7 @@ struct Type_Table {
             }
         }
 
+        func_type->byte_size = this->function_pointer_size;
         this->add_unique(func_type);
     }
 
@@ -235,6 +305,8 @@ struct Type_Table {
 
         auto ptr_type = new Ast_Pointer_Type(base_type);
         ptr_type->type_guid = this->global_type_table.size + 1;
+        ptr_type->byte_size = this->pointer_size;
+
         this->global_type_table.push(ptr_type);
         this->compute_type_name_if_needed(ptr_type);
         return ptr_type;
@@ -261,9 +333,19 @@ struct Type_Table {
         return func_type;
     }
 
+    void add_slice_attributes (Ast_Slice_Type* slice_type) {
+        auto ptr_type = this->get_or_add_pointer_type(slice_type->typed_base);
+
+        auto length_decl = new Ast_Declaration("length", this->type_u64);
+        auto data_decl = new Ast_Declaration("data", ptr_type);
+
+        slice_type->scope.add(length_decl);
+        slice_type->scope.add(data_decl);
+    }
+
 	Ast_Function_Type* build_function_type (Ast_Function* func) {
 		auto func_type = new Ast_Function_Type();
-        func_type->inferred_type = Types::type_type;
+        func_type->inferred_type = this->type_type;
 
 		for (auto stm : func->arg_scope->statements) {
 			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
@@ -288,7 +370,7 @@ struct Type_Table {
 				auto decl = static_cast<Ast_Declaration*>(stm);
 				func_type->ret_type = decl->type;
 			}
-		} else func_type->ret_type = Types::type_void;
+		} else func_type->ret_type = this->type_void;
 
 		return func_type;
 	}
@@ -302,14 +384,12 @@ struct Type_Table {
 				if (_struct->is_slice) {
 					auto slice = static_cast<Ast_Slice_Type*>(type);
 
-                    auto base = slice->get_base();
-                    assert(base->exp_type == AST_EXPRESSION_TYPE);
-                    auto base_type = static_cast<Ast_Type*>(base);
-                    this->compute_type_name_if_needed(base_type);
+                    assert(slice->base->exp_type == AST_EXPRESSION_TYPE);
+                    this->compute_type_name_if_needed(slice->typed_base);
 
                     memset(this->type_name_buffer, '\0', MAX_TYPE_NAME_LENGTH);
-                    sprintf_s(this->type_name_buffer, strlen(base_type->name) + 3,
-                        "[]%s", base_type->name);
+                    sprintf_s(this->type_name_buffer, strlen(slice->typed_base->name) + 3,
+                        "[]%s", slice->typed_base->name);
 
                     slice->name = _strdup(this->type_name_buffer);
 				}
@@ -347,12 +427,12 @@ struct Type_Table {
 	        case AST_TYPEDEF_SLICE: {
 	            auto slice = static_cast<Ast_Slice_Type*>(type);
 
-                assert(slice->get_base()->exp_type == AST_EXPRESSION_TYPE);
-                this->compute_type_name_if_needed(slice->get_typed_base());
+                assert(slice->base->exp_type == AST_EXPRESSION_TYPE);
+                this->compute_type_name_if_needed(slice->typed_base);
 
                 memset(this->type_name_buffer, '\0', MAX_TYPE_NAME_LENGTH);
-                sprintf_s(this->type_name_buffer, strlen(slice->get_typed_base()->name) + 3,
-                    "[]%s", slice->get_typed_base()->name);
+                sprintf_s(this->type_name_buffer, strlen(slice->typed_base->name) + 3,
+                    "[]%s", slice->typed_base->name);
 
                 slice->name = _strdup(this->type_name_buffer);
 

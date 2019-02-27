@@ -4,7 +4,7 @@
 #include "utils/string_vector.hpp"
 #include "utils/string_map.hpp"
 #include "ast/nodes.hpp"
-#include "front/parser/internal_scope.hpp"
+#include "parser/internal_scope.hpp"
 
 struct Modules {
     Build_Context* context = NULL;
@@ -13,7 +13,7 @@ struct Modules {
     String_Map<Ast_Scope*> scope_cache;
 
     void init (Build_Context* c) {
-        this->internal_scope = new Internal_Scope(c->target_arch, c->target_os);
+        this->internal_scope = new Internal_Scope(c);
         this->context = c;
     }
 

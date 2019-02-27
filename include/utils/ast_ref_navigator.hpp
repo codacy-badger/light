@@ -266,6 +266,7 @@ struct Ast_Ref_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Slice_Type** slice_ptr) {
+		this->ast_handle(&(*slice_ptr)->base);
         this->ast_handle((Ast_Struct_Type**) slice_ptr);
 	}
 

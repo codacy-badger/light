@@ -276,6 +276,7 @@ struct Ast_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Slice_Type* slice) {
+		this->ast_handle(slice->base);
         this->ast_handle((Ast_Struct_Type*) slice);
 	}
 
