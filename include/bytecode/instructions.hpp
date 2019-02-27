@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 
-#include "ast/nodes.hpp"
-
 enum Inst_Bytecode : uint8_t {
 	BYTECODE_UNDEFINED = 0,
 
@@ -69,29 +67,29 @@ enum Inst_Binop : uint8_t {
 };
 
 enum Bytecode_Type : uint8_t {
-	BYTECODE_TYPE_UNINITIALIZED = 0,
+    BYTECODE_TYPE_UNDEFINED = 0,
 	BYTECODE_TYPE_VOID,
-	BYTECODE_TYPE_BOOL,
-	BYTECODE_TYPE_S8,
-	BYTECODE_TYPE_S16,
-	BYTECODE_TYPE_S32,
-	BYTECODE_TYPE_S64,
-	BYTECODE_TYPE_U8,
-	BYTECODE_TYPE_U16,
-	BYTECODE_TYPE_U32,
-	BYTECODE_TYPE_U64,
-	BYTECODE_TYPE_F32,
-	BYTECODE_TYPE_F64,
-	BYTECODE_TYPE_POINTER,
+
+    BYTECODE_TYPE_BOOL,
+
+    BYTECODE_TYPE_U8,
+    BYTECODE_TYPE_U16,
+    BYTECODE_TYPE_U32,
+    BYTECODE_TYPE_U64,
+
+    BYTECODE_TYPE_S8,
+    BYTECODE_TYPE_S16,
+    BYTECODE_TYPE_S32,
+    BYTECODE_TYPE_S64,
+
+    BYTECODE_TYPE_F32,
+    BYTECODE_TYPE_F64,
+
+    BYTECODE_TYPE_POINTER,
 };
 
-Bytecode_Type bytecode_get_type (Ast_Type* decl_ty);
-Bytecode_Type bytecode_get_type (Ast_Expression* exp);
-size_t bytecode_get_size (Bytecode_Type bytecode_type);
-bool bytecode_has_sign (Bytecode_Type bytecode_type);
-Bytecode_Type bytecode_unsigned_to_signed (Bytecode_Type bytecode_type);
-Inst_Unop get_bytecode_from_unop (Ast_Unary_Type unop);
-Inst_Binop get_bytecode_from_binop (Ast_Binary_Type binop);
+Bytecode_Type get_bytecode_type (Ast_Type* decl_ty);
+size_t get_bytecode_type_size (Bytecode_Type bytecode_type);
 
 struct Instruction {
 	Location location;
@@ -125,8 +123,8 @@ struct Inst_Copy_Memory : Instruction {
 struct Inst_Cast : Instruction {
 	uint8_t reg_to = 0;
 	uint8_t reg_from = 0;
-	Bytecode_Type type_from = BYTECODE_TYPE_UNINITIALIZED;
-	Bytecode_Type type_to = BYTECODE_TYPE_UNINITIALIZED;
+	Bytecode_Type type_from = BYTECODE_TYPE_UNDEFINED;
+	Bytecode_Type type_to = BYTECODE_TYPE_UNDEFINED;
 
 	Inst_Cast (uint8_t reg_to, uint8_t reg_from, Bytecode_Type type_from, Bytecode_Type type_to) {
 		this->code = BYTECODE_CAST;
@@ -142,7 +140,7 @@ struct Inst_Cast : Instruction {
 
 struct Inst_Set : Instruction {
 	uint8_t reg = 0;
-	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
+	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNDEFINED;
 	uint8_t* data = NULL;
 
 	Inst_Set (uint8_t reg, uint8_t value)  : Inst_Set (reg, BYTECODE_TYPE_U8,  &value) {}
@@ -159,7 +157,7 @@ struct Inst_Set : Instruction {
 		this->code = BYTECODE_SET;
 		this->reg = reg;
 		this->bytecode_type = bytecode_type;
-		auto size = bytecode_get_size(bytecode_type);
+		auto size = get_bytecode_type_size(bytecode_type);
 		this->data = (uint8_t*) malloc(size);
 		memcpy(this->data, data, size);
 	}
@@ -237,7 +235,7 @@ struct Inst_Unary : Instruction {
 	uint8_t unop = 0;
 	uint8_t target = 0;
 	uint8_t reg = 0;
-	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
+	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNDEFINED;
 
 	Inst_Unary (uint8_t unop, uint8_t target, uint8_t reg, Bytecode_Type bytecode_type) {
 		this->code = BYTECODE_UNARY;
@@ -256,7 +254,7 @@ struct Inst_Binary : Instruction {
 	uint8_t target = 0;
 	uint8_t reg1 = 0;
 	uint8_t reg2 = 0;
-	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNINITIALIZED;
+	Bytecode_Type bytecode_type = BYTECODE_TYPE_UNDEFINED;
 
 	Inst_Binary (uint8_t binop, uint8_t target, uint8_t reg1, uint8_t reg2, Bytecode_Type bytecode_type) {
 		this->code = BYTECODE_BINARY;
@@ -385,3 +383,53 @@ struct Inst_Return : Instruction {
 
 	Inst_Return () : Inst_Return (0, BYTECODE_TYPE_VOID) { /* empty */ }
 };
+
+Bytecode_Type get_bytecode_type (Build_Context* context, Ast_Type* type) {
+	auto type_table = context->type_table;
+
+	if (type == type_table->type_void)   return BYTECODE_TYPE_VOID;
+	if (type == type_table->type_bool)   return BYTECODE_TYPE_BOOL;
+	if (type == type_table->type_u8)     return BYTECODE_TYPE_U8;
+	if (type == type_table->type_u16)    return BYTECODE_TYPE_U16;
+	if (type == type_table->type_u32)    return BYTECODE_TYPE_U32;
+	if (type == type_table->type_u64)    return BYTECODE_TYPE_U64;
+	if (type == type_table->type_s8)     return BYTECODE_TYPE_S8;
+	if (type == type_table->type_s16)    return BYTECODE_TYPE_S16;
+	if (type == type_table->type_s32)    return BYTECODE_TYPE_S32;
+	if (type == type_table->type_s64)    return BYTECODE_TYPE_S64;
+	if (type == type_table->type_f32)    return BYTECODE_TYPE_F32;
+	if (type == type_table->type_f64)    return BYTECODE_TYPE_F64;
+
+	switch (type->typedef_type) {
+		case AST_TYPEDEF_FUNCTION:
+		case AST_TYPEDEF_POINTER: {
+			return BYTECODE_TYPE_POINTER;
+		}
+		default: break;
+	}
+
+	return BYTECODE_TYPE_UNDEFINED;
+}
+
+size_t get_bytecode_type_size (Build_Context* context, Bytecode_Type bytecode_type) {
+	auto reg_size = context->target_arch->register_size;
+
+	switch (bytecode_type) {
+		case BYTECODE_TYPE_VOID: 		return 0;
+		case BYTECODE_TYPE_BOOL: 		return 1;
+		case BYTECODE_TYPE_U8: 			return 1;
+		case BYTECODE_TYPE_U16: 		return 2;
+		case BYTECODE_TYPE_U32: 		return 4;
+		case BYTECODE_TYPE_U64: 		return 8;
+		case BYTECODE_TYPE_S8: 			return 1;
+		case BYTECODE_TYPE_S16: 		return 2;
+		case BYTECODE_TYPE_S32: 		return 4;
+		case BYTECODE_TYPE_S64: 		return 8;
+		case BYTECODE_TYPE_F32: 		return 4;
+		case BYTECODE_TYPE_F64: 		return 8;
+		case BYTECODE_TYPE_POINTER: 	return reg_size;
+		default: assert(false);
+	}
+
+	return 0;
+}

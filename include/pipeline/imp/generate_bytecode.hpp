@@ -3,29 +3,10 @@
 #include "pipeline/compiler_pipe.hpp"
 #include "utils/ast_navigator.hpp"
 
+#include "bytecode/instructions.hpp"
+
 #define PUSH_LVAL(new_val) auto lval_tmp = is_left_value; is_left_value = new_val;
 #define POP_LVAL is_left_value = lval_tmp;
-
-enum Bytecode_Type : uint8_t {
-    BYTECODE_TYPE_UNDEFINED = 0,
-
-    BYTECODE_TYPE_BOOL,
-
-    BYTECODE_TYPE_U8,
-    BYTECODE_TYPE_U16,
-    BYTECODE_TYPE_U32,
-    BYTECODE_TYPE_U64,
-
-    BYTECODE_TYPE_S8,
-    BYTECODE_TYPE_S16,
-    BYTECODE_TYPE_S32,
-    BYTECODE_TYPE_S64,
-
-    BYTECODE_TYPE_F32,
-    BYTECODE_TYPE_F64,
-
-    BYTECODE_TYPE_POINTER,
-};
 
 struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     uint64_t next_register = 0;
@@ -120,8 +101,6 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     void ast_handle (Ast_Type*) { /* empty */ }
 
     void ast_handle (Ast_Function_Call* call) {
-        Ast_Navigator::ast_handle(call->func);
-
         assert(call->func->inferred_type);
         assert(call->func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
         auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
@@ -134,8 +113,14 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             Ast_Navigator::ast_handle(it);
             printf("CALL_SET_ARGUMENT %zd, %zd\n", i, it->reg);
         }
-
-        printf("CALL %zd\n", call->func->reg);
+        
+        Ast_Navigator::ast_handle(call->func);
+        if (call->func->exp_type == AST_EXPRESSION_FUNCTION
+                && call->typed_func->is_native()) {
+            printf("CALL_NATIVE %zd\n", call->func->reg);
+        } else {
+            printf("CALL %zd\n", call->func->reg);
+        }
 
         call->ret_regs.resize(return_count);
         for (size_t i = 0; i < return_count; i++ ) {
@@ -165,12 +150,10 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void ast_handle (Ast_Function* func) {
-        if (func->is_native()) return;
-
         this->ensure_bytecode_for_function(func);
-        
+
         func->reg = this->next_register++;
-        printf("SET_FUNC_PTR %zd, %p\n", func->reg, func);
+        printf("SET_CONST %zd, %p, %d\n", func->reg, func, BYTECODE_TYPE_POINTER);
     }
 
     void ast_handle (Ast_Cast* cast) {
@@ -178,8 +161,8 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         assert(cast->value->inferred_type);
         assert(cast->cast_to->exp_type == AST_EXPRESSION_TYPE);
-        auto target_type = this->get_bytecode_type(cast->typed_cast_to);
-        auto source_type = this->get_bytecode_type(cast->value->inferred_type);
+        auto target_type = get_bytecode_type(this->context, cast->typed_cast_to);
+        auto source_type = get_bytecode_type(this->context, cast->value->inferred_type);
 
         cast->reg = this->next_register++;
         printf("CAST %zd, %d, %zd, %d\n",
@@ -188,7 +171,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
     void ast_handle (Ast_Binary* binary) {
         assert(binary->inferred_type);
-        auto target_type = this->get_bytecode_type(binary->inferred_type);
+        auto target_type = get_bytecode_type(this->context, binary->inferred_type);
         
         switch (binary->binary_op) {
             case AST_BINARY_ATTRIBUTE: {
@@ -314,6 +297,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
     void ensure_bytecode_for_function (Ast_Function* func) {
         if (func->bytecode.size > 0) return;
+        if (func->is_native()) return;
 
         auto unique_func_name = this->build_unique_name(func);
         this->context->debug(func, "Generate bytecode for function '%s' (%s)...",
@@ -340,32 +324,6 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         this->next_register = tmp1;
 
         printf("\n...DONE\n\n");
-    }
-
-    uint8_t get_bytecode_type (Ast_Type* type) {
-        auto type_table = this->context->type_table;
-
-        if (type == type_table->type_bool)   return BYTECODE_TYPE_BOOL;
-        if (type == type_table->type_u8)     return BYTECODE_TYPE_U8;
-        if (type == type_table->type_u16)    return BYTECODE_TYPE_U16;
-        if (type == type_table->type_u32)    return BYTECODE_TYPE_U32;
-        if (type == type_table->type_u64)    return BYTECODE_TYPE_U64;
-        if (type == type_table->type_s8)     return BYTECODE_TYPE_S8;
-        if (type == type_table->type_s16)    return BYTECODE_TYPE_S16;
-        if (type == type_table->type_s32)    return BYTECODE_TYPE_S32;
-        if (type == type_table->type_s64)    return BYTECODE_TYPE_S64;
-        if (type == type_table->type_f32)    return BYTECODE_TYPE_F32;
-        if (type == type_table->type_f64)    return BYTECODE_TYPE_F64;
-
-        switch (type->typedef_type) {
-            case AST_TYPEDEF_FUNCTION:
-            case AST_TYPEDEF_POINTER: {
-                return BYTECODE_TYPE_POINTER;
-            }
-            default: break;
-        }
-
-        return BYTECODE_TYPE_UNDEFINED;
     }
 
 	char* build_unique_name (Ast_Function* func) {

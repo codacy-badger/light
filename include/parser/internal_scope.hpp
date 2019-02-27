@@ -4,6 +4,10 @@
 #include "build_context.hpp"
 #include "pipeline/service/type_table.hpp"
 
+void internal_print_u64 (uint64_t number) {
+    printf("%llu", number);
+}
+
 struct Internal_Scope : Ast_Scope {
     Location internal_location = Location("INTERNAL");
 
@@ -35,6 +39,29 @@ struct Internal_Scope : Ast_Scope {
         this->add_boolean(type_table, "OS_LINUX",   target_os_type == OS_TYPE_LINUX);
         this->add_boolean(type_table, "OS_MAC",     target_os_type == OS_TYPE_MAC);
         this->add_boolean(type_table, "DEBUG",      true);
+
+        auto func = new Ast_Function("print_u64");
+
+        func->arg_scope = new Ast_Scope();
+        func->arg_scope->statements.push_back(new Ast_Declaration(NULL, type_table->type_u64));
+        
+        func->ret_scope = new Ast_Scope();
+        func->ret_scope->statements.push_back(new Ast_Declaration(NULL, type_table->type_void));
+
+        func->foreign_function_pointer = (void*) internal_print_u64;
+        auto func_type = context->type_table->build_function_type(func);
+        this->add_function(func_type, func);
+    }
+
+    void add_function (Ast_Function_Type* func_type, Ast_Function* func) {
+        auto decl = new Ast_Declaration(func->name, func_type, func);
+        decl->stm_flags |= STM_FLAG_IDENTS_RESOLVED;
+        decl->stm_flags |= STM_FLAG_STATIC_IFS_RESOLVED;
+        func_type->location = this->internal_location;
+        func->location = this->internal_location;
+        decl->location = this->internal_location;
+        decl->is_constant = true;
+        this->add(decl);
     }
 
     void add_type (Type_Table* type_table, Ast_Struct_Type* struct_type) {

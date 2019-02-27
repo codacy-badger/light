@@ -548,9 +548,15 @@ struct Ast_Function : Ast_Expression {
 	// for bytecode
 	Array<Instruction*> bytecode;
 
-	Ast_Function() { this->exp_type = AST_EXPRESSION_FUNCTION; }
+	Ast_Function (const char* _name = NULL) {
+		this->exp_type = AST_EXPRESSION_FUNCTION;
+		this->name = _name;
+	}
 
-	bool is_native () { return !!this->foreign_function_name; }
+	bool is_native () {
+		return this->foreign_function_pointer
+			|| this->foreign_function_name;
+	}
 };
 
 enum Ast_Binary_Type {
@@ -621,7 +627,10 @@ struct Ast_Unary : Ast_Expression {
 };
 
 struct Ast_Function_Call : Ast_Expression {
-	Ast_Expression* func;
+	union {
+		Ast_Expression* func = NULL;
+		Ast_Function* typed_func;
+	};
 	Ast_Comma_Separated* arguments;
 
 	Array<int64_t> ret_regs;

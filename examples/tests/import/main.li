@@ -30,4 +30,6 @@ main :: fn {
     nested :: fn {
         value: Bruh;
     }
+
+    print_u64(12);
 }
