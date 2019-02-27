@@ -88,17 +88,19 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         assert(func_type->ret_type->exp_type == AST_EXPRESSION_TYPE);
         auto typed_ret_type = static_cast<Ast_Type*>(func_type->ret_type);
 
-        this->resolve_defaults_and_named(ret->result, func->ret_scope);
-        this->tuple_try_cast_subtypes(typed_ret_type, (Ast_Expression**) &ret->result);
-        Ast_Ref_Navigator::ast_handle(ret);
+        if (typed_ret_type != this->type_table->type_void) {
+            this->resolve_defaults_and_named(ret->result, func->ret_scope);
+            this->tuple_try_cast_subtypes(typed_ret_type, (Ast_Expression**) &ret->result);
+            Ast_Ref_Navigator::ast_handle(ret);
 
-        auto success = this->caster->try_implicid_cast(ret->result->inferred_type,
-            typed_ret_type, (Ast_Expression**) &ret->result);
-        if (!success) {
-            this->context->error(ret, "Return value cannot be implicitly casted from '%s' to '%s'",
-                ret->result->inferred_type->name, typed_ret_type->name);
-            this->context->shutdown();
-            return;
+            auto success = this->caster->try_implicid_cast(ret->result->inferred_type,
+                typed_ret_type, (Ast_Expression**) &ret->result);
+            if (!success) {
+                this->context->error(ret, "Return value cannot be implicitly casted from '%s' to '%s'",
+                    ret->result->inferred_type->name, typed_ret_type->name);
+                this->context->shutdown();
+                return;
+            }
         }
     }
 
@@ -183,6 +185,9 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         }
 
         Ast_Ref_Navigator::ast_handle(func_ptr);
+
+        // @TODO check that all control paths return a value in case the
+        // return type is not void
     }
 
     void ast_handle (Ast_Function_Call** call_ptr) {

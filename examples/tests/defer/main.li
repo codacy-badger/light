@@ -1,0 +1,17 @@
+
+main :: fn {
+    a := 1;
+    b := 2;
+
+    defer b = a - 1;
+
+    {
+        //defer b = b * 2;
+
+        if a == b {
+            return;
+        }
+    }
+
+    return;
+}

@@ -39,6 +39,10 @@ struct Array {
         }
     }
 
+    void clear () {
+        this->size = 0;
+    }
+
     bool empty () {
         return this->size == 0;
     }
@@ -84,6 +88,7 @@ struct Array {
     T pop () {
         auto result = this->data[0];
         memcpy(this->data, this->data + 1, this->size - 1);
+        this->size -= 1;
         return result;
     }
 

@@ -10,10 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/light.exe",
             "args": [
-                "examples/tests/import/main.li",
-                "examples/tests/calls/main.li",
-                "examples/tests/slice/main.li",
-                "examples/tests/multi/main.li",
+                "examples/tests/defer/main.li",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

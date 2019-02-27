@@ -14,6 +14,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
     Array<Instruction*>* bytecode = NULL;
 
+    Array<Array<Ast_Statement*>> deferred_stack;
     bool is_left_value = false;
 
     Generate_Bytecode() : Compiler_Pipe("Generate Bytecode") { /* empty */ }
@@ -25,8 +26,44 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
     void ast_handle (Ast_Scope* scope) {
         printf("PUSH_SCOPE\n");
+        this->push_deferred();
+
         Ast_Navigator::ast_handle(scope);
+
+        this->pop_deferred();
         printf("POP_SCOPE\n");
+    }
+
+    void ast_handle (Ast_Return* ret) {
+        // @INFO we have to execute all deferred statements, since
+        // after this next few lines we'll be out of the function
+        this->run_all_deferred();
+
+        for (size_t i = 0; i < ret->result->expressions.size; i++) {
+            auto return_exp = ret->result->expressions[i];
+            Ast_Navigator::ast_handle(return_exp);
+            printf("RETURN_SET_VALUE %zd, %zd\n", i, return_exp->reg);
+        }
+
+        printf("RETURN\n");
+    }
+
+    void ast_handle (Ast_Defer* defer) {
+        this->add_deferred(defer->statement);
+    }
+
+    void ast_handle (Ast_If* _if) {
+        Ast_Navigator::ast_handle(_if->condition);
+
+        printf("JUMP_IF_FALSE %zd, (else index)\n", _if->condition->reg);
+
+        Ast_Navigator::ast_handle(_if->then_body);
+
+        if (_if->else_body) {
+            printf("JUMP (endif index)\n");
+            
+            Ast_Navigator::ast_handle(_if->else_body);
+        }
     }
 
     void ast_handle (Ast_Declaration* decl) {
@@ -293,6 +330,46 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         }
     }
 
+    void push_deferred () {
+        this->deferred_stack.push(Array<Ast_Statement*>());
+    }
+
+    void add_deferred (Ast_Statement* stm) {
+        this->deferred_stack[this->deferred_stack.size - 1].push(stm);
+    }
+
+    bool has_deferred_statements () {
+        For2 (this->deferred_stack, statements) {
+            if (statements.size > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void run_all_deferred () {
+        if (!this->has_deferred_statements()) return;
+
+        printf("--ALL_DEFERRED START\n");
+        For3 (this->deferred_stack, statements, j) {
+            For (statements) {
+                Ast_Navigator::ast_handle(it);
+            }
+        }
+        printf("--ALL_DEFERRED STOP\n");
+    }
+
+    void pop_deferred () {
+        auto deferred = this->deferred_stack.pop();
+        if (deferred.empty()) return;
+
+        printf("--POP_DEFERRED START\n");
+        For (deferred) {
+            Ast_Navigator::ast_handle(it);
+        }
+        printf("--POP_DEFERRED STOP\n");
+    }
+
     void ensure_bytecode_for_run_directive (Ast_Run* run) {
         if (run->bytecode.size > 0) return;
 
@@ -336,8 +413,16 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             decl->reg = this->next_register++;
         }
 
+        this->push_deferred();
         printf("PUSH_FUNC %p\n", func);
-        Ast_Navigator::ast_handle(func);
+        for (auto stm : func->body->statements) {
+            Ast_Navigator::ast_handle(stm);
+        }
+
+        // @TODO in case we have to manually add the return instruction at the
+        // and of the function's bytecode, we also want to unroll & run all
+        // deferred statements (just like a normal Ast_Return statement would do)
+        this->pop_deferred();
 
         this->stack_offset = tmp2;
         this->next_register = tmp1;
