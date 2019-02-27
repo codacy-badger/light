@@ -84,7 +84,7 @@ void Build_Context::print_location (Location* location) {
 
     assert(location->filename);
 
-    printf("\t@ %s, line %zd\n", location->filename, location->line);
+    printf("\t@ %s(%zd)\n", location->filename, location->line);
 }
 
 void Build_Context::debug_v (const char* format, va_list args) {

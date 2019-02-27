@@ -53,7 +53,8 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void handle_import (Ast_Import* import, const char* _name = NULL) {
-        this->find_file_or_error(import);
+        auto found =this->find_file_or_error(import);
+        if (!found) return;
 
         if (import->is_include) {
             auto tmp_scope = new Ast_Scope();
@@ -78,27 +79,29 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         this->context->shutdown();
     }
 
-    void find_file_or_error (Ast_Import* import) {
+    bool find_file_or_error (Ast_Import* import) {
         if (import->is_include) {
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s.li",
                 import->resolved_source_file);
             if (!os_check_file_exists(import->resolved_source_file)) {
                 this->context->error("File not found: %s\n", import->resolved_source_file);
-            }
+                return false;
+            } return true;
         } else {
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s.li",
                 import->resolved_source_file);
-            if (os_check_file_exists(import->resolved_source_file)) return;
+            if (os_check_file_exists(import->resolved_source_file)) return true;
 
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\modules\\%s.li",
                 this->context->base_path, import->path);
-            if (os_check_file_exists(import->resolved_source_file)) return;
+            if (os_check_file_exists(import->resolved_source_file)) return true;
 
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\modules\\%s\\main.li",
                 this->context->base_path, import->path);
-            if (os_check_file_exists(import->resolved_source_file)) return;
+            if (os_check_file_exists(import->resolved_source_file)) return true;
 
             this->context->error("Module not found: %s\n", import->path);
+            return false;
         }
     }
 };
