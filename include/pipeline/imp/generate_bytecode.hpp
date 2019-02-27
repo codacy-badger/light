@@ -56,16 +56,34 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void ast_handle (Ast_Assign* assign) {
-        PUSH_LVAL(true);
-        Ast_Navigator::ast_handle(assign->variable);
-        POP_LVAL;
-
         Ast_Navigator::ast_handle(assign->value);
 
-        if (this->should_be_in_register(assign->value->inferred_type)) {
-            printf("STORE %zd, %zd\n", assign->variable->reg, assign->value->reg);
+        if (assign->variable->exp_type == AST_EXPRESSION_COMMA_SEPARATED) {
+            auto variables = static_cast<Ast_Comma_Separated*>(assign->variable);
+            auto values = static_cast<Ast_Comma_Separated*>(assign->variable);
+            assert(variables->expressions.size == values->expressions.size);
+            
+            For (variables->expressions) {
+                PUSH_LVAL(true);
+                Ast_Navigator::ast_handle(it);
+                POP_LVAL;
+                
+                if (this->should_be_in_register(assign->value->inferred_type)) {
+                    printf("STORE %zd, %zd\n", it->reg, assign->value->reg);
+                } else {
+                    printf("COPY_MEM %zd, %zd\n", it->reg, assign->value->reg);
+                }
+            }
         } else {
-            printf("COPY_MEM %zd, %zd\n", assign->variable->reg, assign->value->reg);
+            PUSH_LVAL(true);
+            Ast_Navigator::ast_handle(assign->variable);
+            POP_LVAL;
+
+            if (this->should_be_in_register(assign->value->inferred_type)) {
+                printf("STORE %zd, %zd\n", assign->variable->reg, assign->value->reg);
+            } else {
+                printf("COPY_MEM %zd, %zd\n", assign->variable->reg, assign->value->reg);
+            }
         }
     }
 
@@ -80,6 +98,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         if (ident->declaration->is_constant) {
             Ast_Navigator::ast_handle(ident->declaration->value);
+            ident->reg = ident->declaration->value->reg;
             return;
         }
         
