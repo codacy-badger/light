@@ -55,7 +55,6 @@ struct Ast_Statement : Ast {
 const uint16_t SCOPE_FLAG_FULLY_PARSED 		= 0x0001;
 const uint16_t SCOPE_FLAG_IMPORTS_RESOLVED	= 0x0002;
 const uint16_t SCOPE_FLAG_TYPES_CHECKED		= 0x0004;
-const uint16_t SCOPE_FLAG_IS_IMPERATIVE		= 0x0008;
 
 struct Ast_Scope : Ast_Statement {
 	uint16_t scope_flags = 0;
@@ -527,8 +526,6 @@ struct Ast_Function_Type : Ast_Type {
 };
 
 const uint16_t FUNCTION_FLAG_BEING_CHECKED 			= 0x0001;
-const uint16_t FUNCTION_FLAG_TYPE_CHECKED 			= 0x0002;
-const uint16_t FUNCTION_FLAG_BYTECODE_GENERATED 	= 0x0004;
 
 struct Ast_Function : Ast_Expression {
 	uint16_t func_flags = 0;

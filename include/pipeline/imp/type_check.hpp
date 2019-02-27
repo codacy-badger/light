@@ -183,7 +183,6 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         }
 
         Ast_Ref_Navigator::ast_handle(func_ptr);
-        func->func_flags |= FUNCTION_FLAG_TYPE_CHECKED;
     }
 
     void ast_handle (Ast_Function_Call** call_ptr) {
