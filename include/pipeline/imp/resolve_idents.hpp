@@ -32,7 +32,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         auto ident = (*ident_ptr);
 
         if (!ident->declaration) {
-            auto decl = this->current_scope->find_declaration(ident->name, true, true);
+            auto decl = Ast_Utils::find_declaration(this->current_scope, ident->name, true, true);
             if (decl) {
                 ident->declaration = decl;
             } else {
@@ -86,7 +86,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                             return;
                         }
 
-                        auto decl = import->file_scope->find_declaration(attr->name, false, false);
+                        auto decl = Ast_Utils::find_declaration(import->file_scope, attr->name, false, false);
                         if (decl) {
                             attr->declaration = decl;
                             (*binop_ptr) = (Ast_Binary*) attr;

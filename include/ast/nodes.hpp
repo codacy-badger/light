@@ -76,13 +76,13 @@ struct Ast_Scope : Ast_Statement {
 
     bool is_global () { return this->parent == NULL; }
 
-	std::vector<Ast_Statement*>::iterator find (Ast_Statement* stm) {
-		return std::find(this->statements.begin(), this->statements.end(), stm);
-	}
-
 	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Statement* stm) {
 		stm->parent_scope = this;
 		return this->statements.insert(it, stm);
+	}
+
+	std::vector<Ast_Statement*>::iterator find (Ast_Statement* stm) {
+		return std::find(this->statements.begin(), this->statements.end(), stm);
 	}
 
 	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Scope* scope) {
@@ -137,13 +137,7 @@ struct Ast_Scope : Ast_Statement {
 		return this->all_dependencies_flagged(SCOPE_FLAG_FULLY_PARSED | SCOPE_FLAG_IMPORTS_RESOLVED);
 	}
 
-	// @TODO this methods could be simplified, since most of the calls use
-	// constants for the boolean flags. We have to be sure they works properly
-	Ast_Declaration* find_declaration (const char* _name, bool use_imports, bool recurse);
-	Ast_Declaration* find_const_declaration (const char* _name);
-	Ast_Declaration* find_var_declaration (const char* _name);
-
-	void find_all_declarations (String_Map<std::vector<Ast_Declaration*>>* decl_map);
+	void get_all_declarations (String_Map<std::vector<Ast_Declaration*>>* decl_map);
 
 	bool is_ancestor_of (Ast_Scope* other) {
 		if (this == other) return true;
@@ -157,7 +151,18 @@ struct Ast_Scope : Ast_Statement {
 		return false;
 	}
 
-	Ast_Function* get_parent_function ();
+	Ast_Function* get_parent_function () {
+		if (this->scope_of) return this->scope_of;
+
+		Ast_Scope* scope = this;
+		while (scope->parent) {
+			scope = scope->parent;
+			if (scope->scope_of) {
+				return scope->scope_of;
+			}
+		}
+		return NULL;
+	}
 };
 
 struct Ast_Assign : Ast_Statement {
@@ -451,10 +456,6 @@ struct Ast_Struct_Type : Ast_Type {
 		if (byte_size > 0) this->type_flags |= TYPE_FLAG_SIZED;
 	}
 
-	Ast_Declaration* find_attribute (const char* attribute_name) {
-		return this->scope.find_declaration(attribute_name, true, false);
-	}
-
 	bool is_global () { return !this->scope.parent || this->scope.parent->is_global(); }
 };
 
@@ -470,7 +471,21 @@ struct Ast_Pointer_Type : Ast_Type {
 		this->base = base;
 	}
 
-	Ast_Type* get_base_type_recursive();
+	Ast_Type* get_base_type_recursive() {
+		if (this->typed_base->typedef_type != AST_TYPEDEF_POINTER) {
+			return this->typed_base;
+		}
+
+		auto tmp = this;
+		while (tmp->typed_base->typedef_type == AST_TYPEDEF_POINTER) {
+			tmp = static_cast<Ast_Pointer_Type*>(tmp->typed_base);
+			if (tmp->typed_base->typedef_type != AST_TYPEDEF_POINTER) {
+				return tmp->typed_base;
+			}
+		}
+
+		return NULL;
+	}
 };
 
 struct Ast_Array_Type : Ast_Type {
@@ -584,8 +599,6 @@ enum Ast_Binary_Type {
 	AST_BINARY_GTE,
 };
 
-Ast_Binary_Type token_to_binop (Token_Type type);
-
 struct Ast_Binary : Ast_Expression {
 	Ast_Binary_Type binary_op = AST_BINARY_UNINITIALIZED;
 	Ast_Expression* lhs = NULL;
@@ -600,7 +613,34 @@ struct Ast_Binary : Ast_Expression {
 
 	Ast_Binary (Token_Type token_type) {
 		this->exp_type = AST_EXPRESSION_BINARY;
-		this->binary_op = token_to_binop(token_type);
+		switch (token_type) {
+			case TOKEN_DOT: 			this->binary_op = AST_BINARY_ATTRIBUTE; break;
+			case TOKEN_SQ_BRAC_OPEN: 	this->binary_op = AST_BINARY_SUBSCRIPT; break;
+			
+			case TOKEN_DOUBLE_AMP:		this->binary_op = AST_BINARY_LOGICAL_AND; break;
+			case TOKEN_DOUBLE_PIPE:		this->binary_op = AST_BINARY_LOGICAL_OR; break;
+			
+			case TOKEN_ADD: 			this->binary_op = AST_BINARY_ADD; break;
+			case TOKEN_SUB: 			this->binary_op = AST_BINARY_SUB; break;
+			case TOKEN_MUL: 			this->binary_op = AST_BINARY_MUL; break;
+			case TOKEN_DIV: 			this->binary_op = AST_BINARY_DIV; break;
+			case TOKEN_PERCENT:			this->binary_op = AST_BINARY_REM; break;
+			
+			case TOKEN_AMP:				this->binary_op = AST_BINARY_BITWISE_AND; break;
+			case TOKEN_PIPE:			this->binary_op = AST_BINARY_BITWISE_OR; break;
+			case TOKEN_CARET:			this->binary_op = AST_BINARY_BITWISE_XOR; break;
+			case TOKEN_RIGHT_SHIFT:		this->binary_op = AST_BINARY_BITWISE_RIGHT_SHIFT; break;
+			case TOKEN_LEFT_SHIFT:		this->binary_op = AST_BINARY_BITWISE_LEFT_SHIFT; break;
+			
+			case TOKEN_DOUBLE_EQUAL:	this->binary_op = AST_BINARY_EQ; break;
+			case TOKEN_NOT_EQUAL:		this->binary_op = AST_BINARY_NEQ; break;
+			case TOKEN_GREATER_EQUAL:	this->binary_op = AST_BINARY_GTE; break;
+			case TOKEN_LESSER_EQUAL:	this->binary_op = AST_BINARY_LTE; break;
+			case TOKEN_GREATER:			this->binary_op = AST_BINARY_GT; break;
+			case TOKEN_LESSER:			this->binary_op = AST_BINARY_LT; break;
+
+			default: 					assert(false);
+		}
 	}
 };
 

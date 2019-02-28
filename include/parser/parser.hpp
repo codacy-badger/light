@@ -2,6 +2,7 @@
 
 #include "lexer/lexer.hpp"
 #include "ast/nodes.hpp"
+#include "ast/utils.hpp"
 #include "platform.hpp"
 #include "pipeline/service/type_table.hpp"
 
@@ -554,7 +555,7 @@ struct Parser {
 
 		// @Info this is the right time to do this, since on a non-constant
 		// reference the declaration should already be in the scope.
-		ident->declaration = this->current_scope->find_var_declaration(ident->name);
+		ident->declaration = Ast_Utils::find_var_declaration(ident->scope, ident->name);
 
 		return ident;
 	}

@@ -33,7 +33,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         if (scope->scope_flags & SCOPE_FLAG_TYPES_CHECKED) return;
 
         decl_map.clear();
-        scope->find_all_declarations(&decl_map);
+        scope->get_all_declarations(&decl_map);
 
         for (auto entry : decl_map) {
             if (entry.second.size() > 1) {
@@ -595,7 +595,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             case AST_TYPEDEF_SLICE:
             case AST_TYPEDEF_STRUCT: {
                 auto struct_type = static_cast<Ast_Struct_Type*>(type);
-                auto attr_decl = struct_type->find_attribute(ident->name);
+                auto attr_decl = Ast_Utils::find_attribute(struct_type, ident->name);
                 if (attr_decl) {
                     ident->declaration = attr_decl;
                 } else {
