@@ -25,7 +25,10 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             }
         }
 
-        this->push_out(global_statement);
+        auto global_scope = global_statement->parent_scope;
+        if (Ast_Utils::any_import_has_static_ifs(global_scope)) {
+            this->requeue(global_statement);
+        } else this->push_out(global_statement);
     }
 
     void ast_handle (Ast_Statement* stm) {

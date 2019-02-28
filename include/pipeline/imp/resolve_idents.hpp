@@ -47,7 +47,8 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             if (decl->is_global()) {
                 if (decl->value->exp_type == AST_EXPRESSION_FUNCTION) {
                     auto func = static_cast<Ast_Function*>(decl->value);
-                    if (func->body->is_ancestor_of(ident->scope)) {
+                    if (Ast_Utils::is_ancestor_of(func->body, ident->scope)) {
+                        // @INFO recursive resolution, so we can't depend on it
                         return;
                     }
                 }

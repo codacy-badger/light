@@ -35,18 +35,14 @@ struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         auto condition_value = this->get_value_as_bool(_if->condition);
         if (condition_value) {
-            this->resolve_static_if(static_if, _if->then_body);
+            this->replace_static_if(static_if, _if->then_body);
         } else if (_if->else_body) {
-            this->resolve_static_if(static_if, _if->else_body);
-        }
-
-        if (this->current_scope != this->current_global_scope) {
-            this->current_scope->remove(static_if);
+            this->replace_static_if(static_if, _if->else_body);
         }
     }
 
-    void resolve_static_if (Ast_Static_If* static_if, Ast_Scope* scope_to_merge) {
-        auto static_if_location = static_if->parent_scope->find(static_if);
+    void replace_static_if (Ast_Static_If* static_if, Ast_Scope* scope_to_merge) {
+        auto static_if_location = static_if->parent_scope->remove(static_if);
         static_if->parent_scope->add(static_if_location, scope_to_merge);
 
         if (this->current_scope == this->current_global_scope) {

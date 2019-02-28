@@ -60,6 +60,7 @@ struct Ast_Scope : Ast_Statement {
 	uint16_t scope_flags = 0;
 
 	std::vector<Ast_Statement*> statements;
+
 	String_Map<Ast_Scope*> named_imports;
 	std::vector<Ast_Scope*> imports;
 
@@ -106,62 +107,6 @@ struct Ast_Scope : Ast_Statement {
 
 	std::vector<Ast_Statement*>::iterator remove (Ast_Statement* stm) {
 		return this->statements.erase(this->find(stm));
-	}
-
-	Ast_Scope* get_global_scope () {
-		auto global_scope = this;
-        while (global_scope->parent != NULL) {
-            global_scope = global_scope->parent;
-        }
-		return global_scope;
-	}
-
-	bool has_unnamed_import (Ast_Scope* other) {
-		for (auto imported_scope : this->imports) {
-			if (imported_scope == other) return true;
-		}
-		return false;
-	}
-
-	bool all_dependencies_flagged (uint16_t flag) {
-		for (auto imported_scope : this->imports) {
-			if ((imported_scope->scope_flags & flag) != flag) return false;
-		}
-		for (auto entry : this->named_imports) {
-			if ((entry.second->scope_flags & flag) != flag) return false;
-		}
-		return true;
-	}
-
-	bool are_all_imports_resolved () {
-		return this->all_dependencies_flagged(SCOPE_FLAG_FULLY_PARSED | SCOPE_FLAG_IMPORTS_RESOLVED);
-	}
-
-	void get_all_declarations (String_Map<std::vector<Ast_Declaration*>>* decl_map);
-
-	bool is_ancestor_of (Ast_Scope* other) {
-		if (this == other) return true;
-
-		while (other->parent) {
-			other = other->parent;
-			if (this == other) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	Ast_Function* get_parent_function () {
-		if (this->scope_of) return this->scope_of;
-
-		Ast_Scope* scope = this;
-		while (scope->parent) {
-			scope = scope->parent;
-			if (scope->scope_of) {
-				return scope->scope_of;
-			}
-		}
-		return NULL;
 	}
 };
 

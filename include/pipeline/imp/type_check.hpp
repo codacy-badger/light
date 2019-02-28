@@ -33,7 +33,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         if (scope->scope_flags & SCOPE_FLAG_TYPES_CHECKED) return;
 
         decl_map.clear();
-        scope->get_all_declarations(&decl_map);
+        Ast_Utils::get_all_declarations(scope, &decl_map);
 
         for (auto entry : decl_map) {
             if (entry.second.size() > 1) {
@@ -73,7 +73,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void ast_handle (Ast_Return* ret) {
-        auto func = ret->scope->get_parent_function();
+        auto func = Ast_Utils::get_parent_function(ret->scope);
         if (!func) {
             this->context->error(ret, "Return statement found outside function scope");
             this->context->shutdown();
