@@ -178,7 +178,7 @@ struct Type_Inferrer {
                 auto base_type = unary->exp->inferred_type;
                 auto ptr_type = this->context->type_table->get_or_add_pointer_type(base_type);
                 unary->inferred_type = ptr_type;
-                unary->inferred_type->location = unary->location;
+                unary->inferred_type->path = unary->path;
                 break;
             }
         	case AST_UNARY_NOT: {

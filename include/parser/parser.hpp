@@ -635,8 +635,8 @@ struct Parser {
 	Ast* set_ast_location_info (Ast* ast_node) {
 		static size_t ast_guid = 1;
 		ast_node->ast_guid = ast_guid++;
-		ast_node->location.filename = this->lexer.source_path;
-		ast_node->location.line = this->lexer.scanner.current_line;
+		ast_node->path = this->lexer.source_path;
+		ast_node->line = this->lexer.scanner.current_line;
 		return ast_node;
 	}
 };

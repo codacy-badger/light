@@ -1,7 +1,6 @@
 #pragma once
 
 #include "platform.hpp"
-#include "utils/location.hpp"
 #include "parser/lexer/token.hpp"
 #include "utils/string_map.hpp"
 #include "utils/array.hpp"
@@ -18,7 +17,9 @@ struct Ast_Type;
 struct Instruction;
 
 struct Ast {
-	Location location;
+    const char* path = "(INTERNAL)";
+    size_t line = 0;
+
 	size_t ast_guid = 0;
 };
 
@@ -184,8 +185,8 @@ struct Ast_Foreign : Ast_Statement {
 	Ast_Foreign () { this->stm_type = AST_STATEMENT_FOREIGN; }
 
     const char* get_foreign_module_name_from_file () {
-        if (this->location.filename != NULL) {
-            auto file_name = _strdup(os_get_file_part(this->location.filename));
+        if (this->path != NULL) {
+            auto file_name = _strdup(os_get_file_part(this->path));
             file_name[strlen(file_name) - 3] = '\0';
             return file_name;
         } else return NULL;

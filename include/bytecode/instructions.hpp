@@ -92,7 +92,6 @@ Bytecode_Type get_bytecode_type (Ast_Type* decl_ty);
 size_t get_bytecode_type_size (Bytecode_Type bytecode_type);
 
 struct Instruction {
-	Location location;
 	Inst_Bytecode code = BYTECODE_UNDEFINED;
 };
 

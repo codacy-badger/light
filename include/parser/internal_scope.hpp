@@ -4,9 +4,9 @@
 #include "build_context.hpp"
 #include "pipeline/service/type_table.hpp"
 
-struct Internal_Scope : Ast_Scope {
-    Location internal_location = Location("INTERNAL");
+#define INTERNAL_PATH "(INTERNAL SCOPE)"
 
+struct Internal_Scope : Ast_Scope {
     Internal_Scope (Build_Context* context) {
         this->scope_flags |= SCOPE_FLAG_FULLY_PARSED;
         this->scope_flags |= SCOPE_FLAG_IMPORTS_RESOLVED;
@@ -43,19 +43,19 @@ struct Internal_Scope : Ast_Scope {
         auto decl = new Ast_Declaration(struct_type->name, type_table->type_type, struct_type);
         decl->stm_flags |= STM_FLAG_IDENTS_RESOLVED;
         decl->stm_flags |= STM_FLAG_STATIC_IFS_RESOLVED;
-        decl->location = this->internal_location;
+        decl->path = INTERNAL_PATH;
         decl->is_constant = true;
         this->add(decl);
     }
 
     void add_boolean (Type_Table* type_table, const char* _name, bool value) {
         auto literal = new Ast_Literal(value);
-        literal->location = this->internal_location;
+        literal->path = INTERNAL_PATH;
 
         auto decl = new Ast_Declaration(_name, type_table->type_bool, literal);
         decl->stm_flags |= STM_FLAG_IDENTS_RESOLVED;
         decl->stm_flags |= STM_FLAG_STATIC_IFS_RESOLVED;
-        decl->location = this->internal_location;
+        decl->path = INTERNAL_PATH;
         decl->is_constant = true;
         this->add(decl);
     }

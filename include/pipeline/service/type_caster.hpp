@@ -40,7 +40,7 @@ struct Type_Caster {
 
         if (this->can_be_implicidly_casted(type_from, type_to)) {
             auto cast = new Ast_Cast(*exp_ptr, type_to);
-            cast->location = (*exp_ptr)->location;
+            cast->path = (*exp_ptr)->path;
             cast->inferred_type = type_to;
             (*exp_ptr) = cast;
             return true;

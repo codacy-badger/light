@@ -287,7 +287,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         if (all_are_types) {
             auto tuple_type = new Ast_Tuple_Type();
             tuple_type->types = comma_separated->expressions;
-            tuple_type->location = comma_separated->location;
+            tuple_type->path = comma_separated->path;
             this->context->type_table->unique(&tuple_type);
             (*comma_separated_ptr) = (Ast_Comma_Separated*) tuple_type;
         }
@@ -620,7 +620,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
                     auto left_exp_ptr = &(*binary_exp_ptr)->lhs;
                     auto tmp2 = (Ast_Ident*) new Ast_Unary(AST_UNARY_DEREFERENCE, *left_exp_ptr);
-                    tmp2->location = (*left_exp_ptr)->location;
+                    tmp2->path = (*left_exp_ptr)->path;
                     tmp2->inferred_type = type;
                     (*left_exp_ptr) = tmp2;
                 }
@@ -639,7 +639,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 auto array_type = static_cast<Ast_Array_Type*>(type);
                 if (strcmp(ident->name, "length") == 0) {
                     auto length_literal = new Ast_Literal(array_type->length_uint);
-                    length_literal->location = ident->location;
+                    length_literal->path = ident->path;
                     this->inferrer->infer(length_literal);
                     (*binary_exp_ptr) = (Ast_Binary*) length_literal;
                     return true;
@@ -647,7 +647,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                     auto lhs = (*binary_exp_ptr)->lhs;
                     lhs->inferred_type = array_type->typed_base;
                     auto data_ptr = new Ast_Unary(AST_UNARY_REFERENCE, lhs);
-                    data_ptr->location = lhs->location;
+                    data_ptr->path = lhs->path;
                     this->inferrer->infer(data_ptr);
                     (*binary_exp_ptr) = (Ast_Binary*) data_ptr;
                     return true;

@@ -19,10 +19,10 @@
     print_function(format, args);                   \
     va_end(args)
 
-#define VA_PRINT_LOCATION(print_function, location) va_list args;       \
-    va_start(args, format);                                             \
-    print_function(format, args);                                       \
-    this->print_location(location);                                     \
+#define VA_PRINT_AST(print_function, node) va_list args;       \
+    va_start(args, format);                                    \
+    print_function(format, args);                              \
+    this->print_location(node->path, node->line);              \
     va_end(args)
 
 void debug_v (const char* format, va_list args);
@@ -56,11 +56,8 @@ void Build_Context::debug (const char* format, ...) {
 }
 
 void Build_Context::debug (Ast* node, const char* format, ...) {
-    VA_PRINT_LOCATION(debug_v, &node->location);
-}
-
-void Build_Context::debug (Location* location, const char* format, ...) {
-    VA_PRINT_LOCATION(debug_v, location);
+    assert(node);
+    VA_PRINT_AST(debug_v, node);
 }
 
 void Build_Context::error (const char* format, ...) {
@@ -68,11 +65,8 @@ void Build_Context::error (const char* format, ...) {
 }
 
 void Build_Context::error (Ast* node, const char* format, ...) {
-    VA_PRINT_LOCATION(error_v, &node->location);
-}
-
-void Build_Context::error (Location* location, const char* format, ...) {
-    VA_PRINT_LOCATION(error_v, location);
+    assert(node);
+    VA_PRINT_AST(error_v, node);
 }
 
 void Build_Context::shutdown () {
@@ -80,12 +74,10 @@ void Build_Context::shutdown () {
     this->workspace->stop_with_errors();
 }
 
-void Build_Context::print_location (Location* location) {
+void Build_Context::print_location (const char* path, size_t line) {
     if (!this->workspace->keep_going) return;
 
-    assert(location->filename);
-
-    printf("\t@ %s(%zd)\n", location->filename, location->line);
+    printf("\t@ %s(%zd)\n", path, line);
 }
 
 void Build_Context::debug_v (const char* format, va_list args) {

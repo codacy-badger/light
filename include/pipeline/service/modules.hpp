@@ -21,7 +21,7 @@ struct Modules {
             return this->scope_cache[absolute_path];
         } else {
             auto file_scope = new Ast_Scope();
-            file_scope->location.filename = absolute_path;
+            file_scope->path = absolute_path;
     		file_scope->imports.push(this->internal_scope);
             this->scope_cache[absolute_path] = file_scope;
             return file_scope;

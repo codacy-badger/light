@@ -50,15 +50,13 @@ struct Build_Context {
 
 	void debug (const char* format, ...);
 	void debug (Ast* node, const char* format, ...);
-	void debug (Location* location, const char* format, ...);
 
 	void error (const char* format, ...);
 	void error (Ast* node, const char* format, ...);
-	void error (Location* location, const char* format, ...);
 
 	void shutdown ();
 
-	void print_location (Location* location);
+	void print_location (const char* path, size_t line);
 
 	void debug_v (const char* format, va_list args);
 	void error_v (const char* format, va_list args);
