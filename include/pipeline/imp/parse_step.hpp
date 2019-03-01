@@ -20,18 +20,14 @@ struct Parse_Command {
 };
 
 struct Parse_Step : Compiler_Pipe<Parse_Command, Ast_Statement*> {
-    Modules* modules = NULL;
-
-    Parse_Step (Modules* modules) : Compiler_Pipe("Parse") {
-        this->modules = modules;
-    }
+    Parse_Step () : Compiler_Pipe("Parse") { /* empty */ }
 
     void handle (Parse_Command parse_command) {
         if (parse_command.source == NULL) {
             parse_command.source = os_read_entire_file(parse_command.absolute_path, &parse_command.length);
         }
 
-        auto file_scope = this->modules->get_file_scope(parse_command.absolute_path);
+        auto file_scope = this->context->modules->get_file_scope(parse_command.absolute_path);
         this->context->parser->parse_into(file_scope, parse_command.absolute_path);
         file_scope->scope_flags |= SCOPE_FLAG_FULLY_PARSED;
 

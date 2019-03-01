@@ -60,8 +60,6 @@ struct Ast_Scope : Ast_Statement {
 	uint16_t scope_flags = 0;
 
 	std::vector<Ast_Statement*> statements;
-
-	String_Map<Ast_Scope*> named_imports;
 	std::vector<Ast_Scope*> imports;
 
 	Ast_Scope* parent = NULL;

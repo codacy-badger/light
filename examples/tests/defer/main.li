@@ -1,3 +1,4 @@
+//import "asd";
 
 main :: fn {
     a := 1;

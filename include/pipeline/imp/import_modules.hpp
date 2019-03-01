@@ -9,11 +9,7 @@
 #include <vector>
 
 struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
-    Modules* modules = NULL;
-
-    Import_Modules (Modules* modules) : Compiler_Pipe("Import Modules") {
-        this->modules = modules;
-    }
+    Import_Modules () : Compiler_Pipe("Import Modules") { /* empty */ }
 
     void handle (Ast_Statement* global_statement) {
         this->ast_handle(global_statement);
@@ -56,7 +52,9 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void handle_import (Ast_Import* import, const char* _name = NULL) {
-        auto found =this->find_file_or_error(import);
+        if (import->file_scope) return;
+
+        auto found = this->find_file_or_error(import);
         if (!found) return;
 
         if (import->is_include) {
@@ -67,7 +65,7 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             //delete tmp_scope;
             //delete import;
         } else {
-            auto file_scope = this->modules->add_import(import);
+            auto file_scope = this->context->modules->add_import(import);
             if (!_name) {
                 import->scope->remove(import);
                 import->scope->imports.push_back(file_scope);
@@ -88,22 +86,32 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 import->resolved_source_file);
             if (!os_check_file_exists(import->resolved_source_file)) {
                 this->context->error("File not found: %s\n", import->resolved_source_file);
+                this->context->shutdown();
                 return false;
             } return true;
         } else {
+            const char* searched_paths[3] = {};
+
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s.li",
                 import->resolved_source_file);
             if (os_check_file_exists(import->resolved_source_file)) return true;
+            searched_paths[0] = _strdup(import->resolved_source_file);
 
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\modules\\%s.li",
                 this->context->base_path, import->path);
             if (os_check_file_exists(import->resolved_source_file)) return true;
+            searched_paths[1] = _strdup(import->resolved_source_file);
 
             sprintf_s(import->resolved_source_file, MAX_PATH_LENGTH, "%s\\modules\\%s\\main.li",
                 this->context->base_path, import->path);
             if (os_check_file_exists(import->resolved_source_file)) return true;
+            searched_paths[2] = _strdup(import->resolved_source_file);
 
-            this->context->error("Module not found: %s\n", import->path);
+            this->context->error(import, "Module '%s' not found in search paths:", import->path);
+            this->context->error("\t%s", searched_paths[0]);
+            this->context->error("\t%s", searched_paths[1]);
+            this->context->error("\t%s", searched_paths[2]);
+            this->context->shutdown();
             return false;
         }
     }

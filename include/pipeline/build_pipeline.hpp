@@ -50,10 +50,8 @@ to the file completed. The processing of each file is the following:
 #define BIND_PIPES(p1, p2) p1->output_queue = &p2->input_queue
 
 struct Build_Pipeline {
-    Modules* modules = new Modules();
-
-    Parse_Step* parse_step = new Parse_Step(modules);
-    Import_Modules* import_modules = new Import_Modules(modules);
+    Parse_Step* parse_step = new Parse_Step();
+    Import_Modules* import_modules = new Import_Modules();
     Resolve_Idents* resolve_idents = new Resolve_Idents();
     Static_If* static_if = new Static_If(&import_modules->input_queue);
     Type_Check* type_check = new Type_Check();
@@ -65,8 +63,6 @@ struct Build_Pipeline {
     std::vector<Pipe*> pipes;
 
     void init (Build_Context* context) {
-        this->modules->init(context);
-
         pipes.push_back(this->parse_step);
         pipes.push_back(this->import_modules);
         pipes.push_back(this->resolve_idents);

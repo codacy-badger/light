@@ -12,6 +12,7 @@
 
 struct Workspace;
 struct Parser;
+struct Modules;
 struct Type_Inferrer;
 struct Type_Table;
 struct Type_Caster;
@@ -39,6 +40,7 @@ struct Build_Context {
 
 	Parser* parser = NULL;
 
+    Modules* modules = NULL;
 	Type_Inferrer* type_inferrer = NULL;
 	Type_Table* type_table = NULL;
 	Type_Caster* type_caster = NULL;

@@ -16,8 +16,7 @@ struct Workspace {
 
     std::thread* thread = NULL;
     bool keep_going = true;
-    bool has_error = false;
-    bool is_build_complete = false;
+    bool is_build_finished = false;
 
     uint64_t start_time = 0;
     double total_time = 0;

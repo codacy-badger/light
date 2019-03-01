@@ -4,6 +4,7 @@
 
 #include "parser/parser.hpp"
 
+#include "pipeline/service/modules.hpp"
 #include "pipeline/service/type_inferrer.hpp"
 #include "pipeline/service/type_table.hpp"
 #include "pipeline/service/type_caster.hpp"
@@ -34,16 +35,18 @@ void Build_Context::init (Workspace* w) {
 
     this->parser = new Parser();
 
+    this->modules = new Modules();
     this->type_inferrer = new Type_Inferrer();
     this->type_table = new Type_Table();
     this->type_caster = new Type_Caster();
 
     this->printer = new Ast_Printer();
 
-    this->parser->init(this);
-    this->type_inferrer->init(this);
     this->type_table->init(this);
+    this->type_inferrer->init(this);
     this->type_caster->init(this);
+    this->parser->init(this);
+    this->modules->init(this);
 
     os_get_current_directory(this->base_path);
 }
@@ -74,8 +77,6 @@ void Build_Context::error (Location* location, const char* format, ...) {
 
 void Build_Context::shutdown () {
     if (!this->workspace->keep_going) return;
-    
-    printf("\nErrors found, stopping compilation...\n");
     this->workspace->stop_with_errors();
 }
 

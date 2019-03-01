@@ -153,6 +153,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 this->context->error(ident, "Unresolved identifier: '%s'", ident->name);
             }
 
+            printf("\n");
             this->context->shutdown();
         }
     }

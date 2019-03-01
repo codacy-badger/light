@@ -136,11 +136,6 @@ struct Ast_Utils {
                 return true;
             }
         }
-        for (auto entry : scope->named_imports) {
-            if (Ast_Utils::has_static_ifs(entry.second)) {
-                return true;
-            }
-        }
 		return false;
     }
 
