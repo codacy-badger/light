@@ -60,18 +60,18 @@ struct Build_Pipeline {
 
     Print_Step* printer = new Print_Step();
 
-    std::vector<Pipe*> pipes;
+    Array<Pipe*> pipes;
 
     void init (Build_Context* context) {
-        pipes.push_back(this->parse_step);
-        pipes.push_back(this->import_modules);
-        pipes.push_back(this->resolve_idents);
-        pipes.push_back(this->static_if);
-        pipes.push_back(this->type_check);
+        pipes.push(this->parse_step);
+        pipes.push(this->import_modules);
+        pipes.push(this->resolve_idents);
+        pipes.push(this->static_if);
+        pipes.push(this->type_check);
 
-        pipes.push_back(this->generate_bytecode);
+        pipes.push(this->generate_bytecode);
 
-        pipes.push_back(this->printer);
+        pipes.push(this->printer);
 
         BIND_PIPES(this->parse_step, this->import_modules);
         BIND_PIPES(this->import_modules, this->resolve_idents);
@@ -82,9 +82,9 @@ struct Build_Pipeline {
 
         //BIND_PIPES(this->generate_bytecode, this->printer);
 
-        for (auto pipe : this->pipes) {
-            pipe->context = context;
-            pipe->init();
+        For (this->pipes) {
+            it->context = context;
+            it->init();
         }
     }
 
@@ -98,15 +98,15 @@ struct Build_Pipeline {
 
     bool pump () {
         bool has_work = false;
-        for (auto pipe : this->pipes) {
-            has_work |= pipe->pump();
+        For (this->pipes) {
+            has_work |= it->pump();
         }
         return has_work;
     }
 
     void shutdown () {
-        for (auto pipe : this->pipes) {
-            pipe->shutdown();
+        For (this->pipes) {
+            it->shutdown();
         }
     }
 };

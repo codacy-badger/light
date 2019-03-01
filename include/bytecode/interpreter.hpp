@@ -60,9 +60,9 @@ struct Interpreter {
 		this->run(&func->bytecode);
 	}
 
-	void run (std::vector<Instruction*>* instructions) {
+	void run (Array<Instruction*>* instructions) {
 		auto _tmp = this->stack_index;
-		for (instruction_index = 0; instruction_index < instructions->size(); instruction_index++) {
+		for (instruction_index = 0; instruction_index < instructions->size; instruction_index++) {
 			auto inst = (*instructions)[instruction_index];
 
 			if (Logger::is_verbose()) this->print(inst);

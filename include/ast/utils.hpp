@@ -107,14 +107,14 @@ struct Ast_Utils {
         return NULL;
     }
 
-    static void get_all_declarations (Ast_Scope* scope, String_Map<std::vector<Ast_Declaration*>>* decl_map) {
+    static void get_all_declarations (Ast_Scope* scope, String_Map<Array<Ast_Declaration*>>* decl_map) {
         for (auto stm : scope->statements) {
             if (stm->stm_type == AST_STATEMENT_DECLARATION) {
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 for (size_t i = 0; i < decl->names.size; i++) {
                     auto decl_name = decl->names[i];
                     if (decl_name) {
-                        (*decl_map)[decl_name].push_back(decl);
+                        (*decl_map)[decl_name].push(decl);
                     }
                 }
             }

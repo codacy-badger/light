@@ -100,6 +100,15 @@ struct Array {
         return this->data[index];
     }
 
+    bool contains (T item) {
+        for (size_t i = 0; i < this->size; i++) {
+            if (this->data[i] == item) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     size_t find (T item) {
         for (size_t i = 0; i < this->size; i++) {
             if (this->data[i] == item) {

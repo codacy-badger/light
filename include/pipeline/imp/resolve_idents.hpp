@@ -6,7 +6,7 @@
 #include "utils/array.hpp"
 
 struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
-    std::vector<Ast_Ident*> unresolved_idents;
+    Array<Ast_Ident*> unresolved_idents;
     Ast_Scope* current_scope = NULL;
 
     bool resolving_inside_pointer = false;
@@ -33,7 +33,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
             if (decl) {
                 ident->declaration = decl;
             } else {
-                this->unresolved_idents.push_back(ident);
+                this->unresolved_idents.push(ident);
                 return;
             }
         }
@@ -52,12 +52,12 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
                 if (!this->resolving_inside_pointer) {
                     if (!(decl->stm_flags & STM_FLAG_IDENTS_RESOLVED)) {
-                        this->unresolved_idents.push_back(ident);
+                        this->unresolved_idents.push(ident);
                         return;
                     }
 
                     if (!(decl->stm_flags & STM_FLAG_STATIC_IFS_RESOLVED)) {
-                        this->unresolved_idents.push_back(ident);
+                        this->unresolved_idents.push(ident);
                         return;
                     }
                 }
@@ -80,7 +80,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
 
                         auto import = static_cast<Ast_Import*>(ident->declaration->value);
                         if (!import->file_scope) {
-                            this->unresolved_idents.push_back(attr);
+                            this->unresolved_idents.push(attr);
                             return;
                         }
 
@@ -90,7 +90,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                             (*binop_ptr) = (Ast_Binary*) attr;
                             this->ast_handle((Ast_Ident**) binop_ptr);
                         } else {
-                            this->unresolved_idents.push_back(attr);
+                            this->unresolved_idents.push(attr);
                             return;
                         }
                     }
@@ -130,7 +130,7 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         if (this->context->has_error) return;
         
         if (!this->input_queue.empty()) {
-            std::vector<Ast_Ident*> uniqued_idents;
+            Array<Ast_Ident*> uniqued_idents;
 
             while (!this->input_queue.empty()) {
                 auto stm = this->input_queue.pop();
@@ -138,16 +138,15 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 this->unresolved_idents.clear();
                 Ast_Ref_Navigator::ast_handle(&stm);
 
-                for (auto ident : this->unresolved_idents) {
-                    auto it = std::find(uniqued_idents.begin(), uniqued_idents.end(), ident);
-                    if(it == uniqued_idents.end()) {
-                        uniqued_idents.push_back(ident);
+                For (this->unresolved_idents) {
+                    if (!uniqued_idents.contains(it)) {
+                        uniqued_idents.push(it);
                     }
                 }
             }
 
-            for (auto ident : uniqued_idents) {
-                this->context->error(ident, "Unresolved identifier: '%s'", ident->name);
+            For (uniqued_idents) {
+                this->context->error(it, "Unresolved identifier: '%s'", it->name);
             }
 
             printf("\n");

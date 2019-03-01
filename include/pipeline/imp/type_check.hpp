@@ -14,7 +14,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     Type_Table* type_table = NULL;
     Type_Caster* caster = NULL;
 
-    String_Map<std::vector<Ast_Declaration*>> decl_map;
+    String_Map<Array<Ast_Declaration*>> decl_map;
 
     Type_Check () : Compiler_Pipe("Type Check") { /* empty */ }
 
@@ -36,9 +36,9 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         Ast_Utils::get_all_declarations(scope, &decl_map);
 
         for (auto entry : decl_map) {
-            if (entry.second.size() > 1) {
-                this->context->error(entry.second[0], "Multiple declarations with same name found for '%s':", entry.first);
-                for (size_t i = 1; i < entry.second.size(); i++) {
+            if (entry.second.size > 1) {
+                this->context->error(entry.second[0], "Multiple declarations of '%s' found for in the same scope:", entry.first);
+                for (size_t i = 1; i < entry.second.size; i++) {
                     this->context->error(entry.second[i], "Re-declaration of '%s' here", entry.first);
                 }
                 this->context->shutdown();
