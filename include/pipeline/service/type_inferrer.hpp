@@ -154,6 +154,7 @@ struct Type_Inferrer {
                 binary->inferred_type = this->type_table->type_bool;
                 break;
             }
+            default: assert(false);
         }
     }
 
@@ -188,6 +189,7 @@ struct Type_Inferrer {
                 assert(false);
                 break;
             }
+            default: assert(false);
         }
     }
 
@@ -237,6 +239,7 @@ struct Type_Inferrer {
                     lit->inferred_type = this->type_table->type_string;
                     break;
                 }
+                default: assert(false);
             }
         }
     }

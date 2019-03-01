@@ -53,10 +53,7 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Expression*>(stm));
 				break;
 			}
-			default: {
-                printf("--UNDEFINED--");
-                break;
-            }
+            default: assert(false);
 		}
         printf("\n");
     }
@@ -85,7 +82,7 @@ struct Ast_Printer {
     }
 
 	void print(Ast_Declaration* decl, bool short_version = false) {
-        printf(decl->names[0]);
+        printf("%s", decl->names[0]);
         for (size_t i = 1; i < decl->names.size; i++) {
             printf(", %s", decl->names[i]);
         }
@@ -202,10 +199,7 @@ struct Ast_Printer {
 				print(reinterpret_cast<Ast_Literal*>(exp));
 				break;
 			}
-			default: {
-                printf("--UNDEFINED--");
-                break;
-            }
+            default: assert(false);
 		}
 	}
 
@@ -225,7 +219,7 @@ struct Ast_Printer {
                 auto stm = func->arg_scope->statements[0];
                 assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                 print(static_cast<Ast_Declaration*>(stm), true);
-                for (int i = 1; i < func->arg_scope->statements.size(); i++) {
+                for (size_t i = 1; i < func->arg_scope->statements.size(); i++) {
                     printf(", ");
                     stm = func->arg_scope->statements[i];
                     assert(stm->stm_type == AST_STATEMENT_DECLARATION);
@@ -241,7 +235,7 @@ struct Ast_Printer {
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 if (decl->names.size > 0) print(decl, true);
                 else print(decl->type, true);
-                for (int i = 1; i < func->ret_scope->statements.size(); i++) {
+                for (size_t i = 1; i < func->ret_scope->statements.size(); i++) {
                     printf(", ");
                     stm = func->ret_scope->statements[i];
                     assert(stm->stm_type == AST_STATEMENT_DECLARATION);
@@ -302,6 +296,7 @@ struct Ast_Printer {
                 printf(")");
                 break;
             }
+            default: assert(false);
         }
     }
 
@@ -409,6 +404,7 @@ struct Ast_Printer {
                 print(binary->rhs);
                 break;
             }
+            default: assert(false);
         }
     }
 
@@ -451,6 +447,7 @@ struct Ast_Printer {
                 } else printf("false");
                 break;
             }
+            default: assert(false);
         }
     }
 
@@ -480,6 +477,7 @@ struct Ast_Printer {
                 print(reinterpret_cast<Ast_Tuple_Type*>(type));
                 break;
             }
+            default: assert(false);
         }
     }
 
@@ -488,7 +486,7 @@ struct Ast_Printer {
         if (func_type->arg_types.size() > 0) {
             printf(" (");
             print(func_type->arg_types[0]);
-            for (int i = 1; i < func_type->arg_types.size(); i++) {
+            for (size_t i = 1; i < func_type->arg_types.size(); i++) {
                 printf(", ");
                 print(func_type->arg_types[i]);
             }

@@ -5,15 +5,17 @@ call "os\win32\setup.bat"
 if not exist build mkdir build
 if not exist bin mkdir bin
 
-pushd build
+pushd bin
 
-REM compile using clang-cl
-clang-cl /nologo /Od /c /MD /Zi /W4 /EHsc /DCUSTOM_DEBUG ^
-    -I"../include" -I"../dyncall" ^
-    ..\src\*.cpp ..\os\win32\src\*.cpp
+set "SOURCES="
+for /R "../src" %%i in (*.cpp) do @call set SOURCES=%%SOURCES%% "%%i"
+for /R "../os/win32/src" %%i in (*.cpp) do @call set SOURCES=%%SOURCES%% "%%i"
 
-REM link using lld-link
-lld-link /nologo /INCREMENTAL /ENTRY:mainCRTStartup /subsystem:console ^
+REM to dissable all assertions remove the "/DCUSTOM_DEBUG" flag
+set FLAGS=/nologo /Od /c /MD /MP /Zi /W4 /WX /EHsc /DCUSTOM_DEBUG
+cl %FLAGS% -I"../include" -I"../dyncall" %SOURCES%
+
+link /nologo /INCREMENTAL /ENTRY:mainCRTStartup /subsystem:console ^
     /OUT:"..\bin\light.exe" /DEBUG /NODEFAULTLIB:LIBCMT *.obj ^
     ..\dyncall\dyncall\libdyncall_s.lib user32.lib
 

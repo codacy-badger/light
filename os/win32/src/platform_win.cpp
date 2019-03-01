@@ -48,7 +48,7 @@ void* os_get_module (const char* module_name) {
 }
 
 void* os_get_function (void* module, const char* function_name) {
-    return GetProcAddress((HMODULE)module, function_name);
+    return (void*) GetProcAddress((HMODULE)module, function_name);
 }
 
 void* os_get_external_function (const char* module_name, const char* function_name) {

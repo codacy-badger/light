@@ -386,6 +386,19 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 arr_type->byte_size = arr_type->length_uint * base_type_size;
                 break;
             }
+            case AST_TYPEDEF_TUPLE: {
+                auto tuple_type = static_cast<Ast_Tuple_Type*>(type);
+
+                For (tuple_type->types) {
+                    assert(it->exp_type == AST_EXPRESSION_TYPE);
+                    auto sub_type = tuple_type->typed_types[i];
+                    this->compute_type_size(sub_type);
+                    tuple_type->byte_size += sub_type->byte_size;
+                }
+
+                break;
+            }
+            default: assert(false);
         }
 
         type->type_flags |= TYPE_FLAG_SIZED;
@@ -651,6 +664,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 }
                 break;
             }
+            default: assert(false);
         }
         return false;
     }

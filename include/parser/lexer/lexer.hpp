@@ -182,7 +182,7 @@ struct Lexer {
 			auto c = scanner.next();
 			while (c != '"') {
 				// INFO: if we find a \" we don't have to stop
-				if (c == '\\') c = scanner.next();
+				if (c == '\\') scanner.next();
 
 				c = scanner.next();
 			}

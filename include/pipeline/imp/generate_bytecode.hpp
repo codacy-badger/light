@@ -391,6 +391,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 printf("NOT %zd, %zd\n", unary->reg, unary->exp->reg);
                 break;
             }
+            default: assert(false);
         }
     }
 
@@ -418,6 +419,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
                 assert(false);
                 break;
             }
+            default: assert(false);
         }
     }
 
