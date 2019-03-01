@@ -7,10 +7,10 @@ struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     Ast_Scope* current_global_scope = NULL;
     Ast_Scope* current_scope = NULL;
 
-    Async_Queue<Ast_Statement*>* flow_back = NULL;
+    Async_Array<Ast_Statement*>* flow_back = NULL;
     bool has_generated_new_internal_code = false;
 
-    Static_If(Async_Queue<Ast_Statement*>* flow_back) : Compiler_Pipe("Static If") {
+    Static_If(Async_Array<Ast_Statement*>* flow_back) : Compiler_Pipe("Static If") {
         this->flow_back = flow_back;
     }
 

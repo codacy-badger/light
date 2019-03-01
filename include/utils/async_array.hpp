@@ -1,18 +1,18 @@
 #pragma once
 
-#include "queue.hpp"
+#include "array.hpp"
 
 #include <mutex>
 #include <condition_variable>
 
 template<typename T>
-struct Async_Queue {
-    Queue<T> wrapped;
+struct Async_Array {
+    Array<T> wrapped;
     std::mutex mutex;
 
     std::condition_variable* condition;
 
-    Async_Queue (std::condition_variable* condition = NULL) {
+    Async_Array (std::condition_variable* condition = NULL) {
         this->condition = condition;
     }
 
@@ -30,7 +30,7 @@ struct Async_Queue {
     }
 
     size_t size () {
-        return this->wrapped.size();
+        return this->wrapped.size;
     }
 
     bool empty () {

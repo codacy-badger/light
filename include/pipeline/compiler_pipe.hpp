@@ -1,14 +1,13 @@
 #pragma once
 
 #include "pipe.hpp"
-#include "utils/queue.hpp"
-#include "utils/async_queue.hpp"
+#include "utils/async_array.hpp"
 
 template<typename Tin, typename Tout = Tin>
 struct Compiler_Pipe : Pipe {
-    Async_Queue<Tin> input_queue;
+    Async_Array<Tin> input_queue;
 
-    Async_Queue<Tout>* output_queue = NULL;
+    Async_Array<Tout>* output_queue = NULL;
 
     bool has_pushed_work = false;
     bool keep_working = true;

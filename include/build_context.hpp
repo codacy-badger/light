@@ -6,7 +6,6 @@
 #include "ast/nodes.hpp"
 
 #include "utils/array.hpp"
-#include "utils/async_queue.hpp"
 #include "utils/string_map.hpp"
 #include "utils/memory_arena.hpp"
 
