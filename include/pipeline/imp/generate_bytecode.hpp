@@ -161,7 +161,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         assert(call->func->inferred_type->typedef_type == AST_TYPEDEF_FUNCTION);
         auto func_type = static_cast<Ast_Function_Type*>(call->func->inferred_type);
 
-        auto arg_count = func_type->arg_types.size();
+        auto arg_count = func_type->arg_types.size;
         auto return_count = this->get_return_count(func_type);
         printf("CALL_SETUP %zd, %zd, (convention)\n", arg_count, return_count);
 

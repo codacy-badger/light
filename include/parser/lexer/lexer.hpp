@@ -3,7 +3,6 @@
 #include "scanner.hpp"
 #include "token.hpp"
 
-#include <vector>
 #include <assert.h>
 
 #define LEXER_IGNORED " \r\n\t"

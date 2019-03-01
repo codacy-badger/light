@@ -5,9 +5,6 @@
 
 #include "utils/array.hpp"
 
-#include <map>
-#include <vector>
-
 struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     std::vector<Ast_Ident*> unresolved_idents;
     Ast_Scope* current_scope = NULL;

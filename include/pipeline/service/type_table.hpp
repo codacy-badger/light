@@ -202,9 +202,9 @@ struct Type_Table {
 
         if (func_type->type_guid > 0) return;
 
-        for (auto& arg_type : func_type->arg_types) {
-            assert(arg_type->exp_type == AST_EXPRESSION_TYPE);
-            this->unique((Ast_Type**) &arg_type);
+        For_Ref (func_type->arg_types) {
+            assert((*it)->exp_type == AST_EXPRESSION_TYPE);
+            this->unique((Ast_Type**) it);
         }
         assert(func_type->ret_type->exp_type == AST_EXPRESSION_TYPE);
         this->unique((Ast_Type**) &func_type->ret_type);
@@ -261,10 +261,10 @@ struct Type_Table {
     bool types_are_equal (Ast_Function_Type* func_type1, Ast_Function_Type* func_type2) {
         if (func_type1 == func_type2) return true;
 
-        if (func_type1->arg_types.size() != func_type2->arg_types.size()) return false;
+        if (func_type1->arg_types.size != func_type2->arg_types.size) return false;
         if (func_type1->ret_type != func_type2->ret_type) return false;
 
-        for (size_t i = 0; i < func_type1->arg_types.size(); i++) {
+        for (size_t i = 0; i < func_type1->arg_types.size; i++) {
             auto attr_type1 = func_type1->arg_types[i];
             auto attr_type2 = func_type2->arg_types[i];
 
@@ -350,7 +350,7 @@ struct Type_Table {
 		for (auto stm : func->arg_scope->statements) {
 			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 			auto decl = static_cast<Ast_Declaration*>(stm);
-			func_type->arg_types.push_back(decl->type);
+			func_type->arg_types.push(decl->type);
 		}
 
 		if (func->ret_scope->statements.size() > 0) {
@@ -472,14 +472,14 @@ struct Type_Table {
 
                 memset(this->type_name_buffer, '\0', MAX_TYPE_NAME_LENGTH);
                 strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, "fn (");
-                if (_func->arg_types.size() > 0) {
+                if (_func->arg_types.size > 0) {
                     auto arg_type = _func->arg_types[0];
                     assert(arg_type->exp_type == AST_EXPRESSION_TYPE);
 
                     auto typed_type = static_cast<Ast_Type*>(arg_type);
                     this->compute_type_name_if_needed(typed_type);
                     strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, typed_type->name);
-                    for (size_t i = 1; i < _func->arg_types.size(); i++) {
+                    for (size_t i = 1; i < _func->arg_types.size; i++) {
                         strcat_s(this->type_name_buffer, MAX_TYPE_NAME_LENGTH, ", ");
 
                         arg_type = _func->arg_types[i];

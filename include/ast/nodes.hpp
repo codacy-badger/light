@@ -4,7 +4,6 @@
 #include "utils/location.hpp"
 #include "parser/lexer/token.hpp"
 #include "utils/string_map.hpp"
-#include "utils/string_vector.hpp"
 #include "utils/array.hpp"
 
 #include <assert.h>
@@ -471,7 +470,7 @@ struct Ast_Tuple_Type : Ast_Type {
 };
 
 struct Ast_Function_Type : Ast_Type {
-	std::vector<Ast_Expression*> arg_types;
+	Array<Ast_Expression*> arg_types = Array<Ast_Expression*>();
 	union {
 		Ast_Expression* ret_type = NULL;
 		Ast_Type* typed_ret_type;

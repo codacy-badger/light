@@ -5,9 +5,6 @@
 
 #include "pipeline/service/modules.hpp"
 
-#include <map>
-#include <vector>
-
 struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     Import_Modules () : Compiler_Pipe("Import Modules") { /* empty */ }
 

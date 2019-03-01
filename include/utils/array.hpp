@@ -123,3 +123,8 @@ struct Array {
 #define For2(array, it) For3(array, it, i)
 #define For3(array, it, i) auto it = array.data ? array[0] : NULL;              \
     for (size_t i = 0; i < array.size; i++, it = array[i])
+
+#define For_Ref(array) For_Ref3(array, it, i)
+#define For_Ref2(array, it) For_Ref3(array, it, i)
+#define For_Ref3(array, it, i) auto it = array.data ? &(array[0]) : NULL;              \
+    for (size_t i = 0; i < array.size; i++, it = &(array[i]))

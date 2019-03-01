@@ -428,7 +428,7 @@ struct Parser {
 				if (arg_scope) arg_scope->add(decl);
 
 				if (decl->type) {
-					fn_type->arg_types.push_back(decl->type);
+					fn_type->arg_types.push(decl->type);
 				}
 
 				this->lexer.try_skip(TOKEN_COMMA);

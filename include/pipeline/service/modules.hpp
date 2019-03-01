@@ -1,7 +1,6 @@
 #pragma once
 
 #include "build_context.hpp"
-#include "utils/string_vector.hpp"
 #include "utils/string_map.hpp"
 #include "ast/nodes.hpp"
 #include "parser/internal_scope.hpp"
