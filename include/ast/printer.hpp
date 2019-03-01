@@ -61,7 +61,7 @@ struct Ast_Printer {
     void print(Ast_Scope* scope) {
         printf("{\n");
         this->current_tabs += 1;
-        for (auto stm : scope->statements) {
+        For3 (scope->statements, stm, j) {
             PRINT_TABS;
             print(stm);
         }
@@ -214,12 +214,12 @@ struct Ast_Printer {
             printf("<%s>", func->name);
         } else {
             printf("fn");
-            if (func->arg_scope->statements.size() > 0) {
+            if (func->arg_scope->statements.size > 0) {
                 printf(" (");
                 auto stm = func->arg_scope->statements[0];
                 assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                 print(static_cast<Ast_Declaration*>(stm), true);
-                for (size_t i = 1; i < func->arg_scope->statements.size(); i++) {
+                for (size_t i = 1; i < func->arg_scope->statements.size; i++) {
                     printf(", ");
                     stm = func->arg_scope->statements[i];
                     assert(stm->stm_type == AST_STATEMENT_DECLARATION);
@@ -228,14 +228,14 @@ struct Ast_Printer {
                 printf(")");
             }
 
-            if (func->ret_scope->statements.size() > 0) {
+            if (func->ret_scope->statements.size > 0) {
                 printf(" -> (");
                 auto stm = func->ret_scope->statements[0];
                 assert(stm->stm_type == AST_STATEMENT_DECLARATION);
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 if (decl->names.size > 0) print(decl, true);
                 else print(decl->type, true);
-                for (size_t i = 1; i < func->ret_scope->statements.size(); i++) {
+                for (size_t i = 1; i < func->ret_scope->statements.size; i++) {
                     printf(", ");
                     stm = func->ret_scope->statements[i];
                     assert(stm->stm_type == AST_STATEMENT_DECLARATION);

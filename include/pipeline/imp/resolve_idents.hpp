@@ -131,7 +131,6 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         
         if (!this->input_queue.empty()) {
             Array<Ast_Ident*> uniqued_idents;
-
             while (!this->input_queue.empty()) {
                 auto stm = this->input_queue.pop();
 
@@ -145,8 +144,9 @@ struct Resolve_Idents : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
                 }
             }
 
+            this->context->error("Undefined identifiers found:");
             For (uniqued_idents) {
-                this->context->error(it, "Unresolved identifier: '%s'", it->name);
+                this->context->error(it, "'%s'", it->name);
             }
 
             printf("\n");

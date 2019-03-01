@@ -58,14 +58,14 @@ struct Import_Modules : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
             auto tmp_scope = new Ast_Scope();
             this->context->parser->parse_into(tmp_scope, import->resolved_source_file);
             auto import_location = import->scope->remove(import);
-            import->scope->add(import_location, tmp_scope->statements);
+            import->scope->add(import_location, &tmp_scope->statements);
             //delete tmp_scope;
             //delete import;
         } else {
             auto file_scope = this->context->modules->add_import(import);
             if (!_name) {
                 import->scope->remove(import);
-                import->scope->imports.push_back(file_scope);
+                import->scope->imports.push(file_scope);
             } else import->file_scope = file_scope;
         }
     }

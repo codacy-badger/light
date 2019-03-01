@@ -496,7 +496,7 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
         auto tmp2 = this->stack_offset;
         this->stack_offset = 0;
 
-        for (auto stm : func->arg_scope->statements) {
+        For2 (func->arg_scope->statements, stm) {
             assert(stm->stm_type == AST_STATEMENT_DECLARATION);
             auto decl = static_cast<Ast_Declaration*>(stm);
             decl->reg = this->next_register++;
@@ -504,8 +504,8 @@ struct Generate_Bytecode : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
 
         this->push_deferred();
         printf("PUSH_FUNC %p\n", func);
-        for (auto stm : func->body->statements) {
-            Ast_Navigator::ast_handle(stm);
+        For (func->body->statements) {
+            Ast_Navigator::ast_handle(it);
         }
 
         // @TODO in case we have to manually add the return instruction at the

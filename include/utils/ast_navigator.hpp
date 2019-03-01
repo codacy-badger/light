@@ -59,13 +59,13 @@ struct Ast_Navigator {
         auto tmp = this->current_scope;
         this->current_scope = scope;
 
-        auto initial_size = scope->statements.size();
-		for (uint64_t i = 0; i < scope->statements.size();) {
+        auto initial_size = scope->statements.size;
+		for (uint64_t i = 0; i < scope->statements.size;) {
             auto stm = scope->statements[i];
 			this->ast_handle(stm);
 
-            if (initial_size != scope->statements.size()) {
-                initial_size = scope->statements.size();
+            if (initial_size != scope->statements.size) {
+                initial_size = scope->statements.size;
             } else i++;
 		}
 
@@ -181,7 +181,7 @@ struct Ast_Navigator {
 
         func->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
         this->ast_handle(func->arg_scope);
-        for (auto stm : func->ret_scope->statements) {
+        For2 (func->ret_scope->statements, stm) {
             assert(stm->stm_type == AST_STATEMENT_DECLARATION);
             auto decl = static_cast<Ast_Declaration*>(stm);
             if (decl->type) this->ast_handle(decl->type);

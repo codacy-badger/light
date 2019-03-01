@@ -27,7 +27,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/light.exe",
             "args": [
-                "examples/tests/defer/main.li",
+                "examples/tests/import/main.li",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

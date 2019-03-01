@@ -347,17 +347,17 @@ struct Type_Table {
 		auto func_type = new Ast_Function_Type();
         func_type->inferred_type = this->type_type;
 
-		for (auto stm : func->arg_scope->statements) {
-			assert(stm->stm_type == AST_STATEMENT_DECLARATION);
-			auto decl = static_cast<Ast_Declaration*>(stm);
+		For (func->arg_scope->statements) {
+			assert(it->stm_type == AST_STATEMENT_DECLARATION);
+			auto decl = static_cast<Ast_Declaration*>(it);
 			func_type->arg_types.push(decl->type);
 		}
 
-		if (func->ret_scope->statements.size() > 0) {
-			if (func->ret_scope->statements.size() > 1) {
+		if (func->ret_scope->statements.size > 0) {
+			if (func->ret_scope->statements.size > 1) {
 				auto tuple_type = new Ast_Tuple_Type();
 
-				for (auto stm : func->ret_scope->statements) {
+				For2 (func->ret_scope->statements, stm) {
 					assert(stm->stm_type == AST_STATEMENT_DECLARATION);
 					auto decl = static_cast<Ast_Declaration*>(stm);
 					tuple_type->types.push(decl->type);

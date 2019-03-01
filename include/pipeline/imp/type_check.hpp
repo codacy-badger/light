@@ -168,7 +168,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void ast_handle (Ast_Function** func_ptr) {
         auto func = (*func_ptr);
 
-        for (auto stm : func->ret_scope->statements) {
+        For3 (func->ret_scope->statements, stm ,j) {
             assert(stm->stm_type == AST_STATEMENT_DECLARATION);
             auto decl = static_cast<Ast_Declaration*>(stm);
             if (decl->type) continue;
@@ -309,9 +309,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
         auto struct_type = (*struct_type_ptr);
 
         Ast_Ref_Navigator::ast_handle(struct_type_ptr);
-        for (size_t i = 0; i < struct_type->scope.statements.size(); i++) {
-            auto stm = struct_type->scope.statements[i];
-
+        For2 (struct_type->scope.statements, stm) {
             assert(stm->stm_type == AST_STATEMENT_DECLARATION);
             auto decl = static_cast<Ast_Declaration*>(stm);
 
@@ -407,9 +405,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     void compute_struct_type_size (Ast_Struct_Type* struct_type) {
         struct_type->byte_size = 0;
         struct_type->byte_padding = 0;
-        for (size_t i = 0; i < struct_type->scope.statements.size(); i++) {
-            auto stm = struct_type->scope.statements[i];
-
+        For2 (struct_type->scope.statements, stm) {
             if (stm->stm_type == AST_STATEMENT_DECLARATION) {
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 assert(decl->type->exp_type == AST_EXPRESSION_TYPE);
@@ -495,7 +491,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     void resolve_defaults_and_named (Ast_Comma_Separated* args, Ast_Scope* resolver) {
-        auto decl_count = resolver->statements.size();
+        auto decl_count = resolver->statements.size;
 
         if (args->expressions.size > decl_count) {
             this->context->error(args, "Too many arguments, should have at most %zd", decl_count);
@@ -583,9 +579,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     size_t get_arg_index (Ast_Scope* scope, const char* _name) {
-        for (size_t i = 0; i < scope->statements.size(); i++) {
-            auto stm = scope->statements[i];
-
+        For3 (scope->statements, stm, i) {
             assert(stm->stm_type == AST_STATEMENT_DECLARATION);
             auto decl = static_cast<Ast_Declaration*>(stm);
 
@@ -596,7 +590,7 @@ struct Type_Check : Compiler_Pipe<Ast_Statement*>, Ast_Ref_Navigator {
     }
 
     Ast_Declaration* get_arg_declaration (Ast_Scope* scope, size_t index) {
-        assert(scope->statements.size() > index);
+        assert(scope->statements.size > index);
 
         auto arg_stm = scope->statements[index];
         assert(arg_stm->stm_type == AST_STATEMENT_DECLARATION);

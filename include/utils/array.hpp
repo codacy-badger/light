@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <assert.h>
 
+#define ARRAY_MOVE_ITEMS(to, from, count) memcpy(to, from, sizeof(T) * (count))
+
 template<typename T>
 struct Array {
     size_t size = 0;
@@ -65,10 +67,13 @@ struct Array {
         this->insert(this->size, other_array);
     }
 
-    void insert (size_t at, Array<T> other_array) {
+    void insert (size_t at, Array<T>* other_array) {
         this->_ensure_size(this->size + other_array.size);
 
-        memcpy(this->data + at, this->data + at + other_array.size, this->size - at);
+        auto items_to_move = this->size - at;
+        if (items_to_move) {
+            ARRAY_MOVE_ITEMS(this->data + at + other_array.size, this->data + at, this->size - at);
+        }
 
         for (size_t i = 0; i < other_array.size; i++) {
             this->data[at + i] = other_array[i];
@@ -79,16 +84,42 @@ struct Array {
     void insert (size_t at, T item) {
         this->_ensure_size(this->size + 1);
 
-        memcpy(this->data + at, this->data + at + 1, this->size - at);
+        auto items_to_move = this->size - at;
+        if (items_to_move) {
+            ARRAY_MOVE_ITEMS(this->data + at + 1, this->data + at, items_to_move);
+        }
 
         this->data[at] = item;
         this->size += 1;
     }
 
+    void remove (size_t index) {
+        assert(index < this->size);
+        
+        auto items_to_move = this->size - index - 1;
+        if (items_to_move) {
+            ARRAY_MOVE_ITEMS(this->data + index, this->data + index + 1, items_to_move);
+        }
+        this->size -= 1;
+    }
+
+    size_t remove (T item) {
+        auto index = this->find(item);
+        if (index != SIZE_MAX) {
+            this->remove(index);
+        }
+        return index;
+    }
+
     T pop () {
         auto result = this->data[0];
-        memcpy(this->data, this->data + 1, this->size - 1);
+
+        auto items_to_move = this->size - 1;
+        if (items_to_move) {
+            ARRAY_MOVE_ITEMS(this->data, this->data + 1, items_to_move);
+        }
         this->size -= 1;
+
         return result;
     }
 
@@ -130,10 +161,10 @@ struct Array {
 
 #define For(array) For3(array, it, i)
 #define For2(array, it) For3(array, it, i)
-#define For3(array, it, i) auto it = array.data ? array[0] : NULL;              \
-    for (size_t i = 0; i < array.size; i++, it = array[i])
+#define For3(array, it, i) auto it = (array).data ? (array)[0] : NULL;              \
+    for (size_t i = 0; i < (array).size; i++, it = (array)[i])
 
 #define For_Ref(array) For_Ref3(array, it, i)
 #define For_Ref2(array, it) For_Ref3(array, it, i)
-#define For_Ref3(array, it, i) auto it = array.data ? &(array[0]) : NULL;              \
-    for (size_t i = 0; i < array.size; i++, it = &(array[i]))
+#define For_Ref3(array, it, i) auto it = (array).data ? &((array)[0]) : NULL;              \
+    for (size_t i = 0; i < (array).size; i++, it = &((array)[i]))

@@ -30,8 +30,8 @@ struct Ast_Utils {
         // If import use is requested we look for declarations in the global scope
         // of every imported scope, we ignore import's parents & imports
         if (use_imports) {
-            for (auto imported_scope : scope->imports) {
-                decl = Ast_Utils::find_local_declaration(imported_scope, name);
+            For (scope->imports) {
+                decl = Ast_Utils::find_local_declaration(it, name);
                 if (decl) return decl;
             }
         }
@@ -44,7 +44,7 @@ struct Ast_Utils {
     }
 
     static Ast_Declaration* find_var_declaration (Ast_Scope* scope, const char* name) {
-        for (auto stm : scope->statements) {
+        For3 (scope->statements, stm, j) {
             if (stm->stm_type == AST_STATEMENT_DECLARATION) {
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 if (!decl->is_constant) {
@@ -72,7 +72,7 @@ struct Ast_Utils {
     }
 
     static Ast_Declaration* find_const_declaration (Ast_Scope* scope, const char* name) {
-        for (auto stm : scope->statements) {
+        For3 (scope->statements, stm, j) {
             if (stm->stm_type == AST_STATEMENT_DECLARATION) {
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 if (decl->is_constant) {
@@ -92,7 +92,7 @@ struct Ast_Utils {
     }
 
     static Ast_Declaration* find_local_declaration (Ast_Scope* scope, const char* name) {
-        for (auto stm : scope->statements) {
+        For3 (scope->statements, stm, j) {
             if (stm->stm_type == AST_STATEMENT_DECLARATION) {
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 for (size_t i = 0; i < decl->names.size; i++) {
@@ -108,7 +108,7 @@ struct Ast_Utils {
     }
 
     static void get_all_declarations (Ast_Scope* scope, String_Map<Array<Ast_Declaration*>>* decl_map) {
-        for (auto stm : scope->statements) {
+        For3 (scope->statements, stm, j) {
             if (stm->stm_type == AST_STATEMENT_DECLARATION) {
                 auto decl = static_cast<Ast_Declaration*>(stm);
                 for (size_t i = 0; i < decl->names.size; i++) {
@@ -122,7 +122,7 @@ struct Ast_Utils {
     }
 
     static bool has_static_ifs (Ast_Scope* scope) {
-        for (auto stm : scope->statements) {
+        For2 (scope->statements, stm) {
             if (stm->stm_type == AST_STATEMENT_STATIC_IF) {
                 return true;
             }
@@ -131,8 +131,8 @@ struct Ast_Utils {
     }
 
     static bool any_import_has_static_ifs (Ast_Scope* scope) {
-        for (auto imported_scope : scope->imports) {
-            if (Ast_Utils::has_static_ifs(imported_scope)) {
+        For (scope->imports) {
+            if (Ast_Utils::has_static_ifs(it)) {
                 return true;
             }
         }

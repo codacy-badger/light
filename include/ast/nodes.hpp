@@ -7,8 +7,6 @@
 #include "utils/array.hpp"
 
 #include <assert.h>
-#include <vector>
-#include <algorithm>
 
 struct Ast_Comma_Separated;
 struct Ast_Declaration;
@@ -58,8 +56,8 @@ const uint16_t SCOPE_FLAG_TYPES_CHECKED		= 0x0004;
 struct Ast_Scope : Ast_Statement {
 	uint16_t scope_flags = 0;
 
-	std::vector<Ast_Statement*> statements;
-	std::vector<Ast_Scope*> imports;
+	Array<Ast_Statement*> statements;
+	Array<Ast_Scope*> imports;
 
 	Ast_Scope* parent = NULL;
 	Ast_Function* scope_of = NULL;
@@ -74,36 +72,33 @@ struct Ast_Scope : Ast_Statement {
 
     bool is_global () { return this->parent == NULL; }
 
-	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Statement* stm) {
+	inline
+	void on_stm_add (Ast_Statement* stm) {
 		stm->parent_scope = this;
-		return this->statements.insert(it, stm);
 	}
 
-	std::vector<Ast_Statement*>::iterator find (Ast_Statement* stm) {
-		return std::find(this->statements.begin(), this->statements.end(), stm);
+	void add (size_t index, Ast_Statement* stm) {
+		this->statements.insert(index, stm);
+		this->on_stm_add(stm);
 	}
 
-	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, Ast_Scope* scope) {
-		return this->add(it, scope->statements);
-	}
-
-	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*>::iterator it, std::vector<Ast_Statement*> others) {
-		for (auto stm : others) {
-			it = this->add(it, stm);
+	void add (size_t index, Array<Ast_Statement*>* others) {
+		For (*others) {
+			this->add(index, it);
 		}
-		return it;
 	}
 
-	std::vector<Ast_Statement*>::iterator add (Ast_Statement* stm) {
-		return this->add(this->statements.end(), stm);
+	void add (Ast_Statement* stm) {
+		this->statements.push(stm);
+		this->on_stm_add(stm);
 	}
 
-	std::vector<Ast_Statement*>::iterator add (std::vector<Ast_Statement*> others) {
-		return this->add(this->statements.end(), others);
+	size_t find (Ast_Statement* stm) {
+		return this->statements.find(stm);
 	}
 
-	std::vector<Ast_Statement*>::iterator remove (Ast_Statement* stm) {
-		return this->statements.erase(this->find(stm));
+	size_t remove (Ast_Statement* stm) {
+		return this->statements.remove(stm);
 	}
 };
 

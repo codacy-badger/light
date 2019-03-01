@@ -54,14 +54,14 @@ struct Ast_Ref_Navigator {
 	}
 
 	virtual void ast_handle (Ast_Scope* scope) {
-		size_t initial_size = scope->statements.size();
-		for (uint64_t i = 0; i < scope->statements.size(); i++) {
+		size_t initial_size = scope->statements.size;
+		for (uint64_t i = 0; i < scope->statements.size; i++) {
 			this->ast_handle(&scope->statements[i]);
 
 			// INFO: if we add something to the scope, we have to increment
 			// the counter the same amount of items
-			if (scope->statements.size() != initial_size) {
-				initial_size = scope->statements.size();
+			if (scope->statements.size != initial_size) {
+				initial_size = scope->statements.size;
 				i -= 1;
 			}
 		}
@@ -177,7 +177,7 @@ struct Ast_Ref_Navigator {
 
         (*func)->func_flags |= FUNCTION_FLAG_BEING_CHECKED;
         this->ast_handle((*func)->arg_scope);
-        for (auto stm : (*func)->ret_scope->statements) {
+        For3 ((*func)->ret_scope->statements, stm, j) {
             assert(stm->stm_type == AST_STATEMENT_DECLARATION);
             auto decl = static_cast<Ast_Declaration*>(stm);
             if (decl->type) this->ast_handle(&decl->type);

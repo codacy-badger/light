@@ -42,12 +42,13 @@ struct Static_If : Compiler_Pipe<Ast_Statement*>, Ast_Navigator {
     }
 
     void replace_static_if (Ast_Static_If* static_if, Ast_Scope* scope_to_merge) {
-        auto static_if_location = static_if->parent_scope->remove(static_if);
-        static_if->parent_scope->add(static_if_location, scope_to_merge);
+        auto parent_scope = static_if->parent_scope;
+        auto index = parent_scope->remove(static_if);
+        parent_scope->add(index, &scope_to_merge->statements);
 
         if (this->current_scope == this->current_global_scope) {
-            for (auto stm : scope_to_merge->statements) {
-                flow_back->push(stm);
+            For (scope_to_merge->statements) {
+                flow_back->push(it);
             }
         } else this->has_generated_new_internal_code = true;
     }
