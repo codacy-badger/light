@@ -143,8 +143,8 @@ struct Ast_Printer {
         if (foreign->module_name) printf("%s ", foreign->module_name);
         if (foreign->function_name) printf("%s ", foreign->function_name);
         printf("{\n");
-        for (auto decl : foreign->declarations) {
-            print(decl + 1);
+        For (foreign->declarations) {
+            print(it);
         }
         printf("}");
     }

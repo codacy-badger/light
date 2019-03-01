@@ -184,7 +184,7 @@ struct Ast_Return : Ast_Statement {
 struct Ast_Foreign : Ast_Statement {
     const char* module_name = NULL;
     const char* function_name = NULL;
-	std::vector<Ast_Declaration*> declarations;
+	Array<Ast_Declaration*> declarations;
 
 	Ast_Foreign () { this->stm_type = AST_STATEMENT_FOREIGN; }
 
